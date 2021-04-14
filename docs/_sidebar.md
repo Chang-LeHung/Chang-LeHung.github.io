@@ -2,7 +2,7 @@
 
 * [首页](/)
 * 机器学习算法
-	* [线性回归(Linear Regression)](/ML/lr.md)
+	* [线性模型(Linear Model)](/ML/lr.md)
 * 数据结构
 	* [堆](/DataStructure/heap.md)
 * 非机器学习算法
