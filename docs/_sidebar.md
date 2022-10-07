@@ -1,11 +1,61 @@
-<!-- docs/_sidebar.md -->
-
-* [首页](/)
-* 机器学习算法
-	* [1.线性模型(Linear Model)](/ML/lr.md)
-	* 2.从决策树到随机森林
-	  * [2.1决策树](/ML/decisiontree.md)
-	* 3.支持向量机从零开始
-* 数据结构
-	* [堆](/DataStructure/heap.md)
-* 非机器学习算法
+* Makefile
+	* [ 彻底掌握Makefile（二） ]( ./tools/makefile/02.md )
+	* [ 彻底掌握Makefile（三） ]( ./tools/makefile/03.md )
+	* [ Makfile总结 ]( ./tools/makefile/04.md )
+	* [ 彻底掌握Makefile（一） ]( ./tools/makefile/01.md )
+* Des
+	* [ DES算法——从小白到登堂入室 ]( ./des/des.md )
+* Container
+	* [ 数组容器(ArrayList)设计与Java实现 ]( ./container/03-array容器设计与实现.md )
+	* [ ArrayList源码深度剖析 ]( ./container/04-arraylist源码剖析.md )
+	* [ 链表设计与实现 ]( ./container/01-链表设计与实现.md )
+	* [ HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理 ]( ./container/05-hashmap设计与实现(上篇).md )
+	* [ LinkedList源码深度剖析 ]( ./container/02-linkedlist源码剖析.md )
+	* [ HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！ ]( ./container/06-hashmap设计与实现(下篇).md )
+	* [ `HashMap`源码深度剖析，手把手带你分析每一行代码！ ]( ./container/07-hashmap源码剖析.md )
+	* [ ArrayDeque（JDK双端队列）源码深度剖析 ]( ./container/08-arraydeque源码剖析.md )
+	* [ 深入剖析（JDK）ArrayQueue源码 ]( ./container/09-arrayqueue源码剖析.md )
+* Java
+	* [ 60行自己动手写FutureTask ]( ./concurrency/java/06futuretask.md )
+	* [ JDK数组阻塞队列源码深入剖析 ]( ./concurrency/java/12blockingqueuesrc.md )
+	* [ 深入学习Synchronized各种使用方法 ]( ./concurrency/java/08synchronizedusage.md )
+	* [ 并发程序的噩梦——数据竞争 ]( ./concurrency/java/02并发的噩梦.md )
+	* [ Synchronized锁升级原理与过程深入剖析 ]( ./concurrency/java/09synchronized.md )
+	* [ 彻底了解线程池的原理——40行从零开始自己写线程池 ]( ./concurrency/java/14threadpool.md )
+	* [ 彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor ]( ./concurrency/java/15threadpoolv2.md )
+	* [ 并发刺客（False Sharing）——并发程序的隐藏杀手 ]( ./concurrency/java/05falsesharing.md )
+	* [ 并发开篇——带你从0到1建立并发知识体系的基石 ]( ./concurrency/java/01初始java并发.md )
+	* [ 万字长文：从计算机本源深入探寻volatile和Java内存模型 ]( ./concurrency/java/04volatile.md )
+	* [ 从零开始自己动手写自旋锁 ]( ./concurrency/java/10spinlock.md )
+	* [ 30行自己写并发工具类(Semaphore, CyclicBarrier, CountDownLatch)是什么体验？ ]( ./concurrency/java/03自己动手写并发工具类.md )
+	* [ 从零开始自己动手写阻塞队列 ]( ./concurrency/java/11blockingqueue.md )
+	* [ FutureTask源码深度剖析 ]( ./concurrency/java/07futuretasksrc.md )
+	* [ 60行自己动手写LockSupport是什么体验？ ]( ./concurrency/java/13locksupport.md )
+* Datastructr&Algorithm
+	* [ 你真的懂01背包问题吗？01背包的这几问你能答出来吗？ ]( ./datastructr&algorithm/02-01背包问题.md )
+	* [ 庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！ ]( ./datastructr&algorithm/01-动态规划.md )
+	* [ 完全背包转化为多重背包 ]( ./datastructr&algorithm/14深入剖析完全背包.md )
+	* [ 01背包面试题系列（二） ]( ./datastructr&algorithm/0801背包例题2.md )
+	* [ 状态机动态规划之股票问题总结 ]( ./datastructr&algorithm/12状态机动态规划总结.md )
+	* [ 深入剖析多重背包问题（上篇） ]( ./datastructr&algorithm/04多重背包v1.md )
+	* [ 01背包面试题系列（一） ]( ./datastructr&algorithm/0601背包例题1.md )
+	* [ 这种动态规划你见过吗——状态机动态规划之股票问题(下) ]( ./datastructr&algorithm/11状态机动态规划03.md )
+	* [ 深入剖析多重背包问题（下篇） ]( ./datastructr&algorithm/04多重背包v2.md )
+	* [ 深入剖析前缀、中缀、后缀表达式以及表达式求值 ]( ./datastructr&algorithm/07表达式求值.md )
+	* [ 这种动态规划你见过吗——状态机动态规划之股票问题(上) ]( ./datastructr&algorithm/09状态机动态规划.md )
+	* [ 深入剖析斐波拉契数列 ]( ./datastructr&algorithm/05深入剖析斐波拉契数列.md )
+	* [ 面试官：完全背包都不会，是你自己走还是我送你？ ]( ./datastructr&algorithm/03完全背包.md )
+	* [ 深入浅出零钱兑换问题——背包问题的套壳 ]( ./datastructr&algorithm/13零钱兑换.md )
+	* [ 这种动态规划你见过吗——状态机动态规划之股票问题(中) ]( ./datastructr&algorithm/10状态机动态规划02.md )
+* Backtrace
+	* [ 通过组合问题看透回溯法 ]( ./datastructr&algorithm/backtrace/01combinations.md )
+	* [ 组合总和 ]( ./datastructr&algorithm/backtrace/02combinations.md )
+	* [ 组合总和 II]( ./datastructr&algorithm/backtrace/03combinations.md )
+	* [ 数组总和III]( ./datastructr&algorithm/backtrace/04combinations.md )
+* Ml
+	* [ 深入剖析线性回归 ]( ./ml/01线性回归.md )
+* Advanced
+	* [ 静态加载器 ]( ./linux/advanced/01staticloader.md )
+* Command
+	* [ Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识 ]( ./linux/command/01top.md )
+	* [ Linux命令系列之ls——原来最简单的ls这么复杂 ]( ./linux/command/02ls.md )
