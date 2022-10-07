@@ -586,5 +586,5 @@ Person{name='LeHung'}
 
 关注公众号：一无是处的研究僧，了解更多计算机知识
 
-![微信公众号](qrcode2.jpg)
+![微信公众号](../qrcode2.jpg)
 

@@ -597,7 +597,7 @@ Store Buffer、Valid Queue、CPU、CPU缓存以及内存的逻辑结构大致如
 
 关注公众号：**一无是处的研究僧**，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。
 
-![微信公众号](qrcode2.jpg)
+![微信公众号](../../qrcode2.jpg)
 
 ## 参考书籍和资料
 

@@ -10,14 +10,14 @@ def scan(dir):
         if os.path.isdir(path) and not d.startswith("."):
             scan(path)
         else:
-            if d.endswith(".md"):
+            if d.endswith(".md") :
                 with open(path, "r+") as fp:
                     content = fp.read()
                     m = re.findall(r"# (.+)", content)
                     if len(m) > 0:
                         print("[", m[0], "](", path, ")")
-                content = content.replace("![](https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg)",
-                                "![微信公众号](qrcode2.jpg)")
+                content = content.replace("![微信公众号](qrcode2.jpg)",
+                                "![微信公众号](" + "../" * (path.count('/') - 1) + "qrcode2.jpg)")
                 with open(path, "w+") as fp:
                     fp.write(content)
 
