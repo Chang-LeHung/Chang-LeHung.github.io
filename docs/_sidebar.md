@@ -1,10 +1,4 @@
-* Makefile
-	* [ 彻底掌握Makefile（二） ]( ./tools/makefile/02.md )
-	* [ 彻底掌握Makefile（三） ]( ./tools/makefile/03.md )
-	* [ Makfile总结 ]( ./tools/makefile/04.md )
-	* [ 彻底掌握Makefile（一） ]( ./tools/makefile/01.md )
-* Des
-	* [ DES算法——从小白到登堂入室 ]( ./des/des.md )
+
 * Container
 	* [ 数组容器(ArrayList)设计与Java实现 ]( ./container/03-array容器设计与实现.md )
 	* [ ArrayList源码深度剖析 ]( ./container/04-arraylist源码剖析.md )
@@ -59,3 +53,10 @@
 * Command
 	* [ Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识 ]( ./linux/command/01top.md )
 	* [ Linux命令系列之ls——原来最简单的ls这么复杂 ]( ./linux/command/02ls.md )
+* Makefile
+	* [ 彻底掌握Makefile（二） ]( ./tools/makefile/02.md )
+	* [ 彻底掌握Makefile（三） ]( ./tools/makefile/03.md )
+	* [ Makfile总结 ]( ./tools/makefile/04.md )
+	* [ 彻底掌握Makefile（一） ]( ./tools/makefile/01.md )
+* Des
+	* [ DES算法——从小白到登堂入室 ]( ./des/des.md )
