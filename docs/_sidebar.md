@@ -56,6 +56,6 @@
 	* [第一节. 深入剖析线性回归]( ./ml/01线性回归.md )
 * 第八章. Advanced
 	* [第一节. 静态加载器]( ./linux/advanced/01staticloader.md )
-* 第九章. Command
+* 第九章. Command	
 	* [第一节. Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识]( ./linux/command/01top.md )
 	* [第二节. Linux命令系列之ls——原来最简单的ls这么复杂]( ./linux/command/02ls.md )
