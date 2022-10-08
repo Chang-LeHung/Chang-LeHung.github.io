@@ -50,8 +50,8 @@
 * 第六章. Backtrace
 	* [第一节. 通过组合问题看透回溯法]( ./datastructr&algorithm/backtrace/01combinations.md )
 	* [第二节. 组合总和]( ./datastructr&algorithm/backtrace/02combinations.md )
-	* [第三节. [组合总和 II]( ./datastructr&algorithm/backtrace/03combinations.md )
-	* [第四节. [数组总和III]( ./datastructr&algorithm/backtrace/04combinations.md )
+	* [第三节. 组合总和 II]( ./datastructr&algorithm/backtrace/03combinations.md )
+	* [第四节. 数组总和III]( ./datastructr&algorithm/backtrace/04combinations.md )
 * 第七章. Ml
 	* [第一节. 深入剖析线性回归]( ./ml/01线性回归.md )
 * 第八章. Advanced
