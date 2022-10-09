@@ -25,8 +25,13 @@
     <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-cpp.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
     <script>
         window.$docsify = {
+            latex: {
+                inlineMath   : [['$', '$'], ['\\(', '\\)']], // default
+                displayMath  : [['$$', '$$']],               // default
+            },
             // 项目名称
             name: 'CSCore',
             // 仓库地址，点击右上角的Github章鱼猫头像会跳转到此地址
