@@ -1,1 +1,6 @@
 *.out
+*.pdf
+*.dot
+*.xml
+*.json
+*dSYM*/
