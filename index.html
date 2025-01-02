@@ -130,6 +130,36 @@
         h3 {
             font-size: 1.4em;
         }
+
+        .about-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .about-section {
+            padding: 5px 0;
+        }
+
+        .about-section p {
+            margin: 0;
+        }
+
+        .quotes {
+            border-left: 3px solid #0366d6;
+            padding-left: 15px;
+            margin-top: 10px;
+        }
+
+        blockquote {
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        blockquote footer {
+            margin-top: 5px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -150,19 +180,40 @@
 
     <div class="section">
         <h2>About Me</h2>
-        <p>
-            I am passionate about programming language implementation, virtual machines, and compilers. Currently focusing on Python virtual machine internals and compiler optimization. I enjoy writing technical articles and have published over 120 articles about Python internals and computer systems fundamentals.
-        </p>
-        <p style="margin-top: 10px;">
-            I believe that happiness, love, and passion should be the primary pursuits in life, ahead of study or work. Programming is not just my profession - it's my hobby and passion. I find joy in creating and understanding how things work from the ground up.
-        </p>
-        <p style="margin-top: 10px;">
-            Always maintaining curiosity and the desire to explore is what keeps me moving forward. I believe that staying curious and passionate about learning is the key to both personal growth and happiness in life.
-        </p>
-        <p style="margin-top: 10px;">
-            <strong>"What I cannot create, I do not understand" - Richard Feynman</strong><br>
-            <strong>"The most important things in life are to love and to be happy, everything else comes after" - My Life Philosophy</strong>
-        </p>
+        <div class="about-content">
+            <!-- 专业技能和兴趣 -->
+            <div class="about-section">
+                <p>
+                    I am passionate about programming language implementation, virtual machines, and compilers. Currently focusing on Python virtual machine internals and compiler optimization. I enjoy writing technical articles and have published over 120 articles about Python internals and computer systems fundamentals.
+                </p>
+            </div>
+
+            <!-- 个人理念 -->
+            <div class="about-section">
+                <p>
+                    I believe that happiness, love, and passion should be the primary pursuits in life, ahead of study or work. Programming is not just my profession - it's my hobby and passion. I find joy in creating and understanding how things work from the ground up.
+                </p>
+            </div>
+
+            <!-- 学习态度 -->
+            <div class="about-section">
+                <p>
+                    Always maintaining curiosity and the desire to explore is what keeps me moving forward. I believe that staying curious and passionate about learning is the key to both personal growth and happiness in life.
+                </p>
+            </div>
+
+            <!-- 座右铭 -->
+            <div class="about-section quotes">
+                <blockquote>
+                    "What I cannot create, I do not understand"
+                    <footer>- Richard Feynman</footer>
+                </blockquote>
+                <blockquote>
+                    "The most important things in life are to love and to be happy, everything else comes after"
+                    <footer>- My Life Philosophy</footer>
+                </blockquote>
+            </div>
+        </div>
     </div>
 
     <div class="section">
