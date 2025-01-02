@@ -5,14 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chang-LeHung - Academic Homepage</title>
     <style>
+        :root[data-theme="light"] {
+            --bg-color: #fafafa;
+            --text-color: #000000;
+            --section-bg: white;
+            --title-color: #1a1a1a;
+            --subtitle-color: #666;
+            --link-color: #0366d6;
+            --border-color: #e1e4e8;
+            --box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --quote-border: #0366d6;
+            --highlight-color: #e34c26;
+            --heading-color: #0366d6;
+            --stats-color: #000000;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --section-bg: #161b22;
+            --title-color: #e6edf3;
+            --subtitle-color: #8b949e;
+            --link-color: #58a6ff;
+            --border-color: #30363d;
+            --box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --quote-border: #58a6ff;
+            --highlight-color: #ff7b72;
+            --heading-color: #58a6ff;
+            --stats-color: #c9d1d9;
+        }
+
         body {
             font-family: "Palatino", "Georgia", "Libertinus Serif", "Linux Libertine", "Book Antiqua", Palatino, "Times New Roman", serif;
             line-height: 1.5;
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            color: #000000;
-            background-color: #fafafa;
+            color: var(--text-color);
+            background-color: var(--bg-color);
             font-size: 17px;
         }
         
@@ -25,10 +55,10 @@
             align-items: flex-start;
             margin-bottom: 25px;
             gap: 40px;
-            background-color: white;
+            background-color: var(--section-bg);
             padding: 25px;
             border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--box-shadow);
         }
         
         .profile-img {
@@ -46,32 +76,32 @@
             font-size: 2.4em;
             margin-bottom: 8px;
             margin-top: 0;
-            color: #1a1a1a;
+            color: var(--title-color);
         }
         
         .title {
             font-size: 1.2em;
-            color: #666;
+            color: var(--subtitle-color);
             margin-bottom: 15px;
         }
         
         .section {
             margin-bottom: 25px;
-            background-color: white;
+            background-color: var(--section-bg);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--box-shadow);
         }
         
         h2 {
-            color: #0366d6;
+            color: var(--heading-color);
             margin-top: 0;
             margin-bottom: 15px;
             font-size: 1.7em;
         }
         
         a {
-            color: #0366d6;
+            color: var(--link-color);
             text-decoration: none;
         }
         
@@ -91,7 +121,7 @@
         }
         
         .repository {
-            border: 1px solid #e1e4e8;
+            border: 1px solid var(--border-color);
             padding: 15px;
             margin-bottom: 12px;
             border-radius: 6px;
@@ -105,16 +135,16 @@
         
         .repository h3 {
             margin-top: 0;
-            color: #0366d6;
+            color: var(--heading-color);
         }
         
         .repository p {
             margin: 8px 0;
-            color: #000000;
+            color: var(--text-color);
         }
         
         .stats {
-            color: #000000;
+            color: var(--stats-color);
             font-size: 1.1em;
         }
         
@@ -146,7 +176,7 @@
         }
 
         .quotes {
-            border-left: 3px solid #0366d6;
+            border-left: 3px solid var(--quote-border);
             padding-left: 15px;
             margin-top: 10px;
         }
@@ -158,11 +188,35 @@
 
         blockquote footer {
             margin-top: 5px;
-            color: #666;
+            color: var(--subtitle-color);
+        }
+
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--section-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: var(--box-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .repository span[style*="color: #e34c26"] {
+            color: var(--highlight-color) !important;
         }
     </style>
 </head>
 <body>
+    <button class="theme-switch" onclick="toggleTheme()">🌓 Toggle Theme</button>
     <div class="header">
         <img src="https://avatars.githubusercontent.com/u/61316604?s=400&u=4702d954b232b73c9e70671504762159e994c5e6&v=4" alt="Profile Photo" class="profile-img">
         <div class="header-content">
@@ -390,6 +444,22 @@
 
         // 页面加载完成后更新数据
         document.addEventListener('DOMContentLoaded', updateRepoStats);
+
+        // 主题切换功能
+        function toggleTheme() {
+            const root = document.documentElement;
+            const currentTheme = root.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            root.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // 页面加载时设置主题
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        });
     </script>
 </body>
 </html>
