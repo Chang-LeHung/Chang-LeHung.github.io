@@ -1,3 +1,4 @@
 .ipynb_checkpoints/
+docs/.vitepress/cache/
 .py
 node_modules/
