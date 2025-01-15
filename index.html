@@ -18,6 +18,7 @@
             --highlight-color: #e34c26;
             --heading-color: #0366d6;
             --stats-color: #000000;
+            --section-bg-rgb: 255, 255, 255;
         }
 
         :root[data-theme="dark"] {
@@ -33,6 +34,7 @@
             --highlight-color: #ff7b72;
             --heading-color: #58a6ff;
             --stats-color: #ffffff;
+            --section-bg-rgb: 22, 27, 34;
         }
 
         body {
@@ -40,7 +42,7 @@
             line-height: 1.5;
             max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 84px 20px;
             color: var(--text-color);
             background-color: var(--bg-color);
             font-size: 17px;
@@ -193,7 +195,7 @@
 
         .theme-switch {
             position: fixed;
-            top: 20px;
+            top: 84px;
             right: 20px;
             background: var(--section-bg);
             border: 1px solid var(--border-color);
@@ -213,21 +215,124 @@
         .repository span[style*="color: #e34c26"] {
             color: var(--highlight-color) !important;
         }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(var(--section-bg-rgb), 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 64px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-left {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-item {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.05em;
+            font-weight: 500;
+            padding: 8px 0;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--link-color);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav-item:hover {
+            color: var(--link-color);
+        }
+
+        .nav-item:hover:after {
+            transform: scaleX(1);
+        }
+
+        .nav-item.active {
+            color: var(--link-color);
+        }
+
+        .nav-item.active:after {
+            transform: scaleX(1);
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid var(--border-color);
+        }
+
+        :root[data-theme="dark"] .footer {
+            color: #888;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .beian {
+            font-size: 0.95em;
+        }
+
+        .copyright {
+            font-weight: 400;
+        }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <a href="/" class="nav-item active">Home</a>
+                <a href="/blog/index.html" class="nav-item" target="_blank" rel="noopener noreferrer">Blog</a>
+                <a href="https://github.com/Chang-LeHung" class="nav-item" target="_blank" rel="noopener noreferrer">Github</a>
+            </div>
+        </div>
+    </nav>
     <button class="theme-switch" onclick="toggleTheme()">🌓 Toggle Theme</button>
     <div class="header">
-        <img src="https://avatars.githubusercontent.com/u/61316604?s=400&u=4702d954b232b73c9e70671504762159e994c5e6&v=4" alt="Profile Photo" class="profile-img">
+        <img src="static/avator.jpg" alt="Profile Photo" class="profile-img">
         <div class="header-content">
             <h1>Chang-LeHung (牧牛的铃铛)</h1>
             <div class="title">Software Engineer at Tencent | WXG</div>
             <div class="contact-info" style="text-align: left;">
                 Email: changlehung@(126/gmail).com<br>
                 Location: Changsha, China<br>
-                GitHub: <a href="https://github.com/Chang-LeHung">@Chang-LeHung</a><br>
-                Blog: <a href="https://chang-lehung.github.io/cscore/">CSCore Blog</a> | 
-                <a href="https://chang-lehung.github.io/dive-into-cpython/">CPython Blog</a>
+                GitHub: <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">@Chang-LeHung</a><br>
+                Blog: <a href="https://chang-lehung.github.io/cscore/" target="_blank" rel="noopener noreferrer">CSCore Blog</a> | 
+                <a href="https://chang-lehung.github.io/dive-into-cpython/" target="_blank" rel="noopener noreferrer">CPython Blog</a>
             </div>
         </div>
     </div>
@@ -295,31 +400,31 @@
     <div class="section">
         <h2>Featured Projects</h2>
         <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/dive-into-cpython">Dive into CPython</a></h3>
+            <h3><a href="https://github.com/Chang-LeHung/dive-into-cpython" target="_blank" rel="noopener noreferrer">Dive into CPython</a></h3>
             <p>Comprehensive tutorials on <span style="color: #e34c26">CPython internals</span></p>
             <div class="stats"></div>
         </div>
 
         <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/CSCore">CSCore</a></h3>
+            <h3><a href="https://github.com/Chang-LeHung/CSCore" target="_blank" rel="noopener noreferrer">CSCore</a></h3>
             <p>A comprehensive tutorial series covering <span style="color: #e34c26">computer systems fundamentals</span>, including data structures, algorithms, operating systems, and compiler principles.</p>
             <div class="stats"></div>
         </div>
 
         <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/SPL">SPL Programming Language</a></h3>
+            <h3><a href="https://github.com/Chang-LeHung/SPL" target="_blank" rel="noopener noreferrer">SPL Programming Language</a></h3>
             <p>A <span style="color: #e34c26">coroutine-oriented</span> programming language with functional programming support, featuring a complete <span style="color: #e34c26">compiler</span>, <span style="color: #e34c26">virtual machine</span> implementation, and million-level coroutine concurrency.</p>
             <div class="stats"></div>
         </div>
 
         <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/jpvm">JPVM</a></h3>
+            <h3><a href="https://github.com/Chang-LeHung/jpvm" target="_blank" rel="noopener noreferrer">JPVM</a></h3>
             <p>A lightweight <span style="color: #e34c26">GIL-free</span> Python virtual machine. Faster startup times and smaller memory footprints than <span style="color: #e34c26">Jython</span> and <span style="color: #e34c26">GraalPy</span>.</p>
             <div class="stats"></div>
         </div>
 
         <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/core-vm">Core-VM</a></h3>
+            <h3><a href="https://github.com/Chang-LeHung/core-vm" target="_blank" rel="noopener noreferrer">Core-VM</a></h3>
             <p>A minimal implementation of a <span style="color: #e34c26">template interpreter</span>, designed to understand <span style="color: #e34c26">JVM-based</span> template interpreter in the simplest way.</p>
             <div class="stats"></div>
         </div>
@@ -374,6 +479,17 @@
             </li>
         </ul>
     </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="copyright">
+                © 2025 Chang-LeHung. All rights reserved.
+            </div>
+            <div class="beian">
+                湘ICP备2025100831号-1
+            </div>
+        </div>
+    </footer>
 
     <script>
         const repos = [
