@@ -6,46 +6,47 @@
     <title>Chang-LeHung Home Page</title>
     <style>
         :root[data-theme="light"] {
-            --bg-color: #fafafa;
-            --text-color: #000000;
+            --bg-color: #f8f9fa;
+            --text-color: #2c3e50;
             --section-bg: white;
             --title-color: #1a1a1a;
-            --subtitle-color: #666;
-            --link-color: #0366d6;
-            --border-color: #e1e4e8;
-            --box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            --quote-border: #0366d6;
-            --highlight-color: #e34c26;
-            --heading-color: #0366d6;
-            --stats-color: #000000;
+            --subtitle-color: #495057;
+            --link-color: #3498db;
+            --border-color: #e9ecef;
+            --box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            --quote-border: #3498db;
+            --highlight-color: #e74c3c;
+            --heading-color: #2980b9;
+            --stats-color: #2c3e50;
             --section-bg-rgb: 255, 255, 255;
         }
 
         :root[data-theme="dark"] {
-            --bg-color: #0d1117;
-            --text-color: #ffffff;
-            --section-bg: #161b22;
+            --bg-color: #1a1e22;
+            --text-color: #e9ecef;
+            --section-bg: #22272e;
             --title-color: #ffffff;
-            --subtitle-color: #ffffff;
-            --link-color: #58a6ff;
-            --border-color: #30363d;
-            --box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-            --quote-border: #58a6ff;
-            --highlight-color: #ff7b72;
-            --heading-color: #58a6ff;
-            --stats-color: #ffffff;
-            --section-bg-rgb: 22, 27, 34;
+            --subtitle-color: #adb5bd;
+            --link-color: #61afef;
+            --border-color: #373e47;
+            --box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            --quote-border: #61afef;
+            --highlight-color: #e06c75;
+            --heading-color: #61afef;
+            --stats-color: #e9ecef;
+            --section-bg-rgb: 34, 39, 46;
         }
 
         body {
             font-family: "Palatino", "Georgia", "Libertinus Serif", "Linux Libertine", "Book Antiqua", Palatino, "Times New Roman", serif;
-            line-height: 1.5;
+            line-height: 1.6;
             max-width: 900px;
             margin: 0 auto;
             padding: 84px 20px;
             color: var(--text-color);
             background-color: var(--bg-color);
             font-size: 17px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         h1, h2, h3 {
@@ -55,12 +56,18 @@
         .header {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             gap: 40px;
             background-color: var(--section-bg);
-            padding: 25px;
-            border-radius: 10px;
+            padding: 30px;
+            border-radius: 12px;
             box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .profile-img {
@@ -88,11 +95,17 @@
         }
         
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             background-color: var(--section-bg);
-            padding: 20px;
-            border-radius: 10px;
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         h2 {
@@ -124,15 +137,17 @@
         
         .repository {
             border: 1px solid var(--border-color);
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            transition: transform 0.2s ease;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background-color: var(--section-bg);
         }
-        
+
         .repository:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--link-color);
         }
         
         .repository h3 {
