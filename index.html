@@ -3,592 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chang-LeHung Home Page</title>
+    <meta name="description" content="Chang-LeHung — software engineer interested in programming languages, virtual machines, and compilers.">
+    <title>Chang-LeHung</title>
     <style>
-        :root[data-theme="light"] {
-            --bg-color: #f8f9fa;
-            --text-color: #2c3e50;
-            --section-bg: white;
-            --title-color: #1a1a1a;
-            --subtitle-color: #495057;
-            --link-color: #3498db;
-            --border-color: #e9ecef;
-            --box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            --quote-border: #3498db;
-            --highlight-color: #e74c3c;
-            --heading-color: #2980b9;
-            --stats-color: #2c3e50;
-            --section-bg-rgb: 255, 255, 255;
+        :root {
+            --paper: #ffffff;
+            --ink: #202124;
+            --muted: #5f6368;
+            --accent: #174ea6;
+            --rule: #dfe3e8;
         }
 
-        :root[data-theme="dark"] {
-            --bg-color: #1a1e22;
-            --text-color: #e9ecef;
-            --section-bg: #22272e;
-            --title-color: #ffffff;
-            --subtitle-color: #adb5bd;
-            --link-color: #61afef;
-            --border-color: #373e47;
-            --box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            --quote-border: #61afef;
-            --highlight-color: #e06c75;
-            --heading-color: #61afef;
-            --stats-color: #e9ecef;
-            --section-bg-rgb: 34, 39, 46;
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: "Palatino", "Georgia", "Libertinus Serif", "Linux Libertine", "Book Antiqua", Palatino, "Times New Roman", serif;
-            line-height: 1.6;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 84px 20px;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            font-size: 17px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        
-        h1, h2, h3 {
-            font-family: "Palatino", "Georgia", "Libertinus Serif", "Linux Libertine", "Book Antiqua", Palatino, "Times New Roman", serif;
-        }
-        
-        .header {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 30px;
-            gap: 40px;
-            background-color: var(--section-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: var(--box-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 0;
+            color: var(--ink);
+            background: var(--paper);
+            font-family: "Source Serif Pro", "Source Serif 4", "Gentium Plus", Georgia, "Times New Roman", "Songti SC", serif;
+            font-size: 19px;
+            line-height: 1.72;
+            text-rendering: optimizeLegibility;
         }
 
-        .header:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .profile-img {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        
-        .header-content {
-            flex-grow: 1;
-        }
-        
-        h1 {
-            font-size: 2.4em;
-            margin-bottom: 8px;
-            margin-top: 0;
-            color: var(--title-color);
-        }
-        
-        .title {
-            font-size: 1.2em;
-            color: var(--subtitle-color);
-            margin-bottom: 15px;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-            background-color: var(--section-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: var(--box-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        h2 {
-            color: var(--heading-color);
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.7em;
-        }
-        
         a {
-            color: var(--link-color);
+            color: var(--accent);
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+        }
+
+        .page {
+            width: min(880px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 34px 0 72px;
+        }
+
+        .navbar {
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .nav-content {
+            width: min(880px, calc(100% - 40px));
+            min-height: 58px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .site-name {
+            color: var(--ink);
+            font-weight: 700;
             text-decoration: none;
         }
-        
-        a:hover {
-            text-decoration: underline;
-        }
-        
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-        
-        li {
-            margin-bottom: 8px;
-        }
-        
-        .repository {
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            background-color: var(--section-bg);
-        }
 
-        .repository:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-color: var(--link-color);
-        }
-        
-        .repository h3 {
-            margin-top: 0;
-            color: var(--heading-color);
-        }
-        
-        .repository p {
-            margin: 8px 0;
-            color: var(--text-color);
-        }
-        
-        .stats {
-            color: var(--stats-color);
-            font-size: 1.1em;
-        }
-        
-        .contact-info {
-            line-height: 1.8;
-            font-size: 1.1em;
-        }
-        
-        .contact-info a {
-            color: #0366d6;
-        }
-        
-        h3 {
-            font-size: 1.4em;
-        }
-
-        .about-content {
+        .nav-links {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 22px;
         }
 
-        .about-section {
-            padding: 5px 0;
+        .nav-links a {
+            color: var(--muted);
+            font-size: 0.94rem;
+            text-decoration: none;
         }
 
-        .about-section p {
-            margin: 0;
+        .header {
+            display: grid;
+            grid-template-columns: 154px 1fr;
+            gap: 34px;
+            align-items: start;
+            padding: 24px 0 38px;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .profile-img {
+            display: block;
+            width: 154px;
+            height: 154px;
+            border: 1px solid var(--rule);
+            border-radius: 3px;
+            object-fit: cover;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 4px;
+            font-size: clamp(2rem, 5vw, 2.65rem);
+            line-height: 1.18;
+            letter-spacing: -0.02em;
+        }
+
+        .title {
+            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: 1.04rem;
+        }
+
+        .contact-info {
+            color: var(--muted);
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+
+        .contact-info p {
+            margin-bottom: 4px;
+        }
+
+        .contact-note {
+            margin-top: 10px;
+            color: var(--ink);
+        }
+
+        main {
+            display: block;
+        }
+
+        .section {
+            padding: 30px 0 4px;
+        }
+
+        .section + .section {
+            border-top: 1px solid var(--rule);
+        }
+
+        h2 {
+            margin-bottom: 16px;
+            font-size: 1.38rem;
+            line-height: 1.3;
+            letter-spacing: 0.01em;
+        }
+
+        h3 {
+            margin-bottom: 3px;
+            font-size: 1.05rem;
+            line-height: 1.4;
+        }
+
+        .about-content p {
+            max-width: 76ch;
+            margin-bottom: 14px;
         }
 
         .quotes {
-            border-left: 3px solid var(--quote-border);
-            padding-left: 15px;
-            margin-top: 10px;
+            margin: 22px 0 26px;
+            padding-left: 18px;
+            border-left: 2px solid var(--rule);
+            color: var(--muted);
         }
 
         blockquote {
-            margin: 10px 0;
+            margin: 8px 0;
             font-style: italic;
         }
 
         blockquote footer {
-            margin-top: 5px;
-            color: var(--subtitle-color);
+            display: inline;
+            font-style: normal;
         }
 
-        .theme-switch {
-            position: fixed;
-            top: 84px;
-            right: 20px;
-            background: var(--section-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: var(--box-shadow);
-            transition: all 0.3s ease;
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
-        .theme-switch:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        .education-item,
+        .entry {
+            margin-bottom: 20px;
         }
 
-        .repository span[style*="color: #e34c26"] {
-            color: var(--highlight-color) !important;
+        .entry:last-child {
+            margin-bottom: 26px;
         }
 
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(var(--section-bg-rgb), 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            border-bottom: 1px solid var(--border-color);
+        .entry-meta {
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-size: 0.92rem;
         }
 
-        .nav-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 20px;
-            height: 64px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .entry p {
+            max-width: 76ch;
+            margin-bottom: 5px;
         }
 
-        .nav-left {
-            display: flex;
-            gap: 40px;
+        @media (max-width: 640px) {
+            body {
+                font-size: 18px;
+            }
+
+            .page {
+                width: min(100% - 30px, 880px);
+                padding-top: 24px;
+            }
+
+            .nav-content {
+                width: min(100% - 30px, 880px);
+                min-height: 54px;
+            }
+
+            .header {
+                grid-template-columns: 96px 1fr;
+                gap: 20px;
+            }
+
+            .profile-img {
+                width: 96px;
+                height: 96px;
+            }
         }
 
-        .nav-item {
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 1.05em;
-            font-weight: 500;
-            padding: 8px 0;
-            position: relative;
-            transition: color 0.3s ease;
-        }
+        @media (max-width: 460px) {
+            .nav-content,
+            .header {
+                align-items: flex-start;
+            }
 
-        .nav-item:after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: var(--link-color);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-            border-radius: 2px;
-        }
+            .nav-content {
+                padding: 14px 0;
+                flex-direction: column;
+                gap: 7px;
+            }
 
-        .nav-item:hover {
-            color: var(--link-color);
-        }
+            .header {
+                grid-template-columns: 1fr;
+            }
 
-        .nav-item:hover:after {
-            transform: scaleX(1);
-        }
-
-        .nav-item.active {
-            color: var(--link-color);
-        }
-
-        .nav-item.active:after {
-            transform: scaleX(1);
-        }
-
-        .footer {
-            margin-top: 40px;
-            padding: 20px 0;
-            text-align: center;
-            color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid var(--border-color);
-        }
-
-        :root[data-theme="dark"] .footer {
-            color: #888;
-        }
-
-        .footer-content {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .beian {
-            font-size: 0.95em;
-        }
-
-        .copyright {
-            font-weight: 400;
+            .profile-img {
+                width: 112px;
+                height: 112px;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar" aria-label="Primary navigation">
         <div class="nav-content">
-            <div class="nav-left">
-                <a href="/" class="nav-item active">Home</a>
-                <a href="http://changlehung.xyz/blog/index.html" class="nav-item" target="_blank" rel="noopener noreferrer">Blog</a>
-                <a href="https://github.com/Chang-LeHung" class="nav-item" target="_blank" rel="noopener noreferrer">Github</a>
+            <a href="/" class="site-name">Chang-LeHung</a>
+            <div class="nav-links">
+                <a href="http://changlehung.xyz/blog/index.html" target="_blank" rel="noopener noreferrer">Blog</a>
+                <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
         </div>
     </nav>
-    <button class="theme-switch" onclick="toggleTheme()">🌓 Toggle Theme</button>
-    <div class="header">
-        <img src="https://avatars.githubusercontent.com/u/61316604?s=400&u=4702d954b232b73c9e70671504762159e994c5e6&v=4" alt="Profile Photo" class="profile-img">
-        <div class="header-content">
-            <h1>Chang-LeHung (牧牛的铃铛)</h1>
-            <div class="title">Software Engineer at Tencent | WXG</div>
-            <div class="contact-info" style="text-align: left;">
-                Email: changlehung@(126/gmail).com<br>
-                Location: Changsha, China<br>
-                GitHub: <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">@Chang-LeHung</a><br>
-                Blog: <a href="https://chang-lehung.github.io/cscore/" target="_blank" rel="noopener noreferrer">CSCore Blog</a> | 
-                <a href="https://chang-lehung.github.io/dive-into-cpython/" target="_blank" rel="noopener noreferrer">CPython Blog</a><br>
-                <span style="color: red">Feel free to send me an email to ask anything about programming languages.</span>
+
+    <div class="page">
+        <header class="header">
+            <img src="https://avatars.githubusercontent.com/u/61316604?s=400&amp;u=4702d954b232b73c9e70671504762159e994c5e6&amp;v=4" alt="Portrait of Chang-LeHung" class="profile-img">
+            <div>
+                <h1>Chang-LeHung <span lang="zh-CN">(牧牛的铃铛)</span></h1>
+                <div class="title">Software Engineer at Tencent · WXG</div>
+                <div class="contact-info">
+                    <p>Email: changlehung@(126/gmail).com</p>
+                    <p>Changsha, China · <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+                    <p>
+                        <a href="https://chang-lehung.github.io/cscore/" target="_blank" rel="noopener noreferrer">CSCore</a>
+                        ·
+                        <a href="https://chang-lehung.github.io/dive-into-cpython/" target="_blank" rel="noopener noreferrer">Dive into CPython</a>
+                    </p>
+                    <p class="contact-note">Feel free to email me about programming languages.</p>
+                </div>
             </div>
-        </div>
+        </header>
+
+        <main>
+            <section class="section">
+                <h2>About</h2>
+                <div class="about-content">
+                    <p>
+                        I am interested in programming language implementation, virtual machines, and compilers, with a current focus on Python virtual machine internals and compiler optimization. I also write technical articles and have published more than 120 pieces on Python internals and computer systems.
+                    </p>
+                    <p>
+                        Programming is both my profession and a long-standing personal interest. I enjoy building systems from the ground up and understanding the ideas behind their implementation. Curiosity and a desire to keep exploring are central to how I learn and work.
+                    </p>
+                    <div class="quotes">
+                        <blockquote>
+                            “What I cannot create, I do not understand.”
+                            <footer>— Richard Feynman</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Education</h2>
+                <div class="education-item">
+                    <h3>Hunan University</h3>
+                    <div class="entry-meta">M.S. in Computer Science · September 2022 – June 2025 · Recommended Admission</div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Recent Experience</h2>
+                <div class="entry">
+                    <h3>Software Engineer, WeChat (WXG), Tencent</h3>
+                    <div class="entry-meta">October 2024 – Present</div>
+                </div>
+                <div class="entry">
+                    <h3>Software Engineering Intern, WeChat (WXG), Tencent</h3>
+                    <div class="entry-meta">July 2024 – October 2024</div>
+                </div>
+                <div class="entry">
+                    <h3>Software Engineering Intern, Douyin E-commerce, ByteDance</h3>
+                    <div class="entry-meta">April 2024 – July 2024</div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>Selected Projects</h2>
+
+                <article class="entry">
+                    <h3><a href="https://github.com/Chang-LeHung/dive-into-cpython" target="_blank" rel="noopener noreferrer">Dive into CPython</a></h3>
+                    <p>Comprehensive tutorials on CPython internals.</p>
+                </article>
+
+                <article class="entry">
+                    <h3><a href="https://github.com/Chang-LeHung/CSCore" target="_blank" rel="noopener noreferrer">CSCore</a></h3>
+                    <p>A tutorial series covering computer systems fundamentals, including data structures, algorithms, operating systems, and compiler principles.</p>
+                </article>
+
+                <article class="entry">
+                    <h3><a href="https://github.com/Chang-LeHung/SPL" target="_blank" rel="noopener noreferrer">SPL Programming Language</a></h3>
+                    <p>A coroutine-oriented programming language with functional programming support, including a compiler and virtual machine implementation.</p>
+                </article>
+
+                <article class="entry">
+                    <h3><a href="https://github.com/Chang-LeHung/jpvm" target="_blank" rel="noopener noreferrer">JPVM</a></h3>
+                    <p>A lightweight, GIL-free Python virtual machine with faster startup and a smaller memory footprint than Jython and GraalPy.</p>
+                </article>
+
+                <article class="entry">
+                    <h3><a href="https://github.com/Chang-LeHung/core-vm" target="_blank" rel="noopener noreferrer">Core-VM</a></h3>
+                    <p>A minimal template interpreter designed to explain JVM-based interpreter implementation.</p>
+                </article>
+            </section>
+        </main>
     </div>
-
-    <div class="section">
-        <h2>About Me</h2>
-        <div class="about-content">
-            <!-- 专业技能和兴趣 -->
-            <div class="about-section">
-                <p>
-                    I am passionate about programming language implementation, virtual machines, and compilers. Currently focusing on Python virtual machine internals and compiler optimization. I enjoy writing technical articles and have published over 120 articles about Python internals and computer systems fundamentals.
-                </p>
-            </div>
-
-            <!-- 个人理念 -->
-            <div class="about-section">
-                <p>
-                    I believe that happiness, love, and passion should be the primary pursuits in life, ahead of study or work. Programming is not just my profession - it's my hobby and passion. I find joy in creating and understanding how things work from the ground up.
-                </p>
-            </div>
-
-            <!-- 学习态度 -->
-            <div class="about-section">
-                <p>
-                    Always maintaining curiosity and the desire to explore is what keeps me moving forward. I believe that staying curious and passionate about learning is the key to both personal growth and happiness in life.
-                </p>
-            </div>
-
-            <!-- 座右铭 -->
-            <div class="about-section quotes">
-                <blockquote>
-                    "What I cannot create, I do not understand"
-                    <footer>- Richard Feynman</footer>
-                </blockquote>
-                <blockquote>
-                    "The most important things in life are to love and to be happy, everything else comes after"
-                    <footer>- My Life Philosophy</footer>
-                </blockquote>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Education</h2>
-        <ul>
-            <li><strong>Hunan University</strong> (2022.09 - 2025.06) [Recommended Admission]<br>
-                Master's Degree in Computer Science
-            </li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Internship Experience</h2>
-        <div class="repository">
-            <h3>WXG (Tencent)</h3>
-            <p>2024.07 - 2024.10</p>
-        </div>
-
-        <div class="repository">
-            <h3>Douyin E-commerce (ByteDance)</h3>
-            <p>2024.04 - 2024.07</p>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Featured Projects</h2>
-        <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/dive-into-cpython" target="_blank" rel="noopener noreferrer">Dive into CPython</a></h3>
-            <p>Comprehensive tutorials on <span style="color: #e34c26">CPython internals</span></p>
-            <div class="stats"></div>
-        </div>
-
-        <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/CSCore" target="_blank" rel="noopener noreferrer">CSCore</a></h3>
-            <p>A comprehensive tutorial series covering <span style="color: #e34c26">computer systems fundamentals</span>, including data structures, algorithms, operating systems, and compiler principles.</p>
-            <div class="stats"></div>
-        </div>
-
-        <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/SPL" target="_blank" rel="noopener noreferrer">SPL Programming Language</a></h3>
-            <p>A <span style="color: #e34c26">coroutine-oriented</span> programming language with functional programming support, featuring a complete <span style="color: #e34c26">compiler</span>, <span style="color: #e34c26">virtual machine</span> implementation, and million-level coroutine concurrency.</p>
-            <div class="stats"></div>
-        </div>
-
-        <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/jpvm" target="_blank" rel="noopener noreferrer">JPVM</a></h3>
-            <p>A lightweight <span style="color: #e34c26">GIL-free</span> Python virtual machine. Faster startup times and smaller memory footprints than <span style="color: #e34c26">Jython</span> and <span style="color: #e34c26">GraalPy</span>.</p>
-            <div class="stats"></div>
-        </div>
-
-        <div class="repository">
-            <h3><a href="https://github.com/Chang-LeHung/core-vm" target="_blank" rel="noopener noreferrer">Core-VM</a></h3>
-            <p>A minimal implementation of a <span style="color: #e34c26">template interpreter</span>, designed to understand <span style="color: #e34c26">JVM-based</span> template interpreter in the simplest way.</p>
-            <div class="stats"></div>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Papers</h2>
-        <ul style="list-style-type: disc; padding-left: 20px;">
-            <li>JPVM: A GIL-Free Python Virtual Machine in Java</li>
-            <li>Python Global Interpreter Lock Design and Evolution</li>
-            <li>Detection of Crop Leaf Diseases Using Gl-CGAN Based Data Augmentation</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Honors & Awards</h2>
-        <ul style="list-style-type: disc; padding-left: 20px;">
-            <li>2024:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>First-Class Scholarship at Hunan University</li>
-                </ul>
-            </li>
-            <li>2023:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>First-Class Scholarship at Hunan University</li>
-                </ul>
-            </li>
-            <li>2022:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>First-Class Scholarship at Hunan University</li>
-                </ul>
-            </li>
-            <li>2021:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>National Inspirational Scholarship</li>
-                </ul>
-            </li>
-            <li>2020:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>National Inspirational Scholarship</li>
-                </ul>
-            </li>
-            <li>2019:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>National Inspirational Scholarship</li>
-                </ul>
-            </li>
-            <li>Others:
-                <ul style="list-style-type: disc; padding-left: 20px; margin-top: 5px;">
-                    <li>Outstanding Creator on JueJin</li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="copyright">
-                © 2025 Chang-LeHung. All rights reserved.
-            </div>
-            <div class="beian">
-                湘ICP备2025100831号-1
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        const repos = [
-            'Chang-LeHung/dive-into-cpython',
-            'Chang-LeHung/CSCore',
-            'Chang-LeHung/SPL',
-            'Chang-LeHung/jpvm',
-            'Chang-LeHung/core-vm'
-        ];
-
-        async function updateRepoStats() {
-            const repoData = [];
-            
-            // 首先获取所有仓库数据
-            for (const repo of repos) {
-                try {
-                    const response = await fetch(`https://api.github.com/repos/${repo}`);
-                    const data = await response.json();
-                    if (data.stargazers_count !== undefined && data.forks_count !== undefined) {
-                        repoData.push({
-                            name: repo,
-                            stars: data.stargazers_count,
-                            forks: data.forks_count
-                        });
-                    }
-                } catch (error) {
-                    console.error(`Error fetching stats for ${repo}:`, error);
-                }
-            }
-            
-            // 按 star 数量排序
-            repoData.sort((a, b) => b.stars - a.stars);
-            
-            // 获取 Featured Projects section
-            const projectsSection = Array.from(document.querySelectorAll('h2'))
-                .find(h2 => h2.textContent === 'Featured Projects')
-                ?.closest('.section');
-                
-            if (projectsSection) {
-                const repositories = Array.from(projectsSection.querySelectorAll('.repository'));
-                
-                // 更新统计数据
-                repoData.forEach(data => {
-                    const repo = repositories.find(r => 
-                        r.querySelector(`a[href$="/${data.name.split('/')[1]}"]`)
-                    );
-                    if (repo) {
-                        const statsElement = repo.querySelector('.stats');
-                        statsElement.innerHTML = `⭐ ${data.stars} · 🔱 ${data.forks}`;
-                    }
-                });
-                
-                // 重新排序
-                const container = repositories[0].parentNode;
-                repoData.forEach(data => {
-                    const repo = repositories.find(r => 
-                        r.querySelector(`a[href$="/${data.name.split('/')[1]}"]`)
-                    );
-                    if (repo) {
-                        container.appendChild(repo);
-                    }
-                });
-            }
-        }
-
-        // 页面加载完成后更新数据
-        document.addEventListener('DOMContentLoaded', updateRepoStats);
-
-        // 主题切换功能
-        function toggleTheme() {
-            const root = document.documentElement;
-            const currentTheme = root.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            root.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        }
-
-        // 页面加载时设置主题
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        });
-    </script>
 </body>
 </html>
