@@ -156,8 +156,121 @@
 <span class="tok-p">}</span>
 </code></pre></div><h3 id="二进制优化的本质">二进制优化的本质</h3>
 <p>我们知道任何一个数都有他的二进制形式，任何一个数都可以由2的整数次幂相加得到：</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap40.webp" alt="" loading="lazy" /></p>
-<p>假如我们有15个物品<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>，那么我们会得到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>1</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>2</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>3</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>4</mn></msub></mrow></math>，他们的价值和体积分别是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>的1倍，2倍，4倍和8倍，这四个物品可以组成相当于任意整数倍的物品<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>的价值和重量，在这个问题当中就是1， 2， 4， 8可以组成1~15之间任意一个数。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1011 378" role="img"
+     aria-label="五组二进制数对照表：1、2、4、8、15 的二进制表示，最后一格分别是 0001、0010、0100、1000、1111"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <text x="485" y="59" text-anchor="middle" font-size="31">15 = 8 + 4 + 2 + 1</text>
+
+  <!-- 五行标签，右对齐于 x=180 的表格左侧 -->
+  <g font-size="22" text-anchor="middle" fill="#1a1a1a">
+    <text x="113" y="117">1的二进制数</text>
+    <text x="113" y="166">2的二进制数</text>
+    <text x="113" y="212">4的二进制数</text>
+    <text x="113" y="262">8的二进制数</text>
+    <text x="113" y="309">15的二进制数</text>
+  </g>
+
+  <!-- 表格：8 列 × 5 行，最后一列高亮 -->
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <g fill="#ffffff">
+      <rect x="219" y="90" width="638.75" height="34"/>
+      <rect x="219" y="139" width="638.75" height="34"/>
+      <rect x="219" y="185" width="638.75" height="34"/>
+      <rect x="219" y="235" width="638.75" height="34"/>
+      <rect x="219" y="283" width="638.75" height="34"/>
+    </g>
+    <g fill="#dae8fc">
+      <rect x="857.75" y="90" width="91.25" height="34"/>
+      <rect x="857.75" y="139" width="91.25" height="34"/>
+      <rect x="857.75" y="185" width="91.25" height="34"/>
+      <rect x="857.75" y="235" width="91.25" height="34"/>
+      <rect x="857.75" y="283" width="91.25" height="34"/>
+    </g>
+    <line x1="310.25" y1="90" x2="310.25" y2="124"/>
+    <line x1="401.5" y1="90" x2="401.5" y2="124"/>
+    <line x1="492.75" y1="90" x2="492.75" y2="124"/>
+    <line x1="584" y1="90" x2="584" y2="124"/>
+    <line x1="675.25" y1="90" x2="675.25" y2="124"/>
+    <line x1="766.5" y1="90" x2="766.5" y2="124"/>
+    <line x1="310.25" y1="139" x2="310.25" y2="173"/>
+    <line x1="401.5" y1="139" x2="401.5" y2="173"/>
+    <line x1="492.75" y1="139" x2="492.75" y2="173"/>
+    <line x1="584" y1="139" x2="584" y2="173"/>
+    <line x1="675.25" y1="139" x2="675.25" y2="173"/>
+    <line x1="766.5" y1="139" x2="766.5" y2="173"/>
+    <line x1="310.25" y1="185" x2="310.25" y2="219"/>
+    <line x1="401.5" y1="185" x2="401.5" y2="219"/>
+    <line x1="492.75" y1="185" x2="492.75" y2="219"/>
+    <line x1="584" y1="185" x2="584" y2="219"/>
+    <line x1="675.25" y1="185" x2="675.25" y2="219"/>
+    <line x1="766.5" y1="185" x2="766.5" y2="219"/>
+    <line x1="310.25" y1="235" x2="310.25" y2="269"/>
+    <line x1="401.5" y1="235" x2="401.5" y2="269"/>
+    <line x1="492.75" y1="235" x2="492.75" y2="269"/>
+    <line x1="584" y1="235" x2="584" y2="269"/>
+    <line x1="675.25" y1="235" x2="675.25" y2="269"/>
+    <line x1="766.5" y1="235" x2="766.5" y2="269"/>
+    <line x1="310.25" y1="283" x2="310.25" y2="317"/>
+    <line x1="401.5" y1="283" x2="401.5" y2="317"/>
+    <line x1="492.75" y1="283" x2="492.75" y2="317"/>
+    <line x1="584" y1="283" x2="584" y2="317"/>
+    <line x1="675.25" y1="283" x2="675.25" y2="317"/>
+    <line x1="766.5" y1="283" x2="766.5" y2="317"/>
+  </g>
+
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <g>
+      <text x="264.6" y="115">0000</text>
+      <text x="355.9" y="115">0000</text>
+      <text x="447.1" y="115">0000</text>
+      <text x="538.4" y="115">0000</text>
+      <text x="629.6" y="115">0000</text>
+      <text x="720.9" y="115">0000</text>
+      <text x="812.1" y="115">0000</text>
+      <text x="903.4" y="115">0001</text>
+    </g>
+    <g>
+      <text x="264.6" y="164">0000</text>
+      <text x="355.9" y="164">0000</text>
+      <text x="447.1" y="164">0000</text>
+      <text x="538.4" y="164">0000</text>
+      <text x="629.6" y="164">0000</text>
+      <text x="720.9" y="164">0000</text>
+      <text x="812.1" y="164">0000</text>
+      <text x="903.4" y="164">0010</text>
+    </g>
+    <g>
+      <text x="264.6" y="210">0000</text>
+      <text x="355.9" y="210">0000</text>
+      <text x="447.1" y="210">0000</text>
+      <text x="538.4" y="210">0000</text>
+      <text x="629.6" y="210">0000</text>
+      <text x="720.9" y="210">0000</text>
+      <text x="812.1" y="210">0000</text>
+      <text x="903.4" y="210">0100</text>
+    </g>
+    <g>
+      <text x="264.6" y="260">0000</text>
+      <text x="355.9" y="260">0000</text>
+      <text x="447.1" y="260">0000</text>
+      <text x="538.4" y="260">0000</text>
+      <text x="629.6" y="260">0000</text>
+      <text x="720.9" y="260">0000</text>
+      <text x="812.1" y="260">0000</text>
+      <text x="903.4" y="260">1000</text>
+    </g>
+    <g>
+      <text x="264.6" y="308">0000</text>
+      <text x="355.9" y="308">0000</text>
+      <text x="447.1" y="308">0000</text>
+      <text x="538.4" y="308">0000</text>
+      <text x="629.6" y="308">0000</text>
+      <text x="720.9" y="308">0000</text>
+      <text x="812.1" y="308">0000</text>
+      <text x="903.4" y="308">1111</text>
+    </g>
+  </g>
+</svg></figure><p>假如我们有15个物品<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>，那么我们会得到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>1</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>2</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>3</mn></msub></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>A</mi><mn>4</mn></msub></mrow></math>，他们的价值和体积分别是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>的1倍，2倍，4倍和8倍，这四个物品可以组成相当于任意整数倍的物品<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>的价值和重量，在这个问题当中就是1， 2， 4， 8可以组成1~15之间任意一个数。</p>
 <p>因为我们最终可能<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>个物品当中全部选了，因此当我们将多重背包转化成01背包之后，所有转化之后的物品的价值和体积需要和<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>个物品相同，而<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>不一定恰好就是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>个整数幂的值相加，因此在上文当中还提到了<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>就保证了我们最终可以取到1~<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>S</mi></mrow></math>之间任意一个数。</p>
 <h2 id="总结">总结</h2>
 <p>本篇文章主要给大家介绍的<strong>多重背包问题</strong>的二进制优化，里面的逻辑还是稍微有点复杂的，可能需要大家仔细去体会，大家在看文字的时候可以参考代码仔细分析，可以理解的更好一点。</p>

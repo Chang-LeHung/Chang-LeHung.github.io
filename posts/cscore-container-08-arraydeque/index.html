@@ -332,11 +332,149 @@
 </svg></figure><ul>
 <li>当我们需要从右往做左增加数据时（入队），内存当中数据变化情况如下：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/15.webp" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1017 581" role="img"
+     aria-label="环形数组的两次状态：上排 tail=4、head=8，取出元素后下排 tail=4、head=7，新元素写入下标 7 的格子"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="130" y="19" width="38" height="27" fill="#b1ddf0" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="196" y="41" font-size="22">待加入队列的数据</text>
+  <rect x="130" y="72" width="38" height="27" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="194" y="100" font-size="22">不存在数据</text>
+  <rect x="130" y="129" width="38" height="28" fill="#cdeb8b" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="194" y="152" font-size="22">存在数据</text>
+
+  <!-- 上排：整体上下两道横线 -->
+  <line x1="64" y1="199" x2="818" y2="199" stroke="#444" stroke-width="2"/>
+  <line x1="64" y1="257" x2="818" y2="257" stroke="#444" stroke-width="2"/>
+
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="121" y="213" width="160" height="30" fill="#cdeb8b"/>
+    <rect x="281" y="213" width="160" height="30" fill="#ffffff"/>
+    <rect x="441" y="213" width="320" height="30" fill="#cdeb8b"/>
+    <g fill="none">
+      <line x1="161" y1="213" x2="161" y2="243"/>
+      <line x1="201" y1="213" x2="201" y2="243"/>
+      <line x1="241" y1="213" x2="241" y2="243"/>
+      <line x1="321" y1="213" x2="321" y2="243"/>
+      <line x1="361" y1="213" x2="361" y2="243"/>
+      <line x1="401" y1="213" x2="401" y2="243"/>
+      <line x1="481" y1="213" x2="481" y2="243"/>
+      <line x1="521" y1="213" x2="521" y2="243"/>
+      <line x1="561" y1="213" x2="561" y2="243"/>
+      <line x1="601" y1="213" x2="601" y2="243"/>
+      <line x1="641" y1="213" x2="641" y2="243"/>
+      <line x1="681" y1="213" x2="681" y2="243"/>
+      <line x1="721" y1="213" x2="721" y2="243"/>
+    </g>
+  </g>
+  <g font-size="23" text-anchor="middle" fill="#1a1a1a">
+    <text x="141" y="235">0</text>
+    <text x="181" y="235">1</text>
+    <text x="221" y="235">2</text>
+    <text x="261" y="235">3</text>
+    <text x="301" y="235">4</text>
+    <text x="341" y="235">5</text>
+    <text x="381" y="235">6</text>
+    <text x="421" y="235">7</text>
+    <text x="461" y="235">8</text>
+    <text x="501" y="235">9</text>
+    <text x="541" y="235">10</text>
+    <text x="581" y="235">11</text>
+    <text x="621" y="235">12</text>
+    <text x="661" y="235">13</text>
+    <text x="701" y="235">14</text>
+    <text x="741" y="235">15</text>
+  </g>
+
+  <!-- tail=4 / head=8 的粉色标注 -->
+  <g fill="#ffcccc" stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="156" y="311" width="76" height="38" rx="6"/>
+    <rect x="520" y="311" width="89" height="38" rx="6"/>
+  </g>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="194" y="337">tail=4</text>
+    <text x="564" y="337">head=8</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-15)">
+    <path d="M232 330 H301 V246"/>
+    <path d="M520 330 H461 V246"/>
+  </g>
+
+  <!-- 下移"新元素"的空心大箭头 -->
+  <path d="M360 280 H378 V345 H409 L369 395 L330 345 H360 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 右侧虚线箭头：新元素从外部进入 -->
+  <path d="M785 228 L835 211 V221 H910 V234 H835 V244 Z"
+        fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="950" y="215" width="37" height="27" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+
+  <!-- 下排 -->
+  <line x1="60" y1="399" x2="814" y2="399" stroke="#444" stroke-width="2"/>
+  <line x1="60" y1="457" x2="814" y2="457" stroke="#444" stroke-width="2"/>
+
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="117" y="413" width="160" height="30" fill="#cdeb8b"/>
+    <rect x="277" y="413" width="120" height="30" fill="#ffffff"/>
+    <rect x="397" y="413" width="40" height="30" fill="#b1ddf0"/>
+    <rect x="437" y="413" width="320" height="30" fill="#cdeb8b"/>
+    <g fill="none">
+      <line x1="157" y1="413" x2="157" y2="443"/>
+      <line x1="197" y1="413" x2="197" y2="443"/>
+      <line x1="237" y1="413" x2="237" y2="443"/>
+      <line x1="317" y1="413" x2="317" y2="443"/>
+      <line x1="357" y1="413" x2="357" y2="443"/>
+      <line x1="477" y1="413" x2="477" y2="443"/>
+      <line x1="517" y1="413" x2="517" y2="443"/>
+      <line x1="557" y1="413" x2="557" y2="443"/>
+      <line x1="597" y1="413" x2="597" y2="443"/>
+      <line x1="637" y1="413" x2="637" y2="443"/>
+      <line x1="677" y1="413" x2="677" y2="443"/>
+      <line x1="717" y1="413" x2="717" y2="443"/>
+    </g>
+  </g>
+  <g font-size="23" text-anchor="middle" fill="#1a1a1a">
+    <text x="137" y="435">0</text>
+    <text x="177" y="435">1</text>
+    <text x="217" y="435">2</text>
+    <text x="257" y="435">3</text>
+    <text x="297" y="435">4</text>
+    <text x="337" y="435">5</text>
+    <text x="377" y="435">6</text>
+    <text x="417" y="435">7</text>
+    <text x="457" y="435">8</text>
+    <text x="497" y="435">9</text>
+    <text x="537" y="435">10</text>
+    <text x="577" y="435">11</text>
+    <text x="617" y="435">12</text>
+    <text x="657" y="435">13</text>
+    <text x="697" y="435">14</text>
+    <text x="737" y="435">15</text>
+  </g>
+
+  <g fill="#ffcccc" stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="152" y="511" width="76" height="38" rx="6"/>
+    <rect x="516" y="511" width="89" height="38" rx="6"/>
+  </g>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="190" y="537">tail=4</text>
+    <text x="560" y="537">head=7</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-15)">
+    <path d="M228 530 H297 V446"/>
+    <path d="M516 530 H417 V446"/>
+  </g>
+</svg></figure><ul>
 <li>当我们需要从右往左删除数据时（出队），内存当中数据变化情况如下：</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 926 591" role="img" aria-label="两行数组对比出队前后：第一行 3 号格子标黄，tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 3 到 7 号格子变空、tail=3 与 head=8 指向 3 号与 8 号格子，左侧黄框里是被出队的 3" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 926 591" role="img" aria-label="两行数组对比出队前后：第一行 3 号格子标黄，tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 3 到 7 号格子变空、tail=3 与 head=8 指向 3 号与 8 号格子，左侧黄框里是被出队的 3" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-13" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -440,7 +578,7 @@
 </svg></figure><ul>
 <li>当我们需要从左往右删除数据时（出队），内存当中数据变化情况如下：</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 938 587" role="img" aria-label="两行数组对比出队前后：第一行 8 号格子标黄、tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 9 号格子开始有数据、tail=4 与 head=9 指向 4 号与 9 号格子，右侧黄框里是被出队的 8" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 938 587" role="img" aria-label="两行数组对比出队前后：第一行 8 号格子标黄、tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 9 号格子开始有数据、tail=4 与 head=9 指向 4 号与 9 号格子，右侧黄框里是被出队的 8" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-12" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -543,12 +681,171 @@
   <text x="882" y="436" font-size="22" fill="#000" text-anchor="middle">8</text>
 </svg></figure><h2 id="底层数据遍历顺序和逻辑顺序">底层数据遍历顺序和逻辑顺序</h2>
 <p>上面主要谈论到的数组在内存当中的布局，但是他是具体的物理存储数据的顺序，这个顺序和我们的逻辑上的顺序是不一样的，根据上面的插入顺序，我们可以画出下面的图，大家可以仔细分析一下这个图的顺序问题。</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/16.webp" alt="" loading="lazy" /></p>
-<p>上图当中队列左侧的如队顺序是0, 1, 2, 3，右侧入队的顺序为15, 14, 13, 12, 11, 10, 9, 8，因此在逻辑上我们的队列当中的数据布局如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/17.webp" alt="" loading="lazy" /></p>
-<p>根据前面一小节谈到的输入在入队的时候数组当中数据的变化我们可以知道，数据在数组当中的布局为：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/19.webp" alt="" loading="lazy" /></p>
-<h2 id="arraydeque类关键字段分析">ArrayDeque类关键字段分析</h2>
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 901 335" role="img"
+     aria-label="循环数组示意图：物理数组空间顺序 0 到 15，逻辑数据顺序按 3 2 1 0 15 14 13 12 11 10 9 8 排列"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+
+  <text x="345" y="48" text-anchor="middle" font-size="20">物理数组空间顺序</text>
+  <line x1="68" y1="88" x2="832" y2="88" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第一行：下标 0-15，已占用的 4-7 为空白格 -->
+  <g fill="#cdeb8b" stroke="#3b3b3b" stroke-width="1">
+    <rect x="128" y="108" width="39.3" height="30"/>
+    <rect x="167.3" y="108" width="39.3" height="30"/>
+    <rect x="206.6" y="108" width="39.3" height="30"/>
+    <rect x="245.9" y="108" width="39.3" height="30"/>
+    <rect x="285.2" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="324.5" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="363.8" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="403.1" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="442.4" y="108" width="39.3" height="30"/>
+    <rect x="481.7" y="108" width="39.3" height="30"/>
+    <rect x="521" y="108" width="39.3" height="30"/>
+    <rect x="560.3" y="108" width="39.3" height="30"/>
+    <rect x="599.6" y="108" width="39.3" height="30"/>
+    <rect x="638.9" y="108" width="39.3" height="30"/>
+    <rect x="678.2" y="108" width="39.3" height="30"/>
+    <rect x="717.5" y="108" width="39.3" height="30"/>
+  </g>
+  <g font-size="18" text-anchor="middle" fill="#1a1a1a">
+    <text x="147.6" y="129">0</text>
+    <text x="186.9" y="129">1</text>
+    <text x="226.2" y="129">2</text>
+    <text x="265.5" y="129">3</text>
+    <text x="304.8" y="129">4</text>
+    <text x="344.1" y="129">5</text>
+    <text x="383.4" y="129">6</text>
+    <text x="422.7" y="129">7</text>
+    <text x="462" y="129">8</text>
+    <text x="501.3" y="129">9</text>
+    <text x="540.6" y="129">10</text>
+    <text x="579.9" y="129">11</text>
+    <text x="619.2" y="129">12</text>
+    <text x="658.5" y="129">13</text>
+    <text x="697.8" y="129">14</text>
+    <text x="737.1" y="129">15</text>
+  </g>
+
+  <line x1="68" y1="156" x2="832" y2="156" stroke="#444" stroke-width="1.5"/>
+
+  <text x="345" y="201" text-anchor="middle" font-size="20">逻辑数据顺序</text>
+  <line x1="68" y1="228" x2="832" y2="228" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第二行：逻辑顺序，队头在下标 3 -->
+  <g fill="#cdeb8b" stroke="#3b3b3b" stroke-width="1">
+    <rect x="72" y="240" width="38" height="32"/>
+    <rect x="112" y="240" width="38" height="32"/>
+    <rect x="152" y="240" width="38" height="32"/>
+    <rect x="192" y="240" width="38" height="32"/>
+    <rect x="355" y="240" width="48" height="32"/>
+    <rect x="405" y="240" width="48" height="32"/>
+    <rect x="455" y="240" width="48" height="32"/>
+    <rect x="505" y="240" width="48" height="32"/>
+    <rect x="555" y="240" width="48" height="32"/>
+    <rect x="605" y="240" width="48" height="32"/>
+    <rect x="655" y="240" width="48" height="32"/>
+    <rect x="705" y="240" width="48" height="32"/>
+  </g>
+  <g font-size="18" text-anchor="middle" fill="#1a1a1a">
+    <text x="91" y="262">3</text>
+    <text x="131" y="262">2</text>
+    <text x="171" y="262">1</text>
+    <text x="211" y="262">0</text>
+    <text x="379" y="262">15</text>
+    <text x="429" y="262">14</text>
+    <text x="479" y="262">13</text>
+    <text x="529" y="262">12</text>
+    <text x="579" y="262">11</text>
+    <text x="629" y="262">10</text>
+    <text x="679" y="262">9</text>
+    <text x="729" y="262">8</text>
+  </g>
+
+  <line x1="68" y1="292" x2="832" y2="292" stroke="#444" stroke-width="1.5"/>
+</svg></figure><p>上图当中队列左侧的如队顺序是0, 1, 2, 3，右侧入队的顺序为15, 14, 13, 12, 11, 10, 9, 8，因此在逻辑上我们的队列当中的数据布局如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-11"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 110" role="img" aria-label="ArrayDeque 的环形数组布局：四个格子依次存放 3、2、1、0，再跳到 15 到 8，上下两条横线表示数组首尾相接" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <!-- 上下两条横线：数组首尾相接 -->
+  <g stroke="#404040" stroke-width="1.5">
+    <line x1="35" y1="22" x2="788" y2="22"/>
+    <line x1="35" y1="80" x2="788" y2="80"/>
+  </g>
+
+  <g fill="#cdeb8b" stroke="#404040" stroke-width="1.5">
+    <rect x="43" y="37" width="38" height="29"/>
+    <rect x="107" y="37" width="38" height="29"/>
+    <rect x="174" y="37" width="38" height="29"/>
+    <rect x="236" y="37" width="38" height="29"/>
+    <rect x="333" y="37" width="38" height="29"/>
+    <rect x="396" y="37" width="38" height="29"/>
+    <rect x="457" y="37" width="38" height="29"/>
+    <rect x="518" y="37" width="38" height="29"/>
+    <rect x="573" y="37" width="38" height="29"/>
+    <rect x="632" y="37" width="38" height="29"/>
+    <rect x="691" y="37" width="38" height="29"/>
+    <rect x="743" y="37" width="38" height="29"/>
+  </g>
+
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <text x="62" y="59">3</text>
+    <text x="126" y="59">2</text>
+    <text x="193" y="59">1</text>
+    <text x="255" y="59">0</text>
+    <text x="352" y="59">15</text>
+    <text x="415" y="59">14</text>
+    <text x="476" y="59">13</text>
+    <text x="537" y="59">12</text>
+    <text x="592" y="59">11</text>
+    <text x="651" y="59">10</text>
+    <text x="710" y="59">9</text>
+    <text x="762" y="59">8</text>
+  </g>
+</svg></figure><p>根据前面一小节谈到的输入在入队的时候数组当中数据的变化我们可以知道，数据在数组当中的布局为：</p>
+<figure class="diagram svg-figure" id="figure-12"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 124" role="img" aria-label="长度 16 的数组，下标 0 到 15；下标 0 至 3 与 8 至 15 已存放数据" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <g stroke="#36393d" stroke-width="1.5">
+    <line x1="25" y1="23" x2="779" y2="23"/>
+    <line x1="25" y1="80" x2="779" y2="80"/>
+    <g fill="#cdeb8b">
+      <rect x="82" y="37" width="40" height="30"/>
+      <rect x="122" y="37" width="40" height="30"/>
+      <rect x="162" y="37" width="40" height="30"/>
+      <rect x="202" y="37" width="40" height="30"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="242" y="37" width="40" height="30"/>
+      <rect x="282" y="37" width="40" height="30"/>
+      <rect x="322" y="37" width="40" height="30"/>
+      <rect x="362" y="37" width="40" height="30"/>
+    </g>
+    <g fill="#cdeb8b">
+      <rect x="402" y="37" width="40" height="30"/>
+      <rect x="442" y="37" width="40" height="30"/>
+      <rect x="482" y="37" width="40" height="30"/>
+      <rect x="522" y="37" width="40" height="30"/>
+      <rect x="562" y="37" width="40" height="30"/>
+      <rect x="602" y="37" width="40" height="30"/>
+      <rect x="642" y="37" width="40" height="30"/>
+      <rect x="682" y="37" width="40" height="30"/>
+    </g>
+  </g>
+  <g font-size="16" fill="#111" text-anchor="middle">
+    <text x="102" y="57">0</text>
+    <text x="142" y="57">1</text>
+    <text x="182" y="57">2</text>
+    <text x="222" y="57">3</text>
+    <text x="262" y="57">4</text>
+    <text x="302" y="57">5</text>
+    <text x="342" y="57">6</text>
+    <text x="382" y="57">7</text>
+    <text x="422" y="57">8</text>
+    <text x="462" y="57">9</text>
+    <text x="502" y="57">10</text>
+    <text x="542" y="57">11</text>
+    <text x="582" y="57">12</text>
+    <text x="622" y="57">13</text>
+    <text x="662" y="57">14</text>
+    <text x="702" y="57">15</text>
+  </g>
+</svg></figure><h2 id="arraydeque类关键字段分析">ArrayDeque类关键字段分析</h2>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// 底层用于存储具体数据的数组</span>
 <span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">elements</span><span class="tok-p">;</span>
 <span class="tok-c1">// 这就是前面谈到的 head</span>
@@ -595,7 +892,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>上面的最难理解的就是函数<code>calculateSize</code>了，他的主要作用是如果用户输入的长度小于<code>MIN_INITIAL_CAPACITY</code>时，返回<code>MIN_INITIAL_CAPACITY</code>。否则返回比<code>initialCapacity</code>大的第一个是<code>2</code>的整数幂的整数，比如说如果输入的是<code>9</code>返回的<code>16</code>，输入<code>4</code>返回<code>8</code>。</p>
 <p><code>calculateSize</code>的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
-<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-13"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap17" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -791,7 +1088,7 @@
     <path d="M152 267 H177"/>
     <path d="M152 414.5 H177"/>
   </g>
-</svg></figure><figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+</svg></figure><figure class="diagram svg-figure" id="figure-14"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap21" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -939,7 +1236,7 @@
     <path d="M136 142 H164"/>
   </g>
 </svg></figure><p>从上图当中我们会发现，我们在一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
-<figure class="diagram svg-figure" id="figure-11"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-15"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap23" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -1011,7 +1308,7 @@
   <!-- 说明 -->
   <text x="25" y="199" font-size="22" letter-spacing="0.45" fill="#000">因为一个int类型只有32位，虚线位置没有数据，画虚线只是为了表示清楚，经过移位操作之后，会有32位比特数为1</text>
 </svg></figure><p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
-<figure class="diagram svg-figure" id="figure-12"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-16"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 第一行 -->
   <g fill="#fff" stroke="#000" stroke-width="1.5">
     <rect x="62" y="23" width="91" height="34"/>
@@ -1139,8 +1436,146 @@
 <span class="tok-w">    </span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>上面的代码还是比较简单的，这里给大家一个图示，大家就更加容易理解了：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/21.webp" alt="" loading="lazy" /></p>
-<p>扩容之后将原来数组的数据拷贝到了新数组当中，虽然数据在旧数组和新数组当中的顺序发生变化了，但是他们的相对顺序却没有发生变化，他们的逻辑顺序也是一样的，这里的逻辑可能有点绕，大家在这里可以好好思考一下。</p>
+<figure class="diagram svg-figure" id="figure-17"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 981 596" role="img"
+     aria-label="顺序队列扩容示意：环状使用的数组由 tail 与 head 指向，绿色为已用的 0-3，粉色为 4-7，扩容后数据被搬到一个 16 格的数组中"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 上半部分：8 格数组与 tail / head -->
+  <path d="M190 53 V29 H726 V55" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M423 29 V58" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <rect x="160" y="53" width="59" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="189" y="81" text-anchor="middle" font-size="19">tail</text>
+  <rect x="699" y="55" width="56" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="727" y="83" text-anchor="middle" font-size="19">head</text>
+
+  <g stroke-width="1.5" font-size="20" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="264" y="60" width="41" height="30"/>
+      <rect x="305" y="60" width="41" height="30"/>
+      <rect x="346" y="60" width="41" height="30"/>
+      <rect x="387" y="60" width="41" height="30"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="428" y="60" width="41" height="30"/>
+      <rect x="469" y="60" width="41" height="30"/>
+      <rect x="510" y="60" width="41" height="30"/>
+      <rect x="551" y="60" width="41" height="30"/>
+    </g>
+    <text x="284" y="82">0</text>
+    <text x="325" y="82">1</text>
+    <text x="366" y="82">2</text>
+    <text x="407" y="82">3</text>
+    <text x="448" y="82">4</text>
+    <text x="489" y="82">5</text>
+    <text x="530" y="82">6</text>
+    <text x="571" y="82">7</text>
+  </g>
+
+  <path d="M206 116 H672" fill="none" stroke="#444" stroke-width="1.5"/>
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="203" y="130" width="40" height="33"/>
+      <rect x="253" y="130" width="40" height="33"/>
+      <rect x="303" y="130" width="40" height="33"/>
+      <rect x="353" y="130" width="40" height="33"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="403" y="130" width="40" height="33"/>
+      <rect x="453" y="130" width="40" height="33"/>
+      <rect x="503" y="130" width="40" height="33"/>
+      <rect x="553" y="130" width="40" height="33"/>
+    </g>
+    <text x="223" y="153">3</text>
+    <text x="273" y="153">2</text>
+    <text x="323" y="153">1</text>
+    <text x="373" y="153">0</text>
+    <text x="423" y="153">7</text>
+    <text x="473" y="153">6</text>
+    <text x="523" y="153">5</text>
+    <text x="573" y="153">4</text>
+  </g>
+  <path d="M206 206 H672" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="697" y="161" font-size="21">数组数据对应的逻辑顺序</text>
+
+  <!-- 扩容箭头 -->
+  <path d="M400 213 H453 V323 H470 L423.5 363 L377 323 H400 Z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="466" y="276" font-size="21">扩容之后</text>
+
+  <!-- 下半部分：扩容后的 16 格数组 -->
+  <rect x="161" y="315" width="59" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="190" y="343" text-anchor="middle" font-size="19">tail</text>
+  <path d="M192 357 V376 H462 V396" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <rect x="52" y="466" width="58" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="81" y="494" text-anchor="middle" font-size="19">head</text>
+  <path d="M110 486 H163 V432" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <g stroke-width="1.5" font-size="20" text-anchor="middle">
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="147" y="399" width="40" height="30"/>
+      <rect x="187" y="399" width="40" height="30"/>
+      <rect x="227" y="399" width="40" height="30"/>
+      <rect x="267" y="399" width="40" height="30"/>
+    </g>
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="307" y="399" width="40" height="30"/>
+      <rect x="347" y="399" width="40" height="30"/>
+      <rect x="387" y="399" width="40" height="30"/>
+      <rect x="427" y="399" width="40" height="30"/>
+    </g>
+    <g fill="#ffffff" stroke="#444">
+      <rect x="467" y="399" width="40" height="30"/>
+      <rect x="507" y="399" width="40" height="30"/>
+      <rect x="547" y="399" width="40" height="30"/>
+      <rect x="587" y="399" width="40" height="30"/>
+      <rect x="627" y="399" width="40" height="30"/>
+      <rect x="667" y="399" width="40" height="30"/>
+      <rect x="707" y="399" width="40" height="30"/>
+      <rect x="747" y="399" width="40" height="30"/>
+    </g>
+    <text x="167" y="421">4</text>
+    <text x="207" y="421">5</text>
+    <text x="247" y="421">6</text>
+    <text x="287" y="421">7</text>
+    <text x="327" y="421">0</text>
+    <text x="367" y="421">1</text>
+    <text x="407" y="421">2</text>
+    <text x="447" y="421">3</text>
+  </g>
+
+  <path d="M200 473 H667" fill="none" stroke="#444" stroke-width="1.5"/>
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="217" y="493" width="40" height="33"/>
+      <rect x="268" y="493" width="40" height="33"/>
+      <rect x="319" y="493" width="40" height="33"/>
+      <rect x="369" y="493" width="40" height="33"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="420" y="493" width="40" height="33"/>
+      <rect x="471" y="493" width="40" height="33"/>
+      <rect x="522" y="493" width="40" height="33"/>
+      <rect x="572" y="493" width="40" height="33"/>
+    </g>
+    <text x="237" y="516">3</text>
+    <text x="288" y="516">2</text>
+    <text x="339" y="516">1</text>
+    <text x="389" y="516">0</text>
+    <text x="440" y="516">7</text>
+    <text x="491" y="516">6</text>
+    <text x="542" y="516">5</text>
+    <text x="592" y="516">4</text>
+  </g>
+  <path d="M200 543 H667" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="697" y="524" font-size="21">数组数据对应的逻辑顺序</text>
+</svg></figure><p>扩容之后将原来数组的数据拷贝到了新数组当中，虽然数据在旧数组和新数组当中的顺序发生变化了，但是他们的相对顺序却没有发生变化，他们的逻辑顺序也是一样的，这里的逻辑可能有点绕，大家在这里可以好好思考一下。</p>
 <h4 id="polllast和pollfirst函数分析">pollLast和pollFirst函数分析</h4>
 <p>这两个函数的代码就比较简单了，大家可以根据前文所谈到的内容和图示去理解下面的代码。</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">pollLast</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>

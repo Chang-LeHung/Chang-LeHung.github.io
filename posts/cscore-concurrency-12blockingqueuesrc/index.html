@@ -80,12 +80,144 @@
 <p>阅读这部分内容你需要熟悉可重入锁<code>ReentrantLock</code>和条件变量<code>Condition</code>的使用。</p>
 <h3 id="数组的循环使用">数组的循环使用</h3>
 <p>因为我们是使用数组存储队列当中的数据，从下表为0的位置开始，当我们往队列当中加入一些数据之后，队列的情况可能如下，其中head表示队头，tail表示队尾。</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/26.webp" alt="" loading="lazy" /></p>
-<p>在上图的基础之上我们在进行四次出队操作，结果如下：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/27.webp" alt="" loading="lazy" /></p>
-<p>在上面的状态下，我们继续加入8个数据，那么布局情况如下：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/28.webp" alt="" loading="lazy" /></p>
-<p>我们知道上图在加入数据的时候不仅将数组后半部分的空间使用完了，而且可以继续使用前半部分没有使用过的空间，也就是说在队列内部实现了一个循环使用的过程。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 823 309" role="img"
+     aria-label="ArrayDeque 的数组：粉色格子表示存在数据，蓝色格子表示不存在数据，head 指向第一个格子，tail 指向第一个不存在的格子"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-26" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="146" y="26" width="53" height="24" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="146" y="65" width="53" height="24" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="228" y="48" font-size="22">表示存在数据</text>
+  <text x="228" y="86" font-size="22">表示不存在数据</text>
+
+  <!-- 12 个格子：前 5 格存在数据，后 7 格不存在 -->
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <g fill="#f8cecc">
+      <rect x="149" y="115" width="53" height="24"/>
+      <rect x="204" y="115" width="53" height="24"/>
+      <rect x="259" y="115" width="53" height="24"/>
+      <rect x="314" y="115" width="53" height="24"/>
+      <rect x="369" y="115" width="53" height="24"/>
+    </g>
+    <g fill="#dae8fc">
+      <rect x="424" y="115" width="53" height="24"/>
+      <rect x="479" y="115" width="53" height="24"/>
+      <rect x="534" y="115" width="53" height="24"/>
+      <rect x="589" y="115" width="53" height="24"/>
+      <rect x="644" y="115" width="53" height="24"/>
+      <rect x="699" y="115" width="53" height="24"/>
+      <rect x="754" y="115" width="53" height="24"/>
+    </g>
+  </g>
+
+  <!-- head / tail 两个圆 -->
+  <circle cx="52" cy="225" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="52" y="232" text-anchor="middle" font-size="20">head</text>
+  <circle cx="354" cy="265" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="354" y="272" text-anchor="middle" font-size="20">tail</text>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-26)">
+    <path d="M80 208 C120 214 146 190 155 144"/>
+    <path d="M340 248 C372 232 415 205 428 144"/>
+  </g>
+</svg></figure><p>在上图的基础之上我们在进行四次出队操作，结果如下：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 320" role="img"
+     aria-label="循环数组中的头尾指针：head 指向第 5 个格子，tail 指向其后一个格子，红格表示已有数据"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque27" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="30" y="18" width="46" height="30" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="88" y="40" font-size="19">表示存在数据</text>
+  <rect x="30" y="57" width="46" height="30" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="88" y="79" font-size="19">表示不存在数据</text>
+
+  <!-- 数组：12 格，第 5 格有数据 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="36" y="119" width="55" height="26"/>
+    <rect x="91" y="119" width="55" height="26"/>
+    <rect x="146" y="119" width="55" height="26"/>
+    <rect x="201" y="119" width="55" height="26"/>
+    <rect x="256" y="119" width="55" height="26" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="311" y="119" width="55" height="26"/>
+    <rect x="366" y="119" width="55" height="26"/>
+    <rect x="421" y="119" width="55" height="26"/>
+    <rect x="476" y="119" width="55" height="26"/>
+    <rect x="531" y="119" width="55" height="26"/>
+    <rect x="586" y="119" width="55" height="26"/>
+    <rect x="641" y="119" width="55" height="26"/>
+  </g>
+  <rect x="641" y="119" width="55" height="26" fill="none" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <!-- head、tail 指针 -->
+  <circle cx="134" cy="190" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="134" y="197" font-size="19" text-anchor="middle">head</text>
+
+  <circle cx="252" cy="275" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="252" y="282" font-size="19" text-anchor="middle">tail</text>
+
+  <path d="M169 190 H238 Q270 190 281 160 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+  <path d="M245 242 C272 214 322 210 336 162 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+</svg></figure><p>在上面的状态下，我们继续加入8个数据，那么布局情况如下：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 727 309" role="img" aria-label="ArrayDeque 的环形数组：粉色格子表示存在数据，蓝色格子表示不存在数据，tail 指向第一个空位、head 指向结束位置之后的空位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque28" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="45" y="24" width="55" height="26" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="45" y="62" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="21" fill="#1a1a1a">
+    <text x="128" y="46">表示存在数据</text>
+    <text x="128" y="84">表示不存在数据</text>
+  </g>
+
+  <!-- 环形数组：12 个格子 -->
+  <g stroke-width="1.5">
+    <rect x="47" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="102" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="157" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="212" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="267" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="322" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="377" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="432" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="487" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="542" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="597" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="652" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+
+  <!-- tail：指向第一个空位 -->
+  <path d="M 61 219 L 62 203 Q 64 188 78 183 Q 100 177 114 172 Q 127 167 129 150 L 129 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+  <!-- head：从末尾格子之后的位置出发 -->
+  <path d="M 246 250 Q 276 246 287 216 Q 293 196 294 172 L 294 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+
+  <circle cx="61.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <circle cx="211.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle" fill="#1a1a1a">
+    <text x="61" y="259">tail</text>
+    <text x="211" y="259">head</text>
+  </g>
+</svg></figure><p>我们知道上图在加入数据的时候不仅将数组后半部分的空间使用完了，而且可以继续使用前半部分没有使用过的空间，也就是说在队列内部实现了一个循环使用的过程。</p>
 <h3 id="字段设计">字段设计</h3>
 <p>在JDK当中数组阻塞队列的实现是<code>ArrayBlockingQueue</code>类，在他的内部是使用数组实现的，我们现在来看一下它的主要的字段，为了方便阅读将所有的解释说明都写在的注释当中：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-cm">/** The queued items */</span>

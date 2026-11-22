@@ -90,8 +90,119 @@
 <h2 id="解法分析">解法分析</h2>
 <h3 id="解法一选择和不选择">解法一：选择和不选择</h3>
 <p>首先我们先降低一下这个数据的要求，我们要在1-3之间进行选择，指定数据的个数和相加之和。在这个问题当中对于每一个数据来说我们都用两种选择：将这个数据放入求和列表当中或者不将其放入求和列表当中。因此我们可以画出如下的求解树（对于每一个数据都有选和不选两种情况，每一层是针对一个具体的数据）：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/21.webp" alt="21" loading="lazy" /></p>
-<p>如上图所示，第一层表示对数据1进行选择，第二层表示对数据2进行选择，第三层表示对数据3进行选择。每一个节点都会有两个分支，因为对应着选择和不选择，因此我们构造的树是一个完全二叉树。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1273 540" role="img" aria-label="每一层选择一个数据的决策树：从 1 开始，对 2 和 3 分别选择或不选，得到八种最终选择结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-backtrace21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <text x="141" y="71" font-size="23" fill="#111">每一层选择一个数据</text>
+
+  <!-- 节点方框 -->
+  <g stroke="#111" stroke-width="1.5" fill="#ffffff">
+    <rect x="658" y="42" width="64" height="51"/>
+    <rect x="463" y="148" width="63" height="52"/>
+    <rect x="859" y="148" width="64" height="52"/>
+    <rect x="345" y="269" width="64" height="51"/>
+    <rect x="562" y="269" width="64" height="51"/>
+    <rect x="756" y="269" width="63" height="51"/>
+    <rect x="996" y="269" width="63" height="51"/>
+  </g>
+  <g font-size="25" fill="#111" text-anchor="middle">
+    <text x="690" y="76">1</text>
+    <text x="494" y="183">2</text>
+    <text x="891" y="183">2</text>
+    <text x="377" y="304">3</text>
+    <text x="594" y="304">3</text>
+    <text x="787" y="304">3</text>
+    <text x="1027" y="304">3</text>
+  </g>
+
+  <!-- 叶子方块 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="275" y="377" width="60" height="48"/>
+    <rect x="409" y="377" width="60" height="48"/>
+    <rect x="509" y="377" width="61" height="48"/>
+    <rect x="615" y="377" width="61" height="48"/>
+    <rect x="700" y="377" width="63" height="48"/>
+    <rect x="825" y="377" width="61" height="48"/>
+    <rect x="962" y="377" width="60" height="48"/>
+    <rect x="1068" y="377" width="60" height="48"/>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M690 93 V118"/>
+    <path d="M494 118 H891"/>
+    <path d="M494 118 V148" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M891 118 V148" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M494 200 V232"/>
+    <path d="M376 232 H594"/>
+    <path d="M376 232 V269" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M594 232 V269" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M891 200 V232"/>
+    <path d="M787 232 H1027"/>
+    <path d="M787 232 V269" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M1027 232 V269" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M377 320 V345"/>
+    <path d="M305 345 H439"/>
+    <path d="M305 345 V377" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M439 345 V377" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M594 320 V345"/>
+    <path d="M539 345 H645"/>
+    <path d="M539 345 V377" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M645 345 V377" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M787 320 V345"/>
+    <path d="M731 345 H855"/>
+    <path d="M731 345 V377" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M855 345 V377" marker-end="url(#arrow-backtrace21)"/>
+
+    <path d="M1027 320 V345"/>
+    <path d="M992 345 H1098"/>
+    <path d="M992 345 V377" marker-end="url(#arrow-backtrace21)"/>
+    <path d="M1098 345 V377" marker-end="url(#arrow-backtrace21)"/>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="22" fill="#111">
+    <text x="582" y="110">选</text>
+    <text x="752" y="110">不选</text>
+
+    <text x="412" y="228">选</text>
+    <text x="522" y="228">不选</text>
+    <text x="822" y="228">选</text>
+    <text x="932" y="228">不选</text>
+
+    <text x="322" y="338">选</text>
+    <text x="415" y="338">不选</text>
+    <text x="525" y="338">选</text>
+    <text x="642" y="338">不选</text>
+    <text x="720" y="338">选</text>
+    <text x="786" y="338">不选</text>
+    <text x="958" y="338">选</text>
+    <text x="1075" y="338">不选</text>
+  </g>
+
+  <!-- 结果 -->
+  <text x="34" y="460" font-size="23" fill="#111">最终选择结果</text>
+  <g font-size="23" fill="#111">
+    <text x="261" y="460">[1,2,3]</text>
+    <text x="400" y="460">[1,2]</text>
+    <text x="505" y="460">[1,3]</text>
+    <text x="630" y="460">[1]</text>
+    <text x="695" y="460">2,3</text>
+    <text x="800" y="460">[2]</text>
+    <text x="935" y="460">[3]</text>
+    <text x="1025" y="460">[空 一个也没选]</text>
+  </g>
+</svg></figure><p>如上图所示，第一层表示对数据1进行选择，第二层表示对数据2进行选择，第三层表示对数据3进行选择。每一个节点都会有两个分支，因为对应着选择和不选择，因此我们构造的树是一个完全二叉树。</p>
 <p>现在我们的问题是，我们在遍历的时候，在什么条件下应该停下来。</p>
 <ul>
 <li>第一种情况是当数据的和等于指定的值而且数据个数相等的肯定需要停下来，因为这个已经满足条件了，我们也不需要往里面继续加入数据了，因此我们在这样的节点的时候应该要停止递归。</li>
@@ -137,8 +248,84 @@
 <span class="tok-p">}</span>
 </code></pre></div><h3 id="解法二遍历选择">解法二：遍历选择</h3>
 <p>在上一个方法当中我们的分析方法是每一个数据都有两种选择办法选和不选。在接下来我们要讨论的分析方法是使用组合的观点去进行分析。下图是我们的分析过程得到的树。</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/22.webp" alt="21" loading="lazy" /></p>
-<p>首先我们来分析一下这个树是怎么生成的：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1778 795" role="img"
+     aria-label="从 [1, 2, 3] 中依次选择数据的递归决策树：每条边标注选1、选2、选3 或不选，绿色方框为叶子结点即得到的组合"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-22" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+  <g fill="none" stroke="#000000" stroke-width="1.5">
+    <path d="M1077.8 98 L662.8 242" marker-end="url(#arrow-22)"/>
+    <path d="M1077.8 98 L1108.6 242" marker-end="url(#arrow-22)"/>
+    <path d="M1077.8 98 L1343.2 242" marker-end="url(#arrow-22)"/>
+    <path d="M1077.8 98 L1492.8 242" marker-end="url(#arrow-22)"/>
+    <path d="M662.8 300 L451.8 434" marker-end="url(#arrow-22)"/>
+    <path d="M662.8 300 L717.4 434" marker-end="url(#arrow-22)"/>
+    <path d="M662.8 300 L873.9 434" marker-end="url(#arrow-22)"/>
+    <path d="M451.8 492 L363.2 582" marker-end="url(#arrow-22)"/>
+    <path d="M451.8 492 L540.3 582" marker-end="url(#arrow-22)"/>
+    <path d="M363.2 640 L363.2 714" marker-end="url(#arrow-22)"/>
+    <path d="M717.4 492 L717.4 582" marker-end="url(#arrow-22)"/>
+    <path d="M1108.6 300 L1030.3 434" marker-end="url(#arrow-22)"/>
+    <path d="M1108.6 300 L1186.8 434" marker-end="url(#arrow-22)"/>
+    <path d="M1030.3 492 L1030.3 582" marker-end="url(#arrow-22)"/>
+    <path d="M1343.2 300 L1343.2 434" marker-end="url(#arrow-22)"/>
+  </g>
+  <g stroke-width="1.5">
+    <rect x="942.6" y="42" width="270.5" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="541.4" y="244" width="242.9" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="344.1" y="436" width="215.3" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="262.4" y="584" width="201.6" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="292.2" y="716" width="142" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="490" y="584" width="100.7" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="616.7" y="436" width="201.6" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="674" y="584" width="86.9" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="844.2" y="436" width="59.3" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="1000.9" y="244" width="215.3" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="929.6" y="436" width="201.6" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="986.9" y="584" width="86.9" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="1157.1" y="436" width="59.3" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="1242.5" y="244" width="201.6" height="56" fill="#ffffff" stroke="#000000"/>
+    <rect x="1313.6" y="436" width="59.3" height="56" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="1470" y="244" width="45.6" height="56" fill="#d1e3cf" stroke="#82b366"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="1077.8" y="79.4" font-size="26" fill="#1a1a1a">从[1,2,3]中选择数据</text>
+    <text x="662.8" y="281.4" font-size="26" fill="#1a1a1a">从[2,3]中选择数据</text>
+    <text x="451.8" y="473.4" font-size="26" fill="#1a1a1a">从[3]中选择数据</text>
+    <text x="363.2" y="621.4" font-size="26" fill="#1a1a1a">从[]中选择数据</text>
+    <text x="363.2" y="753.4" font-size="26" fill="#1a1a1a">[1, 2, 3]</text>
+    <text x="540.3" y="621.4" font-size="26" fill="#1a1a1a">[1, 2]</text>
+    <text x="717.4" y="473.4" font-size="26" fill="#1a1a1a">从[]中选择数据</text>
+    <text x="717.4" y="621.4" font-size="26" fill="#1a1a1a">[1,3]</text>
+    <text x="873.9" y="473.4" font-size="26" fill="#1a1a1a">[1]</text>
+    <text x="1108.6" y="281.4" font-size="26" fill="#1a1a1a">从[3]中选择数据</text>
+    <text x="1030.3" y="473.4" font-size="26" fill="#1a1a1a">从[]中选择数据</text>
+    <text x="1030.3" y="621.4" font-size="26" fill="#1a1a1a">[2,3]</text>
+    <text x="1186.8" y="473.4" font-size="26" fill="#1a1a1a">[2]</text>
+    <text x="1343.2" y="281.4" font-size="26" fill="#1a1a1a">从[]中选择数据</text>
+    <text x="1343.2" y="473.4" font-size="26" fill="#1a1a1a">[3]</text>
+    <text x="1492.8" y="281.4" font-size="26" fill="#1a1a1a">[]</text>
+  </g>
+  <g>
+    <text x="885.8" y="157.7" font-size="26" text-anchor="middle">选1</text>
+    <text x="1107.3" y="169.5" font-size="26" text-anchor="middle">选2</text>
+    <text x="1205" y="158.8" font-size="26" text-anchor="middle">选3</text>
+    <text x="1269.9" y="157.7" font-size="26" text-anchor="middle">不选</text>
+    <text x="559.2" y="356.9" font-size="26" text-anchor="middle">选2</text>
+    <text x="702.2" y="364.3" font-size="26" text-anchor="middle">选3</text>
+    <text x="766.5" y="356.9" font-size="26" text-anchor="middle">不选</text>
+    <text x="400.4" y="531.4" font-size="26" text-anchor="middle">选3</text>
+    <text x="503.1" y="531.4" font-size="26" text-anchor="middle">不选</text>
+    <text x="1059.5" y="362.3" font-size="26" text-anchor="middle">选3</text>
+    <text x="1157.6" y="362.3" font-size="26" text-anchor="middle">不选</text>
+  </g>
+  <rect x="102" y="36" width="104" height="61" fill="#d1e3cf" stroke="#82b366" stroke-width="1.5"/>
+  <text x="242" y="80" font-size="26" fill="#1a1a1a">叶子结点</text>
+</svg></figure><p>首先我们来分析一下这个树是怎么生成的：</p>
 <blockquote>
 <p>首先从待选择的数据当中进行遍历选择形成一个分支，然后分支能够选择的数据就是从这个数据往后的数据，比如对于第一个分支来说它选择了数据1，而他后面的数据是<code>[2, 3]</code>，因此他的子分支只能够从<code>[2, 3]</code>当中选择数据。对于第二个分支来说，它选择了2，他后面的数据只有<code>[3]</code>了，因此他只能够从3当中选择数据。如此进行递归下去就得到了上面谈到的树。</p>
 </blockquote>

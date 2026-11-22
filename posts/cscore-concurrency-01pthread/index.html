@@ -125,8 +125,27 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 </code></pre></div><p>上面程序的执行结果如下图所示：</p>
 <p><img src="/content/zh/images/cscore/images/pthread/03.webp" alt="01" loading="lazy" /></p>
 <p>根据上面程序打印的结果我们可以知道，变量 <code>pthread_t t</code> 保存的就是线程 id 的地址， 参数 t 和线程 id 之间的关系如下所示：</p>
-<p><img src="/content/zh/images/cscore/images/pthread/04.webp" alt="01" loading="lazy" /></p>
-<p>在上面的代码当中我们首先对 t 取地址，然后将其转化为一个 long 类型的指针，然后解引用就可以得到对应地址的值了，也就是线程的ID。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 338 349" role="img"
+     aria-label="变量 t 保存的是指向保存线程 ID 的地址：箭头从 t 指向下面的线程 ID 方块"
+     style="display:block; margin:1.2em auto; max-width:338px" class="inline-svg">
+  <defs>
+    <marker id="arrow-04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="169" y="38" text-anchor="middle" font-size="20">t 保存的是指向保存线程ID的地址</text>
+
+  <rect x="87" y="67" width="105" height="34" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" rx="6"/>
+  <text x="139" y="91" text-anchor="middle" font-size="20">t</text>
+
+  <path d="M192 84 H212 V310 H196" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-04)"/>
+
+  <rect x="87" y="293" width="105" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5" rx="6"/>
+  <text x="139" y="317" text-anchor="middle" font-size="20">线程 ID</text>
+</svg></figure><p>在上面的代码当中我们首先对 t 取地址，然后将其转化为一个 long 类型的指针，然后解引用就可以得到对应地址的值了，也就是线程的ID。</p>
 <h3 id="深入理解参数-arg">深入理解参数 arg</h3>
 <p>在下面的程序当中我们定义了一个结构体用于保存一些字符出的信息，然后创建一个这个结构体的对象，将这个对象的指针作为参数传递给线程要执行的函数，并且在线程内部打印字符串当中的内容。</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
@@ -175,7 +194,7 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 <p>可以看到函数参数已经做到了正确传递。</p>
 <h3 id="深入理解参数-attr">深入理解参数 attr</h3>
 <p>在深入介绍参数 attr 前，我们首先需要了解一下程序的内存布局，在64位操作系统当中程序的虚拟内存布局大致如下所示，从下往上依次为：只读数据/代码区、可读可写数据段、堆区、共享库的映射区、程序栈区以及内核内存区域。我们程序执行的区域就是在栈区。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arr03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -256,8 +275,31 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
   <path d="M325 264 V239" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr03)"/>
   <path d="M325 446 V409" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr03)"/>
 </svg></figure><p>根据上面的虚拟内存布局示意图，我们将其简化一下得到单个线程的执行流和大致的内存布局如下所示（程序执行的时候有他的栈帧以及寄存器现场，图中将寄存器也做出了标识）：</p>
-<p><img src="/content/zh/images/cscore/images/pthread/01.webp" alt="01" loading="lazy" /></p>
-<p>程序执行的时候当我们进行函数调用的时候函数的栈帧就会从上往下生长，我们现在进行一下测试，看看程序的栈帧最大能够达到多少。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 285 415" role="img" aria-label="传统进程只有一个执行流：栈向低地址方向增长，寄存器保存当前执行位置，堆、数据段和代码段在同一地址空间里" style="display:block; margin:1.2em auto; max-width:285px" class="inline-svg">
+  <text x="27" y="28" font-size="26" fill="#111">Traditional Process</text>
+
+  <rect x="26" y="51" width="100" height="302" fill="#26affa"/>
+
+  <g fill="#111" font-size="21">
+    <text x="50" y="84">Stack</text>
+    <text x="52" y="283">Heap</text>
+    <text x="55" y="307">Data</text>
+    <text x="50" y="333">Code</text>
+  </g>
+
+  <!-- 栈向下增长 -->
+  <path d="M112 64 V88" fill="none" stroke="#111" stroke-width="3"/>
+  <path d="M104 80 L112 96 L120 80 Z" fill="#111"/>
+
+  <!-- 寄存器 -->
+  <path d="M126 75 H152" fill="none" stroke="#111" stroke-width="2"/>
+  <circle cx="137" cy="75" r="4.5" fill="#111"/>
+  <circle cx="152" cy="75" r="4.5" fill="#111"/>
+  <rect x="152" y="58" width="123" height="34" fill="#57e14c" stroke="#111" stroke-width="1.5"/>
+  <text x="160" y="84" font-size="21" fill="#111">Registers</text>
+
+  <text x="11" y="398" font-size="28" fill="#111">Single execution flow</text>
+</svg></figure><p>程序执行的时候当我们进行函数调用的时候函数的栈帧就会从上往下生长，我们现在进行一下测试，看看程序的栈帧最大能够达到多少。</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
@@ -378,8 +420,33 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 </code></pre></div><p>上述程序的执行结果如下图所示：</p>
 <p><img src="/content/zh/images/cscore/images/pthread/10.webp" alt="01" loading="lazy" /></p>
 <p>从上面的执行结果可以看出来我们设置的栈空间的大小为 2MB 成功了。在上面的程序当中我们主要使用 <code>pthread_attr_setstack</code> 函数设置栈的低地址和栈空间的大小。我们申请的内存空间内存布局大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/pthread/11.webp" alt="01" loading="lazy" /></p>
-<h5 id="使用-mmap-申请内存作为栈空间">使用 mmap 申请内存作为栈空间</h5>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 548 600" role="img"
+     aria-label="栈内存布局：中间是堆空间，绿色一段是 stack 指针指向的位置，上面一段是自己申请的栈空间"
+     style="display:block; margin:1.2em auto; max-width:548px" class="inline-svg">
+  <defs>
+    <marker id="arrow-pthread11" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- 栈的整体 -->
+  <rect x="45" y="30" width="146" height="528" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+  <rect x="45" y="266" width="146" height="89" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+  <rect x="45" y="355" width="146" height="46" fill="#d9e7d6" stroke="#9fbf88" stroke-width="1.5"/>
+  <rect x="45" y="401" width="146" height="31" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+
+  <text x="118" y="318" font-size="20" text-anchor="middle">堆空间</text>
+
+  <!-- 引线 -->
+  <path d="M340 275 H267 V358 H204" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-pthread11)"/>
+  <path d="M320 468 V372 H204" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-pthread11)"/>
+
+  <text x="347" y="284" font-size="21">自己申请的栈空间</text>
+  <text x="195" y="510" font-size="21">stack 指针指向的位置</text>
+</svg></figure><h5 id="使用-mmap-申请内存作为栈空间">使用 mmap 申请内存作为栈空间</h5>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
@@ -416,8 +483,70 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的程序当中我们使用 mmap 系统调用在共享库空间申请了一段内存空间，并且将其做为栈空间，我们在这里就不将程序执行的结果放出来了，上面整个程序和前面的程序相差不大，只是在申请内存方面发生了变化，总体的方向是不变的。</p>
 <p>根据前面知识的学习，我们可以知道多个线程可以共享同一个进程虚拟地址空间，我们只需要给每个线程申请一个栈空间让线程执行起来就行，基于此我们可以知道多个线程的执行流和大致的内存布局如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/pthread/02.webp" alt="01" loading="lazy" /></p>
-<p>在上图当中不同的线程拥有不同的栈空间和每个线程自己的寄存器现场，正如上图所示，栈空间可以是在堆区也可以是在共享库的映射区域，只需要给线程提供栈空间即可。</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 333 416" role="img"
+     aria-label="多线程进程的内存布局：一个进程内四个线程各有自己的栈和寄存器，堆、数据段与代码段由所有线程共享"
+     style="display:block; margin:1.2em auto; max-width:333px" class="inline-svg">
+  <defs>
+    <marker id="arrow-p02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <text x="166" y="30" text-anchor="middle" font-size="25">Multithreaded Process</text>
+
+  <rect x="70" y="49" width="98" height="303" fill="#26affa"/>
+
+  <!-- 四个线程栈 -->
+  <g font-size="21" fill="#000">
+    <text x="78" y="78">Stack</text>
+    <text x="78" y="127">Stack</text>
+    <text x="78" y="173">Stack</text>
+    <text x="78" y="219">Stack</text>
+  </g>
+  <g fill="none" stroke="#000" stroke-width="2">
+    <path d="M148 60 V74" marker-end="url(#arrow-p02)"/>
+    <path d="M148 109 V123" marker-end="url(#arrow-p02)"/>
+    <path d="M148 155 V169" marker-end="url(#arrow-p02)"/>
+    <path d="M148 201 V215" marker-end="url(#arrow-p02)"/>
+  </g>
+
+  <!-- 共享区 -->
+  <g font-size="21" fill="#000" text-anchor="middle">
+    <text x="119" y="277">Heap</text>
+    <text x="119" y="305">Data</text>
+    <text x="119" y="333">Code</text>
+  </g>
+
+  <!-- 寄存器 -->
+  <g fill="#57e14c" stroke="#0e1c0c" stroke-width="1.5">
+    <rect x="197" y="52" width="114" height="36"/>
+    <rect x="197" y="101" width="114" height="34"/>
+    <rect x="197" y="147" width="114" height="33"/>
+    <rect x="197" y="193" width="114" height="33"/>
+  </g>
+  <g font-size="21" fill="#000">
+    <text x="206" y="78">Registers</text>
+    <text x="206" y="125">Registers</text>
+    <text x="206" y="170">Registers</text>
+    <text x="206" y="216">Registers</text>
+  </g>
+
+  <g stroke="#000" stroke-width="2.5">
+    <path d="M174 70 H197"/>
+    <path d="M174 118 H197"/>
+    <path d="M174 163 H197"/>
+    <path d="M174 209 H197"/>
+  </g>
+  <g fill="#000">
+    <circle cx="176" cy="70" r="4.5"/>
+    <circle cx="176" cy="118" r="4.5"/>
+    <circle cx="176" cy="163" r="4.5"/>
+    <circle cx="176" cy="209" r="4.5"/>
+  </g>
+
+  <text x="166" y="392" text-anchor="middle" font-size="25">Multiple execution flows</text>
+</svg></figure><p>在上图当中不同的线程拥有不同的栈空间和每个线程自己的寄存器现场，正如上图所示，栈空间可以是在堆区也可以是在共享库的映射区域，只需要给线程提供栈空间即可。</p>
 <h2 id="深入理解线程的状态">深入理解线程的状态</h2>
 <p>在 <code>pthread</code> 当中给我们提供了一个函数 <code>pthread_cancel</code> 可以取消一个正在执行的线程，取消正在执行的线程之后会将线程的退出状态（返回值）设置成宏定义 <code>PTHREAD_CANCELED</code> 。我们使用下面的例子去理解一下线程取消的过程：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>

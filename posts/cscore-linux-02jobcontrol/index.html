@@ -407,8 +407,81 @@ I<span class="tok-w"> </span>am<span class="tok-w"> </span>a<span class="tok-w">
 <li>当你在终端当中输入 ctrl + c 的时候，内核会给所有的前台进程组当中所有的进程发送 SIGINT 信号，当你在终端输入 ctrl + z 时，内核会给前台进程组当中的所有进程发送 SIGTSTP 信号，当你在终端输入 ctrl + \ 内核会给所有的前台进程组发送 SIGQUIT 信号。</li>
 <li>综合上面的分析，上面的结果可以使用下面的图进行表示分析。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/linux/shell/7.webp" alt="6" loading="lazy" /></p>
-<hr />
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1634 950" role="img" aria-label="Linux 进程的前后台状态转换：前台执行收到 ctl+c 或 ctl+\ 结束、收到 ctrl+z 暂停，在后台执行与在后台停止执行之间可互相切换，fg 把后台任务调回前台" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-shell7" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+    <pattern id="hatch-shell7" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(60)">
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#000" stroke-opacity="0.22" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <!-- 四个状态 -->
+  <rect x="260" y="175" width="270" height="123" rx="12" fill="#f2f7ee" stroke="#7da762" stroke-width="3"/>
+  <rect x="260" y="175" width="270" height="123" rx="12" fill="url(#hatch-shell7)" stroke="none"/>
+  <rect x="1239" y="176" width="270" height="123" rx="12" fill="#fdf4e6" stroke="#a06e3c" stroke-width="3"/>
+  <rect x="1239" y="176" width="270" height="123" rx="12" fill="url(#hatch-shell7)" stroke="none"/>
+  <rect x="261" y="568" width="269" height="123" rx="12" fill="#f0f4fb" stroke="#6c8ebf" stroke-width="3"/>
+  <rect x="261" y="568" width="269" height="123" rx="12" fill="url(#hatch-shell7)" stroke="none"/>
+  <rect x="1240" y="568" width="270" height="123" rx="12" fill="#fbeceb" stroke="#b85450" stroke-width="3"/>
+  <rect x="1240" y="568" width="270" height="123" rx="12" fill="url(#hatch-shell7)" stroke="none"/>
+
+  <g font-size="36" fill="#000" text-anchor="middle">
+    <text x="395" y="252">前台执行</text>
+    <text x="1374" y="252">程序终止</text>
+    <text x="395" y="645">在后台执行</text>
+    <text x="1374" y="645">在后台停止执行</text>
+  </g>
+
+  <!-- 进入两个状态 -->
+  <g fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrow-shell7)">
+    <path d="M 75 35 L 250 172"/>
+    <path d="M 55 418 L 250 562"/>
+  </g>
+
+  <!-- 状态之间的转换 -->
+  <g fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrow-shell7)">
+    <path d="M 529 203 H 1232"/>
+    <path d="M 529 242 L 1232 292"/>
+    <path d="M 529 265 L 1238 556"/>
+    <path d="M 1240 545 L 533 305"/>
+    <path d="M 529 585 L 1232 296"/>
+    <path d="M 395 568 V 302"/>
+    <path d="M 1348 568 V 302"/>
+    <path d="M 1240 592 H 535"/>
+    <path d="M 533 650 H 1232"/>
+  </g>
+
+  <!-- 转换上的标注 -->
+  <g font-size="32" fill="#000">
+    <text x="110" y="104">命令</text>
+    <text x="78" y="491">命令 &amp;</text>
+    <text x="766" y="174">ctl+c SIGINT</text>
+    <text x="760" y="250">ctl+\ SIGQUIT</text>
+    <text x="383" y="417">fg</text>
+    <text x="683" y="417">fg</text>
+    <text x="863" y="400">ctrl+z</text>
+    <text x="1000" y="480">SIGTSTP</text>
+    <text x="683" y="497">killed</text>
+    <text x="830" y="508">SIGCONT</text>
+    <text x="1333" y="400">killed</text>
+  </g>
+  <rect x="795" y="612" width="90" height="34" fill="#fff"/>
+  <rect x="900" y="612" width="196" height="34" fill="#fff"/>
+  <g font-size="32" fill="#000">
+    <text x="798" y="640">bg</text>
+    <text x="902" y="640">SIGCONT</text>
+  </g>
+
+  <!-- 说明 -->
+  <g font-size="32" fill="#000">
+    <text x="613" y="713">1. 读终端，收到信号 SIGTTIN</text>
+    <text x="482" y="797">2. 写终端，收到信号 SIGTTOU（需要用 stty TOSTOP）</text>
+    <text x="720" y="878">3. kill -SIGSTOP</text>
+  </g>
+</svg></figure><hr />
 <p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
 <p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
 <p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>

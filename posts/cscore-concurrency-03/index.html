@@ -138,12 +138,66 @@
 <ul>
 <li>比如刚开始的时候5个线程的状态如下，<strong>同步点</strong>还没有5个线程到达，因此不会放行。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/20.webp" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1058 577" role="img"
+     aria-label="Thread-0 到 Thread-4 五个线程各自向下走到同一道屏障，路障 CyclicBarrier 横在下方"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-20" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <circle cx="132" cy="65" r="41"/>
+    <circle cx="359" cy="65" r="41"/>
+    <circle cx="554" cy="65" r="41"/>
+    <circle cx="762" cy="65" r="41"/>
+    <circle cx="923" cy="65" r="41"/>
+  </g>
+  <g font-size="19" text-anchor="middle" fill="#1a1a1a">
+    <text x="132" y="72">Thread-0</text>
+    <text x="359" y="72">Thread-1</text>
+    <text x="554" y="72">Thread-2</text>
+    <text x="762" y="72">Thread-3</text>
+    <text x="923" y="72">Thread-4</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-20)">
+    <path d="M132 107 V414"/>
+    <path d="M359 107 V353"/>
+    <path d="M554 107 V287"/>
+    <path d="M762 107 V233"/>
+    <path d="M923 107 V428"/>
+  </g>
+
+  <rect x="57" y="445" width="956" height="83" rx="14" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="535" y="496" text-anchor="middle" font-size="22">路障 CyclicBarrier</text>
+</svg></figure><ul>
 <li>当有5个线程或者更多的线程到达<strong>同步点</strong><code>barrier.await()</code>的时候，才会放行<code>5</code>个线程，注意是5个线程，如果有多的线程必须等到下一次集合5个线程才会进行又一次放行，也就是说每次只放行5个线程，这也是它叫做<code>CyclicBarrier</code>（循环路障）的原因（因为每次放行5个线程，放行完之后重新计数，直到又有5个新的线程到来，才再次放行）。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/21.webp" alt="" loading="lazy" /></p>
-<h3 id="semaphore">Semaphore</h3>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1098 280" role="img"
+     aria-label="路障 CyclicBarrier：五个线程停在同一个路障上等待"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+
+  <rect x="76" y="135" width="956" height="87" rx="8" fill="#f8cecc" stroke="#bd5f5b" stroke-width="1.5"/>
+  <text x="553" y="190" font-size="26" text-anchor="middle">路障 CylicBarrier</text>
+
+  <g fill="#b1ddf0" stroke="#12749f" stroke-width="1.5">
+    <circle cx="170" cy="106" r="40"/>
+    <circle cx="398" cy="106" r="40"/>
+    <circle cx="593" cy="106" r="40"/>
+    <circle cx="800" cy="106" r="40"/>
+    <circle cx="962" cy="106" r="40"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="170" y="112">Thread-0</text>
+    <text x="398" y="112">Thread-1</text>
+    <text x="593" y="112">Thread-2</text>
+    <text x="800" y="112">Thread-3</text>
+    <text x="962" y="112">Thread-4</text>
+  </g>
+</svg></figure><h3 id="semaphore">Semaphore</h3>
 <blockquote>
 <p><code>Semaphore</code>（<strong>信号量</strong>）通俗一点的来说就是控制能执行某一段代码的线程数量，他可以控制程序的并发量！</p>
 <p><code>semaphore.acquire</code></p>

@@ -96,8 +96,75 @@ ps<span class="tok-w"> </span>-e
 </ul>
 <p><img src="/content/zh/images/cscore/images/linux/command/42.webp" alt="40" loading="lazy" /></p>
 <p>一个更具体的描述一个 shell 中 session leader 和其他进程的关系如下图所示（图中最左方就是 session leader 进程）：</p>
-<p><img src="/content/zh/images/cscore/images/linux/command/43.webp" alt="40" loading="lazy" /></p>
-<h3 id="查看正在运行的程序">查看正在运行的程序</h3>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1122 712" role="img" aria-label="进程组与session关系图：session 内含两个后台进程组和一个前台进程组，底部控制终端通过 hang-up 信号和终端输入影响它们" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-command43" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="1122" height="712" fill="#fff"/>
+
+  <!-- session 外框 -->
+  <text x="573" y="45" font-size="21" text-anchor="middle">session</text>
+  <rect x="72" y="56" width="996" height="312" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="28 16"/>
+
+  <!-- 三个进程组 -->
+  <rect x="130" y="112" width="148" height="88" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+  <rect x="340" y="112" width="305" height="88" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+  <rect x="710" y="112" width="300" height="206" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+
+  <!-- 进程方框 -->
+  <g fill="none" stroke="#000" stroke-width="1.4">
+    <rect x="148" y="130" width="116" height="50"/>
+    <rect x="362" y="130" width="113" height="50"/>
+    <rect x="513" y="130" width="115" height="50"/>
+    <rect x="730" y="130" width="115" height="50"/>
+    <rect x="880" y="130" width="115" height="50"/>
+    <rect x="806" y="245" width="119" height="50"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle">
+    <text x="206" y="163">login shell</text>
+    <text x="419" y="163">proc1</text>
+    <text x="571" y="163">proc2</text>
+    <text x="788" y="163">proc3</text>
+    <text x="938" y="163">proc4</text>
+    <text x="866" y="278">proc5</text>
+  </g>
+
+  <!-- 进程组标注 -->
+  <g font-size="19">
+    <text x="76" y="229">background process group</text>
+    <text x="205" y="255" text-anchor="middle">session leader =</text>
+    <text x="205" y="281" text-anchor="middle">controlling process</text>
+    <text x="358" y="229">background process group</text>
+    <text x="733" y="345">foreground process group</text>
+  </g>
+
+  <!-- 控制终端 -->
+  <ellipse cx="403" cy="540" rx="73" ry="55" fill="none" stroke="#000" stroke-width="1.4"/>
+  <text x="403" y="534" font-size="19" text-anchor="middle">controlling</text>
+  <text x="403" y="558" font-size="19" text-anchor="middle">terminal</text>
+
+  <!-- 两条带标注的箭头 -->
+  <path d="M352 492 L256 302" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-command43)"/>
+  <g transform="translate(-50,27) rotate(-62 320 400)" font-size="19" text-anchor="middle">
+    <text x="320" y="400">modem disconnect</text>
+    <text x="320" y="424">(hang-up signal)</text>
+  </g>
+
+  <path d="M452 510 L795 352" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-command43)"/>
+  <g transform="translate(-11,-25) rotate(-25 620 432)" font-size="19" text-anchor="middle">
+    <text x="620" y="432">terminal input and</text>
+    <text x="620" y="456">terminal-generated signals</text>
+  </g>
+
+  <!-- 图注 -->
+  <text x="244" y="681" font-size="19" font-weight="bold">Figure 9.7</text>
+  <text x="356" y="681" font-size="19">Process groups and sessions showing controlling terminal</text>
+</svg></figure><h3 id="查看正在运行的程序">查看正在运行的程序</h3>
 <div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-r
 </code></pre></div><h3 id="查看当前用户的进程">查看当前用户的进程</h3>
 <div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-x
@@ -270,8 +337,67 @@ ps<span class="tok-w"> </span>-ef
 <li>进程 2832740 正在执行。</li>
 </ul>
 <p>下图表示 linux 当中进程的几种状态：</p>
-<p><img src="/content/zh/images/cscore/images/linux/command/03.webp" alt="" loading="lazy" /></p>
-<p>我们在来看一个多进程程序的例子：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1318 644" role="img" aria-label="Linux 进程状态转换图：Ready 与 Running 之间因抢占与调度互相切换，Running 收到 STOP 信号进入 Stopped、被 ptrace 进入 Traced，挂起时进入 Suspended，退出后成为 Zombie 并被父进程回收" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-cmd03" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#0000ff"/>
+    </marker>
+  </defs>
+
+  <!-- 状态框 -->
+  <g stroke="#000" stroke-width="1.5">
+    <rect x="302" y="327" width="160" height="75" rx="22" fill="#ffd600"/>
+    <rect x="485" y="327" width="213" height="75" rx="22" fill="#ffd600"/>
+    <rect x="892" y="59" width="235" height="75" rx="22" fill="#008f8f"/>
+    <rect x="892" y="167" width="235" height="74" rx="22" fill="#00b0b0"/>
+    <rect x="795" y="456" width="225" height="74" rx="22" fill="#ffa1a1"/>
+    <rect x="345" y="542" width="310" height="74" rx="22" fill="#00d1d1"/>
+  </g>
+  <g font-size="40" fill="#000" text-anchor="middle">
+    <text x="382" y="379">Ready</text>
+    <text x="591" y="379">Running</text>
+    <text x="1009" y="111">Stopped</text>
+    <text x="1009" y="219">Traced</text>
+    <text x="907" y="508">Zombie</text>
+    <text x="500" y="594">Suspended</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#0000ff" stroke-width="2">
+    <path d="M243 368 H296" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M470 326 Q494 292 518 322" marker-end="url(#arrow-cmd03)"/>
+    <path d="M502 326 Q454 290 412 316" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M622 326 C 700 240 800 160 884 108" marker-end="url(#arrow-cmd03)"/>
+    <path d="M890 200 C 800 250 706 300 646 324" marker-end="url(#arrow-cmd03)"/>
+    <path d="M886 96 C 660 88 320 120 288 235 C 282 288 292 316 303 325" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M600 403 C 640 432 700 456 786 478" marker-end="url(#arrow-cmd03)"/>
+    <path d="M533 403 C 512 450 512 480 555 504" marker-end="url(#arrow-cmd03)"/>
+    <path d="M420 541 C 412 500 404 450 406 408" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M1022 492 H1096" marker-end="url(#arrow-cmd03)"/>
+  </g>
+  <path d="M62 452 H172 V408" fill="none" stroke="#ff0000" stroke-width="2"/>
+
+  <!-- 标注 -->
+  <g fill="#8f0000" font-size="36">
+    <text x="347" y="178">CONT signal</text>
+    <text x="550" y="231">STOP signal</text>
+    <text x="347" y="283" font-style="italic">preemption</text>
+    <text x="678" y="274">ptrace</text>
+    <text x="573" y="455">exit</text>
+    <text x="1022" y="454" font-style="italic">parent wait</text>
+    <text x="411" y="518" font-style="italic">suspend (e.g., I/O)</text>
+    <text x="68" y="498">fork</text>
+  </g>
+  <g fill="#0000ff" font-size="40">
+    <text x="89" y="392">Create</text>
+    <text x="1109" y="510">Delete</text>
+  </g>
+</svg></figure><p>我们在来看一个多进程程序的例子：</p>
 <div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>

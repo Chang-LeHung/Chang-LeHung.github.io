@@ -101,22 +101,138 @@
 <span class="tok-mi">131888</span>
 </code></pre></div><p>上面两个线程执行的结果最终都会小于<code>200000</code>，为什么会出现这种情况呢？</p>
 <p>我们首先来看一下内存的逻辑布局图：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/15.webp" alt="" loading="lazy" /></p>
-<p><code>data</code>全局变量保存在<strong>主内存</strong>当中，当现成开始执行的时候会从<strong>主内存</strong>拷贝一份到线程的<strong>工作内存</strong>当中，也就是线程的<strong>本地内存</strong>，在本地进行计算之后就会将<strong>本地内存</strong>当中的数据同步到<strong>主内存</strong></p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 952 611" role="img" aria-label="Java 内存模型的四个线程与主内存的关系：每个线程的 CPU 和 CPU 缓存与线程工作内存双向相连，所有线程工作内存都与主内存双向相连" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="11" markerHeight="11" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 主内存 -->
+  <rect x="642" y="25" width="191" height="534" rx="22" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <text x="738" y="300" font-size="22" fill="#000" text-anchor="middle">主内存</text>
+
+  <!-- 四个线程的 CPU 与工作内存 -->
+  <g fill="#fad7ac" stroke="#c68a40" stroke-width="1.5">
+    <rect x="49" y="71" width="189" height="63"/>
+    <rect x="48" y="206" width="189" height="63"/>
+    <rect x="44" y="331" width="189" height="63"/>
+    <rect x="43" y="466" width="189" height="63"/>
+  </g>
+  <g fill="#d0cee2" stroke="#66628b" stroke-width="1.5">
+    <rect x="349" y="66" width="170" height="73" rx="8"/>
+    <rect x="349" y="201" width="170" height="73" rx="8"/>
+    <rect x="349" y="326" width="170" height="73" rx="8"/>
+    <rect x="349" y="461" width="170" height="73" rx="8"/>
+  </g>
+
+  <!-- 双向箭头 -->
+  <g fill="none" stroke="#000" stroke-width="1.5"
+     marker-start="url(#arrow-concurrency15)" marker-end="url(#arrow-concurrency15)">
+    <path d="M 238 102 H 349"/>
+    <path d="M 238 237 H 349"/>
+    <path d="M 238 362 H 349"/>
+    <path d="M 238 497 H 349"/>
+    <path d="M 519 107 L 642 155"/>
+    <path d="M 519 238 L 642 292"/>
+    <path d="M 519 360 L 642 339"/>
+    <path d="M 519 492 L 642 426"/>
+  </g>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="143" y="111">CPU和CPU缓存</text>
+    <text x="142" y="246">CPU和CPU缓存</text>
+    <text x="138" y="371">CPU和CPU缓存</text>
+    <text x="137" y="506">CPU和CPU缓存</text>
+    <text x="434" y="111">线程工作内存</text>
+    <text x="434" y="246">线程工作内存</text>
+    <text x="434" y="371">线程工作内存</text>
+    <text x="434" y="506">线程工作内存</text>
+  </g>
+</svg></figure><p><code>data</code>全局变量保存在<strong>主内存</strong>当中，当现成开始执行的时候会从<strong>主内存</strong>拷贝一份到线程的<strong>工作内存</strong>当中，也就是线程的<strong>本地内存</strong>，在本地进行计算之后就会将<strong>本地内存</strong>当中的数据同步到<strong>主内存</strong></p>
 <p>我们现在来模拟一下出现问题的过程：</p>
 <ul>
 <li>主内存<code>data</code>的初始值等于0，两个线程得到的<code>data</code>初始值都等于0。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/16.webp" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 831 291" role="img" aria-label="Java 内存模型：两个线程各自的线程工作内存都与主内存中的 data 双向交互" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect x="254" y="28" width="284" height="67" rx="12" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="396" y="71" font-size="26" fill="#111" text-anchor="middle">主内存 data = 0</text>
+
+  <rect x="45" y="183" width="234" height="53" rx="8" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="516" y="183" width="235" height="53" rx="8" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="162" y="216">线程工作内存 data = 0</text>
+    <text x="634" y="216">线程工作内存 data = 0</text>
+  </g>
+
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M166 188 L384 100" marker-start="url(#arrow-concurrency16)" marker-end="url(#arrow-concurrency16)"/>
+    <path d="M633 186 L411 100" marker-start="url(#arrow-concurrency16)" marker-end="url(#arrow-concurrency16)"/>
+  </g>
+</svg></figure><ul>
 <li>现在线程一将<code>data</code>加一，然后线程一将<code>data</code>的值同步回主内存，整个内存的数据变化如下：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/17.webp" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 747 293" role="img"
+     aria-label="线程工作内存与主内存的关系：主内存 data=1，两个线程各自的工作内存分别为 data=1 与 data=0"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <rect x="232" y="25" width="284" height="66" rx="10" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="374" y="66" text-anchor="middle" font-size="22">主内存 data = 1</text>
+
+  <rect x="18" y="184" width="233" height="48" rx="10" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="134" y="215" text-anchor="middle" font-size="20">线程工作内存 data = 1</text>
+
+  <rect x="497" y="184" width="242" height="48" rx="10" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="618" y="215" text-anchor="middle" font-size="20">线程工作内存 data = 0</text>
+
+  <path d="M152 182 L368 92" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-start="url(#arrow-17)" marker-end="url(#arrow-17)"/>
+  <path d="M600 182 L373 92" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-start="url(#arrow-17)" marker-end="url(#arrow-17)"/>
+</svg></figure><ul>
 <li>现在线程二<code>data</code>加一，然后将<code>data</code>的值同步回主内存（将原来主内存的值覆盖掉了）：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/18.webp" alt="" loading="lazy" /></p>
-<p>我们本来希望<code>data</code>的值在经过上面的变化之后变成<code>2</code>，但是线程二覆盖了我们的值，因此在多线程情况下，会使得我们最终的结果变小。</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 737 286" role="img" aria-label="主内存 data = 1 与两个线程工作内存中的 data 之间双向读写的示意图" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency18" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="737" height="286" fill="#fff"/>
+
+  <!-- 双向箭头 -->
+  <g fill="none" stroke="#111" stroke-width="1.6">
+    <path d="M365 95 L128 180" marker-start="url(#arrow-concurrency18)" marker-end="url(#arrow-concurrency18)"/>
+    <path d="M365 95 L600 180" marker-start="url(#arrow-concurrency18)" marker-end="url(#arrow-concurrency18)"/>
+  </g>
+
+  <!-- 主内存 -->
+  <rect x="225" y="26" width="280" height="66" rx="8" fill="#fad9d5" stroke="#b85548" stroke-width="2"/>
+  <text x="365" y="68" font-size="26" fill="#111" text-anchor="middle">主内存 data = 1</text>
+
+  <!-- 两个线程工作内存 -->
+  <rect x="15" y="182" width="234" height="51" rx="6" fill="#d0cee2" stroke="#56517e" stroke-width="2"/>
+  <text x="132" y="216" font-size="22" fill="#111" text-anchor="middle">线程工作内存 data = 1</text>
+
+  <rect x="487" y="182" width="234" height="51" rx="6" fill="#d0cee2" stroke="#56517e" stroke-width="2"/>
+  <text x="604" y="216" font-size="22" fill="#111" text-anchor="middle">线程工作内存 data = 1</text>
+</svg></figure><p>我们本来希望<code>data</code>的值在经过上面的变化之后变成<code>2</code>，但是线程二覆盖了我们的值，因此在多线程情况下，会使得我们最终的结果变小。</p>
 <h2 id="忙等待busy-waiting">忙等待（Busy waiting）</h2>
 <p>那么我们能在不使用锁或者<code>synchronized</code>的情况实现上面这个任务吗？答案是可以，这种方法叫做<strong>忙等待</strong>。具体怎么做呢，我们可以用一个布尔值<code>flag</code>去标识是那个线程执行<code>sum++</code>，我们先看代码然后进行分析：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">BusyWaiting</span><span class="tok-w"> </span><span class="tok-p">{</span>

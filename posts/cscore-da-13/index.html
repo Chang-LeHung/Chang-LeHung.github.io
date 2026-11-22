@@ -146,10 +146,132 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>上面的代码体现的就是<strong>完全背包</strong> 的思想，在题目当中硬币可以使用无限次，如果只能使用一次的话，问题就转换成<strong>01背包</strong>了，那么动态转移方程就为：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>c</mi><mi>o</mi><mi>i</mi><mi>n</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></div><h3 id="单行数组优化">单行数组优化</h3>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp32.webp" alt="" loading="lazy" /></p>
-<p>根据动态转移方程<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>c</mi><mi>o</mi><mi>i</mi><mi>n</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>，我们可以得到<code>dp</code>数组当中数据之间的依赖关系，他们的关系如上图所示，<code>dp[i][j]</code>依赖的数据为它上一行同列的位置，和第<code>i</code>行前面的某些数据，事实上我们可以使用单行数组去进行实现，我们使用的循环还是一样的，但是使用的数组有所变化，从之前的二维数组变成一维数组。当我们遍历到单行数组第<code>j</code>个数据的时候，第<code>j</code>个数据还是上一行的状态，但是单行数组的下标从0到<code>j-1</code>的位置数据的状态已经从上一行更新了，这些数据的状态相当于二维数组的<code>dp[i]</code>这一行的状态，而这正好可以满足动态转移方程的需求，因为在动态转移方程当中，<code>dp[i-1][j]</code>依赖的数据全部符合条件，单行数组当中的下标为<code>j</code>数据等于<code>dp[i][j]</code>，单行数组下标为<code>x</code>的数据等于<code>dp[i][x]</code>，其中<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn><mo>&#x02264;</mo><mi>x</mi><mo>&#x02264;</mo><mi>j</mi></mrow></math>，这里你可以结合代码、文字和图片进行理解，理解效果会更加好一点。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp31.webp" alt="" loading="lazy" /></p>
-<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1029 408" role="img" aria-label="动态规划表格中蓝色格子 (i, j) 的取值依赖上一行的 dp[i - 1][j]，并可能依赖同一行中 dp[i][j - v[i]] 覆盖到的若干格子" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp32" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <!-- 彩色格子 -->
+  <g>
+    <rect x="46" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="111" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="176" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="241" y="218" width="66" height="28" fill="#ffcc99"/>
+    <rect x="307" y="218" width="65" height="28" fill="#b1ddf0"/>
+    <rect x="307" y="191" width="65" height="27" fill="#cdeb8b"/>
+  </g>
+
+  <!-- 表格线 -->
+  <g stroke="#000" stroke-width="1.5" fill="none">
+    <path d="M46 109 V354 M111 109 V354 M176 109 V354 M241 109 V354 M307 109 V354 M372 109 V354 M437 109 V354 M502 109 V354 M568 109 V354"/>
+    <path d="M46 109 H568 M46 137 H568 M46 164 H568 M46 191 H568 M46 218 H568 M46 246 H568 M46 273 H568 M46 300 H568 M46 327 H568 M46 354 H568"/>
+  </g>
+  <text x="340" y="240" font-size="20" fill="#111" text-anchor="middle">(i, j)</text>
+
+  <!-- 依赖说明框 -->
+  <rect x="110" y="34" width="147" height="34" rx="6" fill="#ffcc99" stroke="#36393d" stroke-width="1.5"/>
+  <text x="183" y="58" font-size="20" fill="#111" text-anchor="middle">dp[i][j - v[i]]</text>
+  <rect x="329" y="34" width="129" height="32" rx="6" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="393" y="57" font-size="20" fill="#111" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 红色箭头 -->
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M394 66 V115 H343 V191" marker-end="url(#arrow-dp32)"/>
+
+    <path d="M182 68 V119" stroke-dasharray="6 4"/>
+    <path d="M74 119 H279" stroke-dasharray="6 4"/>
+    <path d="M74 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M140 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M279 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M182 119 V143 H211 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+
+  <!-- 图例 -->
+  <g stroke="#36393d" stroke-width="1.5">
+    <rect x="603" y="115" width="63" height="24" fill="#cce5ff"/>
+    <rect x="603" y="181" width="63" height="24" fill="#ffcc99"/>
+    <rect x="603" y="242" width="63" height="24" fill="#cdeb8b"/>
+  </g>
+  <g font-size="26" fill="#111">
+    <text x="696" y="139">表示待计算的数据</text>
+    <text x="696" y="204">表示蓝色框可能依赖的数据</text>
+    <text x="696" y="265">表示蓝色框依赖的数据</text>
+    <text x="708" y="313">表示被依赖的数据</text>
+    <text x="708" y="360">表示可能被依赖的数据</text>
+  </g>
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M603 302 H660" marker-end="url(#arrow-dp32)"/>
+    <path d="M603 347 H660" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+</svg></figure><p>根据动态转移方程<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>i</mi><mi>n</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>c</mi><mi>o</mi><mi>i</mi><mi>n</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>，我们可以得到<code>dp</code>数组当中数据之间的依赖关系，他们的关系如上图所示，<code>dp[i][j]</code>依赖的数据为它上一行同列的位置，和第<code>i</code>行前面的某些数据，事实上我们可以使用单行数组去进行实现，我们使用的循环还是一样的，但是使用的数组有所变化，从之前的二维数组变成一维数组。当我们遍历到单行数组第<code>j</code>个数据的时候，第<code>j</code>个数据还是上一行的状态，但是单行数组的下标从0到<code>j-1</code>的位置数据的状态已经从上一行更新了，这些数据的状态相当于二维数组的<code>dp[i]</code>这一行的状态，而这正好可以满足动态转移方程的需求，因为在动态转移方程当中，<code>dp[i-1][j]</code>依赖的数据全部符合条件，单行数组当中的下标为<code>j</code>数据等于<code>dp[i][j]</code>，单行数组下标为<code>x</code>的数据等于<code>dp[i][x]</code>，其中<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>0</mn><mo>&#x02264;</mo><mi>x</mi><mo>&#x02264;</mo><mi>j</mi></mrow></math>，这里你可以结合代码、文字和图片进行理解，理解效果会更加好一点。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 923 464" role="img" aria-label="一维 dp 数组滚动更新的示意：上一行的状态覆盖到当前行，遍历方向从前到后，dp[j] 左侧已是第 i 行的状态，dp[j] 自身还是第 i-1 行的状态" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp31" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#36393d"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="158" y="30" width="62" height="24" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="158" y="67" width="62" height="24" fill="#cce5ff" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000">
+    <text x="270" y="51">i - 1行的状态</text>
+    <text x="268" y="83">i行的状态</text>
+  </g>
+
+  <!-- 行标 -->
+  <g font-size="22" fill="#000">
+    <text x="112" y="139">单行dp数组</text>
+    <text x="112" y="199">单行dp数组</text>
+  </g>
+
+  <!-- 第 i-1 行：整行都是旧状态 -->
+  <g fill="#cdeb8b" stroke="#36393d" stroke-width="1.5">
+    <rect x="258" y="117" width="65" height="27"/>
+    <rect x="323" y="117" width="65" height="27"/>
+    <rect x="388" y="117" width="65" height="27"/>
+    <rect x="453" y="117" width="65" height="27"/>
+    <rect x="518" y="117" width="65" height="27"/>
+    <rect x="583" y="117" width="65" height="27"/>
+    <rect x="649" y="117" width="65" height="27"/>
+    <rect x="714" y="117" width="65" height="27"/>
+  </g>
+
+  <!-- 第 i 行：dp[j] 及其左侧已被覆盖 -->
+  <g fill="#cce5ff" stroke="#36393d" stroke-width="1.5">
+    <rect x="258" y="177" width="65" height="27"/>
+    <rect x="323" y="177" width="65" height="27"/>
+    <rect x="388" y="177" width="65" height="27"/>
+    <rect x="453" y="177" width="65" height="27"/>
+    <rect x="518" y="177" width="65" height="27"/>
+  </g>
+  <g fill="#cdeb8b" stroke="#36393d" stroke-width="1.5">
+    <rect x="583" y="177" width="65" height="27"/>
+    <rect x="649" y="177" width="65" height="27"/>
+    <rect x="714" y="177" width="65" height="27"/>
+  </g>
+  <text x="552" y="204" font-size="30" fill="#000" text-anchor="middle">下标=j</text>
+
+  <!-- 遍历方向 -->
+  <line x1="287" y1="222" x2="500" y2="222" stroke="#000" stroke-width="7"/>
+  <polygon points="498,204 560,222 498,240" fill="#000"/>
+  <text x="282" y="270" font-size="22" fill="#000">从前往后进行遍历</text>
+
+  <!-- 指向 dp[j] 的曲线箭头 -->
+  <path d="M 416 331 C 416 312 420 300 440 296 C 470 290 520 285 536 268 C 548 254 549 230 550 214"
+        fill="none" stroke="#36393d" stroke-width="1.5" marker-end="url(#arrow-dp31)"/>
+
+  <!-- 说明 -->
+  <g font-size="22" fill="#000">
+    <text x="98" y="367">假如我们正在更新dp[j]，此时dp[j]还是第i-1行的状态而dp[0]到dp[j-1]已经</text>
+    <text x="72" y="392">是第i行的状态了，因为我们是&#x4ECE;前到后进行遍历。而要计算dp[j]的第i行状态的</text>
+    <text x="73" y="419">结果，那么他需要dp[0]到dp[j-1]的第i行状态的数据，dp[j]的第i-1行状态的数据</text>
+  </g>
+</svg></figure><div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">coinChange</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">coins</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">amount</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">amount</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">fill</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>

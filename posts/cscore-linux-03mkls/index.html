@@ -70,8 +70,23 @@
 <h3 id="文件操作的基本原理">文件操作的基本原理</h3>
 <p>如果我们使用Java实现一个简单的ls命令其实并不难，因为Java已经给我们提供了一些比较方便和文件系统相关的api了，困难的是理解api是在做什么事儿！</p>
 <p>事实上这些api都是操作系统给我们提供的，然后Java进行了一些列的封装，将这些操作给我们进行提供，我们仔细来看一下封装的层次，首先操作系统会给我们提供很多系统调用用于和设备（磁盘、CPU）进行交互，比如说和文件的交互就是读写数据，当然我们的Java程序也需要这些操作，因此JVM也需要给我们提供这些操作，因此JVM就对系统调用进行了一系列的封装，在Java当中具体的形式就是用native修饰的方法。</p>
-<p><img src="/content/zh/images/cscore/images/linux/command/25.webp" alt="" loading="lazy" /></p>
-<p>如果你是一个比较有经验Java程序员那么一定见过Java当中的<code>native</code>方法，这些方法都是Java给我们封装的底层接口，比如说在<code>FileInputStream</code>当中有一个<code>read</code>方法，这个方法就是读取文件当中的内容，我们看一下这个方法是如何实现的：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 798 556" role="img" aria-label="四层结构图：自上而下依次是 Native API、JVM、系统调用、操作系统" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <rect width="798" height="556" fill="#fff"/>
+
+  <g stroke-width="2">
+    <rect x="117" y="75" width="527" height="93" fill="#badcee" stroke="#34719a"/>
+    <rect x="117" y="169" width="527" height="92" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="117" y="263" width="527" height="93" fill="#fbe7cf" stroke="#d6a34a"/>
+    <rect x="117" y="357" width="527" height="127" fill="#f1d0cd" stroke="#ac5a54"/>
+  </g>
+
+  <g font-size="42" fill="#111" text-anchor="middle">
+    <text x="380" y="136">Native API</text>
+    <text x="380" y="230">JVM</text>
+    <text x="380" y="324">系统调用</text>
+    <text x="380" y="435">操作系统</text>
+  </g>
+</svg></figure><p>如果你是一个比较有经验Java程序员那么一定见过Java当中的<code>native</code>方法，这些方法都是Java给我们封装的底层接口，比如说在<code>FileInputStream</code>当中有一个<code>read</code>方法，这个方法就是读取文件当中的内容，我们看一下这个方法是如何实现的：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">read</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">IOException</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">read0</span><span class="tok-p">();</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>

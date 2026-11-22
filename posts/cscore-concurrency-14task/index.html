@@ -84,8 +84,44 @@
 <span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>首先先捋一下整个程序被编译之后的执行流程，经过前面的文章的学习，我们已经知道了并行域当中的代码会被编译器编译成一个函数，关于这一点我们已经在前面的很多文章当中已经讨论过了，就不再进行复述。事实上 task construct 和 parallel construct 一样，task construct 也会被编译成一个函数，同样的这个函数也会被作为一个参数传递给 OpenMP 内部，被传递的这个函数可能被立即执行，也可能在函数 GOMP_parallel_end 被调用后，在到达同步点之前执行被执行（线程在到达并行域的同步点之前需要保证所有的任务都被执行完成）。整个过程大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/openmp/17.webp" alt="openmp" loading="lazy" /></p>
-<p>上面的 OpenMP task 程序对应的反汇编程序如下所示：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 571" role="img" aria-label="OpenMP 的任务模型：GOMP_parallel_start 开启 parallel region，区内调用 GOMP_task 提交任务但不一定立即执行，GOMP_parallel_end 返回前由 gomp_team_barrier_wait_end 保证所有任务执行完成" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-openmp17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#28785a"/>
+    </marker>
+    <marker id="arrow-openmp17b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#1b5b9d"/>
+    </marker>
+  </defs>
+
+  <!-- GOMP_parallel_start -->
+  <rect x="25" y="22" width="280" height="74" rx="18" fill="#ffffff" stroke="#4d4d4d" stroke-width="2.5"/>
+  <text x="89" y="74" font-size="22" fill="#111">GOMP_parallel_start</text>
+
+  <!-- parallel region -->
+  <rect x="54" y="116" width="279" height="310" rx="28" fill="#ffffff" stroke="#d1673d" stroke-width="2.5"/>
+  <text x="94" y="159" font-size="20" fill="#d1673d">parallel region function</text>
+
+  <!-- GOMP_task -->
+  <rect x="96" y="297" width="203" height="70" rx="20" fill="#ffffff" stroke="#28785a" stroke-width="2.5"/>
+  <text x="138" y="338" font-size="21" fill="#28785a">GOMP_task</text>
+
+  <!-- 提交任务箭头 -->
+  <path d="M432 322 H303" fill="none" stroke="#28785a" stroke-width="2" marker-end="url(#arrow-openmp17)"/>
+  <text x="449" y="331" font-size="20" fill="#28785a">提交任务，不一定去执行任务</text>
+
+  <!-- GOMP_parallel_end -->
+  <rect x="30" y="446" width="330" height="88" rx="22" fill="#ffffff" stroke="#4d4d4d" stroke-width="2.5"/>
+  <text x="84" y="504" font-size="22" fill="#111">GOMP_parallel_end</text>
+
+  <!-- 调用箭头 -->
+  <path d="M364 497 H466" fill="none" stroke="#1b5b9d" stroke-width="2" marker-end="url(#arrow-openmp17b)"/>
+  <text x="365" y="471" font-size="20" fill="#1b5b9d">调用</text>
+  <text x="502" y="471" font-size="20" fill="#1b5b9d">保证所有的任务都执行完成</text>
+  <text x="482" y="502" font-size="20" font-style="italic" fill="#1b5b9d">gomp_team_barrier_wait_end</text>
+</svg></figure><p>上面的 OpenMP task 程序对应的反汇编程序如下所示：</p>
 <div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">00000000004008</span><span class="tok-nf">ad</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-no">main</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
 <span class="tok-w">  </span><span class="tok-err">4008</span><span class="tok-nl">ad:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
 <span class="tok-w">  </span><span class="tok-err">4008</span><span class="tok-nl">ae:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>

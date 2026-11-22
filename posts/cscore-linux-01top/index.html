@@ -95,8 +95,67 @@
 <li><code>651 sleeping</code>，表示有651个进程处于睡眠状态，也就是不需要使用CPU的状态。</li>
 <li><code>0 stoped</code>，表示有0个进程处于<code>stopped</code>状态，这个状态就是被停下来的进程，比如说通过ctrl+z让一个进程停下来，你可以通过给这个进程发送一个信号SIGCONT让这个进程恢复执行，linux当中进程的状态变换如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/linux/command/03.webp" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1318 644" role="img" aria-label="Linux 进程状态转换图：Ready 与 Running 之间因抢占与调度互相切换，Running 收到 STOP 信号进入 Stopped、被 ptrace 进入 Traced，挂起时进入 Suspended，退出后成为 Zombie 并被父进程回收" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-cmd03" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#0000ff"/>
+    </marker>
+  </defs>
+
+  <!-- 状态框 -->
+  <g stroke="#000" stroke-width="1.5">
+    <rect x="302" y="327" width="160" height="75" rx="22" fill="#ffd600"/>
+    <rect x="485" y="327" width="213" height="75" rx="22" fill="#ffd600"/>
+    <rect x="892" y="59" width="235" height="75" rx="22" fill="#008f8f"/>
+    <rect x="892" y="167" width="235" height="74" rx="22" fill="#00b0b0"/>
+    <rect x="795" y="456" width="225" height="74" rx="22" fill="#ffa1a1"/>
+    <rect x="345" y="542" width="310" height="74" rx="22" fill="#00d1d1"/>
+  </g>
+  <g font-size="40" fill="#000" text-anchor="middle">
+    <text x="382" y="379">Ready</text>
+    <text x="591" y="379">Running</text>
+    <text x="1009" y="111">Stopped</text>
+    <text x="1009" y="219">Traced</text>
+    <text x="907" y="508">Zombie</text>
+    <text x="500" y="594">Suspended</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#0000ff" stroke-width="2">
+    <path d="M243 368 H296" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M470 326 Q494 292 518 322" marker-end="url(#arrow-cmd03)"/>
+    <path d="M502 326 Q454 290 412 316" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M622 326 C 700 240 800 160 884 108" marker-end="url(#arrow-cmd03)"/>
+    <path d="M890 200 C 800 250 706 300 646 324" marker-end="url(#arrow-cmd03)"/>
+    <path d="M886 96 C 660 88 320 120 288 235 C 282 288 292 316 303 325" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M600 403 C 640 432 700 456 786 478" marker-end="url(#arrow-cmd03)"/>
+    <path d="M533 403 C 512 450 512 480 555 504" marker-end="url(#arrow-cmd03)"/>
+    <path d="M420 541 C 412 500 404 450 406 408" marker-end="url(#arrow-cmd03)"/>
+
+    <path d="M1022 492 H1096" marker-end="url(#arrow-cmd03)"/>
+  </g>
+  <path d="M62 452 H172 V408" fill="none" stroke="#ff0000" stroke-width="2"/>
+
+  <!-- 标注 -->
+  <g fill="#8f0000" font-size="36">
+    <text x="347" y="178">CONT signal</text>
+    <text x="550" y="231">STOP signal</text>
+    <text x="347" y="283" font-style="italic">preemption</text>
+    <text x="678" y="274">ptrace</text>
+    <text x="573" y="455">exit</text>
+    <text x="1022" y="454" font-style="italic">parent wait</text>
+    <text x="411" y="518" font-style="italic">suspend (e.g., I/O)</text>
+    <text x="68" y="498">fork</text>
+  </g>
+  <g fill="#0000ff" font-size="40">
+    <text x="89" y="392">Create</text>
+    <text x="1109" y="510">Delete</text>
+  </g>
+</svg></figure><ul>
 <li><code>0 zombie</code>，这个就表示僵尸进程的个数，这里是0个僵尸进程，所谓僵尸进程就是一个进程执行完成了，对于C程序来说你可以理解为你的<code>main</code>函数执行完成了（这个不够准确，其实<code>main</code>函数执行完成之后还会有其他函数需要执行，但是这里你可以大致这么理解），如果这个时候（函数执行完成），这个进程的父进程却没有接受子进程发送给他的信号（子进程在执行完成之后会给父进程发送信号，父进程需要通过wait等系统调用去接受这个信号），那么子进程就处于zombie状态，处于这个状态的进程就需要父进程接受它发送的信号，然后子进程的系统资源就可以被回收了，然后子进程会彻底消亡。</li>
 </ul>
 <p>我们现在花一点时间来谈一谈linux当中的进程状态。</p>

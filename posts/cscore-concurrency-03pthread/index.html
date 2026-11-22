@@ -60,7 +60,7 @@
       <h1>Pthread 并发编程（三）——深入理解线程取消机制</h1>
       <p class="post-meta">
         <time datetime="2022-11-18">2022-11-18</time>
-        <span class="sep">·</span>10 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+        <span class="sep">·</span>9 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
     </header>
 
     <div class="prose">
@@ -334,12 +334,89 @@
 in handler1 i1 = 1
 </code></pre></div><p>在上面的程序当中我们首先创建了一个线程，让线程执行函数 func，然后加入了两个函数 handler1 和 handler2 作为 clean-up handler 。如果你使用了一个 pthread_cleanup_push 必须配套一个对应的 pthread_cleanup_pop 函数。</p>
 <p>在函数 func 当中我们首先加入了两个 handler 到 clean-up handler 栈当中，现在栈当中的数据结结构如下所示：</p>
-<p><img src="/content/zh/images/cscore/images/pthread/13.webp" alt="13" loading="lazy" /></p>
-<p>随后我们会执行语句 <code>pthread_cleanup_pop(0)</code> ，因为参数 execute == 0 因此会从栈当中弹出这个函数，但是不会执行。</p>
-<p><img src="/content/zh/images/cscore/images/pthread/14.webp" alt="13" loading="lazy" /></p>
-<p>同样的道理，在执行语句 <code>pthread_cleanup_pop(1)</code> 的时候不仅会弹出函数并且还会执行这个函数。</p>
-<p><img src="/content/zh/images/cscore/images/pthread/15.webp" alt="13" loading="lazy" /></p>
-<h3 id="pthread_exit-与-clean-up-handler">pthread_exit 与 clean-up handler</h3>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 598 488" role="img" aria-label="线程的 clean-up handler 栈：栈底是 handler1，上面是 handler2，顶部绿色是尚未使用但仍保留的栈空间" style="display:block; margin:1.2em auto; max-width:598px" class="inline-svg">
+  <g stroke-width="1.5">
+    <rect x="110" y="38" width="113" height="198" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="110" y="237" width="113" height="100" fill="#f8cecc" stroke="#ac5a54"/>
+    <rect x="110" y="339" width="113" height="100" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="22" fill="#111">
+    <text x="121" y="297">handler2</text>
+    <text x="121" y="398">handler1</text>
+  </g>
+  <text x="261" y="423" font-size="25" fill="#111">clean-up handler stack</text>
+</svg></figure><p>随后我们会执行语句 <code>pthread_cleanup_pop(0)</code> ，因为参数 execute == 0 因此会从栈当中弹出这个函数，但是不会执行。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1090 592" role="img"
+     aria-label="pthread_cleanup_pop(0) 的效果：调用后栈顶的 handler2 被弹出但不会执行，栈里只剩下 handler1"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-p14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 左侧清理栈 -->
+  <g stroke-width="1.5">
+    <rect x="134" y="60" width="117" height="199" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="134" y="259" width="117" height="103" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="134" y="362" width="117" height="102" fill="#dde8fa" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="26" text-anchor="middle" fill="#1a1a1a">
+    <text x="193" y="320">handler2</text>
+    <text x="193" y="422">handler1</text>
+  </g>
+
+  <!-- 中间箭头 -->
+  <path d="M345 158 H640" fill="none" stroke="#000" stroke-width="6" marker-end="url(#arrow-p14)"/>
+
+  <g font-size="26" text-anchor="middle" fill="#1a1a1a">
+    <text x="490" y="302">执行pthread_cleanup_pop(0)</text>
+    <text x="490" y="340">弹出栈顶函数但是不执行</text>
+  </g>
+
+  <!-- 右侧清理栈 -->
+  <g stroke-width="1.5">
+    <rect x="794" y="60" width="117" height="302" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="794" y="362" width="117" height="102" fill="#dde8fa" stroke="#6c8ebf"/>
+  </g>
+  <text x="853" y="422" font-size="26" text-anchor="middle" fill="#1a1a1a">handler1</text>
+
+  <g font-size="26" fill="#1a1a1a">
+    <text x="70" y="512">clean-up handler stack</text>
+    <text x="720" y="512">clean-up handler stack</text>
+  </g>
+</svg></figure><p>同样的道理，在执行语句 <code>pthread_cleanup_pop(1)</code> 的时候不仅会弹出函数并且还会执行这个函数。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 506 325" role="img" aria-label="执行 pthread_cleanup_pop 后，clean-up handler stack 顶部的 handler1 被弹出，栈变为空" style="display:block; margin:1.2em auto; max-width:506px" class="inline-svg">
+  <defs>
+    <marker id="arrow-pthread15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="506" height="325" fill="#fff"/>
+
+  <!-- 左：弹出前的 handler 栈 -->
+  <rect x="76" y="24" width="55" height="228" fill="#d1e3cf" stroke="#7da762" stroke-width="1"/>
+  <rect x="76" y="208" width="55" height="44" fill="#d5e5fa" stroke="#6c8ebf" stroke-width="1"/>
+  <text x="103" y="236" font-size="13" text-anchor="middle" fill="#111">handler1</text>
+
+  <!-- 右：弹出后的 handler 栈 -->
+  <rect x="360" y="24" width="55" height="228" fill="#d1e3cf" stroke="#7da762" stroke-width="1"/>
+
+  <!-- 中间的箭头与说明 -->
+  <path d="M173 94 H303" fill="none" stroke="#000" stroke-width="1.3" marker-end="url(#arrow-pthread15)"/>
+  <g font-size="12" text-anchor="middle" fill="#111">
+    <text x="240" y="164">执行 pthread_cleanup_pop 函数</text>
+    <text x="240" y="179">因为参数不为0 因此会执行函数</text>
+  </g>
+
+  <g font-size="19" fill="#111">
+    <text x="20" y="297">clean-up handler stack</text>
+    <text x="305" y="297">clean-up handler stack</text>
+  </g>
+</svg></figure><h3 id="pthread_exit-与-clean-up-handler">pthread_exit 与 clean-up handler</h3>
 <p>在前面的内容当中我们提到了，如果线程调用 pthread_exit 函数进行退出，clean-up handlers 将会倒序依次执行。我们使用下面的程序可以验证这一点：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>

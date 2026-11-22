@@ -60,7 +60,7 @@
       <h1>深入剖析（JDK）ArrayQueue源码</h1>
       <p class="post-meta">
         <time datetime="2022-07-17">2022-07-17</time>
-        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
     </header>
 
     <div class="prose">
@@ -85,14 +85,186 @@
 <span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-o">]</span>
 <span class="tok-o">[</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-o">]</span>
 </code></pre></div><p>首先<code>ArrayQueue</code>内部是由循环数组实现的，可能保证增加和删除数据的时间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>，不像<code>ArrayList</code>删除数据的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>。在<code>ArrayQueue</code>内部有两个整型数据<code>head</code>和<code>tail</code>，这两个的作用主要是指向队列的头部和尾部，它的初始状态在内存当中的布局如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/24.webp" alt="" loading="lazy" /></p>
-<p>因为是初始状态<code>head</code>和<code>tail</code>的值都等于0，指向数组当中第一个数据。现在我们向<code>ArrayQueue</code>内部加入5个数据，那么他的内存布局将如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/26.webp" alt="" loading="lazy" /></p>
-<p>现在我们删除4个数据，那么上图经过4次删除操作之后，<code>ArrayQueue</code>内部数据布局如下：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/27.webp" alt="" loading="lazy" /></p>
-<p>在上面的状态下，我们继续加入8个数据，那么布局情况如下：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/28.webp" alt="" loading="lazy" /></p>
-<p>我们知道上图在加入数据的时候不仅将数组后半部分的空间使用完了，而且可以继续使用前半部分没有使用过的空间，也就是说在<code>ArrayQueue</code>内部实现了一个循环使用的过程。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 865 268" role="img" aria-label="循环数组中的 head 与 tail 指针：head 指向数组第一个格子，tail 指向末尾的空位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque24" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="865" height="268" fill="#fff"/>
+
+  <!-- 数组 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1">
+    <rect x="155" y="42" width="54" height="24"/>
+    <rect x="210" y="42" width="54" height="24"/>
+    <rect x="265" y="42" width="54" height="24"/>
+    <rect x="320" y="42" width="54" height="24"/>
+    <rect x="375" y="42" width="54" height="24"/>
+    <rect x="430" y="42" width="54" height="24"/>
+    <rect x="485" y="42" width="54" height="24"/>
+    <rect x="540" y="42" width="54" height="24"/>
+    <rect x="595" y="42" width="54" height="24"/>
+    <rect x="650" y="42" width="54" height="24"/>
+    <rect x="705" y="42" width="54" height="24"/>
+    <rect x="760" y="42" width="54" height="24"/>
+  </g>
+
+  <!-- 指针 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <circle cx="59" cy="151" r="31.5"/>
+    <circle cx="182" cy="204" r="31.5"/>
+  </g>
+  <g font-size="24" fill="#111" text-anchor="middle">
+    <text x="59" y="160">head</text>
+    <text x="182" y="213">tail</text>
+  </g>
+
+  <!-- 指向数组的箭头 -->
+  <g fill="none" stroke="#111" stroke-width="1.6">
+    <path d="M90 151 C145 150 168 120 168 68" marker-end="url(#arrow-arraydeque24)"/>
+    <path d="M182 173 V68" marker-end="url(#arrow-arraydeque24)"/>
+  </g>
+</svg></figure><p>因为是初始状态<code>head</code>和<code>tail</code>的值都等于0，指向数组当中第一个数据。现在我们向<code>ArrayQueue</code>内部加入5个数据，那么他的内存布局将如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 823 309" role="img"
+     aria-label="ArrayDeque 的数组：粉色格子表示存在数据，蓝色格子表示不存在数据，head 指向第一个格子，tail 指向第一个不存在的格子"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-26" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="146" y="26" width="53" height="24" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="146" y="65" width="53" height="24" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="228" y="48" font-size="22">表示存在数据</text>
+  <text x="228" y="86" font-size="22">表示不存在数据</text>
+
+  <!-- 12 个格子：前 5 格存在数据，后 7 格不存在 -->
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <g fill="#f8cecc">
+      <rect x="149" y="115" width="53" height="24"/>
+      <rect x="204" y="115" width="53" height="24"/>
+      <rect x="259" y="115" width="53" height="24"/>
+      <rect x="314" y="115" width="53" height="24"/>
+      <rect x="369" y="115" width="53" height="24"/>
+    </g>
+    <g fill="#dae8fc">
+      <rect x="424" y="115" width="53" height="24"/>
+      <rect x="479" y="115" width="53" height="24"/>
+      <rect x="534" y="115" width="53" height="24"/>
+      <rect x="589" y="115" width="53" height="24"/>
+      <rect x="644" y="115" width="53" height="24"/>
+      <rect x="699" y="115" width="53" height="24"/>
+      <rect x="754" y="115" width="53" height="24"/>
+    </g>
+  </g>
+
+  <!-- head / tail 两个圆 -->
+  <circle cx="52" cy="225" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="52" y="232" text-anchor="middle" font-size="20">head</text>
+  <circle cx="354" cy="265" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="354" y="272" text-anchor="middle" font-size="20">tail</text>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-26)">
+    <path d="M80 208 C120 214 146 190 155 144"/>
+    <path d="M340 248 C372 232 415 205 428 144"/>
+  </g>
+</svg></figure><p>现在我们删除4个数据，那么上图经过4次删除操作之后，<code>ArrayQueue</code>内部数据布局如下：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 320" role="img"
+     aria-label="循环数组中的头尾指针：head 指向第 5 个格子，tail 指向其后一个格子，红格表示已有数据"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque27" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="30" y="18" width="46" height="30" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="88" y="40" font-size="19">表示存在数据</text>
+  <rect x="30" y="57" width="46" height="30" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="88" y="79" font-size="19">表示不存在数据</text>
+
+  <!-- 数组：12 格，第 5 格有数据 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="36" y="119" width="55" height="26"/>
+    <rect x="91" y="119" width="55" height="26"/>
+    <rect x="146" y="119" width="55" height="26"/>
+    <rect x="201" y="119" width="55" height="26"/>
+    <rect x="256" y="119" width="55" height="26" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="311" y="119" width="55" height="26"/>
+    <rect x="366" y="119" width="55" height="26"/>
+    <rect x="421" y="119" width="55" height="26"/>
+    <rect x="476" y="119" width="55" height="26"/>
+    <rect x="531" y="119" width="55" height="26"/>
+    <rect x="586" y="119" width="55" height="26"/>
+    <rect x="641" y="119" width="55" height="26"/>
+  </g>
+  <rect x="641" y="119" width="55" height="26" fill="none" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <!-- head、tail 指针 -->
+  <circle cx="134" cy="190" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="134" y="197" font-size="19" text-anchor="middle">head</text>
+
+  <circle cx="252" cy="275" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="252" y="282" font-size="19" text-anchor="middle">tail</text>
+
+  <path d="M169 190 H238 Q270 190 281 160 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+  <path d="M245 242 C272 214 322 210 336 162 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+</svg></figure><p>在上面的状态下，我们继续加入8个数据，那么布局情况如下：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 727 309" role="img" aria-label="ArrayDeque 的环形数组：粉色格子表示存在数据，蓝色格子表示不存在数据，tail 指向第一个空位、head 指向结束位置之后的空位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque28" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="45" y="24" width="55" height="26" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="45" y="62" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="21" fill="#1a1a1a">
+    <text x="128" y="46">表示存在数据</text>
+    <text x="128" y="84">表示不存在数据</text>
+  </g>
+
+  <!-- 环形数组：12 个格子 -->
+  <g stroke-width="1.5">
+    <rect x="47" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="102" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="157" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="212" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="267" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="322" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="377" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="432" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="487" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="542" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="597" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="652" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+
+  <!-- tail：指向第一个空位 -->
+  <path d="M 61 219 L 62 203 Q 64 188 78 183 Q 100 177 114 172 Q 127 167 129 150 L 129 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+  <!-- head：从末尾格子之后的位置出发 -->
+  <path d="M 246 250 Q 276 246 287 216 Q 293 196 294 172 L 294 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+
+  <circle cx="61.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <circle cx="211.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle" fill="#1a1a1a">
+    <text x="61" y="259">tail</text>
+    <text x="211" y="259">head</text>
+  </g>
+</svg></figure><p>我们知道上图在加入数据的时候不仅将数组后半部分的空间使用完了，而且可以继续使用前半部分没有使用过的空间，也就是说在<code>ArrayQueue</code>内部实现了一个循环使用的过程。</p>
 <h2 id="arrayqueue源码剖析">ArrayQueue源码剖析</h2>
 <h3 id="构造函数">构造函数</h3>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">ArrayQueue</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -158,8 +330,114 @@
 <span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在<code>resize</code>函数当中首先申请新长度的数组空间，然后将原数组的数据一个一个的拷贝到新的数组当中，注意在这个拷贝的过程当中，重新更新了<code>head</code>与<code>tail</code>，而且并不是简单的数组拷贝，因为在之前的操作当中<code>head</code>可能已经不是了0，因此新的拷贝需要我们一个一个的从就数组拿出来，让后放到新数组当中。下图可以很直观的看出这个过程：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/29.webp" alt="" loading="lazy" /></p>
-<h2 id="总结">总结</h2>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1073 501" role="img" aria-label="ArrayDeque 的 head 与 tail 位置，以及 resize(16) 之后元素被搬到数组前端" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-arraydeque29" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <g stroke-width="1.5">
+    <rect x="249" y="13" width="42" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="249" y="52" width="42" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="16" fill="#111">
+    <text x="320" y="35">表示存在数据</text>
+    <text x="320" y="74">表示不存在数据</text>
+  </g>
+
+  <!-- resize 之前 -->
+  <g stroke-width="1.5">
+    <rect x="252" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="307" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="362" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="417" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="472" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="527" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="582" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="637" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="692" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="747" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="802" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="857" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+  <g font-size="15" fill="#111" text-anchor="middle">
+    <text x="279" y="122">8</text>
+    <text x="499" y="122">0</text>
+    <text x="554" y="122">1</text>
+    <text x="609" y="122">2</text>
+    <text x="664" y="122">3</text>
+    <text x="719" y="122">4</text>
+    <text x="774" y="122">5</text>
+    <text x="829" y="122">6</text>
+    <text x="884" y="122">7</text>
+  </g>
+
+  <!-- tail / head 圆 -->
+  <g stroke-width="1.5">
+    <circle cx="266" cy="242" r="33" fill="#d5e8d4" stroke="#82b366"/>
+    <circle cx="416" cy="242" r="33" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="17" fill="#111" text-anchor="middle">
+    <text x="266" y="248">tail</text>
+    <text x="416" y="248">head</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M252 218 C 300 190, 320 170, 331 134" marker-end="url(#arrow-arraydeque29)"/>
+    <path d="M404 213 C 440 190, 455 170, 468 134" marker-end="url(#arrow-arraydeque29)"/>
+  </g>
+
+  <!-- resize 箭头 -->
+  <path d="M525 180 h22 v128 h-22 z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <path d="M516 300 h40 l-20 24 z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="573" y="233" font-size="17" fill="#111">resize(16)</text>
+
+  <!-- resize 之后 -->
+  <g stroke-width="1.5">
+    <rect x="134" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="189" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="244" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="299" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="354" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="409" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="464" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="519" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="574" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="629" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="684" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="739" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="794" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="849" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="904" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="959" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="15" fill="#111" text-anchor="middle">
+    <text x="161" y="358">0</text>
+    <text x="216" y="358">1</text>
+    <text x="271" y="358">2</text>
+    <text x="326" y="358">3</text>
+    <text x="381" y="358">4</text>
+    <text x="436" y="358">5</text>
+    <text x="491" y="358">6</text>
+    <text x="546" y="358">7</text>
+    <text x="601" y="358">8</text>
+  </g>
+
+  <g stroke-width="1.5">
+    <circle cx="114" cy="444" r="33" fill="#d5e8d4" stroke="#82b366"/>
+    <circle cx="414" cy="454" r="33" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="17" fill="#111" text-anchor="middle">
+    <text x="114" y="450">head</text>
+    <text x="414" y="460">tail</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M131 412 C 160 396, 172 386, 184 370" marker-end="url(#arrow-arraydeque29)"/>
+    <path d="M440 432 C 560 404, 620 390, 651 370" marker-end="url(#arrow-arraydeque29)"/>
+  </g>
+</svg></figure><h2 id="总结">总结</h2>
 <p>在本篇文章当中主要给大家介绍了<code>ArrayQueue</code>的内部实现过程和原理，并且看了<code>ArrayQueue</code>的源代码，有图的辅助整个阅读的过程应该是比较清晰的，<code>ArrayQueue</code>也是一个比较简单的容器，<code>JDK</code>对他的实现也比较简单。</p>
 <p>以上就是本文所有的内容了，希望大家有所收获，我是LeHung，我们下期再见！！！（记得<strong>点赞</strong>收藏哦！）</p>
 <hr />

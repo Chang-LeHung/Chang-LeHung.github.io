@@ -298,8 +298,40 @@ In func_a main return address = 0x7fc5c57c90b3
 </code></pre></div><p>从上面的输出结果我们可以知道</p>
 <h3 id="使用内敛汇编实现-1">使用内敛汇编实现</h3>
 <p>如果我们调用一个函数的时候（在x86里面执行 call 指令）首先会将下一条指令的地址压栈（在 32 位系统上就是将 eip 压栈，在 64 位系统上就是将 rip 压栈），然后形成调用函数的栈帧。然后将 rbp 寄存器的值指向下图当中的位置。</p>
-<p><img src="/content/zh/images/cscore/images/pl/01.webp" alt="01" loading="lazy" /></p>
-<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 417 251" role="img" aria-label="栈帧布局：栈上依次是栈帧1、rip、rbp，rbp 寄存器指向 rbp 所在位置" style="display:block; margin:1.2em auto; max-width:417px" class="inline-svg">
+  <defs>
+    <marker id="arrow-pl01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="417" height="251" fill="#fff"/>
+
+  <!-- 栈：四段 -->
+  <rect x="210" y="29" width="60" height="44" fill="#d5e5fa" stroke="#6c8ebf" stroke-width="1"/>
+  <rect x="210" y="73" width="60" height="38" fill="#fee2c7" stroke="#d79b00" stroke-width="1"/>
+  <rect x="210" y="111" width="60" height="20" fill="#d1e3cf" stroke="#82b366" stroke-width="1"/>
+  <rect x="210" y="131" width="60" height="20" fill="#f4c9c6" stroke="#b85450" stroke-width="1"/>
+  <rect x="210" y="151" width="60" height="61" fill="#d5e5fa" stroke="#6c8ebf" stroke-width="1"/>
+
+  <g text-anchor="middle" fill="#111">
+    <text x="240" y="99" font-size="19">栈帧1</text>
+    <text x="240" y="127" font-size="18">rip</text>
+    <text x="240" y="147" font-size="18">rbp</text>
+  </g>
+
+  <!-- rbp 寄存器指向 -->
+  <rect x="37" y="131" width="110" height="42" fill="#ffefc8" stroke="#d6b656" stroke-width="1"/>
+  <text x="92" y="157" font-size="15" font-weight="bold" text-anchor="middle" fill="#111">rbp 寄存器指向</text>
+  <path d="M148 152 H208" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-pl01)"/>
+
+  <!-- 字节数说明 -->
+  <g font-size="17" fill="#111">
+    <text x="288" y="122">64: 8 个字节</text>
+    <text x="288" y="147">32: 4 个字节</text>
+  </g>
+</svg></figure><div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
 
 <span class="tok-cp">#define return_address            \</span>
@@ -372,8 +404,59 @@ In func_a main return address = 0x7fc5c57c90b3
 <span class="tok-o">&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">Out</span><span class="tok-w"> </span><span class="tok-n">func_a</span>
 <span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7f9aec6c80b3</span>
 </code></pre></div><p>我们可以看到上面的输出，我们自己用内敛汇编实现的结果和 __builtin_return_address 的返回结果是一样的，这也验证了我们实现的正确性。要想理解上面的代码首先我们需要理解函数调用的时候形成的栈帧，如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/pl/02.webp" alt="01" loading="lazy" /></p>
-<p>根据上图我们可以知道在 func_a 函数当中，rbp 指向的地址存放的是上一个函数的 rbp 寄存器的值，因此我们可以使用间接寻址，找到调用 func_a 的主函数的 rbp 的值，即以在函数 func_a 当中 rbp 寄存器的值为地址，找到这个地址的值就是主函数的 rbp 的值。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 503 276" role="img"
+     aria-label="函数调用时的栈帧示意：主函数的 rbp、rsp 指向栈帧上下边界，rip、rbp 保存在中间，下面是 func_a 的栈帧"
+     style="display:block; margin:1.2em auto; max-width:503px" class="inline-svg">
+  <defs>
+    <marker id="arrow-02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 中间的栈帧柱 -->
+  <g stroke-width="1.5">
+    <rect x="191" y="26" width="59" height="43" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="191" y="70" width="59" height="37" fill="#fee2c7" stroke="#ce9125"/>
+    <rect x="191" y="108" width="59" height="19" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="191" y="128" width="59" height="20" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="191" y="148" width="59" height="37" fill="#fee2c7" stroke="#ce9125"/>
+    <rect x="191" y="186" width="59" height="22" fill="#d5e5fa" stroke="#6c8ebf"/>
+  </g>
+  <text x="220" y="122" text-anchor="middle" font-size="14" fill="#1a1a1a">rip</text>
+  <text x="220" y="142" text-anchor="middle" font-size="14" fill="#1a1a1a">rbp</text>
+
+  <!-- 六个说明框 -->
+  <g stroke-width="1.5">
+    <rect x="19" y="16" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="27" y="141" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="337" y="40" width="109" height="41" fill="#dbd0e2" stroke="#886b99"/>
+    <rect x="370" y="113" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="329" y="164" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="293" y="219" width="108" height="41" fill="#dbd0e2" stroke="#886b99"/>
+  </g>
+  <g font-size="14" text-anchor="middle" fill="#1a1a1a">
+    <text x="73" y="42">主函数 rbp</text>
+    <text x="81" y="167">主函数 rsp</text>
+    <text x="391" y="64">主函数栈帧</text>
+    <text x="424" y="139">func_a rbp</text>
+    <text x="383" y="190">func_a rsp</text>
+    <text x="347" y="244">func_a 栈帧</text>
+  </g>
+
+  <!-- 两个偏移量说明 -->
+  <text x="277" y="114" font-size="14" fill="#1a1a1a">64: 8个字节</text>
+  <text x="276" y="129" font-size="14" fill="#1a1a1a">32: 4个字节</text>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02)">
+    <path d="M128 36 H162 V72 H186"/>
+    <path d="M136 161 H162 V107 H186"/>
+    <path d="M337 60 H293 V88 H257"/>
+    <path d="M370 137 H317 V147 H257"/>
+    <path d="M329 184 H270 V166 H257"/>
+    <path d="M293 239 H270 V186 H257"/>
+  </g>
+</svg></figure><p>根据上图我们可以知道在 func_a 函数当中，rbp 指向的地址存放的是上一个函数的 rbp 寄存器的值，因此我们可以使用间接寻址，找到调用 func_a 的主函数的 rbp 的值，即以在函数 func_a 当中 rbp 寄存器的值为地址，找到这个地址的值就是主函数的 rbp 的值。</p>
 <p>至此我们已经知道了，__builtin_return_address 的返回结果是当前函数的返回地址，也就是当前函数执行完成返回之后执行的下一条指令，我们可以利用这一点做出一个非常好玩的东西，直接跳转到返回地址执行不执行当前函数的后续代码：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 
@@ -424,8 +507,59 @@ In func_a main return address = 0x7fc5c57c90b3
 </code></pre></div><p>从上面程序的输出结果来看，上面的程序并没有执行语句 ① ，但是却执行了主函数 ② 之后的程序，并且正确输出字符串和九九乘法表。这就相当于我们提前进行了跳转。要想得到这样的结果，我们只需要在函数 func_a 内部恢复上一个函数的栈帧，并且将 rip 指向函数 func_a 的返回地址即可。</p>
 <p>上方的程序发生转移的代码就是那段内敛汇编代码，在内敛汇编代码当中我们首先恢复 main 函数的栈帧（主要是正确恢复寄存器 rbp 和 rsp ）的值，然后直接跳转到返回地址继续执行，所以才正确执行了主函数后续的代码。</p>
 <p>恢复主函数的 rbp 寄存器的值很好理解，因为我们只需要通过内嵌函数直接得到即可，但是主函数的 rsp 寄存器的值可能有一点复杂，s首先我们需要知道，主函数和 func_a 的两个与栈帧有关的寄存器的指向，他们的指向如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/pl/02.webp" alt="01" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 503 276" role="img"
+     aria-label="函数调用时的栈帧示意：主函数的 rbp、rsp 指向栈帧上下边界，rip、rbp 保存在中间，下面是 func_a 的栈帧"
+     style="display:block; margin:1.2em auto; max-width:503px" class="inline-svg">
+  <defs>
+    <marker id="arrow-02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 中间的栈帧柱 -->
+  <g stroke-width="1.5">
+    <rect x="191" y="26" width="59" height="43" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="191" y="70" width="59" height="37" fill="#fee2c7" stroke="#ce9125"/>
+    <rect x="191" y="108" width="59" height="19" fill="#d1e3cf" stroke="#82b366"/>
+    <rect x="191" y="128" width="59" height="20" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="191" y="148" width="59" height="37" fill="#fee2c7" stroke="#ce9125"/>
+    <rect x="191" y="186" width="59" height="22" fill="#d5e5fa" stroke="#6c8ebf"/>
+  </g>
+  <text x="220" y="122" text-anchor="middle" font-size="14" fill="#1a1a1a">rip</text>
+  <text x="220" y="142" text-anchor="middle" font-size="14" fill="#1a1a1a">rbp</text>
+
+  <!-- 六个说明框 -->
+  <g stroke-width="1.5">
+    <rect x="19" y="16" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="27" y="141" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="337" y="40" width="109" height="41" fill="#dbd0e2" stroke="#886b99"/>
+    <rect x="370" y="113" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="329" y="164" width="109" height="41" fill="#ffefc8" stroke="#cfac56"/>
+    <rect x="293" y="219" width="108" height="41" fill="#dbd0e2" stroke="#886b99"/>
+  </g>
+  <g font-size="14" text-anchor="middle" fill="#1a1a1a">
+    <text x="73" y="42">主函数 rbp</text>
+    <text x="81" y="167">主函数 rsp</text>
+    <text x="391" y="64">主函数栈帧</text>
+    <text x="424" y="139">func_a rbp</text>
+    <text x="383" y="190">func_a rsp</text>
+    <text x="347" y="244">func_a 栈帧</text>
+  </g>
+
+  <!-- 两个偏移量说明 -->
+  <text x="277" y="114" font-size="14" fill="#1a1a1a">64: 8个字节</text>
+  <text x="276" y="129" font-size="14" fill="#1a1a1a">32: 4个字节</text>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02)">
+    <path d="M128 36 H162 V72 H186"/>
+    <path d="M136 161 H162 V107 H186"/>
+    <path d="M337 60 H293 V88 H257"/>
+    <path d="M370 137 H317 V147 H257"/>
+    <path d="M329 184 H270 V166 H257"/>
+    <path d="M293 239 H270 V186 H257"/>
+  </g>
+</svg></figure><ul>
 <li>根据上文的分析我们可以直接通过在函数 func_a 当中直接使用 __builtin_frame_address(1) 得到主函数的 rbp 值，然后将其直接赋值给 rbp 寄存器就可以了，我们就恢复了主函数栈底的值，对应的语句位上面代码的 ⓸。</li>
 <li>根据上文的分析我们可以直接通过在函数 func_a 当中直接使用 __builtin_return_address(0) 得到 func_a 的返回地址，我们可以直接 jmp 到这条指令执行，但是在 jmp 之前我们需要先恢复主函数的栈帧，对应的语句位上面的 ⓹。</li>
 <li>根据上图我们可以分析到主函数 rsp 的值就是函数 func_a 中 rbp 寄存器的值加上 16，因为 rip 和 rbp 分别占 8 个字节，因此我们通过 ⓷ 恢复主函数的 rsp 的值。</li>

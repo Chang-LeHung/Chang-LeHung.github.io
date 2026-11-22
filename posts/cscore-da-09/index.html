@@ -165,9 +165,43 @@
 <li>综合上面的两种转移方式可以得到下面的转移方程：</li>
 </ul>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>;</mi></mrow></math></div><p>整个状态转移过程如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp38.webp" alt="" loading="lazy" /></p>
-</li>
+<pre class="diagram-src"></pre></li>
 </ul>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1468 590" role="img" aria-label="状态转移：dp[i-1][0] 加 prices[i] 得到 dp[i][0]，dp[i-1][1] 与减去 prices[i] 得到 dp[i][1]" style="display:block; margin:1.2em auto; max-width:580px">
+  <defs>
+    <marker id="arrow-dp38" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+  <rect width="1468" height="590" fill="#fff"/>
+  <!-- 左侧行说明 -->
+  <g font-size="34" fill="#111">
+    <text x="52" y="144">第i-1行的状态</text>
+    <text x="72" y="452">第i行的状态</text>
+  </g>
+  <!-- 上一行 -->
+  <rect x="418" y="59" width="241" height="121" fill="#dde8fa" stroke="#738dbb" stroke-width="2"/>
+  <text x="538" y="132" font-size="34" fill="#111" text-anchor="middle">dp[i-1][0]</text>
+  <rect x="1110" y="59" width="241" height="121" fill="#dde8fa" stroke="#738dbb" stroke-width="2"/>
+  <text x="1230" y="132" font-size="34" fill="#111" text-anchor="middle">dp[i-1][1]</text>
+  <!-- 本行 -->
+  <rect x="418" y="381" width="241" height="121" fill="#f1d0cd" stroke="#ac5a54" stroke-width="2"/>
+  <text x="538" y="453" font-size="34" fill="#111" text-anchor="middle">dp[i][0]</text>
+  <rect x="764" y="381" width="241" height="121" fill="#f4d8b1" stroke="#a96925" stroke-width="2"/>
+  <text x="884" y="453" font-size="34" fill="#111" text-anchor="middle">-prices[i]</text>
+  <rect x="1110" y="381" width="241" height="121" fill="#f1d0cd" stroke="#ac5a54" stroke-width="2"/>
+  <text x="1230" y="453" font-size="34" fill="#111" text-anchor="middle">dp[i][1]</text>
+  <!-- 箭头 -->
+  <g fill="none" stroke="#111" stroke-width="1.8">
+    <path d="M538 182 V378" marker-end="url(#arrow-dp38)"/>
+    <path d="M1206 184 C980 250 700 250 658 272 C628 288 592 330 582 376" marker-end="url(#arrow-dp38)"/>
+    <path d="M1230 182 V378" marker-end="url(#arrow-dp38)"/>
+    <path d="M884 504 C890 556 1030 556 1084 476 C1094 458 1098 428 1100 408" marker-end="url(#arrow-dp38)"/>
+  </g>
+  <text x="660" y="316" font-size="34" fill="#111">+prices[i]</text>
+</svg>
+```
 <p>上面所谈到的有两种状态，一种是有股票，一种是没有股票，这两种状态需要从第<code>i-1</code>行转移到第<code>i</code>行，即从第<code>i-1</code>行的有股票和无股票状态转移到第<code>i</code>行的有股票和无股票状态，这就是我们在前文谈到的状态机，我们已经有了状态（是否持有股票），而且也有了状态之间的转换，这就是<strong>状态机动态规划</strong>。你可能会问这好像跟之前传统的动态规划区别也不是太大啊，这是因为在这个问题当中只有两个状态，我们在下篇当中遇到的问题就会有多个状态了，在那个时候你可能就更加理解为什么称这种动态规划叫做<strong>状态机动态规划</strong>了。</p>
 <ul>
 <li>综合两种状态，整个转移方式如下：</li>

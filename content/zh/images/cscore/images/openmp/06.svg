@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1786 1725" role="img" aria-label="OpenMP 嵌套并行示意：开启 omp_set_nested(1) 之后，外层并行域的两个线程各自再开一个内层并行域，形成 team1、team2、team3 三组线程，最后在各自的 barrier 处汇合" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-openmp06" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+    <marker id="arrow-openmp06p" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b4bc8"/>
+    </marker>
+  </defs>
+
+  <!-- 顶部开关 -->
+  <text x="345" y="75" font-size="46" fill="#2e8b3d">omp_set_nested(1);</text>
+  <path d="M 1555 48 H 890" fill="none" stroke="#cc3333" stroke-width="4" marker-end="url(#arrow-openmp06)"/>
+  <text x="1065" y="72" font-size="46" fill="#cc3333">This is important !!!</text>
+
+  <!-- 外层并行域 -->
+  <rect x="545" y="115" width="765" height="395" rx="55" fill="none" stroke="#000" stroke-width="5"/>
+  <g font-size="44" fill="#000">
+    <text x="625" y="195">thread1</text>
+    <text x="810" y="195">thread2</text>
+  </g>
+  <rect x="665" y="210" width="55" height="275" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <rect x="860" y="210" width="55" height="275" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <text x="730" y="335" font-size="44" fill="#2b8c8c">team1</text>
+  <text x="1055" y="245" font-size="44" fill="#6b4bc8">outer parallel region</text>
+  <text x="955" y="340" font-size="44" fill="#cc3333">parallel region 1</text>
+
+  <!-- 内层并行域 -->
+  <g fill="none" stroke="#000" stroke-width="4" marker-end="url(#arrow-openmp06)">
+    <path d="M 660 490 Q 560 570 435 682"/>
+    <path d="M 880 490 Q 980 570 1110 682"/>
+  </g>
+  <text x="335" y="620" font-size="44" fill="#6b4bc8">inner parallel region</text>
+  <text x="835" y="620" font-size="44" fill="#6b4bc8">inner parallel region</text>
+
+  <!-- 并行域 2 -->
+  <rect x="70" y="710" width="740" height="385" rx="55" fill="none" stroke="#000" stroke-width="5"/>
+  <rect x="100" y="730" width="465" height="330" rx="45" fill="none" stroke="#6b4bc8" stroke-width="4"/>
+  <g font-size="44" fill="#000">
+    <text x="140" y="780">thread1</text>
+    <text x="330" y="780">thread2</text>
+  </g>
+  <rect x="185" y="790" width="55" height="265" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <rect x="380" y="790" width="55" height="265" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <text x="245" y="930" font-size="44" fill="#2b8c8c">team2</text>
+  <text x="470" y="955" font-size="44" fill="#cc3333">parallel region 2</text>
+
+  <!-- 并行域 3 -->
+  <rect x="960" y="710" width="750" height="385" rx="55" fill="none" stroke="#000" stroke-width="5"/>
+  <g font-size="44" fill="#000">
+    <text x="1010" y="780">thread1</text>
+    <text x="1195" y="780">thread2</text>
+  </g>
+  <rect x="1055" y="790" width="55" height="265" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <rect x="1250" y="790" width="50" height="265" rx="14" fill="none" stroke="#000" stroke-width="5"/>
+  <text x="1110" y="930" font-size="44" fill="#2b8c8c">team3</text>
+  <text x="1360" y="955" font-size="44" fill="#cc3333">parallel region 3</text>
+
+  <!-- 执行与屏障 -->
+  <g fill="none" stroke="#6b4bc8" stroke-width="3">
+    <path d="M 355 1095 V 1520" marker-end="url(#arrow-openmp06p)"/>
+    <path d="M 1290 1095 V 1520" marker-end="url(#arrow-openmp06p)"/>
+  </g>
+  <g font-size="44" fill="#6b4bc8">
+    <text x="390" y="1220">executing</text>
+    <text x="415" y="1330">barrier of region 2</text>
+    <text x="1315" y="1220">executing</text>
+    <text x="1310" y="1330">barrier of region 3</text>
+  </g>
+
+  <!-- 最后打印 -->
+  <text x="25" y="1640" font-size="37" fill="#cc3333" font-family="monospace">printf("after barrier : parent_id = %d tid = %d\n", parent_id, omp_get_thread_num());</text>
+</svg>

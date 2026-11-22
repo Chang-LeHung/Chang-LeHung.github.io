@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>并发开篇——带你从0到1建立并发知识体系的基石 · Chang-LeHung</title>
-<meta name="description" content="前言 在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下： 并发的需求 我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况">
+<meta name="description" content="前言 在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下： 继承Thread类 使用Runnable接口 理解主线程和join函数 Java并发开篇 Java实现并发 FutureTas">
 <meta property="og:title" content="并发开篇——带你从0到1建立并发知识体系的基石">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
@@ -66,13 +66,59 @@
     <div class="prose">
       <h2 id="前言">前言</h2>
 <p>在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/12.webp" alt="" loading="lazy" /></p>
-<h2 id="并发的需求">并发的需求</h2>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1686 509" role="img" aria-label="Java 并发开篇的思维导图：主干分出 Java 实现并发、FutureTask 机制、并发的需求、并发的基础概念和第一个并发任务求积分" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <rect width="1686" height="509" fill="#fff"/>
+
+  <!-- 左侧：Java 实现并发的三个要点 -->
+  <g stroke="#443295" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M66 72 H300"/>
+    <path d="M66 132 H300"/>
+    <path d="M30 195 H300"/>
+    <path d="M300 74 C356 80 368 108 368 143 C368 178 356 197 300 197"/>
+    <path d="M368 143 H380"/>
+  </g>
+  <g font-size="28" fill="#333">
+    <text x="125" y="62">继承Thread类</text>
+    <text x="75" y="122">使用Runnable接口</text>
+    <text x="36" y="185">理解主线程和join函数</text>
+  </g>
+
+  <!-- 分支曲线 -->
+  <g fill="none" stroke-width="7" stroke-linecap="round">
+    <path d="M645 143 C700 148 720 190 723 250" stroke="#443295"/>
+    <path d="M643 370 C700 378 735 352 742 320" stroke="#518cd8"/>
+    <path d="M1100 186 C1100 128 1132 100 1215 102" stroke="#fd6d5a"/>
+    <path d="M1141 246 H1215" stroke="#feb40b"/>
+    <path d="M1096 324 C1096 378 1132 404 1217 406" stroke="#6dc354"/>
+  </g>
+
+  <!-- 中心节点 -->
+  <rect x="723" y="185" width="418" height="138" rx="16" fill="none" stroke="#2ebdff" stroke-width="5"/>
+  <rect x="730" y="192" width="404" height="124" rx="10" fill="#fff" stroke="#8793a5" stroke-width="6"/>
+  <text x="932" y="272" font-size="48" font-weight="bold" fill="#222" text-anchor="middle">Java并发开篇</text>
+
+  <!-- 左侧两个分支 -->
+  <rect x="380" y="99" width="265" height="87" rx="10" fill="#fff" stroke="#443295" stroke-width="5"/>
+  <text x="512" y="152" font-size="30" font-weight="bold" fill="#222" text-anchor="middle">Java实现并发</text>
+
+  <rect x="341" y="322" width="302" height="87" rx="10" fill="#fff" stroke="#518cd8" stroke-width="5"/>
+  <text x="492" y="375" font-size="30" fill="#222" text-anchor="middle">FutureTask机制</text>
+
+  <!-- 右侧三个分支 -->
+  <rect x="1215" y="65" width="233" height="86" rx="14" fill="#fff" stroke="#fd6d5a" stroke-width="6"/>
+  <text x="1332" y="119" font-size="32" font-weight="bold" fill="#222" text-anchor="middle">并发的需求</text>
+
+  <rect x="1215" y="211" width="295" height="86" rx="14" fill="#fff" stroke="#feb40b" stroke-width="6"/>
+  <text x="1362" y="265" font-size="30" font-weight="bold" fill="#222" text-anchor="middle">并发的基础概念</text>
+
+  <rect x="1217" y="357" width="396" height="86" rx="14" fill="#fff" stroke="#6dc354" stroke-width="6"/>
+  <text x="1415" y="412" font-size="32" font-weight="bold" fill="#222" text-anchor="middle">第一个并发任务·求积分</text>
+</svg></figure><h2 id="并发的需求">并发的需求</h2>
 <ul>
 <li>我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况下对于一个进程或者一个任务来说可能想要同时执行两个不同的子任务，因此就需要在一个进程当中产生多个子线程，不同的线程执行不同的任务。</li>
 <li>现在的机器的CPU核心个数一般都有很多个，比如现在一般的电脑都会有4个CPU，而每一个CPU在同一个时刻都可以执行一个任务，因此为了充分利用CPU的计算资源，我们可以让这多个CPU同时执行不同的任务，让他们同时工作起来，而不是空闲没有事可做。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 542" role="img" aria-label="四个线程汇合后由操作系统分配到四个 CPU 上执行" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 542" role="img" aria-label="四个线程汇合后由操作系统分配到四个 CPU 上执行" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-c01" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -139,8 +185,25 @@
 <li>进程简单的说来就是一个程序的执行，比如说你在windows操作系统当中双击一个程序，在linux当中在命令行执行一条命令等等，就会产生一个进程，总之进程是一个独立的主体，他可以被操作系统调度和执行。</li>
 <li>而线程必须依赖进程执行，只有在进程当中才能产生线程，现在通常会将线程称为轻量级进程（Light Weight Process）。一个进程可以产生多个线程，二者多个线程之间共享进程当中的某些数据，比如全局数据区的数据，但是线程的本地数据是不进行共享的。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/13.webp" alt="" loading="lazy" /></p>
-<blockquote>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 468 499" role="img"
+     aria-label="一个进程内部包含线程1、线程2、线程3、线程4 四个线程"
+     style="display:block; margin:1.2em auto; max-width:468px" class="inline-svg">
+  <rect x="166" y="31" width="148" height="412" rx="22" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="240" y="82" text-anchor="middle" font-size="19">进程</text>
+
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="202" y="102" width="82" height="36"/>
+    <rect x="202" y="186" width="82" height="36"/>
+    <rect x="202" y="269" width="82" height="36"/>
+    <rect x="202" y="353" width="82" height="36"/>
+  </g>
+  <g fill="#1a1a1a" font-size="19" text-anchor="middle">
+    <text x="243" y="126">线程1</text>
+    <text x="243" y="210">线程2</text>
+    <text x="243" y="293">线程3</text>
+    <text x="243" y="377">线程4</text>
+  </g>
+</svg></figure><blockquote>
 <p>你可能会听过进程是资源分配的基本单位，这句话是怎么来的呢？在上面我们已经提到了线程必须依赖于进程而存在，在我们启动一个程序的时候我们就会开启一个进程，而这个进程会向操作系统申请资源，比如内存，磁盘和CPU等等，这就是为什么操作系统是申请资源的基本单位。</p>
 </blockquote>
 <blockquote>
@@ -171,8 +234,48 @@
 <span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">2</span>
 <span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">3</span>
 </code></pre></div><p>上面代码当中不同的线程需要得到CPU资源，在CPU当中被执行，而这些线程需要被操作系统调度，然后由操作系统放到不同的CPU上，最终输出不同的字符串。</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/14.webp" alt="" loading="lazy" /></p>
-<h3 id="使用匿名内部类实现runnable接口">使用匿名内部类实现runnable接口</h3>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1228 647" role="img"
+     aria-label="五个线程一起竞争 CPU 子资源：线程沿各自箭头指向 CPU 核心组，中间说明调度顺序不确定"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M238 108 V490" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M465 108 V345" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M660 108 V279" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M868 108 V225" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M1029 108 V420" marker-end="url(#arrow-concurrency14)"/>
+  </g>
+
+  <g fill="#b1ddf0" stroke="#3186ac" stroke-width="1.5">
+    <circle cx="238" cy="68" r="40"/>
+    <circle cx="465" cy="68" r="40"/>
+    <circle cx="660" cy="68" r="40"/>
+    <circle cx="868" cy="68" r="40"/>
+    <circle cx="1029" cy="68" r="40"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="238" y="74">Thread-0</text>
+    <text x="465" y="74">Thread-1</text>
+    <text x="660" y="74">Thread-2</text>
+    <text x="868" y="74">Thread-3</text>
+    <text x="1029" y="74">Thread-4</text>
+  </g>
+
+  <g font-size="23" text-anchor="middle" fill="#000">
+    <text x="590" y="387">5个线程一起竞争CPU子资源</text>
+    <text x="590" y="415">事实上是有操作系统调度，而操作系统</text>
+    <text x="590" y="443">调度的顺序是不读确定的</text>
+  </g>
+
+  <rect x="103" y="497" width="1039" height="100" rx="8" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <text x="622" y="554" font-size="24" text-anchor="middle" fill="#000">CPUs（多个CPU核心）</text>
+</svg></figure><h3 id="使用匿名内部类实现runnable接口">使用匿名内部类实现runnable接口</h3>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">ConcurrencyMethod2</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
 <span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -265,7 +368,7 @@
 <span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
 <span class="tok-n">main</span>
 </code></pre></div><p>上面代码的执行流程大致如下图所示：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 905 530" role="img" aria-label="主线程分出一个子线程并等待它执行完毕后继续向下执行" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 905 530" role="img" aria-label="主线程分出一个子线程并等待它执行完毕后继续向下执行" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-c08" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -290,7 +393,7 @@
 </svg></figure><p>我们需要知道的一点是<code>thread.join()</code>这条语句是主线程执行的，它的主要功能就是等待线程<code>thread</code>执行完成，只有<code>thread</code>执行完成之后主线程才会继续执行<code>thread.join()</code>后面的语句。</p>
 <h2 id="第一个并发任务求x2的积分">第一个并发任务——求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分</h2>
 <p>接下来我们用一个例子去具体体会并发带来的效果提升。我们的这个例子就是求函数的积分，我们的函数为最简单的二次函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>，当然我们就积分（下图当中的阴影部分）完全可以根据公式进行求解（如果你不懂积分也没有关系，下文我们会把这个函数写出来，不会影响你对并发的理解）：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 绘图区 -->
   <rect x="59" y="52" width="696" height="452" fill="#eaeaf2"/>
 
@@ -332,7 +435,7 @@
     <text x="472" y="482" font-size="26" font-style="italic">dx</text>
   </g>
 </svg></figure><p>但是我们用程序去求解的时候并不是采用上面的方法，而是使用微元法：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 583" role="img" aria-label="函数 y 等于 x 平方的曲线，0 到 10 之间用一列竖线表示积分求和" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 583" role="img" aria-label="函数 y 等于 x 平方的曲线，0 到 10 之间用一列竖线表示积分求和" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 绘图区 -->
   <rect x="77" y="49" width="696" height="452" fill="#eaeaf2"/>
 
@@ -406,7 +509,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>从上面的结果来看计算区间<code>[0, 10000]</code>之间的积分结果且<code>delta = 0.000001</code>，现在假设我们使用<code>8</code>个线程来做这件事，我们改如何去规划呢？</p>
 <p>因为我们是采用<code>8</code>个线程来做这件事儿，因此我们可以将这个区间分成<code>8</code>段，每个线程去执行一小段，最终我们将每一个小段的结果加起来就行，整个过程大致如下。</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 661" role="img" aria-label="启动八个线程分别计算不同区间的结果，最后把结果加起来" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 661" role="img" aria-label="启动八个线程分别计算不同区间的结果，最后把结果加起来" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-c10" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

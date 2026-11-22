@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>状态机动态规划之股票问题总结 · Chang-LeHung</title>
-<meta name="description" content="前言 在前面的三篇股票问题的文章当中我们一共介绍了6道关于股票相关的算法题，这些算法题的一个集中的特点就是状态比较多，需要我们去仔细分析状态之间的转换，而这种状态之间的转换特变像状态机，因此这种动态规划也被称作 状态机动态规划 。 如果需要仔细的去分析上面思维导图当中的各个问题，可以参考下面的文章：">
+<meta name="description" content="前言 在前面的三篇股票问题的文章当中我们一共介绍了6道关于股票相关的算法题，这些算法题的一个集中的特点就是状态比较多，需要我们去仔细分析状态之间的转换，而这种状态之间的转换特变像状态机，因此这种动态规划也被称作 状态机动态规划 。 最多买卖k次 买卖无数次，卖出之后的 一天不能进行交易 买卖无数次，">
 <meta property="og:title" content="状态机动态规划之股票问题总结">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
@@ -66,8 +66,76 @@
     <div class="prose">
       <h2 id="前言">前言</h2>
 <p>在前面的三篇股票问题的文章当中我们一共介绍了6道关于股票相关的算法题，这些算法题的一个集中的特点就是状态比较多，需要我们去仔细分析状态之间的转换，而这种状态之间的转换特变像状态机，因此这种动态规划也被称作<strong>状态机动态规划</strong>。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp42.webp" alt="" loading="lazy" /></p>
-<p>如果需要仔细的去分析上面思维导图当中的各个问题，可以参考下面的文章：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2622 550" role="img"
+     aria-label="状态机动态规划之股票问题的思维导图：四个买卖股票的最佳时机题目与含冷冻期、含手续费的变体，各配一句说明"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+
+  <!-- 连线 -->
+  <g fill="none" stroke-width="4">
+    <path d="M935 95 C1010 95 1036 145 1036 200" stroke="#4c49b7"/>
+    <path d="M935 257 H1036" stroke="#4f69f6"/>
+    <path d="M935 423 C1010 423 1036 372 1036 318" stroke="#54b980"/>
+
+    <path d="M1751 200 C1800 145 1820 100 1852 100" stroke="#e65244"/>
+    <path d="M1751 257 H1852" stroke="#eaa45d"/>
+    <path d="M1751 318 C1800 372 1820 423 1852 423" stroke="#eed44e"/>
+
+    <path d="M449 95 H502" stroke="#4c49b7"/>
+    <path d="M420 257 H432" stroke="#4f69f6"/>
+    <path d="M343 423 H396" stroke="#54b980"/>
+
+    <path d="M2257 100 H2316" stroke="#e65244"/>
+    <path d="M2265 275 H2318" stroke="#eaa45d"/>
+    <path d="M2274 420 H2328" stroke="#eed44e"/>
+  </g>
+
+  <!-- 左侧说明 -->
+  <rect x="270" y="64" width="180" height="60" rx="8" fill="#dbdbf0"/>
+  <text x="360" y="102" font-size="26" text-anchor="middle">最多买卖k次</text>
+
+  <rect x="48" y="262" width="373" height="123" rx="8" fill="#dbe1fc"/>
+  <text x="234" y="312" font-size="26" text-anchor="middle">买卖无数次，卖出之后的</text>
+  <text x="234" y="350" font-size="26" text-anchor="middle">一天不能进行交易</text>
+
+  <rect x="68" y="455" width="276" height="90" rx="8" fill="#e3f4e6"/>
+  <text x="206" y="497" font-size="26" text-anchor="middle">买卖无数次，</text>
+  <text x="206" y="532" font-size="26" text-anchor="middle">卖出的时候要手续费</text>
+
+  <!-- 左侧卡片 -->
+  <rect x="502" y="59" width="434" height="73" rx="10" fill="#4c49b7"/>
+  <text x="719" y="108" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票的最佳时机IV</text>
+
+  <rect x="432" y="221" width="504" height="73" rx="10" fill="#4f69f6"/>
+  <text x="684" y="270" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票最佳时机含冷冻期</text>
+
+  <rect x="396" y="387" width="540" height="73" rx="10" fill="#54b980"/>
+  <text x="666" y="436" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票的最佳时机含手续费</text>
+
+  <!-- 中心 -->
+  <rect x="1036" y="155" width="716" height="205" rx="10" fill="#000227"/>
+  <text x="1394" y="241" font-size="58" text-anchor="middle" fill="#ffffff">状态机动态规划之股票</text>
+  <text x="1394" y="321" font-size="58" text-anchor="middle" fill="#ffffff">问题</text>
+
+  <!-- 右侧卡片 -->
+  <rect x="1852" y="63" width="406" height="73" rx="10" fill="#e65244"/>
+  <text x="2055" y="112" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票的最佳时机I</text>
+
+  <rect x="1852" y="221" width="414" height="73" rx="10" fill="#eaa45d"/>
+  <text x="2059" y="270" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票的最佳时机II</text>
+
+  <rect x="1853" y="379" width="422" height="73" rx="10" fill="#eed44e"/>
+  <text x="2064" y="428" font-size="34" text-anchor="middle" fill="#ffffff">买卖股票的最佳时机III</text>
+
+  <!-- 右侧说明 -->
+  <rect x="2316" y="68" width="180" height="60" rx="8" fill="#f9e0df"/>
+  <text x="2406" y="106" font-size="26" text-anchor="middle">只能买卖一次</text>
+
+  <rect x="2318" y="250" width="220" height="52" rx="8" fill="#fdeee0"/>
+  <text x="2428" y="284" font-size="26" text-anchor="middle">可以买卖无数次</text>
+
+  <rect x="2328" y="384" width="192" height="60" rx="8" fill="#fdf6d8"/>
+  <text x="2424" y="422" font-size="26" text-anchor="middle">最多买卖两次</text>
+</svg></figure><p>如果需要仔细的去分析上面思维导图当中的各个问题，可以参考下面的文章：</p>
 <table>
 <thead>
 <tr>

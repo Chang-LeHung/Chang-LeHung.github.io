@@ -88,8 +88,78 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的例子当中，我们使用<code>Executors.newFixedThreadPool</code>去生成来一个固定线程数目的线程池，在上面的代码当中我们是使用5个线程，然后通过<code>execute</code>方法不断的去向线程池当中提交任务，大致流程如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/54.webp" alt="" loading="lazy" /></p>
-<p>线程池通过<code>execute</code>函数不断的往线程池当中的任务队列加入任务，而线程池当中的线程会不断的从任务队列当中取出任务，然后进行执行，然后继续取任务，继续执行....，线程的执行过程如下：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1602 824" role="img" aria-label="线程池示意图：线程池中的多个线程从任务队列里取出任务N到任务一依次执行" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency54" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="1602" height="824" fill="#fff"/>
+
+  <!-- 线程池外框 -->
+  <rect x="34" y="14" width="1526" height="724" rx="62" fill="#dde8fa" stroke="#738dbb" stroke-width="2.5"/>
+  <text x="905" y="72" font-size="40" font-weight="bold" fill="#111" text-anchor="middle">线程池</text>
+
+  <!-- 任务队列 -->
+  <text x="263" y="345" font-size="34" fill="#111">任务队列</text>
+  <rect x="114" y="422" width="607" height="160" fill="none" stroke="#111" stroke-width="2"/>
+
+  <g fill="#d9e7d6" stroke="#82b366" stroke-width="1.6">
+    <ellipse cx="176" cy="500" rx="48" ry="40"/>
+    <ellipse cx="396" cy="500" rx="48" ry="40"/>
+    <ellipse cx="521" cy="500" rx="48" ry="40"/>
+    <ellipse cx="630" cy="500" rx="48" ry="40"/>
+  </g>
+  <g font-size="28" fill="#111" text-anchor="middle">
+    <text x="176" y="510">任务N</text>
+    <text x="396" y="510">任务三</text>
+    <text x="521" y="510">任务二</text>
+    <text x="630" y="510">任务一</text>
+  </g>
+  <text x="270" y="514" font-size="40" fill="#111" text-anchor="middle">...</text>
+
+  <!-- 线程与分支连线 -->
+  <g stroke="#111" stroke-width="2" fill="none">
+    <path d="M944 182 H1170"/>
+    <path d="M944 330 H1170"/>
+    <path d="M944 478 H1170"/>
+    <path d="M944 637 H1170"/>
+    <path d="M944 182 V637"/>
+    <path d="M944 520 H726" marker-end="url(#arrow-concurrency54)"/>
+  </g>
+
+  <!-- 四个线程小人 -->
+  <g stroke="#111" stroke-width="2" fill="none">
+    <circle cx="1200" cy="152" r="17"/>
+    <path d="M1200 169 V225"/>
+    <path d="M1200 182 L1174 214 M1200 182 L1226 214"/>
+    <path d="M1200 225 L1176 270 M1200 225 L1224 270"/>
+
+    <circle cx="1200" cy="303" r="17"/>
+    <path d="M1200 320 V376"/>
+    <path d="M1200 333 L1174 365 M1200 333 L1226 365"/>
+    <path d="M1200 376 L1176 421 M1200 376 L1224 421"/>
+
+    <circle cx="1200" cy="450" r="17"/>
+    <path d="M1200 467 V523"/>
+    <path d="M1200 480 L1174 512 M1200 480 L1226 512"/>
+    <path d="M1200 523 L1176 568 M1200 523 L1224 568"/>
+
+    <circle cx="1200" cy="600" r="17"/>
+    <path d="M1200 617 V673"/>
+    <path d="M1200 630 L1174 662 M1200 630 L1226 662"/>
+    <path d="M1200 673 L1176 718 M1200 673 L1224 718"/>
+  </g>
+
+  <g font-size="34" fill="#111">
+    <text x="1245" y="166">线程1</text>
+    <text x="1245" y="317">线程2</text>
+    <text x="1245" y="464">线程3</text>
+    <text x="1245" y="614">线程N</text>
+  </g>
+</svg></figure><p>线程池通过<code>execute</code>函数不断的往线程池当中的任务队列加入任务，而线程池当中的线程会不断的从任务队列当中取出任务，然后进行执行，然后继续取任务，继续执行....，线程的执行过程如下：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">true</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">  </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">taskQueue</span><span class="tok-p">.</span><span class="tok-na">take</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 从任务队列当中取出任务</span>
 <span class="tok-w">  </span><span class="tok-n">runnable</span><span class="tok-p">.</span><span class="tok-na">run</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 执行任务</span>

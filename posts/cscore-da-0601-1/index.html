@@ -109,9 +109,177 @@
 <p>我们知道任何一个集合的子集个数为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>，其中<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>表示集合当中数据的个数，比如说集合<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn></mrow></mrow></math>有如下子集（4个）：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo stretchy="false">&#x0007B;</mo><mi>空</mi><mi>集</mi><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>1</mn><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>2</mn><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x0007D;</mo></mrow></math></div><p>我们先思考一下<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>是怎么计算出来的！我们在生成子集的时候对于每一个数据都有选择和不选择两种情况，这其实就变成了一个排列组合问题。在上面的例子当中1可选可不选（2），2可选可不选（2），因此总的集合个数为4，那么如果有n个数据的集合那么自己个数就等于：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mn>2</mn><mo>&#x000D7;</mo><mn>2</mn><mo>&#x000D7;</mo><mn>2</mn><mo>&#x022EF;</mo><mo>&#x0003D;</mo><msup><mn>2</mn><mi>n</mi></msup></mrow></math></div><p>这个选择情况的划分如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/backtrace/01.webp" alt="" loading="lazy" /></p>
-<p><img src="/content/zh/images/cscore/images/dsal/backtrace/02.webp" alt="" loading="lazy" /></p>
-<p>而我们使用程序去计算一个集合的子集其实就是一个回溯的问题，分割等和子集的子集划分的代码如下：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1216 579" role="img" aria-label="用回溯法求子集的决策树：框内左侧是已生成的集合，右侧是还能选择的数据，绿色叶子是最终生成的子集" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-dsalbt01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="371" y="35" width="50" height="38" rx="5" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="627" y="33" width="51" height="39" rx="5" fill="#cdeb8b" stroke="#82b366" stroke-width="1.5"/>
+  <text x="440" y="62" font-size="22" fill="#111">中间情况的子集</text>
+  <text x="700" y="62" font-size="22" fill="#111">最终生成的子集</text>
+  <text x="330" y="130" font-size="22" fill="#111">框内左侧是生成的集合，右侧是当前数组当中还能选择的数据</text>
+
+  <!-- 中间节点 -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <rect x="526" y="153" width="129" height="39" rx="5"/>
+    <rect x="254" y="260" width="130" height="38" rx="5"/>
+    <rect x="827" y="260" width="129" height="38" rx="5"/>
+    <rect x="101" y="368" width="129" height="39" rx="5"/>
+    <rect x="379" y="368" width="130" height="39" rx="5"/>
+    <rect x="704" y="368" width="130" height="39" rx="5"/>
+    <rect x="959" y="368" width="130" height="39" rx="5"/>
+  </g>
+
+  <!-- 叶子 -->
+  <g fill="#cdeb8b" stroke="#82b366" stroke-width="1.5">
+    <rect x="28" y="477" width="130" height="38" rx="5"/>
+    <rect x="169" y="477" width="130" height="38" rx="5"/>
+    <rect x="311" y="477" width="129" height="38" rx="5"/>
+    <rect x="457" y="477" width="129" height="38" rx="5"/>
+    <rect x="616" y="477" width="129" height="38" rx="5"/>
+    <rect x="756" y="477" width="129" height="38" rx="5"/>
+    <rect x="896" y="477" width="129" height="38" rx="5"/>
+    <rect x="1042" y="477" width="129" height="38" rx="5"/>
+  </g>
+
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="590" y="180">[], [1, 2, 3]</text>
+    <text x="319" y="286">[1], [2, 3]</text>
+    <text x="891" y="286">[], [2, 3]</text>
+    <text x="165" y="394">[1, 2], [3]</text>
+    <text x="444" y="394">[1], [3]</text>
+    <text x="769" y="394">[2], [3]</text>
+    <text x="1024" y="394">[], [3]</text>
+
+    <text x="93" y="503">[1, 2, 3], []</text>
+    <text x="234" y="503">[1, 2], []</text>
+    <text x="375" y="503">[1, 3], []</text>
+    <text x="521" y="503">[1], []</text>
+    <text x="680" y="503">[2, 3], []</text>
+    <text x="820" y="503">[2], []</text>
+    <text x="960" y="503">[3], []</text>
+    <text x="1106" y="503">[], []</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M590 192 V222"/>
+    <path d="M319 222 H891"/>
+    <path d="M319 222 V260" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M891 222 V260" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M319 298 V332"/>
+    <path d="M165 332 H444"/>
+    <path d="M165 332 V368" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M444 332 V368" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M891 298 V332"/>
+    <path d="M769 332 H1024"/>
+    <path d="M769 332 V368" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M1024 332 V368" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M165 407 V440"/>
+    <path d="M93 440 H234"/>
+    <path d="M93 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M234 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M444 407 V440"/>
+    <path d="M375 440 H521"/>
+    <path d="M375 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M521 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M769 407 V440"/>
+    <path d="M680 440 H820"/>
+    <path d="M680 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M820 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+
+    <path d="M1024 407 V440"/>
+    <path d="M960 440 H1106"/>
+    <path d="M960 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+    <path d="M1106 440 V477" marker-end="url(#arrow-dsalbt01)"/>
+  </g>
+</svg></figure><figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 589" role="img"
+     aria-label="求数组 [1, 2, 3] 全部子集的决策树：每个节点框内写明本次选择，逐层决定含有或不含有元素 1、2、3，绿色为最终生成的子集"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-d02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="378" y="30" width="57" height="45" rx="8" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="455" y="61" font-size="21">中间情况的子集</text>
+  <rect x="637" y="30" width="52" height="45" rx="8" fill="#cdeb8b" stroke="#82b366" stroke-width="1.5"/>
+  <text x="710" y="61" font-size="21">最终生成的子集</text>
+
+  <text x="279" y="132" font-size="21">框内左侧是生成的集合，右侧是当前数组当中还能选择的数据</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <path d="M601 188 V225 H330 V260" marker-end="url(#arrow-d02)"/>
+    <path d="M601 188 V225 H902 V260" marker-end="url(#arrow-d02)"/>
+    <path d="M330 300 V333 H176 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M330 300 V333 H454 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M902 300 V333 H779 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M902 300 V333 H1034 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M176 404 V439 H103 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M176 404 V439 H244 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M454 404 V439 H407 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M454 404 V439 H532 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M779 404 V439 H691 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M779 404 V439 H831 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M1034 404 V439 H971 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M1034 404 V439 H1117 V472" marker-end="url(#arrow-d02)"/>
+  </g>
+
+  <!-- 方框 -->
+  <g stroke-width="1.5">
+    <g fill="#b1ddf0" stroke="#6c8ebf">
+      <rect x="536" y="150" width="130" height="38" rx="6"/>
+      <rect x="265" y="262" width="130" height="38" rx="6"/>
+      <rect x="837" y="262" width="130" height="38" rx="6"/>
+      <rect x="113" y="366" width="127" height="38" rx="6"/>
+      <rect x="391" y="366" width="127" height="38" rx="6"/>
+      <rect x="716" y="366" width="127" height="38" rx="6"/>
+      <rect x="971" y="366" width="127" height="38" rx="6"/>
+    </g>
+    <g fill="#cdeb8b" stroke="#82b366">
+      <rect x="41" y="474" width="125" height="38" rx="6"/>
+      <rect x="182" y="474" width="125" height="38" rx="6"/>
+      <rect x="324" y="474" width="125" height="38" rx="6"/>
+      <rect x="470" y="474" width="125" height="38" rx="6"/>
+      <rect x="629" y="474" width="125" height="38" rx="6"/>
+      <rect x="769" y="474" width="125" height="38" rx="6"/>
+      <rect x="909" y="474" width="125" height="38" rx="6"/>
+      <rect x="1055" y="474" width="125" height="38" rx="6"/>
+    </g>
+  </g>
+
+  <g font-size="20" fill="#1a1a1a" text-anchor="middle">
+    <text x="601" y="175">[]，[1, 2, 3]</text>
+    <text x="330" y="287">含有1的子集</text>
+    <text x="902" y="287">不含1的子集</text>
+    <text x="176" y="391">含有2的子集</text>
+    <text x="454" y="391">不含2的子集</text>
+    <text x="779" y="391">含有2的子集</text>
+    <text x="1034" y="391">不含2的子集</text>
+    <text x="103" y="499">含有3的子集</text>
+    <text x="244" y="499">不含3的子集</text>
+    <text x="386" y="499">含有3的子集</text>
+    <text x="532" y="499">不含3的子集</text>
+    <text x="691" y="499">含有3的子集</text>
+    <text x="831" y="499">不含3的子集</text>
+    <text x="971" y="499">含有3的子集</text>
+    <text x="1117" y="499">不含3的子集</text>
+  </g>
+</svg></figure><p>而我们使用程序去计算一个集合的子集其实就是一个回溯的问题，分割等和子集的子集划分的代码如下：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">canPartition</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>

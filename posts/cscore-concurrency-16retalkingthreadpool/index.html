@@ -101,10 +101,105 @@
 <p>看到这里可以将线程的功能总结成一句话：执行一个函数，当这个函数执行完成之后，线程就会退出，然后被回收，当然这个函数可以调用其他的函数，可能你会觉得这句话非常简单，但是这句话会我们理解线程池的原理非常有帮助。</p>
 <h3 id="为什么需要线程池">为什么需要线程池</h3>
 <p>上面我们已经谈到了，当我们执行<code>start</code>的方法的时候，最终会走到<code>start0</code>方法，这是一个<code>native</code>方法，JVM在执行这个方法的时候会通过系统底层函数创建一个线程，然后去执行<code>run</code>方法，这里需要注意，创建线程是需要系统资源的，比如说内存，因为操作系统是系统资源的管理者，因此一般需要系统资源的方法都需要操作系统的参与，因此创建线程需要操作系统的帮忙，而一旦需要操作系统介入，执行代码的状态就需要从用户态到内核态转换（内核态能够执行许多用户态不能够执行的指令），当操作系统创建完线程之后有需要返回用户态，我们的代码将继续被执行，整个过程像下面这样。</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/59.webp" alt="56" loading="lazy" /></p>
-<p>从上图可以看到我们需要两次的上下文切换，同时还需要执行一些操作系统的函数，这个过程是非常耗时间的，如果在并发非常高的情况，我们频繁的去生成线程然后销毁，这对我们程序的性能影响还是非常大的。因此许许多多聪明的程序员就想能不能不去频繁的创建线程而且也能够完成我们的功能——我们创建线程的目的就是想让我们的程序完成的更加快速，让多个不同的线程同时执行不同的任务。于是线程池就被创造出来了。线程池的结构大致如下所示：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/60.webp" alt="56" loading="lazy" /></p>
-<h2 id="线程池实现原理">线程池实现原理</h2>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1004 353" role="img"
+     aria-label="线程创建过程中用户态与内核态的往返：用户态把请求交给内核态，内核态创建线程并执行函数后返回用户态，两次跨越都要上下文切换"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-59" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <rect x="314" y="31" width="119" height="59" fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5"/>
+  <rect x="314" y="246" width="119" height="59" fill="#f4c9c6" stroke="#aa4f48" stroke-width="1.5"/>
+  <rect x="692" y="246" width="119" height="59" fill="#f4c9c6" stroke="#aa4f48" stroke-width="1.5"/>
+  <g font-size="18" text-anchor="middle" fill="#1a1a1a">
+    <text x="373" y="68">用户态</text>
+    <text x="373" y="283">内核态1</text>
+    <text x="751" y="283">内核态</text>
+  </g>
+
+  <!-- 内核态1 -> 内核态 -->
+  <path d="M433 275 H689" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-59)"/>
+  <text x="453" y="250" font-size="18" fill="#1a1a1a">创建线程并且执行函数func</text>
+
+  <!-- 用户态 -> 内核态1 -->
+  <path d="M344 91 C280 140 250 240 306 276" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-59)"/>
+  <text x="290" y="153" font-size="20" fill="#f63f30">用户态到内核态</text>
+  <text x="274" y="179" font-size="20" fill="#f63f30">需要一个上下文切换</text>
+
+  <!-- 内核态 -> 用户态 -->
+  <path d="M751 245 C790 200 620 80 438 60" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-59)"/>
+  <text x="650" y="90" font-size="20" fill="#1a1a1a">线程创建完成</text>
+  <text x="762" y="149" font-size="20" fill="#f63f30">内核态到用户态</text>
+  <text x="742" y="171" font-size="20" fill="#f63f30">需要一个上下文切换</text>
+
+  <!-- 左侧需求说明 -->
+  <text x="27" y="153" font-size="20" fill="#1a1a1a">我要创建线程，而且让这个</text>
+  <text x="65" y="182" font-size="20" fill="#1a1a1a">线程执行函数func</text>
+</svg></figure><p>从上图可以看到我们需要两次的上下文切换，同时还需要执行一些操作系统的函数，这个过程是非常耗时间的，如果在并发非常高的情况，我们频繁的去生成线程然后销毁，这对我们程序的性能影响还是非常大的。因此许许多多聪明的程序员就想能不能不去频繁的创建线程而且也能够完成我们的功能——我们创建线程的目的就是想让我们的程序完成的更加快速，让多个不同的线程同时执行不同的任务。于是线程池就被创造出来了。线程池的结构大致如下所示：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1104 467" role="img"
+     aria-label="线程池结构：阻塞队列里排着五个任务，三个线程分别从队列中取任务，非线程池中的线程（比如主线程）把任务放进队列"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-concurrency60" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 线程池区域 -->
+  <rect x="223" y="43" width="846" height="390" fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5"/>
+
+  <!-- 阻塞队列 -->
+  <rect x="282" y="197" width="494" height="93" fill="#d1e3cf" stroke="#7da762" stroke-width="1.5"/>
+  <text x="484" y="183" font-size="17" text-anchor="middle">阻塞队列</text>
+
+  <!-- 队列里的任务 -->
+  <g fill="#f8b573" stroke="#b1671b" stroke-width="1.5">
+    <rect x="314" y="226" width="66" height="36"/>
+    <rect x="406" y="226" width="66" height="36"/>
+    <rect x="502" y="226" width="66" height="36"/>
+    <rect x="598" y="226" width="66" height="36"/>
+    <rect x="693" y="226" width="66" height="36"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="347" y="252">任务</text>
+    <text x="439" y="252">任务</text>
+    <text x="535" y="252">任务</text>
+    <text x="631" y="252">任务</text>
+    <text x="726" y="252">任务</text>
+  </g>
+
+  <!-- 线程 -->
+  <g fill="#c9c8dc" stroke="#4b4970" stroke-width="1.5">
+    <rect x="904" y="77" width="109" height="52"/>
+    <rect x="904" y="183" width="109" height="52"/>
+    <rect x="908" y="301" width="108" height="52"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="958" y="111">线程1</text>
+    <text x="958" y="217">线程2</text>
+    <text x="962" y="335">线程3</text>
+  </g>
+
+  <!-- 非线程池中的线程 -->
+  <text x="86" y="84" font-size="17" text-anchor="middle">非线程池中的线程</text>
+  <text x="86" y="107" font-size="17" text-anchor="middle">比如主线程</text>
+  <rect x="46" y="115" width="66" height="35" fill="#f8b573" stroke="#b1671b" stroke-width="1.5"/>
+  <text x="79" y="141" font-size="17" text-anchor="middle">任务</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M112 133 C180 133 200 180 214 210 C226 232 248 240 276 240" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M904 102 C820 62 668 88 635 218" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M904 209 C858 209 820 236 782 240" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M908 326 C800 332 646 326 540 268" marker-end="url(#arrow-concurrency60)"/>
+  </g>
+</svg></figure><h2 id="线程池实现原理">线程池实现原理</h2>
 <p>在前面我们已经提到了关于线程池和线程比较重要的两个点：</p>
 <ul>
 <li>线程就是执行一个函数。</li>

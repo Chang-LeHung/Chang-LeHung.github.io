@@ -126,8 +126,67 @@
 <p>基于上面的分析我们可以知道完全背包问题的动态转移方程为：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x02265;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003C;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr></mtable></mrow></mrow></math></div><h2 id="背包问题代码构成设计">背包问题代码构成设计</h2>
 <p>根据对动态转移方程的分析，我们可以知道，我们在计算<code>dp[i][j]</code>这个数据的值的时候，我们首先需要将<code>dp[i][j - v[i]]</code>和<code>dp[i - 1][j])</code>的结果计算出来，因为<code>dp[i][j]</code>依赖这两个数据。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp32.webp" alt="" loading="lazy" /></p>
-<p>根据上面的分析和图我们知道，在计算<code>dp[i][j]</code>之前，我们需要将第<code>i</code>行第<code>j</code>列之前的数据和<code>dp[i - 1][j]</code>都计算出来，因为<code>dp[i][j]</code>依赖这些数据。而我们最终需要的结果是<code>dp[N][V]</code>表示在背包容量为<code>V</code>且能够前<code>N</code>个物品（也就是所以物品）能够获得的最大的收益，所以我们最终需要求出<code>dp[N][V]</code>的值。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1029 408" role="img" aria-label="动态规划表格中蓝色格子 (i, j) 的取值依赖上一行的 dp[i - 1][j]，并可能依赖同一行中 dp[i][j - v[i]] 覆盖到的若干格子" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp32" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <!-- 彩色格子 -->
+  <g>
+    <rect x="46" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="111" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="176" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="241" y="218" width="66" height="28" fill="#ffcc99"/>
+    <rect x="307" y="218" width="65" height="28" fill="#b1ddf0"/>
+    <rect x="307" y="191" width="65" height="27" fill="#cdeb8b"/>
+  </g>
+
+  <!-- 表格线 -->
+  <g stroke="#000" stroke-width="1.5" fill="none">
+    <path d="M46 109 V354 M111 109 V354 M176 109 V354 M241 109 V354 M307 109 V354 M372 109 V354 M437 109 V354 M502 109 V354 M568 109 V354"/>
+    <path d="M46 109 H568 M46 137 H568 M46 164 H568 M46 191 H568 M46 218 H568 M46 246 H568 M46 273 H568 M46 300 H568 M46 327 H568 M46 354 H568"/>
+  </g>
+  <text x="340" y="240" font-size="20" fill="#111" text-anchor="middle">(i, j)</text>
+
+  <!-- 依赖说明框 -->
+  <rect x="110" y="34" width="147" height="34" rx="6" fill="#ffcc99" stroke="#36393d" stroke-width="1.5"/>
+  <text x="183" y="58" font-size="20" fill="#111" text-anchor="middle">dp[i][j - v[i]]</text>
+  <rect x="329" y="34" width="129" height="32" rx="6" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="393" y="57" font-size="20" fill="#111" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 红色箭头 -->
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M394 66 V115 H343 V191" marker-end="url(#arrow-dp32)"/>
+
+    <path d="M182 68 V119" stroke-dasharray="6 4"/>
+    <path d="M74 119 H279" stroke-dasharray="6 4"/>
+    <path d="M74 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M140 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M279 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M182 119 V143 H211 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+
+  <!-- 图例 -->
+  <g stroke="#36393d" stroke-width="1.5">
+    <rect x="603" y="115" width="63" height="24" fill="#cce5ff"/>
+    <rect x="603" y="181" width="63" height="24" fill="#ffcc99"/>
+    <rect x="603" y="242" width="63" height="24" fill="#cdeb8b"/>
+  </g>
+  <g font-size="26" fill="#111">
+    <text x="696" y="139">表示待计算的数据</text>
+    <text x="696" y="204">表示蓝色框可能依赖的数据</text>
+    <text x="696" y="265">表示蓝色框依赖的数据</text>
+    <text x="708" y="313">表示被依赖的数据</text>
+    <text x="708" y="360">表示可能被依赖的数据</text>
+  </g>
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M603 302 H660" marker-end="url(#arrow-dp32)"/>
+    <path d="M603 347 H660" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+</svg></figure><p>根据上面的分析和图我们知道，在计算<code>dp[i][j]</code>之前，我们需要将第<code>i</code>行第<code>j</code>列之前的数据和<code>dp[i - 1][j]</code>都计算出来，因为<code>dp[i][j]</code>依赖这些数据。而我们最终需要的结果是<code>dp[N][V]</code>表示在背包容量为<code>V</code>且能够前<code>N</code>个物品（也就是所以物品）能够获得的最大的收益，所以我们最终需要求出<code>dp[N][V]</code>的值。</p>
 <p>因此基于以上分析，我们要想最终解出<code>dp[N][V]</code>的值，我们可以采取两重<code>for</code>循环，第一重循环遍历物品，第二重循环遍历容量，但是我们的第<code>0</code>行没有前一行，因此我们需要对第<code>0</code>行进行初始化：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// 对第0行进行初始化操作</span>
 <span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -232,8 +291,71 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>下面我们举个使用单行数组优化的例子：</p>
 <p>假如我们正在更新<code>dp[j]</code>，此时<code>dp[j]</code>还是第<code>i-1</code>行的状态而<code>dp[0]</code>到<code>dp[j-1]</code>已经是第<code>i</code>行的状态了，因为我们是从前到后进行遍历。而要计算<code>dp[j]</code>的第i行状态的结果，那么他需要<code>dp[0]</code>到<code>dp[j-1]</code>的第i行状态的数据，<code>dp[j]</code>的第<code>i-1</code>行状态的数据，而实际情况数组能够满足这种依赖关系，因此我们可以使用单行数组优化。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp31.webp" alt="" loading="lazy" /></p>
-<p>这个单行数组与多行数组的区别是多行数组每一行有每一行的状态，而且他保存了所有行的状态，单行数组只存在一行的状态，但是他会经历所有行的状态，也就是在外层<code>for</code>循环下单行数组的状态不断更新。（如果你不理解这段话和上面谈到的单行数组优化，可以结合代码和文字进行理解）</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 923 464" role="img" aria-label="一维 dp 数组滚动更新的示意：上一行的状态覆盖到当前行，遍历方向从前到后，dp[j] 左侧已是第 i 行的状态，dp[j] 自身还是第 i-1 行的状态" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp31" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#36393d"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="158" y="30" width="62" height="24" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="158" y="67" width="62" height="24" fill="#cce5ff" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000">
+    <text x="270" y="51">i - 1行的状态</text>
+    <text x="268" y="83">i行的状态</text>
+  </g>
+
+  <!-- 行标 -->
+  <g font-size="22" fill="#000">
+    <text x="112" y="139">单行dp数组</text>
+    <text x="112" y="199">单行dp数组</text>
+  </g>
+
+  <!-- 第 i-1 行：整行都是旧状态 -->
+  <g fill="#cdeb8b" stroke="#36393d" stroke-width="1.5">
+    <rect x="258" y="117" width="65" height="27"/>
+    <rect x="323" y="117" width="65" height="27"/>
+    <rect x="388" y="117" width="65" height="27"/>
+    <rect x="453" y="117" width="65" height="27"/>
+    <rect x="518" y="117" width="65" height="27"/>
+    <rect x="583" y="117" width="65" height="27"/>
+    <rect x="649" y="117" width="65" height="27"/>
+    <rect x="714" y="117" width="65" height="27"/>
+  </g>
+
+  <!-- 第 i 行：dp[j] 及其左侧已被覆盖 -->
+  <g fill="#cce5ff" stroke="#36393d" stroke-width="1.5">
+    <rect x="258" y="177" width="65" height="27"/>
+    <rect x="323" y="177" width="65" height="27"/>
+    <rect x="388" y="177" width="65" height="27"/>
+    <rect x="453" y="177" width="65" height="27"/>
+    <rect x="518" y="177" width="65" height="27"/>
+  </g>
+  <g fill="#cdeb8b" stroke="#36393d" stroke-width="1.5">
+    <rect x="583" y="177" width="65" height="27"/>
+    <rect x="649" y="177" width="65" height="27"/>
+    <rect x="714" y="177" width="65" height="27"/>
+  </g>
+  <text x="552" y="204" font-size="30" fill="#000" text-anchor="middle">下标=j</text>
+
+  <!-- 遍历方向 -->
+  <line x1="287" y1="222" x2="500" y2="222" stroke="#000" stroke-width="7"/>
+  <polygon points="498,204 560,222 498,240" fill="#000"/>
+  <text x="282" y="270" font-size="22" fill="#000">从前往后进行遍历</text>
+
+  <!-- 指向 dp[j] 的曲线箭头 -->
+  <path d="M 416 331 C 416 312 420 300 440 296 C 470 290 520 285 536 268 C 548 254 549 230 550 214"
+        fill="none" stroke="#36393d" stroke-width="1.5" marker-end="url(#arrow-dp31)"/>
+
+  <!-- 说明 -->
+  <g font-size="22" fill="#000">
+    <text x="98" y="367">假如我们正在更新dp[j]，此时dp[j]还是第i-1行的状态而dp[0]到dp[j-1]已经</text>
+    <text x="72" y="392">是第i行的状态了，因为我们是&#x4ECE;前到后进行遍历。而要计算dp[j]的第i行状态的</text>
+    <text x="73" y="419">结果，那么他需要dp[0]到dp[j-1]的第i行状态的数据，dp[j]的第i-1行状态的数据</text>
+  </g>
+</svg></figure><p>这个单行数组与多行数组的区别是多行数组每一行有每一行的状态，而且他保存了所有行的状态，单行数组只存在一行的状态，但是他会经历所有行的状态，也就是在外层<code>for</code>循环下单行数组的状态不断更新。（如果你不理解这段话和上面谈到的单行数组优化，可以结合代码和文字进行理解）</p>
 <p><code>C++</code>代码：</p>
 <div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
 <span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1584 1230" role="img" aria-label="调用栈的内存布局示意：main frame 由 0x7、0x8 两个四字节槽位和 push rip、push rbp 两个八字节槽位组成，下面是 echo frame 的栈帧，右侧标出各段占用的字节数" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-openmp16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <text x="720" y="88" font-size="42" text-anchor="middle" fill="#5030b0">call stack memory layout</text>
+
+  <!-- 外框 -->
+  <rect x="55" y="135" width="1115" height="1035" rx="60" fill="none" stroke="#000" stroke-width="5"/>
+
+  <!-- 栈槽 -->
+  <g fill="none" stroke="#3060a0" stroke-width="4">
+    <rect x="455" y="275" width="210" height="82" rx="14"/>
+    <rect x="455" y="355" width="210" height="83" rx="14"/>
+    <rect x="455" y="435" width="210" height="86" rx="14"/>
+    <rect x="455" y="519" width="210" height="84" rx="14"/>
+  </g>
+  <g fill="none" stroke="#b04048" stroke-width="4">
+    <rect x="455" y="602" width="210" height="84" rx="14"/>
+    <rect x="455" y="683" width="210" height="86" rx="14"/>
+  </g>
+  <rect x="455" y="770" width="210" height="367" rx="20" fill="none" stroke="#3c8c78" stroke-width="4"/>
+
+  <!-- 槽内文字 -->
+  <g font-size="34" fill="#000" text-anchor="middle">
+    <text x="540" y="410">0x8</text>
+    <text x="540" y="575">0x7</text>
+    <text x="540" y="657">push rip</text>
+    <text x="540" y="738">push rbp</text>
+  </g>
+
+  <!-- 框架说明 -->
+  <g font-size="34" fill="#000">
+    <text x="100" y="278">main frame</text>
+    <text x="95" y="745">echo frame</text>
+  </g>
+  <g fill="none" stroke="#000" stroke-width="3" marker-end="url(#arrow-openmp16)">
+    <path d="M 348 265 H 440"/>
+    <path d="M 348 268 H 360 V 592 Q 360 600 372 600 H 445"/>
+    <path d="M 300 731 H 360 Q 370 731 370 745 V 1118 Q 370 1130 385 1130 H 445"/>
+  </g>
+
+  <!-- 右侧标注 -->
+  <g font-size="34" fill="#d07020">
+    <text x="765" y="292">rbp of main frame</text>
+    <text x="765" y="600">rsp of main frame</text>
+  </g>
+  <g font-size="34" fill="#3040c0">
+    <text x="765" y="752">rbp of echo frame</text>
+    <text x="740" y="1118">rsp of echo frame</text>
+  </g>
+  <g fill="none" stroke="#d07020" stroke-width="3" marker-end="url(#arrow-openmp16)">
+    <path d="M 750 278 H 680"/>
+    <path d="M 750 588 H 680"/>
+  </g>
+  <g fill="none" stroke="#3040c0" stroke-width="3" marker-end="url(#arrow-openmp16)">
+    <path d="M 750 740 H 680"/>
+    <path d="M 725 1105 H 680"/>
+  </g>
+
+  <!-- 段大小 -->
+  <g font-size="34" fill="#000">
+    <text x="680" y="456">0x10B</text>
+    <text x="680" y="676">0x10B</text>
+    <text x="680" y="968">0x30B</text>
+  </g>
+  <g fill="none" stroke="#000" stroke-width="3">
+    <path d="M 740 365 V 415" marker-start="url(#arrow-openmp16)"/>
+    <path d="M 740 470 V 515" marker-end="url(#arrow-openmp16)"/>
+    <path d="M 740 530 V 592" marker-start="url(#arrow-openmp16)" marker-end="url(#arrow-openmp16)"/>
+    <path d="M 740 800 V 935" marker-start="url(#arrow-openmp16)"/>
+    <path d="M 740 990 V 1120" marker-end="url(#arrow-openmp16)"/>
+  </g>
+
+  <!-- 图例 -->
+  <rect x="1225" y="222" width="190" height="80" rx="18" fill="none" stroke="#3060a0" stroke-width="4"/>
+  <rect x="1225" y="348" width="190" height="80" rx="18" fill="none" stroke="#b04048" stroke-width="4"/>
+  <g font-size="40" fill="#000">
+    <text x="1470" y="278">4B</text>
+    <text x="1470" y="404">8B</text>
+  </g>
+</svg>

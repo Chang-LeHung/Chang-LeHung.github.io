@@ -131,8 +131,103 @@
 <p>在上文当中我们写了一个非常简单的 openmp 程序，使用 4 个不同的线程分别打印 <code>hello world</code> 。我们仔细分析一下这个程序的执行流程：</p>
 <p><img src="/content/zh/images/cscore/images/openmp/02.webp" alt="02" loading="lazy" /></p>
 <p>在 openmp 的程序当中，你可以将程序用一个个的并行域分开，在并行域（parallel region）中，程序是有并发的，但是在并行域之外是没有并发的，只有主线程（master）在执行，整个过程如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/openmp/01.webp" alt="02" loading="lazy" /></p>
-<p>现在我们用一个程序去验证上面的过程：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 948 296" role="img"
+     aria-label="OpenMP 的 fork-join 执行模型：master thread 依次进入三个并行区域，每个区域内分出若干线程，区域结束时在同步点汇合"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-o01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <!-- 并行区域的分叉带状回路 -->
+  <g fill="none" stroke="#dcdcf0" stroke-width="9" stroke-linejoin="round">
+    <path d="M150 88 L162 26 H236 L240 88"/>
+    <path d="M370 88 L380 16 H456 L465 88"/>
+    <path d="M610 88 L620 26 H700 L705 88"/>
+  </g>
+  <g fill="none" stroke="#b9b9c9" stroke-width="1" stroke-dasharray="3 3">
+    <rect x="156" y="22" width="84" height="144"/>
+    <rect x="374" y="12" width="88" height="128"/>
+    <rect x="614" y="22" width="88" height="120"/>
+  </g>
+
+  <!-- master thread 主干 -->
+  <g fill="#dcdcf0" stroke="#b6b6d8" stroke-width="1.2">
+    <rect x="40" y="81" width="110" height="15" rx="7"/>
+    <rect x="240" y="81" width="130" height="15" rx="7"/>
+    <rect x="465" y="81" width="145" height="15" rx="7"/>
+    <rect x="705" y="81" width="200" height="15" rx="7"/>
+  </g>
+  <g fill="#333">
+    <circle cx="150" cy="88" r="5"/>
+    <circle cx="240" cy="88" r="5"/>
+    <circle cx="370" cy="88" r="5"/>
+    <circle cx="465" cy="88" r="5"/>
+    <circle cx="610" cy="88" r="5"/>
+    <circle cx="705" cy="88" r="5"/>
+  </g>
+
+  <!-- 区域 1：三个线程 -->
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <rect x="168" y="34" width="64" height="22" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="168" y="70" width="64" height="22" fill="#1e3fa8" stroke="#16307d"/>
+    <rect x="168" y="118" width="64" height="22" fill="#a01b1b" stroke="#7d1414"/>
+    <g fill="#fff" font-weight="bold">
+      <text x="200" y="51">1</text>
+      <text x="200" y="87">2</text>
+      <text x="200" y="135">3</text>
+    </g>
+    <text x="200" y="112" font-size="18" font-style="italic" fill="#222">threads</text>
+  </g>
+
+  <!-- 区域 2：四个线程 -->
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <rect x="382" y="20" width="70" height="19" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="382" y="44" width="70" height="19" fill="#d9c22b" stroke="#a8931c"/>
+    <rect x="382" y="84" width="70" height="19" fill="#1e3fa8" stroke="#16307d"/>
+    <rect x="382" y="112" width="70" height="19" fill="#a01b1b" stroke="#7d1414"/>
+    <g fill="#fff" font-weight="bold">
+      <text x="417" y="35">1</text>
+      <text x="417" y="59">2</text>
+      <text x="417" y="99">3</text>
+      <text x="417" y="127">4</text>
+    </g>
+    <text x="417" y="79" font-size="17" font-style="italic" fill="#222">threads</text>
+  </g>
+
+  <!-- 区域 3：两个线程 -->
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <rect x="622" y="34" width="70" height="22" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="622" y="82" width="70" height="22" fill="#d9c22b" stroke="#a8931c"/>
+    <g fill="#fff" font-weight="bold">
+      <text x="657" y="51">1</text>
+      <text x="657" y="99">2</text>
+    </g>
+    <text x="657" y="74" font-size="18" font-style="italic" fill="#222">threads</text>
+  </g>
+
+  <!-- 标注 -->
+  <text x="34" y="46" font-size="20" fill="#c0392b">master thread</text>
+  <path d="M86 56 L64 76" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow-o01)"/>
+
+  <text x="152" y="212" font-size="19" fill="#3b3bd6">parallel region</text>
+  <text x="372" y="212" font-size="19" fill="#3b3bd6">parallel region</text>
+  <text x="612" y="212" font-size="19" fill="#3b3bd6">parallel region</text>
+
+  <text x="22" y="272" font-size="22" font-style="italic">Fork threads</text>
+  <path d="M118 256 L147 104" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow-o01)"/>
+
+  <text x="330" y="278" font-size="22">Team of threads</text>
+  <g fill="none" stroke="#222" stroke-width="1.5">
+    <path d="M470 262 L466 104" marker-end="url(#arrow-o01)"/>
+    <path d="M470 262 L607 104" marker-end="url(#arrow-o01)"/>
+  </g>
+
+  <text x="596" y="272" font-size="21" font-style="italic">Join threads: Synchronization point</text>
+  <path d="M688 256 L703 104" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow-o01)"/>
+</svg></figure><p>现在我们用一个程序去验证上面的过程：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
@@ -181,7 +276,7 @@ after<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span
 </code></pre></div><p>从上面的输出我们可以了解到，id = 0 的线程就是主线程，在并行域内部程序的输出是没有顺序的，但是在并行域的外部是有序的，在并行域的开始部分程序会进行并发操作，但是在并行域的最后会有一个隐藏的同步点，等待所有线程到达这个同步点之后程序才会继续执行，现在再看上文当中 <code>openmp</code> 的执行流图的话就很清晰易懂了。</p>
 <h2 id="积分例子">积分例子</h2>
 <p>现在我们使用一个简单的函数积分的例子去具体了解 <code>openmp</code> 在具体的使用场景下的并行。比如我们求函数  <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math> 的积分。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 绘图区 -->
   <rect x="59" y="52" width="696" height="452" fill="#eaeaf2"/>
 
@@ -224,7 +319,7 @@ after<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span
   </g>
 </svg></figure><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mi>x</mi></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mi>d</mi><mi>x</mi><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><p>比如我们现在需要 x = 10 时，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math> 的积分结果。我们在程序里面使用微元法去计算函数的微分结果，而不是直接使用公式进行计算，微元法对应的计算方式如下所示：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><p>微元法的本质就是将曲线下方的面积分割成一个一个的非常小的长方形，然后将所有的长方形的面积累加起来，这样得到最终的结果。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 583" role="img" aria-label="函数 y 等于 x 平方的曲线，0 到 10 之间用一列竖线表示积分求和" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 583" role="img" aria-label="函数 y 等于 x 平方的曲线，0 到 10 之间用一列竖线表示积分求和" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 绘图区 -->
   <rect x="77" y="49" width="696" height="452" fill="#eaeaf2"/>
 
@@ -296,8 +391,80 @@ after<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span
 <span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的代码当中 <code>#pragma omp parallel num_threads(4)</code> 表示启动 4 个线程执行 <code>{}</code> 中的代码，<code>reduction(+:sum)</code> 表示需要对 <code>sum</code> 这个变量进行一个规约操作，当 openmp 中的线程遇到 <code>reduction</code> 子句的时候首先会拷贝一份 <code>sum</code> 作为本地变量，然后在并行域当中使用的就是每一个线程的本地变量，因为有 reduction 的规约操作，因此在每个线程计算完成之后还需要将每个线程本地计算出来的值对操作符 + 进行规约操作，也就是将每个线程计算得到的结果求和，最终将得到的结果赋值给我们在 main 函数当中定义的变量 <code>sum</code> 。最终我们打印的变量 <code>sum</code> 就是各个线程求和之后的结果。上面的代码执行过程大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/openmp/04.webp" alt="02" loading="lazy" /></p>
-<p>注意事项：你在编译上述程序的时候需要加上编译选项 <code>-fopenmp</code> 启动<code>openmp</code> 编译选项和 <code>-lm</code> 链接数学库。</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1906 734" role="img"
+     aria-label="OpenMP 并行域示意图：主线程先把初值写入，多个线程各自计算 x_square_partial_integral，在路障处汇总求和后再继续"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-openmp04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- 并行域 -->
+  <rect x="353" y="40" width="863" height="658" fill="#f7cea0" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="1050" y="105" font-size="26" fill="#e01b1b">并行域</text>
+
+  <!-- 四个线程的计算 -->
+  <g stroke-width="1.5">
+    <rect x="431" y="151" width="449" height="68" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="431" y="290" width="449" height="68" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="431" y="403" width="449" height="68" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="431" y="583" width="449" height="68" fill="#fbe7cf" stroke="#d79b00"/>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#1a1a1a">
+    <text x="655" y="192">x_square_partial_integral</text>
+    <text x="655" y="331">x_square_partial_integral</text>
+    <text x="655" y="444">x_square_partial_integral</text>
+    <text x="655" y="624">x_square_partial_integral</text>
+  </g>
+  <!-- 省略号：省略中间的线程 -->
+  <g fill="#1a1a1a">
+    <circle cx="655" cy="512" r="3"/>
+    <circle cx="655" cy="526" r="3"/>
+    <circle cx="655" cy="540" r="3"/>
+    <circle cx="655" cy="554" r="3"/>
+  </g>
+
+  <!-- 路障 -->
+  <rect x="1007" y="344" width="200" height="126" fill="#fdf5d7" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="1017" y="382" font-size="18" fill="#e01b1b">路障</text>
+  <text x="1056" y="382" font-size="18">等待所有线</text>
+  <text x="1017" y="408" font-size="18">程执行完成 并且</text>
+  <text x="1017" y="434" font-size="18">完成求和操作</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#1a1a1a" stroke-width="1.5">
+    <path d="M332 350 L424 187" marker-end="url(#arrow-openmp04)"/>
+    <path d="M332 350 L424 326" marker-end="url(#arrow-openmp04)"/>
+    <path d="M332 350 L424 439" marker-end="url(#arrow-openmp04)"/>
+    <path d="M332 350 L424 619" marker-end="url(#arrow-openmp04)"/>
+
+    <path d="M882 187 L1002 400" marker-end="url(#arrow-openmp04)"/>
+    <path d="M882 326 L1002 400" marker-end="url(#arrow-openmp04)"/>
+    <path d="M882 439 L1002 400" marker-end="url(#arrow-openmp04)"/>
+    <path d="M882 619 L1002 400" marker-end="url(#arrow-openmp04)"/>
+
+    <path d="M1209 407 H1245" marker-end="url(#arrow-openmp04)"/>
+  </g>
+
+  <!-- 左侧：主线程准备数据 -->
+  <text x="40" y="245" font-size="22" fill="#e01b1b">主线程执行这部分</text>
+  <rect x="30" y="272" width="300" height="158" fill="#f5f5f5"/>
+  <g font-size="24" font-family="monospace" fill="#1a1a1a">
+    <text x="45" y="310">int s = 0;</text>
+    <text x="45" y="352">int e = 10;</text>
+    <text x="45" y="394">double sum = 0;</text>
+  </g>
+
+  <!-- 右侧：主线程输出结果 -->
+  <text x="1440" y="285" font-size="22" fill="#e01b1b">主线程执行这部分</text>
+  <rect x="1250" y="300" width="620" height="120" fill="#f5f5f5"/>
+  <g font-size="24" font-family="monospace" fill="#1a1a1a">
+    <text x="1265" y="348">printf("sum = %lf\n", sum);</text>
+    <text x="1265" y="398">return 0;</text>
+  </g>
+</svg></figure><p>注意事项：你在编译上述程序的时候需要加上编译选项 <code>-fopenmp</code> 启动<code>openmp</code> 编译选项和 <code>-lm</code> 链接数学库。</p>
 <p>上面程序的执行结果如下所示：</p>
 <p><img src="/content/zh/images/cscore/images/openmp/03.webp" alt="02" loading="lazy" /></p>
 <h2 id="总结">总结</h2>

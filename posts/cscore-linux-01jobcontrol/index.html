@@ -69,8 +69,76 @@
 <h2 id="基本介绍">基本介绍</h2>
 <p>首先我们需要了解的概念就是当我们使用 ssh 登录服务器的时候就会产生一个会话。当我们在终端启动一个程序之后会创建一个新的进程组，进程组的首进程为要执行的程序，这个进程组可以是一个进程也可以是多个进程，整个进程组在 shell 看来也是一个作业（Job）。如果你不使用 &amp; 符号去执行一个程序，那么 shell 就会执行这个程序，然后这个程序就成为一个前台进程组（可以是一个进程也可以是多个进程），当我们在终端当中执行的命令加上 &amp; 符号，那么这个作业（Job）就会成为一个后台进程组。</p>
 <p>会话、前台进程组和后台进程组他们之间的关系大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/linux/shell/5.webp" alt="1" loading="lazy" /></p>
-<p>从上面的图当中我们可以看出，一个会话当中有很多个进程组，分为前台进程组和后台进程组，但是后台进程组可以有多个，前台呢进程组最多只能有一个，而且每一个进程组当中可以有多个进程（当你在执行的程序当中 fork 出子进程的时候，就是一个含有多个进程的进程组）。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1094 694" role="img"
+     aria-label="会话与进程组示意图：会话中包含后台进程组与前台进程组，控制终端通过调制解调器断开信号与终端输入信号与它们相连"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-shell5" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- session -->
+  <rect x="28" y="47" width="1007" height="325" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        stroke-dasharray="30 20"/>
+  <rect x="478" y="24" width="112" height="24" fill="#ffffff"/>
+  <text x="534" y="43" font-size="19" text-anchor="middle">session</text>
+
+  <!-- 登录 shell 所在的进程组 -->
+  <rect x="88" y="108" width="154" height="90" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        stroke-dasharray="9 7"/>
+  <rect x="110" y="123" width="115" height="58" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="167" y="159" font-size="18" text-anchor="middle">login shell</text>
+
+  <!-- 后台进程组 -->
+  <rect x="298" y="108" width="312" height="97" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        stroke-dasharray="9 7"/>
+  <rect x="321" y="123" width="115" height="58" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="378" y="159" font-size="18" text-anchor="middle">proc1</text>
+  <rect x="474" y="123" width="116" height="58" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="532" y="159" font-size="18" text-anchor="middle">proc2</text>
+
+  <!-- 前台进程组 -->
+  <rect x="670" y="110" width="310" height="205" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        stroke-dasharray="9 7"/>
+  <rect x="685" y="123" width="116" height="58" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="743" y="159" font-size="18" text-anchor="middle">proc3</text>
+  <rect x="839" y="123" width="115" height="58" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="896" y="159" font-size="18" text-anchor="middle">proc4</text>
+  <rect x="762" y="239" width="115" height="57" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="819" y="274" font-size="18" text-anchor="middle">proc5</text>
+
+  <!-- 进程组标注 -->
+  <text x="45" y="218" font-size="19">background process group</text>
+  <text x="320" y="218" font-size="19">background process group</text>
+  <text x="705" y="338" font-size="19">foreground process group</text>
+
+  <text x="62" y="252" font-size="19">session leader =</text>
+  <text x="62" y="277" font-size="19">controlling process</text>
+
+  <!-- 控制终端 -->
+  <ellipse cx="370" cy="555" rx="75" ry="50" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="370" y="548" font-size="18" text-anchor="middle">controlling</text>
+  <text x="370" y="574" font-size="18" text-anchor="middle">terminal</text>
+
+  <!-- 两条连线 -->
+  <path d="M330 509 L216 315" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-shell5)"/>
+  <path d="M441 532 L766 348" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-shell5)"/>
+
+  <!-- 沿线的说明文字 -->
+  <text x="262" y="352" font-size="17" transform="rotate(70 262 352)">modem disconnect</text>
+  <text x="228" y="392" font-size="17" transform="rotate(70 228 392)">(hang-up signal)</text>
+
+  <text x="492" y="458" font-size="17" transform="rotate(-29 492 458)">terminal input and</text>
+  <text x="486" y="498" font-size="17" transform="rotate(-29 486 498)">terminal-generated signals</text>
+
+  <!-- 图注 -->
+  <text x="205" y="680" font-size="20" font-weight="bold">Figure 9.7</text>
+  <text x="315" y="680" font-size="20">Process groups and sessions showing controlling terminal</text>
+</svg></figure><p>从上面的图当中我们可以看出，一个会话当中有很多个进程组，分为前台进程组和后台进程组，但是后台进程组可以有多个，前台呢进程组最多只能有一个，而且每一个进程组当中可以有多个进程（当你在执行的程序当中 fork 出子进程的时候，就是一个含有多个进程的进程组）。</p>
 <p>现在我们使用一个例子具体去了解一下：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 <span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>

@@ -121,8 +121,34 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>我们首先来分析一下上面的两个变量 data 和 two 的是如何被传递的，我们首先用图的方式进行表示，然后分析一下汇编程序并且对图进行验证。</p>
 <p>上面的代码当中两个变量 <code>data</code> 和 <code>two</code> 在内存当中的布局结构大致如下所示（假设 data 的初始位置时 0x0）：</p>
-<p><img src="/content/zh/images/cscore/images/openmp/12.webp" alt="14" loading="lazy" /></p>
-<p>那么在函数 GOMP_parallel_start 当中传递的参数 data 就是 0x0 也就是指向 data 的内存地址，如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 314" role="img"
+     aria-label="结构体 two 与 data 在内存中的布局顺序及各自的地址偏移：two 在 0x8 处，data 在 0x4 处，首地址为 0x0"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-o12" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect x="119" y="66" width="235" height="86" fill="none" stroke="#b93a33" stroke-width="2.5"/>
+  <text x="237" y="120" text-anchor="middle" font-size="32" fill="#b93a33">two</text>
+
+  <rect x="119" y="150" width="240" height="88" fill="none" stroke="#5a8a2a" stroke-width="2.5"/>
+  <text x="239" y="206" text-anchor="middle" font-size="32" fill="#5a8a2a">data</text>
+
+  <g fill="none" stroke="#000" stroke-width="2.5">
+    <path d="M462 84 H360" marker-end="url(#arrow-o12)"/>
+    <path d="M462 166 H360" marker-end="url(#arrow-o12)"/>
+    <path d="M462 244 H360" marker-end="url(#arrow-o12)"/>
+  </g>
+
+  <g font-size="32" fill="#000">
+    <text x="500" y="96">0x8</text>
+    <text x="500" y="178">0x4</text>
+    <text x="500" y="256">0x0</text>
+  </g>
+</svg></figure><p>那么在函数 GOMP_parallel_start 当中传递的参数 data 就是 0x0 也就是指向 data 的内存地址，如下图所示：</p>
 <p><img src="/content/zh/images/cscore/images/openmp/13.webp" alt="14" loading="lazy" /></p>
 <p>那么根据上面参数传递的情况，我们就可以在 subfunction 当中使用 *(int*)data 得到 data 的值，使用 *((int*) ((char*)data + 4)) 得到 two 的值，如果是 private 传递的话我们就可以先拷贝这个数据再使用，如果是 shared 的话，那么我们就可以直接使用指针就行啦。</p>
 <p>上面的程序我们用 pthread 大致描述一下，则 pthread 对应的代码如下所示：</p>
@@ -268,8 +294,58 @@
 <span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f9:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">             </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
 <span class="tok-w">  </span><span class="tok-err">400702:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c6</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rsi</span>
 </code></pre></div><p>上面的汇编程序的栈空间以及在调用函数之前 GOMP_parallel_start 部分寄存器的指向如下所示：</p>
-<p><img src="/content/zh/images/cscore/images/openmp/14.webp" alt="14" loading="lazy" /></p>
-<p>最终在调用函数 GOMP_parallel_start 之前 rsi 寄存器的指向如上图所示，上图当中 rsi 的指向的内存地址作为参数传递过去。根据上文谈到的 subfunction 中的参数可以知道，在函数 main._omp_fn.0 当中的 rdi 寄存器（也就是第一个参数 *data）的值就是上图当中 rsi 寄存器指向的内存地址的值（事实上也就是 rsi 寄存器的值）。大家可以自行对照着函数 main._omp_fn.0  的汇编程序对 rdi 寄存器的使用就可以知道这其中的参数传递的过程了。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1188 448" role="img"
+     aria-label="栈上的四个 8 字节格子：0x64、0xffffffff9c、0xffffffff9c、0x64，rbp 指向栈顶，rsp 与 rsi 指向栈底，左侧标出 16B 与 4B"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-o14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6c8ebf"/>
+    </marker>
+    <marker id="arrow-o14-dark" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a6b4a"/>
+    </marker>
+  </defs>
+
+  <!-- 4B 的方框 -->
+  <rect x="20" y="105" width="280" height="80" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text x="160" y="160" text-anchor="middle" font-size="34" fill="#4a6b4a">4B</text>
+
+  <!-- 栈上四个格子 -->
+  <line x1="355" y1="65" x2="790" y2="65" stroke="#6c8ebf" stroke-width="2"/>
+  <line x1="355" y1="390" x2="790" y2="390" stroke="#6c8ebf" stroke-width="2"/>
+  <g stroke="#4a6b4a" stroke-width="2" fill="#ffffff">
+    <rect x="515" y="65" width="275" height="325"/>
+  </g>
+  <g stroke="#4a6b4a" stroke-width="2">
+    <line x1="515" y1="146" x2="790" y2="146"/>
+    <line x1="515" y1="227" x2="790" y2="227"/>
+    <line x1="515" y1="308" x2="790" y2="308"/>
+  </g>
+
+  <g font-family="monospace" font-size="26" text-anchor="middle">
+    <text x="652" y="115" fill="#7a2b3a">0x64</text>
+    <text x="652" y="196" fill="#7a2b3a">0xffffffff9c</text>
+    <text x="652" y="277" fill="#c06a1e">0xffffffff9c</text>
+    <text x="652" y="358" fill="#c06a1e">0x64</text>
+  </g>
+
+  <!-- 16B 的双向标注 -->
+  <g fill="none" stroke="#6c8ebf" stroke-width="2.5" marker-end="url(#arrow-o14)">
+    <path d="M430 95 V175"/>
+    <path d="M430 355 V240"/>
+  </g>
+  <text x="405" y="238" font-size="34" fill="#6c8ebf">16B</text>
+
+  <!-- rbp / rsp, rsi -->
+  <g fill="none" stroke="#4a6b4a" stroke-width="2" marker-end="url(#arrow-o14-dark)">
+    <path d="M960 65 H795"/>
+    <path d="M960 390 H795"/>
+  </g>
+  <text x="1030" y="85" font-size="34" fill="#7b4a8c">rbp</text>
+  <text x="1025" y="395" font-size="34" fill="#7b4a8c">rsp, rsi</text>
+</svg></figure><p>最终在调用函数 GOMP_parallel_start 之前 rsi 寄存器的指向如上图所示，上图当中 rsi 的指向的内存地址作为参数传递过去。根据上文谈到的 subfunction 中的参数可以知道，在函数 main._omp_fn.0 当中的 rdi 寄存器（也就是第一个参数 *data）的值就是上图当中 rsi 寄存器指向的内存地址的值（事实上也就是 rsi 寄存器的值）。大家可以自行对照着函数 main._omp_fn.0  的汇编程序对 rdi 寄存器的使用就可以知道这其中的参数传递的过程了。</p>
 <ul>
 <li><code>unsigned num_threads</code>，根据前文提到的保存第三个参数的寄存器是 rdx，在 main 函数的位置 4006fd 处，指令为 mov $0x4,%edx，这和我们自己写的程序是一致的都是 4 (0x4)。</li>
 </ul>

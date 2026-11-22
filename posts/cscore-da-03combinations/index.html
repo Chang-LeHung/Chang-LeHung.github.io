@@ -90,10 +90,205 @@
 <h3 id="方法一">方法一</h3>
 <p>在这道问题当中我们仍然是从一组数据当中取出数据进行组合，然后得到指定的和，但是与前面的<a href="https://mp.weixin.qq.com/s/7A8-rmw0l5Y8c8SnQ5vqwQ">组合总和</a>不同的是，在这个问题当中我们可能遇到重复的数字而且每个数字只能够使用一次。这就给我们增加了很大的困难，因为如果存在相同的数据的话我们就又可能产生数据相同的组合，比如在第二个例子当中我们产生的结果<code>[1, 2, 2]</code>其中的2就可能来自<code>candidates</code>当中不同位置的2，可以是第一个，可以是第三个，也可以是最后一个2。但是在我们的最终答案当中是不允许存在重复的组合的。当然我们可以按照正常的方式遍历，然后将得到的复合要求的结果加入到一个哈希表当中，对得到的结果进行去重处理。但是这样我们的时间和空间开销都会加大很多。</p>
 <p>在这个问题当中为了避免产生重复的集合，我们可以首先将这些数据进行排序，然后进行遍历，我们拿一个数据来进行举例子：<code>[1,  2 1]</code>，现在我们将这个数据进行排序得到的结果为：<code>[1, 1, 2]</code>，那么遍历的树结构如下：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/15.webp" alt="15" loading="lazy" /></p>
-<p>上图表示<code>[1, 1, 2]</code>的遍历树，每一个数据都有选和不选两种情况，根据这种分析方式可以构造上面的解树，我们对上面的树进行分析我们可以知道，在上面的树当中有一部分子树是有重复的（重复的子树那么我们就回产生重复的结果，因此我们要删除重复的分支，也就是不进行递归求解），如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/16.webp" alt="15" loading="lazy" /></p>
-<p>我们现在来分析一下上面图中产生重复子树的原因，在一层当中选1的到第二层不选1的子树和第一层不选1而第二层选1的树产生了重复，因此我们可以在第一层不选1第二层选1的子树当中停止递归。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2006 674" role="img"
+     aria-label="对数组 [1, 1, 2] 回溯求子集的决策树：从空集合出发，逐层决定选择或不选择当前元素的 1 或 2"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <!-- 标题 -->
+  <rect x="1024" y="6" width="132" height="48" fill="#fcfcfc" stroke="#c8c8c8" stroke-width="1.5"/>
+  <text x="1090" y="38" text-anchor="middle" font-size="24">[1, 1, 2]</text>
+
+  <!-- 左侧逐层说明 -->
+  <g font-size="22" fill="#333">
+    <text x="28" y="123">是否选择1（下标为0）</text>
+    <text x="28" y="269">是否选择1（下标为1）</text>
+    <text x="28" y="427">是否选择2（下标为2）</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="1.5">
+    <path d="M1090 145 V189 H610 V231" marker-end="url(#arrow-15)"/>
+    <path d="M1090 145 V189 H1570 V231" marker-end="url(#arrow-15)"/>
+    <path d="M610 291 V341 H370 V389" marker-end="url(#arrow-15)"/>
+    <path d="M610 291 V341 H850 V389" marker-end="url(#arrow-15)"/>
+    <path d="M1570 291 V341 H1330 V389" marker-end="url(#arrow-15)"/>
+    <path d="M1570 291 V341 H1810 V389" marker-end="url(#arrow-15)"/>
+    <path d="M370 449 V502 H250 V554" marker-end="url(#arrow-15)"/>
+    <path d="M370 449 V502 H490 V554" marker-end="url(#arrow-15)"/>
+    <path d="M850 449 V502 H730 V554" marker-end="url(#arrow-15)"/>
+    <path d="M850 449 V502 H970 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1330 449 V502 H1210 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1330 449 V502 H1450 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1810 449 V502 H1690 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1810 449 V502 H1930 V554" marker-end="url(#arrow-15)"/>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#659b9f" stroke-width="1.5">
+    <rect x="1068" y="87" width="44" height="58"/>
+    <rect x="584" y="233" width="52" height="58"/>
+    <rect x="1548" y="233" width="44" height="58"/>
+    <rect x="333" y="391" width="74" height="58"/>
+    <rect x="824" y="391" width="52" height="58"/>
+    <rect x="1304" y="391" width="52" height="58"/>
+    <rect x="1788" y="391" width="44" height="58"/>
+    <rect x="202" y="556" width="96" height="58"/>
+    <rect x="452" y="556" width="76" height="58"/>
+    <rect x="692" y="556" width="76" height="58"/>
+    <rect x="944" y="556" width="52" height="58"/>
+    <rect x="1172" y="556" width="76" height="58"/>
+    <rect x="1424" y="556" width="52" height="58"/>
+    <rect x="1664" y="556" width="52" height="58"/>
+    <rect x="1908" y="556" width="44" height="58"/>
+  </g>
+
+  <!-- 节点文字 -->
+  <g font-size="21" fill="#1a1a1a" text-anchor="middle">
+    <text x="1090" y="124">[]</text>
+    <text x="610" y="270">[1]</text>
+    <text x="1570" y="270">[]</text>
+    <text x="370" y="428">[1,1]</text>
+    <text x="850" y="428">[1]</text>
+    <text x="1330" y="428">[1]</text>
+    <text x="1810" y="428">[]</text>
+    <text x="250" y="593">[1,1,2]</text>
+    <text x="490" y="593">[1,1]</text>
+    <text x="730" y="593">[1,2]</text>
+    <text x="970" y="593">[1]</text>
+    <text x="1210" y="593">[1,2]</text>
+    <text x="1450" y="593">[1]</text>
+    <text x="1690" y="593">[2]</text>
+    <text x="1930" y="593">[]</text>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="20" fill="#333">
+    <text x="1078" y="181" text-anchor="end">选择</text>
+    <text x="1102" y="181">不选择</text>
+    <text x="598" y="333" text-anchor="end">选择</text>
+    <text x="622" y="333">不选择</text>
+    <text x="1558" y="333" text-anchor="end">选择</text>
+    <text x="1582" y="333">不选择</text>
+    <text x="358" y="494" text-anchor="end">选择</text>
+    <text x="382" y="494">不选择</text>
+    <text x="838" y="494" text-anchor="end">选择</text>
+    <text x="862" y="494">不选择</text>
+    <text x="1318" y="494" text-anchor="end">选择</text>
+    <text x="1342" y="494">不选择</text>
+    <text x="1798" y="494" text-anchor="end">选择</text>
+    <text x="1822" y="494">不选择</text>
+  </g>
+</svg></figure><p>上图表示<code>[1, 1, 2]</code>的遍历树，每一个数据都有选和不选两种情况，根据这种分析方式可以构造上面的解树，我们对上面的树进行分析我们可以知道，在上面的树当中有一部分子树是有重复的（重复的子树那么我们就回产生重复的结果，因此我们要删除重复的分支，也就是不进行递归求解），如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1996 740" role="img" aria-label="对 [1, 1, 2] 逐个元素选择或不选择的决策树，绿色方块表示重复的子树" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-backtrace16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <rect width="1996" height="740" fill="#d9d2d8"/>
+
+  <!-- 图例 -->
+  <rect x="44" y="54" width="72" height="62" rx="8" fill="#72a737" stroke="#669b31" stroke-width="2"/>
+  <text x="132" y="97" font-size="28" fill="#1d3541">表示重复的子树</text>
+
+  <!-- 左侧层次标注 -->
+  <g font-size="28" fill="#1d3541">
+    <text x="30" y="173">是否选择1（下标为0）</text>
+    <text x="30" y="310">是否选择1（下标为1）</text>
+    <text x="30" y="484">是否选择2（下标为2）</text>
+  </g>
+
+  <!-- 待处理的序列 -->
+  <rect x="937" y="66" width="162" height="34" fill="#fcfcfc"/>
+  <text x="1018" y="94" font-size="30" text-anchor="middle" fill="#1d3541">[ 1, 1, 2 ]</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2">
+    <path d="M1044 197 V243 H661 V283" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1044 243 H1525 V285" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M661 345 V385 H405 V438" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M661 385 H928 V438" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1525 347 V385 H1275 V438" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1525 385 H1798 V438" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M405 500 V548 H256 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M405 548 H571 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M928 500 V548 H802 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M928 548 H1050 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1275 500 V548 H1161 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1275 548 H1409 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1798 500 V548 H1674 V593" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1798 548 H1921 V593" marker-end="url(#arrow-backtrace16)"/>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="28" fill="#1d3541" text-anchor="middle">
+    <text x="905" y="228">选择</text>
+    <text x="1142" y="228">不选择</text>
+    <text x="540" y="376">选择</text>
+    <text x="782" y="376">不选择</text>
+    <text x="1395" y="376">选择</text>
+    <text x="1640" y="376">不选择</text>
+    <text x="325" y="536">选择</text>
+    <text x="480" y="536">不选择</text>
+    <text x="865" y="536">选择</text>
+    <text x="985" y="536">不选择</text>
+    <text x="1215" y="536">选择</text>
+    <text x="1330" y="536">不选择</text>
+    <text x="1740" y="536">选择</text>
+    <text x="1860" y="536">不选择</text>
+  </g>
+
+  <!-- 节点 -->
+  <g stroke-width="2">
+    <rect x="1008" y="136" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="625" y="283" width="73" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="1489" y="285" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="369" y="438" width="73" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="892" y="438" width="73" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1239" y="438" width="72" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1762" y="438" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="210" y="602" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="525" y="602" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="756" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1003" y="602" width="94" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1115" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1363" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1627" y="593" width="94" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="1875" y="593" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+  </g>
+
+  <g font-size="28" text-anchor="middle" fill="#1d3541">
+    <text x="1044" y="177">[]</text>
+    <text x="661" y="324">[1]</text>
+    <text x="1525" y="326">[]</text>
+    <text x="405" y="479" font-size="26">[1,1]</text>
+    <text x="928" y="479">[1]</text>
+    <text x="1275" y="479">[1]</text>
+    <text x="1798" y="479">[]</text>
+    <text x="256" y="643" font-size="24">[1,1,2]</text>
+    <text x="571" y="643" font-size="26">[1,1]</text>
+    <text x="802" y="643" font-size="26">[1,2]</text>
+    <text x="1050" y="643">[1]</text>
+    <text x="1161" y="643" font-size="26">[1,2]</text>
+    <text x="1409" y="643">[1]</text>
+    <text x="1674" y="634">[2]</text>
+    <text x="1921" y="634">[]</text>
+  </g>
+</svg></figure><p>我们现在来分析一下上面图中产生重复子树的原因，在一层当中选1的到第二层不选1的子树和第一层不选1而第二层选1的树产生了重复，因此我们可以在第一层不选1第二层选1的子树当中停止递归。</p>
 <p>根据上面的例子我们可以总结出来，在同一层当中，如果后面的值等于他前面一个值的话，我们就可以不去生成“选择”这个分支的子树，因为在他的前面已经生成了一颗一模一样的子树了。</p>
 <p>现在我们的问题是如何确定和上一个遍历的节点是在同一层上面。我们可以使用一个<code>used</code>数组进行确定，当我们使用一个数据之后我们将对应下标的<code>used</code>数组的值设置为<code>true</code>，当递归完成进行回溯的时候在将对应位置的<code>used</code>值设置为<code>false</code>，因此当我们遍历一个数据的时候如果他前面的一个数据的<code>used</code>值是<code>false</code>的话，那么这个节点就和前面的一个节点在同一层上面。</p>
 <p>根据上面的分析我们可以写出如下的代码：</p>
@@ -146,12 +341,233 @@
 <span class="tok-p">};</span>
 </code></pre></div><h3 id="方法二">方法二</h3>
 <p>在回溯算法当中我们一般有两种选择情况，这一点我们在前面<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486751&amp;idx=1&amp;sn=8e9cedd729d01ff8867fcb2c085ecbe3&amp;chksm=cf0c9116f87b18002551eefcd773f4762d79d2c06614b304437bfcd382e14afa031d29cc4dcc&amp;mpshare=1&amp;scene=22&amp;srcid=0921yRhazbXlqGuEZagKb0p9&amp;sharer_sharetime=1663737871952&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">组合问题</a>当中已经介绍过了，一种方法是用选择和不选择去生成解树，这样我们将生成一颗二叉树的解树，另外一种是多叉树，下面我们来看一下后者的解树：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/19.webp" alt="17" loading="lazy" /></p>
-<p>同样对上面的解树进行分析我们回发现同样的也存在相同子树的情况，如下图所示，途中绿色的节点就时相同的节点：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/18.webp" alt="18" loading="lazy" /></p>
-<p>与前一种方法分析一样，当当前的数据和同一层上面的前一个数据相同的时候我们不需要进行求解了，可以直接返回跳过这个分支，因为这个分支已经在前面被求解过了。具体的分析过程如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/20.webp" alt="18" loading="lazy" /></p>
-<p>因此和第一种方法一样，我们也需要一个<code>used</code>数组去保存数据是否被访问过，但是在这个方法当中我们还可以根据遍历时候下标去实现这一点，因此不需要<code>used</code>数组了，代码如下所示：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1750 1068" role="img"
+     aria-label="从 [1,1,2] 中依次选择数据的递归树：根节点分出三条选择分支，左侧分支再继续递归到 [1,1,2]"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+
+  <rect x="0" y="0" width="1750" height="1068" fill="#d9d2d8"/>
+
+  <defs>
+    <marker id="arrow-backtrace19" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2">
+    <path d="M1032 97 L416 305" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M1032 97 L943 305" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M1032 97 L1449 305" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M416 424 L228 666" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M416 424 L627 666" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M943 424 L1032 666" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M228 822 L228 914" marker-end="url(#arrow-backtrace19)"/>
+  </g>
+
+  <!-- 分支说明 -->
+  <g font-size="25" fill="#1d3541" text-anchor="middle">
+    <text x="575" y="168">选择下标为0的数据，也就是1</text>
+    <text x="935" y="238">选择下标为1的数据，也就是1</text>
+    <text x="1315" y="170">选择下标为2的数据，也就是2</text>
+
+    <text x="275" y="578">选择下标为0的数据，也就是1</text>
+    <text x="490" y="612">选择下标为1的数据，也就是2</text>
+    <text x="1000" y="465">选择下标为0的数据，也就是2</text>
+
+    <text x="225" y="808">选择下标为0的数据，也就是2</text>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#3f898c" stroke-width="2">
+    <rect x="845" y="30" width="375" height="67" rx="10"/>
+    <rect x="228" y="315" width="376" height="109" rx="10"/>
+    <rect x="755" y="315" width="376" height="109" rx="10"/>
+    <rect x="1261" y="315" width="376" height="109" rx="10"/>
+    <rect x="41" y="676" width="375" height="109" rx="10"/>
+    <rect x="440" y="676" width="375" height="109" rx="10"/>
+    <rect x="845" y="676" width="375" height="109" rx="10"/>
+    <rect x="41" y="924" width="375" height="110" rx="10"/>
+  </g>
+
+  <g font-size="27" fill="#1d3541" text-anchor="middle">
+    <text x="1032" y="73">从[1,1,2]当中选择数据</text>
+
+    <text x="416" y="360">从[1,2]当中选择数据</text>
+    <text x="416" y="396">当前选中的数据[1]</text>
+
+    <text x="943" y="360">从[2]当中选择数据</text>
+    <text x="943" y="396">当前选中的数据[1]</text>
+
+    <text x="1449" y="360">从[]当中选择数据</text>
+    <text x="1449" y="396">当前选中的数据[1]</text>
+
+    <text x="228" y="721">从[2]当中选择数据</text>
+    <text x="228" y="757">当前选中的数据[1,1]</text>
+
+    <text x="627" y="721">从[]当中选择数据</text>
+    <text x="627" y="757">当前选中的数据[1,2]</text>
+
+    <text x="1032" y="721">从[]当中选择数据</text>
+    <text x="1032" y="757">当前选中的数据[1,2]</text>
+
+    <text x="228" y="969">从[2]当中选择数据</text>
+    <text x="228" y="1005">当前选中的数据[1,1,2]</text>
+  </g>
+</svg></figure><p>同样对上面的解树进行分析我们回发现同样的也存在相同子树的情况，如下图所示，途中绿色的节点就时相同的节点：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1860 1094" role="img"
+     aria-label="选择数据的递归树：从[1,1,2]出发逐层挑选，右下两棵绿色的子树是重复计算的部分"
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-18" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1860" height="1094" fill="#d9d2d8"/>
+
+  <!-- 图例 -->
+  <rect x="76" y="61" width="203" height="93" rx="12" fill="#3c8825" stroke="#235614" stroke-width="2"/>
+  <text x="339" y="114" font-size="20" fill="#1d3541">表示重复的子树</text>
+
+  <!-- 节点 -->
+  <g stroke="#3f898c" stroke-width="2">
+    <rect x="924" y="38" width="377" height="64" rx="10" fill="#f6e6ca"/>
+    <rect x="307" y="321" width="377" height="108" rx="10" fill="#f6e6ca"/>
+    <rect x="834" y="321" width="377" height="108" rx="10" fill="#f6e6ca"/>
+    <rect x="1340" y="321" width="377" height="108" rx="10" fill="#f6e6ca"/>
+    <rect x="120" y="682" width="377" height="108" rx="10" fill="#f6e6ca"/>
+    <rect x="120" y="930" width="377" height="108" rx="10" fill="#f6e6ca"/>
+  </g>
+  <g stroke="#235614" stroke-width="2">
+    <rect x="525" y="682" width="377" height="108" rx="10" fill="#3c8825"/>
+    <rect x="914" y="678" width="377" height="108" rx="10" fill="#3c8825"/>
+  </g>
+
+  <g font-size="22" text-anchor="middle" fill="#1d3541">
+    <text x="1112" y="83">从[1,1,2]当中选择数据</text>
+
+    <text x="495" y="371">从[1,2]当中选择数据</text>
+    <text x="495" y="402">当前选中的数据[1]</text>
+    <text x="1022" y="371">从[2]当中选择数据</text>
+    <text x="1022" y="402">当前选中的数据[1]</text>
+    <text x="1528" y="371">从[]当中选择数据</text>
+    <text x="1528" y="402">当前选中的数据[1]</text>
+
+    <text x="308" y="732">从[2]当中选择数据</text>
+    <text x="308" y="763">当前选中的数据[1,1]</text>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#ffffff">
+    <text x="713" y="732">从[]当中选择数据</text>
+    <text x="713" y="763">当前选中的数据[1, 2]</text>
+    <text x="1102" y="727">从[]当中选择数据</text>
+    <text x="1102" y="758">当前选中的数据[1, 2]</text>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#1d3541">
+    <text x="308" y="980">从[2]当中选择数据</text>
+    <text x="308" y="1011">当前选中的数据[1,1,2]</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2" marker-end="url(#arrow-18)">
+    <path d="M1112 102 L500 318"/>
+    <path d="M1112 102 L1022 318"/>
+    <path d="M1112 102 L1528 318"/>
+    <path d="M495 429 L312 679"/>
+    <path d="M495 429 L709 679"/>
+    <path d="M1022 429 L1098 675"/>
+    <path d="M308 790 L308 927"/>
+  </g>
+</svg></figure><p>与前一种方法分析一样，当当前的数据和同一层上面的前一个数据相同的时候我们不需要进行求解了，可以直接返回跳过这个分支，因为这个分支已经在前面被求解过了。具体的分析过程如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1852 1212" role="img" aria-label="回溯去重的重复子树示意图：从根节点按选 1、选 2 展开三层选择树，两个绿色节点表示重复的子树，下方长框说明两种选择方式状态相同因而可以跳过" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+  <defs>
+    <marker id="arrow-backtrace20" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1852" height="1212" fill="#d9d2d8"/>
+
+  <!-- 图例 -->
+  <rect x="57" y="102" width="201" height="92" rx="20" fill="#3c8825" stroke="#235614" stroke-width="1.5"/>
+  <text x="319" y="161" font-size="29" fill="#1d3541">表示重复的子树</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2" marker-end="url(#arrow-backtrace20)">
+    <path d="M 1048 85 L 426 306"/>
+    <path d="M 1048 85 L 966 306"/>
+    <path d="M 1048 85 L 1468 306"/>
+    <path d="M 431 412 L 242 527"/>
+    <path d="M 431 412 L 647 526"/>
+    <path d="M 958 412 L 1010 522"/>
+    <path d="M 242 633 L 242 774"/>
+    <path d="M 647 633 L 727 818"/>
+    <path d="M 1036 629 L 1180 720"/>
+    <path d="M 1042 934 L 1190 818"/>
+    <path d="M 1056 934 L 938 906"/>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#3f898c" stroke-width="1.5">
+    <rect x="861" y="23" width="375" height="62" rx="20"/>
+    <rect x="244" y="306" width="375" height="106" rx="20"/>
+    <rect x="771" y="306" width="375" height="106" rx="20"/>
+    <rect x="1277" y="306" width="375" height="106" rx="20"/>
+    <rect x="55" y="527" width="375" height="106" rx="20"/>
+    <rect x="55" y="774" width="375" height="107" rx="20"/>
+    <rect x="513" y="934" width="1080" height="262" rx="24"/>
+  </g>
+  <g fill="#3c8825" stroke="#235614" stroke-width="1.5">
+    <rect x="460" y="526" width="375" height="107" rx="20"/>
+    <rect x="848" y="522" width="376" height="107" rx="20"/>
+  </g>
+
+  <!-- 节点文字 -->
+  <g font-size="26" fill="#1d3541" text-anchor="middle" transform="translate(0,-4)">
+    <text x="1048" y="67">从[1,1,2]当中选择数据</text>
+
+    <text x="431" y="356">从[1,2]当中选择数据</text>
+    <text x="431" y="386">当前选中的数据[1]</text>
+    <text x="958" y="356">从[2]当中选择数据</text>
+    <text x="958" y="386">当前选中的数据[1]</text>
+    <text x="1464" y="356">从[]当中选择数据</text>
+    <text x="1464" y="386">当前选中的数据[1]</text>
+
+    <text x="242" y="577">从[2]当中选择数据</text>
+    <text x="242" y="607">当前选中的数据[1,1]</text>
+    <text x="242" y="824">从[2]当中选择数据</text>
+    <text x="242" y="854">当前选中的数据[1,1,2]</text>
+  </g>
+  <g font-size="26" fill="#ffffff" text-anchor="middle" transform="translate(0,-4)">
+    <text x="647" y="576">从[]当中选择数据</text>
+    <text x="647" y="606">当前选中的数据[1, 2]</text>
+    <text x="1036" y="572">从[]当中选择数据</text>
+    <text x="1036" y="602">当前选中的数据[1, 2]</text>
+  </g>
+
+  <!-- 批注 -->
+  <g font-size="29" fill="#1d3541">
+    <text x="1067" y="767">这个节点是先跳过了第一个1</text>
+    <text x="1059" y="802">然后选择了第二个1，再选择2</text>
+    <text x="580" y="863">这个节点是先选择了1，</text>
+    <text x="542" y="899">然后直接跳过第二个1选择了2</text>
+  </g>
+
+  <!-- 底部说明 -->
+  <g font-size="29" fill="#1d3541" text-anchor="middle">
+    <text x="1053" y="991">这两种选择方式当前的状态是一样的，都是选择了[1,2]这个组合</text>
+    <text x="1053" y="1024">而且后续的状态也是一样的，在本个例子</text>
+    <text x="1053" y="1058">当中没有后续的数据了，如果还有数据的话</text>
+    <text x="1053" y="1094">他们能够选择的数据是相同的，因此他们当前的状态一样</text>
+    <text x="1053" y="1131">后续的状态也是一样的，因此他们会产生相同的结果，因此我们在</text>
+    <text x="1053" y="1164">第二次遇到的时候可以跳过，因为前面已经遍历过了</text>
+  </g>
+</svg></figure><p>因此和第一种方法一样，我们也需要一个<code>used</code>数组去保存数据是否被访问过，但是在这个方法当中我们还可以根据遍历时候下标去实现这一点，因此不需要<code>used</code>数组了，代码如下所示：</p>
 <h4 id="java代码">Java代码</h4>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
