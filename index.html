@@ -1,379 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Chang-LeHung — software engineer interested in programming languages, virtual machines, and compilers.">
-    <title>Chang-LeHung</title>
-    <style>
-        :root {
-            --paper: #ffffff;
-            --ink: #202124;
-            --muted: #5f6368;
-            --accent: #174ea6;
-            --rule: #dfe3e8;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            color: var(--ink);
-            background: var(--paper);
-            font-family: "Source Serif Pro", "Source Serif 4", "Gentium Plus", Georgia, "Times New Roman", "Songti SC", serif;
-            font-size: 19px;
-            line-height: 1.72;
-            text-rendering: optimizeLegibility;
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration-thickness: 1px;
-            text-underline-offset: 3px;
-        }
-
-        .page {
-            width: min(880px, calc(100% - 40px));
-            margin: 0 auto;
-            padding: 34px 0 72px;
-        }
-
-        .navbar {
-            border-bottom: 1px solid var(--rule);
-        }
-
-        .nav-content {
-            width: min(880px, calc(100% - 40px));
-            min-height: 58px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-        }
-
-        .site-name {
-            color: var(--ink);
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 22px;
-        }
-
-        .nav-links a {
-            color: var(--muted);
-            font-size: 0.94rem;
-            text-decoration: none;
-        }
-
-        .header {
-            display: grid;
-            grid-template-columns: 154px 1fr;
-            gap: 34px;
-            align-items: start;
-            padding: 24px 0 38px;
-            border-bottom: 1px solid var(--rule);
-        }
-
-        .profile-img {
-            display: block;
-            width: 154px;
-            height: 154px;
-            border: 1px solid var(--rule);
-            border-radius: 3px;
-            object-fit: cover;
-        }
-
-        h1,
-        h2,
-        h3,
-        p {
-            margin-top: 0;
-        }
-
-        h1 {
-            margin-bottom: 4px;
-            font-size: clamp(2rem, 5vw, 2.65rem);
-            line-height: 1.18;
-            letter-spacing: -0.02em;
-        }
-
-        .title {
-            margin-bottom: 14px;
-            color: var(--muted);
-            font-size: 1.04rem;
-        }
-
-        .contact-info {
-            color: var(--muted);
-            font-size: 0.96rem;
-            line-height: 1.7;
-        }
-
-        .contact-info p {
-            margin-bottom: 4px;
-        }
-
-        .contact-note {
-            margin-top: 10px;
-            color: var(--ink);
-        }
-
-        main {
-            display: block;
-        }
-
-        .section {
-            padding: 30px 0 4px;
-        }
-
-        .section + .section {
-            border-top: 1px solid var(--rule);
-        }
-
-        h2 {
-            margin-bottom: 16px;
-            font-size: 1.38rem;
-            line-height: 1.3;
-            letter-spacing: 0.01em;
-        }
-
-        h3 {
-            margin-bottom: 3px;
-            font-size: 1.05rem;
-            line-height: 1.4;
-        }
-
-        .about-content p {
-            max-width: 76ch;
-            margin-bottom: 14px;
-        }
-
-        .quotes {
-            margin: 22px 0 26px;
-            padding-left: 18px;
-            border-left: 2px solid var(--rule);
-            color: var(--muted);
-        }
-
-        blockquote {
-            margin: 8px 0;
-            font-style: italic;
-        }
-
-        blockquote footer {
-            display: inline;
-            font-style: normal;
-        }
-
-        ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-
-        .education-item,
-        .entry {
-            margin-bottom: 20px;
-        }
-
-        .entry:last-child {
-            margin-bottom: 26px;
-        }
-
-        .entry-meta {
-            margin-bottom: 4px;
-            color: var(--muted);
-            font-size: 0.92rem;
-        }
-
-        .entry p {
-            max-width: 76ch;
-            margin-bottom: 5px;
-        }
-
-        .project-meta {
-            color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        @media (max-width: 640px) {
-            body {
-                font-size: 18px;
-            }
-
-            .page {
-                width: min(100% - 30px, 880px);
-                padding-top: 24px;
-            }
-
-            .nav-content {
-                width: min(100% - 30px, 880px);
-                min-height: 54px;
-            }
-
-            .header {
-                grid-template-columns: 96px 1fr;
-                gap: 20px;
-            }
-
-            .profile-img {
-                width: 96px;
-                height: 96px;
-            }
-        }
-
-        @media (max-width: 460px) {
-            .nav-content,
-            .header {
-                align-items: flex-start;
-            }
-
-            .nav-content {
-                padding: 14px 0;
-                flex-direction: column;
-                gap: 7px;
-            }
-
-            .header {
-                grid-template-columns: 1fr;
-            }
-
-            .profile-img {
-                width: 112px;
-                height: 112px;
-            }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chang-LeHung</title>
+<meta name="description" content="Chang-LeHung（牧牛的铃铛）的个人站点：编程语言、虚拟机与编译器，以及 LLM agent 运行时与本地优先知识工具。">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=219a1ccd">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
-    <nav class="navbar" aria-label="Primary navigation">
-        <div class="nav-content">
-            <a href="/" class="site-name">Chang-LeHung</a>
-            <div class="nav-links">
-                <a href="http://changlehung.xyz/blog/index.html" target="_blank" rel="noopener noreferrer">Blog</a>
-                <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </div>
-        </div>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
     </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
 
-    <div class="page">
-        <header class="header">
-            <img src="https://avatars.githubusercontent.com/u/61316604?s=400&amp;u=4702d954b232b73c9e70671504762159e994c5e6&amp;v=4" alt="Portrait of Chang-LeHung" class="profile-img">
-            <div>
-                <h1>Chang-LeHung <span lang="zh-CN">(牧牛的铃铛)</span></h1>
-                <div class="title">Software Engineer at Tencent · WXG</div>
-                <div class="contact-info">
-                    <p>Email: changlehung@(126/gmail).com</p>
-                    <p>Shenzhen, China · <a href="https://github.com/Chang-LeHung" target="_blank" rel="noopener noreferrer">GitHub</a></p>
-                    <p>
-                        <a href="https://chang-lehung.github.io/cscore/" target="_blank" rel="noopener noreferrer">CSCore</a>
-                        ·
-                        <a href="https://chang-lehung.github.io/dive-into-cpython/" target="_blank" rel="noopener noreferrer">Dive into CPython</a>
-                    </p>
-                    <p class="contact-note">Feel free to email me about programming languages.</p>
-                </div>
-            </div>
-        </header>
+<main id="main">
+<div class="shell">
+  <section class="intro">
+    <div class="cols" style="--cols:2; grid-template-columns:minmax(0,1fr) minmax(0,3fr)"><div class="col col-center" style="text-align:center;--image-margin:0 auto"><img src="/content/avatar.jpg" alt="Chang-LeHung" width="132" height="132" style="border-radius:50%">
+</div><div class="col" style=""><p>I am <strong>Chang-LeHung</strong> (牧牛的铃铛). I am interested in how programming languages are implemented — virtual machines, interpreters, compilers — and lately in how LLM agents work: generating tools on demand, compacting context, and splitting work between agents.</p>
+<p>Email: changlehung@(126/gmail).com · <a href="https://github.com/Chang-LeHung">GitHub</a> · <a href="http://changlehung.xyz/blog/index.html">Blog</a> · <a href="https://chang-lehung.github.io/CSCore/">CSCore</a> · <a href="https://chang-lehung.github.io/dive-into-cpython/">Dive into CPython</a></p>
+</div></div><h2 id="about">About</h2>
+<p>I write about Python internals and computer systems, more than 120 pieces so far. Most of them are source-code walkthroughs: take a part of the interpreter, run it, and write down what it does and why it is built that way.</p>
+<p>I learn the same way: start from a small program, add one piece at a time, and keep it runnable. Languages, virtual machines, databases and agent runtimes are the things I have rebuilt this way.</p>
+<blockquote>
+<p>“What I cannot create, I do not understand.”</p>
+<p>— Richard Feynman</p>
+</blockquote>
+<h2 id="what-i-work-on">What I work on</h2>
+<ul>
+<li><strong>LLM agent runtimes</strong>: a JIT harness — the model writes the tool it needs during the turn, loads it and calls it, instead of picking from a fixed toolbelt — plus session compaction, several agents working on one task, and the local-first knowledge tools around them.</li>
+<li><strong>The CPython virtual machine</strong>: bytecode execution, the object model and compiler optimization; the tutorials follow the source.</li>
+<li><strong>Compilers and language implementation</strong>: lexing, parsing and code generation, written as implementations small enough to run.</li>
+<li><strong>Distributed systems and performance analysis</strong>: sessions, background daemons and message passing between agents; sampling profilers and flame graphs, which is where telex comes in.</li>
+</ul>
+<h2 id="education">Education</h2>
+<p><strong>Hunan University</strong> · M.S. in Computer Science · September 2022 – June 2025 (Recommended Admission)</p>
+<h2 id="experience">Experience</h2>
+<ul>
+<li><strong>Tencent · WeChat (WXG)</strong> — Software Engineer, October 2024 – Present</li>
+<li><strong>Tencent · WeChat (WXG)</strong> — Software Engineering Intern, July 2024 – October 2024</li>
+<li><strong>ByteDance · Douyin E-commerce</strong> — Software Engineering Intern, April 2024 – July 2024</li>
+</ul>
+<h2 id="selected-projects">Selected Projects</h2>
+<h3 id="agents-and-knowledge-tools">Agents and knowledge tools</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/zettcode">ZettCode</a></strong> — A coding agent in your terminal: every reasoning step and tool call is shown as a readable row, and it asks before it runs a shell command. In a single turn the model can write a small Python tool, load it and call it; it can hand a code review to a second agent, or keep running in the background and message other sessions.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/zett-agent">Zett Agent</a></strong> — The lightweight Python runtime behind ZettCode, installable from PyPI: one provider-neutral loop with a JIT harness, where tools and skills are written and loaded on demand instead of up front, plus sessions, compaction, subagents and composable extensions.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/zettelekasten">Zett</a></strong> — A local-first, AI-assisted knowledge workspace that turns fleeting thoughts, conversations, links and assets into cards, articles, slides or papers. No account, no cloud workspace; everything stays on 127.0.0.1 on your own machine.</li>
+</ul>
+<h3 id="tools">Tools</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/telex">telex</a></strong> — A sampling profiler for Python: it grabs the stack every 8 ms by default, folds the samples into an interactive SVG flame graph, merges results across processes, and filters by file, function or regular expression so you only see the code you care about. GC analysis and a PyTorch profiler integration come with it.</li>
+</ul>
+<h3 id="languages-and-systems">Languages and systems</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/dive-into-cpython">Dive into CPython</a></strong> — Tutorials on CPython internals, from the object model to bytecode execution.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/CSCore">CSCore</a></strong> — A tutorial series on computer systems fundamentals: data structures, algorithms, operating systems and compiler principles.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/SPL">SPL</a></strong> — A coroutine-oriented programming language with functional programming support, including a compiler and virtual machine implementation.</li>
+<li><strong><a href="https://github.com/ict-hnu/jpvm">JPVM</a></strong> — A lightweight, GIL-free Python virtual machine: faster startup and a smaller memory footprint than Jython and GraalPy.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/core-vm">Core-VM</a></strong> — A minimal template interpreter that explains how JVM-based interpreters work.</li>
+</ul>
+<p>More projects on <a href="https://github.com/Chang-LeHung">GitHub</a>.</p>
+<h2 id="contact">Contact</h2>
+<p>Feel free to email me at changlehung@126.com or changlehung@gmail.com about agents and LLMs, programming languages and virtual machines, or distributed systems and performance analysis.</p>
 
-        <main>
-            <section class="section">
-                <h2>About</h2>
-                <div class="about-content">
-                    <p>
-                        I am interested in programming language implementation, virtual machines, and compilers, with a current focus on Python virtual machine internals and compiler optimization. I also write technical articles and have published more than 120 pieces on Python internals and computer systems.
-                    </p>
-                    <p>
-                        Programming is both my profession and a long-standing personal interest. I enjoy building systems from the ground up and understanding the ideas behind their implementation. Curiosity and a desire to keep exploring are central to how I learn and work.
-                    </p>
-                    <div class="quotes">
-                        <blockquote>
-                            “What I cannot create, I do not understand.”
-                            <footer>— Richard Feynman</footer>
-                        </blockquote>
-                    </div>
-                </div>
-            </section>
+  </section>
 
-            <section class="section">
-                <h2>Education</h2>
-                <div class="education-item">
-                    <h3>Hunan University</h3>
-                    <div class="entry-meta">M.S. in Computer Science · September 2022 – June 2025 · Recommended Admission</div>
-                </div>
-            </section>
+  <h2 class="section-label">最近更新</h2>
+  <ul class="entries">
+    <li>
+      <time datetime="2026-11-21">2026-11-21</time>
+      <a href="/posts/welcome/">欢迎</a>
+    </li>
+  </ul>
 
-            <section class="section">
-                <h2>Recent Experience</h2>
-                <div class="entry">
-                    <h3>Software Engineer, WeChat (WXG), Tencent</h3>
-                    <div class="entry-meta">October 2024 – Present</div>
-                </div>
-                <div class="entry">
-                    <h3>Software Engineering Intern, WeChat (WXG), Tencent</h3>
-                    <div class="entry-meta">July 2024 – October 2024</div>
-                </div>
-                <div class="entry">
-                    <h3>Software Engineering Intern, Douyin E-commerce, ByteDance</h3>
-                    <div class="entry-meta">April 2024 – July 2024</div>
-                </div>
-            </section>
+  <p class="more">
+    <a href="/archive/">全部 1 篇文章</a>
+    <span class="sep">·</span>
+    <a href="/tags/">按标签浏览</a>
+  </p>
+</div>
+</main>
 
-            <section class="section">
-                <h2>Selected Projects</h2>
+<div class="foot-space"></div>
 
-                <article class="entry" data-repo="Chang-LeHung/dive-into-cpython">
-                    <h3><a href="https://github.com/Chang-LeHung/dive-into-cpython" target="_blank" rel="noopener noreferrer">Dive into CPython</a></h3>
-                    <p>Comprehensive tutorials on CPython internals.</p>
-                    <div class="project-meta">Stars — · Forks —</div>
-                </article>
-
-                <article class="entry" data-repo="Chang-LeHung/CSCore">
-                    <h3><a href="https://github.com/Chang-LeHung/CSCore" target="_blank" rel="noopener noreferrer">CSCore</a></h3>
-                    <p>A tutorial series covering computer systems fundamentals, including data structures, algorithms, operating systems, and compiler principles.</p>
-                    <div class="project-meta">Stars — · Forks —</div>
-                </article>
-
-                <article class="entry" data-repo="Chang-LeHung/SPL">
-                    <h3><a href="https://github.com/Chang-LeHung/SPL" target="_blank" rel="noopener noreferrer">SPL Programming Language</a></h3>
-                    <p>A coroutine-oriented programming language with functional programming support, including a compiler and virtual machine implementation.</p>
-                    <div class="project-meta">Stars — · Forks —</div>
-                </article>
-
-                <article class="entry" data-repo="Chang-LeHung/jpvm">
-                    <h3><a href="https://github.com/Chang-LeHung/jpvm" target="_blank" rel="noopener noreferrer">JPVM</a></h3>
-                    <p>A lightweight, GIL-free Python virtual machine with faster startup and a smaller memory footprint than Jython and GraalPy.</p>
-                    <div class="project-meta">Stars — · Forks —</div>
-                </article>
-
-                <article class="entry" data-repo="Chang-LeHung/core-vm">
-                    <h3><a href="https://github.com/Chang-LeHung/core-vm" target="_blank" rel="noopener noreferrer">Core-VM</a></h3>
-                    <p>A minimal template interpreter designed to explain JVM-based interpreter implementation.</p>
-                    <div class="project-meta">Stars — · Forks —</div>
-                </article>
-            </section>
-        </main>
-    </div>
-
-    <script>
-        document.querySelectorAll("[data-repo]").forEach(async (project) => {
-            try {
-                const response = await fetch(`https://api.github.com/repos/${project.dataset.repo}`);
-                if (!response.ok) return;
-
-                const repository = await response.json();
-                project.querySelector(".project-meta").textContent =
-                    `Stars ${repository.stargazers_count.toLocaleString()} · Forks ${repository.forks_count.toLocaleString()}`;
-            } catch {
-                // Keep the neutral placeholder when GitHub is unavailable.
-            }
-        });
-    </script>
+<script src="/assets/main.js?v=60be9168" defer></script>
 </body>
 </html>

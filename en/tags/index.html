@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tags · Chang-LeHung</title>
+<meta name="description" content="Chang-LeHung — software engineer working on programming languages, virtual machines and compilers.">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="zh" href="https://chang-lehung.github.io/tags/">
+<link rel="stylesheet" href="/assets/style.css?v=219a1ccd">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/en/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/en/">Chang-LeHung</a>
+    <nav class="nav" aria-label="Home">
+      <a href="/en/archive/">Archive</a>
+      <a href="/en/search/">Search</a>
+      <a href="/en/tags/" aria-current="page">Tags</a>
+<a href="/en/about/">About</a>      <a href="/en/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="Language">
+<a href="/tags/" hreflang="zh" lang="zh">中文</a><span aria-current="true">English</span>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="shell">
+  <h1 class="page-title">Tags</h1>
+  <p class="page-sub">1 posts</p>
+  <ul class="taglist">
+  </ul>
+</div>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

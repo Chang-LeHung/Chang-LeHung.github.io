@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chang-LeHung</title>
+<meta name="description" content="Chang-LeHung — software engineer working on programming languages, virtual machines and compilers.">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="zh" href="https://chang-lehung.github.io/">
+<link rel="stylesheet" href="/assets/style.css?v=219a1ccd">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/en/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/en/">Chang-LeHung</a>
+    <nav class="nav" aria-label="Home">
+      <a href="/en/archive/">Archive</a>
+      <a href="/en/search/">Search</a>
+      <a href="/en/tags/">Tags</a>
+<a href="/en/about/">About</a>      <a href="/en/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="Language">
+<a href="/" hreflang="zh" lang="zh">中文</a><span aria-current="true">English</span>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="shell">
+  <section class="intro">
+    <div class="cols" style="--cols:2; grid-template-columns:minmax(0,1fr) minmax(0,3fr)"><div class="col col-center" style="text-align:center;--image-margin:0 auto"><img src="/content/avatar.jpg" alt="Chang-LeHung" width="132" height="132" style="border-radius:50%">
+</div><div class="col" style=""><p>I am <strong>Chang-LeHung</strong> (牧牛的铃铛). I am interested in how programming languages are implemented — virtual machines, interpreters, compilers — and lately in how LLM agents work: generating tools on demand, compacting context, and splitting work between agents.</p>
+<p>Email: changlehung@(126/gmail).com · <a href="https://github.com/Chang-LeHung">GitHub</a> · <a href="http://changlehung.xyz/blog/index.html">Blog</a> · <a href="https://chang-lehung.github.io/CSCore/">CSCore</a> · <a href="https://chang-lehung.github.io/dive-into-cpython/">Dive into CPython</a></p>
+</div></div><h2 id="about">About</h2>
+<p>I write about Python internals and computer systems, more than 120 pieces so far. Most of them are source-code walkthroughs: take a part of the interpreter, run it, and write down what it does and why it is built that way.</p>
+<p>I learn the same way: start from a small program, add one piece at a time, and keep it runnable. Languages, virtual machines, databases and agent runtimes are the things I have rebuilt this way.</p>
+<blockquote>
+<p>“What I cannot create, I do not understand.”</p>
+<p>— Richard Feynman</p>
+</blockquote>
+<h2 id="what-i-work-on">What I work on</h2>
+<ul>
+<li><strong>LLM agent runtimes</strong>: a JIT harness — the model writes the tool it needs during the turn, loads it and calls it, instead of picking from a fixed toolbelt — plus session compaction, several agents working on one task, and the local-first knowledge tools around them.</li>
+<li><strong>The CPython virtual machine</strong>: bytecode execution, the object model and compiler optimization; the tutorials follow the source.</li>
+<li><strong>Compilers and language implementation</strong>: lexing, parsing and code generation, written as implementations small enough to run.</li>
+<li><strong>Distributed systems and performance analysis</strong>: sessions, background daemons and message passing between agents; sampling profilers and flame graphs, which is where telex comes in.</li>
+</ul>
+<h2 id="education">Education</h2>
+<p><strong>Hunan University</strong> · M.S. in Computer Science · September 2022 – June 2025 (Recommended Admission)</p>
+<h2 id="experience">Experience</h2>
+<ul>
+<li><strong>Tencent · WeChat (WXG)</strong> — Software Engineer, October 2024 – Present</li>
+<li><strong>Tencent · WeChat (WXG)</strong> — Software Engineering Intern, July 2024 – October 2024</li>
+<li><strong>ByteDance · Douyin E-commerce</strong> — Software Engineering Intern, April 2024 – July 2024</li>
+</ul>
+<h2 id="selected-projects">Selected Projects</h2>
+<h3 id="agents-and-knowledge-tools">Agents and knowledge tools</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/zettcode">ZettCode</a></strong> — A coding agent in your terminal: every reasoning step and tool call is shown as a readable row, and it asks before it runs a shell command. In a single turn the model can write a small Python tool, load it and call it; it can hand a code review to a second agent, or keep running in the background and message other sessions.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/zett-agent">Zett Agent</a></strong> — The lightweight Python runtime behind ZettCode, installable from PyPI: one provider-neutral loop with a JIT harness, where tools and skills are written and loaded on demand instead of up front, plus sessions, compaction, subagents and composable extensions.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/zettelekasten">Zett</a></strong> — A local-first, AI-assisted knowledge workspace that turns fleeting thoughts, conversations, links and assets into cards, articles, slides or papers. No account, no cloud workspace; everything stays on 127.0.0.1 on your own machine.</li>
+</ul>
+<h3 id="tools">Tools</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/telex">telex</a></strong> — A sampling profiler for Python: it grabs the stack every 8 ms by default, folds the samples into an interactive SVG flame graph, merges results across processes, and filters by file, function or regular expression so you only see the code you care about. GC analysis and a PyTorch profiler integration come with it.</li>
+</ul>
+<h3 id="languages-and-systems">Languages and systems</h3>
+<ul>
+<li><strong><a href="https://github.com/Chang-LeHung/dive-into-cpython">Dive into CPython</a></strong> — Tutorials on CPython internals, from the object model to bytecode execution.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/CSCore">CSCore</a></strong> — A tutorial series on computer systems fundamentals: data structures, algorithms, operating systems and compiler principles.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/SPL">SPL</a></strong> — A coroutine-oriented programming language with functional programming support, including a compiler and virtual machine implementation.</li>
+<li><strong><a href="https://github.com/ict-hnu/jpvm">JPVM</a></strong> — A lightweight, GIL-free Python virtual machine: faster startup and a smaller memory footprint than Jython and GraalPy.</li>
+<li><strong><a href="https://github.com/Chang-LeHung/core-vm">Core-VM</a></strong> — A minimal template interpreter that explains how JVM-based interpreters work.</li>
+</ul>
+<p>More projects on <a href="https://github.com/Chang-LeHung">GitHub</a>.</p>
+<h2 id="contact">Contact</h2>
+<p>Feel free to email me at changlehung@126.com or changlehung@gmail.com about agents and LLMs, programming languages and virtual machines, or distributed systems and performance analysis.</p>
+
+  </section>
+
+  <h2 class="section-label">Recent</h2>
+  <ul class="entries">
+    <li>
+      <time datetime="2026-11-21">2026-11-21</time>
+      <a href="/en/posts/welcome/">Welcome</a>
+    </li>
+  </ul>
+
+  <p class="more">
+    <a href="/en/archive/">All 1 posts</a>
+    <span class="sep">·</span>
+    <a href="/en/tags/">Browse by tag</a>
+  </p>
+</div>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>
