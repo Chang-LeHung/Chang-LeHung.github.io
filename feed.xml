@@ -5,8 +5,15 @@
     <link>https://chang-lehung.github.io/</link>
     <description>Chang-LeHung（牧牛的铃铛）的个人站点：编程语言、虚拟机与编译器，以及 LLM agent 运行时与本地优先知识工具。</description>
     <language>zh</language>
-    <lastBuildDate>Sun, 22 Nov 2026 13:55:10 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 22 Nov 2026 14:31:20 +0000</lastBuildDate>
     <atom:link href="https://chang-lehung.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Python 3.14 新特性</title>
+      <link>https://chang-lehung.github.io/posts/cpython-new-314/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-new-314/</guid>
+      <pubDate>Sat, 10 Jan 2026 00:00:00 +0000</pubDate>
+      <description>10 月 7 日 Python 3.14 正式发布，该版本又是一个有着巨大提升的版本，可以说是继 Python 3.12 和 Python 3.13 之后的又一个史诗级版本，话不多说，此次更新最主要内容如下： Python 开始彻底多线程特性，移除了 GIL 的限制，在一个 Python 进程中可以</description>
+<category>Python</category>    </item>
     <item>
       <title>深入理解 python 虚拟机：破解核心魔法——反序列化 pyc 文件</title>
       <link>https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</link>
@@ -139,13 +146,6 @@
       <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-07dict/</guid>
       <pubDate>Sat, 06 Jul 2024 00:00:00 +0000</pubDate>
       <description>在本篇文章当中主要给大家深入介绍一下在 cpython 当中字典的实现原理，在本篇文章当中主要介绍在早期 python3 当中的版本字典的实现，现在的字典做了部分优化，我们在后面的文章当中再介绍。 字典数据结构分析 复制 /* The ma_values pointer is NULL for a </description>
-<category>Python</category><category>对象模型</category>    </item>
-    <item>
-      <title>深入理解 Python 虚拟机：集合（set）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-06set/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-06set/</guid>
-      <pubDate>Sat, 15 Jun 2024 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 cpython 虚拟机当中的集合 set 的实现原理以及对应的源代码分析。 数据结构介绍 复制 typedef struct { PyObject_HEAD Py_ssize_t fill ; /* Number active and dummy entries*/ </description>
 <category>Python</category><category>对象模型</category>    </item>
   </channel>
 </rss>
