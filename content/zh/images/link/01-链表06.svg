@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1052" height="412">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1052" height="412">
 
   <!-- 顶部说明文字 -->
   <text x="465" y="26" font-size="18" fill="#1a1a1a" text-anchor="middle">删除下标为3的位置的数据，其后面的数据都需要往前移动一个位置</text>

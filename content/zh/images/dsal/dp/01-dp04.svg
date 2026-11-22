@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="767" height="422">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="767" height="422">
   <defs>
     <marker id="arrow-dp04" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

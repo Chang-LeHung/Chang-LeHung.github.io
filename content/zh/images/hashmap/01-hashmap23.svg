@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1178" height="237">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1178" height="237">
   <defs>
     <marker id="arrow-hashmap23" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

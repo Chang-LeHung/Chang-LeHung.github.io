@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 886 343" role="img" aria-label="四个节点首尾相接，prev 指针向左、next 指针向右，first 指向第一个节点，last 指向最后一个节点" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="886" height="343">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 886 343" role="img" aria-label="四个节点首尾相接，prev 指针向左、next 指针向右，first 指向第一个节点，last 指向最后一个节点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="886" height="343">
   <defs>
     <marker id="arrow-linkedlist03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 907 642" role="img" aria-label="LinkedList 的继承体系，其中 AbstractCollection 被红色圆角框圈出，作为重点" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="907" height="642">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 907 642" role="img" aria-label="LinkedList 的继承体系，其中 AbstractCollection 被红色圆角框圈出，作为重点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="907" height="642">
   <defs>
     <marker id="arrow-linkedlist10-g" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

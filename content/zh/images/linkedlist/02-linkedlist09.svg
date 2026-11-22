@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="953" height="606">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="953" height="606">
   <defs>
     <marker id="arrow-linkedlist09" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" font-size="25" fill="#000" width="807" height="296">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" font-size="25" fill="#000" width="807" height="296">
   <defs>
     <marker id="arrow-dp06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="10" markerHeight="10" orient="auto-start-reverse">

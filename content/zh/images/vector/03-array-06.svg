@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 945 547" role="img" aria-label="数组插入元素的过程：先把下标 4 及其后的数据往后移一格，空出位置再把数据放进去" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="945" height="547">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 945 547" role="img" aria-label="数组插入元素的过程：先把下标 4 及其后的数据往后移一格，空出位置再把数据放进去" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="945" height="547">
   <defs>
     <marker id="arrow-array06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

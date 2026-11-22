@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#000" width="962" height="378">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" fill="#000" width="962" height="378">
   <defs>
     <marker id="arrow-dp11-black" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9.5" markerHeight="9.5" orient="auto-start-reverse">

@@ -70,9 +70,9 @@
 
 /* generated from [fonts] in site.toml */
 :root {
-  --font-body: "Seaford", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", "Helvetica Neue", "Arial", sans-serif;
+  --font-body: "Seaford", "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", "Palatino", "Source Serif Pro", serif;
   --font-code: "Courier", "Courier New", "Menlo", "Consolas", monospace;
-  --font-algo: "Seaford", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", monospace, sans-serif;
+  --font-algo: "Seaford", "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", "Palatino", serif;
 }
 @font-face { font-family: "Seaford"; src: url("/assets/fonts/SeafordRg.woff2?v=6d273c6a"); font-weight: 400; font-style: normal; font-display: optional; }
 @font-face { font-family: "Seaford"; src: url("/assets/fonts/SeafordMed.woff2?v=de248fb6"); font-weight: 700; font-style: normal; font-display: optional; }

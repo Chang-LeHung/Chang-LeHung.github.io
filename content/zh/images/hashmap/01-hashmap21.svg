@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="814" height="418">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="814" height="418">
   <defs>
     <marker id="arrow-hashmap21" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

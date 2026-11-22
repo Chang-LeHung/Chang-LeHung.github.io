@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 127" role="img" aria-label="静态链表的五个结点，每个结点由 data 和 next 值两格组成，next 值用箭头指向下一个结点" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1106" height="127">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 127" role="img" aria-label="静态链表的五个结点，每个结点由 data 和 next 值两格组成，next 值用箭头指向下一个结点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1106" height="127">
   <defs>
     <marker id="arrow-01-13" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="8" markerHeight="8" orient="auto-start-reverse">

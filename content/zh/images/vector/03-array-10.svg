@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="991" height="628">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="991" height="628">
   <defs>
     <marker id="arrow-array10-green" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1140" height="204">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1140" height="204">
   <!-- 第一行：16 -->
   <text x="19" y="69" font-size="26" fill="#000">16的二进制数</text>
   <g fill="#fff" stroke="#444" stroke-width="1.5">
