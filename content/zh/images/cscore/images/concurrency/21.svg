@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1098 280" role="img"
+     aria-label="路障 CyclicBarrier：五个线程停在同一个路障上等待"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <rect x="76" y="135" width="956" height="87" rx="8" fill="#f8cecc" stroke="#bd5f5b" stroke-width="1.5"/>
+  <text x="553" y="190" font-size="26" text-anchor="middle">路障 CylicBarrier</text>
+
+  <g fill="#b1ddf0" stroke="#12749f" stroke-width="1.5">
+    <circle cx="170" cy="106" r="40"/>
+    <circle cx="398" cy="106" r="40"/>
+    <circle cx="593" cy="106" r="40"/>
+    <circle cx="800" cy="106" r="40"/>
+    <circle cx="962" cy="106" r="40"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="170" y="112">Thread-0</text>
+    <text x="398" y="112">Thread-1</text>
+    <text x="593" y="112">Thread-2</text>
+    <text x="800" y="112">Thread-3</text>
+    <text x="962" y="112">Thread-4</text>
+  </g>
+</svg>

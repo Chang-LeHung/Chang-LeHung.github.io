@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 619 380" role="img"
+     aria-label="后缀表达式遍历到末尾时的栈状态：栈里依次压着 N 和 P，上方一行是已遍历的字符，斜杠为正在遍历的位置，下方一行是 E/F=N 的对应关系"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <text x="46" y="34" font-size="24">栈顶</text>
+  <text x="44" y="356" font-size="24">栈底</text>
+
+  <rect x="59" y="64" width="49" height="246" fill="#fad7ac" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="63" y="221" width="44" height="38" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="85" y="248" text-anchor="middle" font-size="24">N</text>
+  <rect x="63" y="266" width="44" height="38" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="85" y="293" text-anchor="middle" font-size="24">P</text>
+
+  <rect x="185" y="66" width="40" height="34" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="240" y="92" font-size="24">表示正在遍历的位置</text>
+  <rect x="185" y="120" width="40" height="34" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="240" y="146" font-size="24">已经遍历过的位置</text>
+
+  <g stroke-width="1.5" font-size="24" text-anchor="middle">
+    <g fill="#b1ddf0" stroke="#6c8ebf">
+      <rect x="169" y="184" width="37" height="34"/>
+      <rect x="206.5" y="184" width="37" height="34"/>
+      <rect x="244" y="184" width="37" height="34"/>
+      <rect x="281.5" y="184" width="37" height="34"/>
+      <rect x="319" y="184" width="37" height="34"/>
+      <rect x="356.5" y="184" width="37" height="34"/>
+      <rect x="394" y="184" width="37" height="34"/>
+      <rect x="431.5" y="184" width="37" height="34"/>
+      <rect x="469" y="184" width="37" height="34"/>
+    </g>
+    <rect x="506.5" y="184" width="37" height="34" fill="#fad9d5" stroke="#b85450"/>
+    <rect x="544" y="184" width="37" height="34" fill="#ffffff" stroke="#444"/>
+    <g fill="#1a1a1a">
+      <text x="187.5" y="208">A</text>
+      <text x="225" y="208">B</text>
+      <text x="262.5" y="208">C</text>
+      <text x="300" y="208">D</text>
+      <text x="337.5" y="208">-</text>
+      <text x="375" y="208">*</text>
+      <text x="412.5" y="208">+</text>
+      <text x="450" y="208">E</text>
+      <text x="487.5" y="208">F</text>
+      <text x="525" y="208">/</text>
+      <text x="562.5" y="208">-</text>
+    </g>
+
+    <g fill="#b1ddf0" stroke="#6c8ebf">
+      <rect x="209" y="285" width="35" height="34"/>
+      <rect x="284" y="285" width="35" height="34"/>
+      <rect x="359" y="285" width="35" height="34"/>
+    </g>
+    <rect x="246.5" y="285" width="35" height="34" fill="#fad9d5" stroke="#b85450"/>
+    <rect x="321.5" y="285" width="35" height="34" fill="#ffffff" stroke="#444"/>
+    <g fill="#1a1a1a">
+      <text x="226.5" y="309">E</text>
+      <text x="264" y="309">/</text>
+      <text x="301.5" y="309">F</text>
+      <text x="339" y="309">=</text>
+      <text x="376.5" y="309">N</text>
+    </g>
+  </g>
+</svg>

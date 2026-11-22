@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1073 501" role="img" aria-label="ArrayDeque 的 head 与 tail 位置，以及 resize(16) 之后元素被搬到数组前端" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-arraydeque29" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <g stroke-width="1.5">
+    <rect x="249" y="13" width="42" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="249" y="52" width="42" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="16" fill="#111">
+    <text x="320" y="35">表示存在数据</text>
+    <text x="320" y="74">表示不存在数据</text>
+  </g>
+
+  <!-- resize 之前 -->
+  <g stroke-width="1.5">
+    <rect x="252" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="307" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="362" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="417" y="102" width="55" height="28" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="472" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="527" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="582" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="637" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="692" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="747" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="802" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="857" y="102" width="55" height="28" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+  <g font-size="15" fill="#111" text-anchor="middle">
+    <text x="279" y="122">8</text>
+    <text x="499" y="122">0</text>
+    <text x="554" y="122">1</text>
+    <text x="609" y="122">2</text>
+    <text x="664" y="122">3</text>
+    <text x="719" y="122">4</text>
+    <text x="774" y="122">5</text>
+    <text x="829" y="122">6</text>
+    <text x="884" y="122">7</text>
+  </g>
+
+  <!-- tail / head 圆 -->
+  <g stroke-width="1.5">
+    <circle cx="266" cy="242" r="33" fill="#d5e8d4" stroke="#82b366"/>
+    <circle cx="416" cy="242" r="33" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="17" fill="#111" text-anchor="middle">
+    <text x="266" y="248">tail</text>
+    <text x="416" y="248">head</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M252 218 C 300 190, 320 170, 331 134" marker-end="url(#arrow-arraydeque29)"/>
+    <path d="M404 213 C 440 190, 455 170, 468 134" marker-end="url(#arrow-arraydeque29)"/>
+  </g>
+
+  <!-- resize 箭头 -->
+  <path d="M525 180 h22 v128 h-22 z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <path d="M516 300 h40 l-20 24 z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="573" y="233" font-size="17" fill="#111">resize(16)</text>
+
+  <!-- resize 之后 -->
+  <g stroke-width="1.5">
+    <rect x="134" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="189" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="244" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="299" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="354" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="409" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="464" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="519" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="574" y="339" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="629" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="684" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="739" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="794" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="849" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="904" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="959" y="339" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="15" fill="#111" text-anchor="middle">
+    <text x="161" y="358">0</text>
+    <text x="216" y="358">1</text>
+    <text x="271" y="358">2</text>
+    <text x="326" y="358">3</text>
+    <text x="381" y="358">4</text>
+    <text x="436" y="358">5</text>
+    <text x="491" y="358">6</text>
+    <text x="546" y="358">7</text>
+    <text x="601" y="358">8</text>
+  </g>
+
+  <g stroke-width="1.5">
+    <circle cx="114" cy="444" r="33" fill="#d5e8d4" stroke="#82b366"/>
+    <circle cx="414" cy="454" r="33" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="17" fill="#111" text-anchor="middle">
+    <text x="114" y="450">head</text>
+    <text x="414" y="460">tail</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M131 412 C 160 396, 172 386, 184 370" marker-end="url(#arrow-arraydeque29)"/>
+    <path d="M440 432 C 560 404, 620 390, 651 370" marker-end="url(#arrow-arraydeque29)"/>
+  </g>
+</svg>

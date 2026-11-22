@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1902 666" role="img" aria-label="Java 内存模型：每个 Java 线程有自己的工作内存，经 JMM 控制交互与主内存双向同步" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dae8fc">
+    <rect x="51" y="46" width="218" height="110" rx="14"/>
+    <rect x="51" y="196" width="218" height="105" rx="14"/>
+    <rect x="51" y="342" width="218" height="105" rx="14"/>
+    <rect x="51" y="487" width="218" height="110" rx="14"/>
+  </g>
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="454" y="49" width="212" height="104" rx="14"/>
+    <rect x="454" y="197" width="212" height="104" rx="14"/>
+    <rect x="454" y="342" width="212" height="105" rx="14"/>
+    <rect x="454" y="490" width="212" height="104" rx="14"/>
+  </g>
+  <rect x="899" y="46" width="218" height="571" rx="26" fill="#dfd5e6" stroke="#9673a6" stroke-width="1.5"/>
+  <circle cx="1593" cy="331" r="273" fill="#d9e7d6" stroke="#82b366" stroke-width="1.5"/>
+
+  <g font-size="32" fill="#111" text-anchor="middle">
+    <text x="160" y="113">Java线程</text>
+    <text x="160" y="260">Java线程</text>
+    <text x="160" y="406">Java线程</text>
+    <text x="160" y="554">Java线程</text>
+    <text x="560" y="113">工作内存</text>
+    <text x="560" y="260">工作内存</text>
+    <text x="560" y="406">工作内存</text>
+    <text x="560" y="554">工作内存</text>
+    <text x="1008" y="343">JMM控制交互</text>
+    <text x="1593" y="343">主内存</text>
+  </g>
+
+  <g fill="#fdf2d0" stroke="#d1b765" stroke-width="1.5">
+    <path d="M289 103 L315 79 L315 94 L401 94 L401 79 L427 103 L401 127 L401 112 L315 112 L315 127 Z"/>
+    <path d="M703 103 L729 79 L729 94 L815 94 L815 79 L841 103 L815 127 L815 112 L729 112 L729 127 Z"/>
+    <path d="M292 250 L318 226 L318 241 L400 241 L400 226 L426 250 L400 274 L400 259 L318 259 L318 274 Z"/>
+    <path d="M706 250 L732 226 L732 241 L814 241 L814 226 L840 250 L814 274 L814 259 L732 259 L732 274 Z"/>
+    <path d="M1156 330 L1182 306 L1182 321 L1264 321 L1264 306 L1290 330 L1264 354 L1264 339 L1182 339 L1182 354 Z"/>
+    <path d="M292 395 L318 371 L318 386 L401 386 L401 371 L427 395 L401 419 L401 404 L318 404 L318 419 Z"/>
+    <path d="M706 395 L732 371 L732 386 L815 386 L815 371 L841 395 L815 419 L815 404 L732 404 L732 419 Z"/>
+    <path d="M289 544 L315 520 L315 535 L401 535 L401 520 L427 544 L401 568 L401 553 L315 553 L315 568 Z"/>
+    <path d="M703 544 L729 520 L729 535 L815 535 L815 520 L841 544 L815 568 L815 553 L729 553 L729 568 Z"/>
+  </g>
+</svg>

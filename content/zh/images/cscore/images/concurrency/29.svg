@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 1050" role="img"
+     aria-label="两个 CPU 核心各自的 Store Buffer、Cache、Invalid Queue 结构，最后都指向共享内存"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency29" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M337 183 V248" marker-end="url(#arrow-concurrency29)"/>
+
+    <path d="M137 443 V190" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M260 250 H141" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M137 308 H252" marker-end="url(#arrow-concurrency29)"/>
+
+    <path d="M337 381 V435" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M261 539 V598" marker-end="url(#arrow-concurrency29)"/>
+
+    <path d="M261 723 V800 H523"/>
+    <path d="M819 723 V800 H523"/>
+    <path d="M523 800 V878" marker-end="url(#arrow-concurrency29)"/>
+
+    <path d="M895 183 V248" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M695 443 V190" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M818 250 H699" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M695 308 H810" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M895 381 V435" marker-end="url(#arrow-concurrency29)"/>
+    <path d="M819 539 V598" marker-end="url(#arrow-concurrency29)"/>
+  </g>
+
+  <!-- 左侧 CPU 核心 -->
+  <rect x="104" y="40" width="310" height="143" fill="#f4d8b1" stroke="#a96925" stroke-width="1.5"/>
+  <text x="259" y="124" font-size="38" text-anchor="middle">CPU 0</text>
+
+  <rect x="260" y="256" width="154" height="126" fill="#bdc8d2" stroke="#2b435b" stroke-width="1.5"/>
+  <text x="337" y="315" font-size="38" text-anchor="middle">Store</text>
+  <text x="337" y="351" font-size="38" text-anchor="middle">Buffer</text>
+
+  <rect x="104" y="443" width="314" height="96" fill="#d3ea96" stroke="#333438" stroke-width="1.5"/>
+  <text x="261" y="503" font-size="38" text-anchor="middle">Cache</text>
+
+  <rect x="142" y="606" width="238" height="118" fill="#f5dad6" stroke="#a14838" stroke-width="1.5"/>
+  <text x="261" y="677" font-size="36" text-anchor="middle">Invalid Queue</text>
+
+  <!-- 右侧 CPU 核心 -->
+  <rect x="662" y="40" width="310" height="143" fill="#f4d8b1" stroke="#a96925" stroke-width="1.5"/>
+  <text x="817" y="124" font-size="38" text-anchor="middle">CPU 0</text>
+
+  <rect x="818" y="256" width="154" height="126" fill="#bdc8d2" stroke="#2b435b" stroke-width="1.5"/>
+  <text x="895" y="315" font-size="38" text-anchor="middle">Store</text>
+  <text x="895" y="351" font-size="38" text-anchor="middle">Buffer</text>
+
+  <rect x="662" y="443" width="314" height="96" fill="#d3ea96" stroke="#333438" stroke-width="1.5"/>
+  <text x="819" y="503" font-size="38" text-anchor="middle">Cache</text>
+
+  <rect x="700" y="606" width="238" height="118" fill="#f5dad6" stroke="#a14838" stroke-width="1.5"/>
+  <text x="819" y="677" font-size="36" text-anchor="middle">Invalid Queue</text>
+
+  <!-- 内存 -->
+  <rect x="404" y="886" width="238" height="118" fill="#badcee" stroke="#34719a" stroke-width="1.5"/>
+  <text x="523" y="960" font-size="38" text-anchor="middle">内存</text>
+</svg>

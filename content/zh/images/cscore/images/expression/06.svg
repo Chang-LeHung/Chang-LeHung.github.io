@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 867 393" role="img" aria-label="后缀表达式计算过程：A+ 与 BCD-* 合成 ABCD-*+，右侧 -E/F 中 E、/、F 正在计算" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="867" height="393">
+  <rect width="867" height="393" fill="#fff"/>
+
+  <!-- 图例 -->
+  <rect x="327" y="23" width="40" height="38" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1"/>
+  <text x="380" y="50" font-size="21" fill="#111">完成计算的部分</text>
+  <rect x="327" y="79" width="40" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1"/>
+  <text x="380" y="106" font-size="21" fill="#111">正在计算的部分</text>
+
+  <!-- 第一行：A + / BCD-* / - E / F -->
+  <g stroke="#000" stroke-width="1">
+    <rect x="328" y="136" width="38" height="38" fill="#dae8fc"/>
+    <rect x="366" y="136" width="38" height="38" fill="#dae8fc"/>
+    <rect x="477" y="136" width="129" height="38" fill="#dae8fc"/>
+    <rect x="664" y="136" width="37" height="38" fill="#fff"/>
+    <rect x="703" y="136" width="37" height="38" fill="#fff"/>
+    <rect x="742" y="136" width="36" height="38" fill="#fff"/>
+    <rect x="780" y="136" width="36" height="38" fill="#fff"/>
+  </g>
+  <g font-size="21" fill="#111" text-anchor="middle">
+    <text x="347" y="162">A</text>
+    <text x="385" y="162">+</text>
+    <text x="541" y="162">BCD-*</text>
+    <text x="682" y="162">-</text>
+    <text x="721" y="162">E</text>
+    <text x="760" y="162">/</text>
+    <text x="798" y="162">F</text>
+  </g>
+
+  <!-- 虚线漏斗 -->
+  <path d="M487 185 V245 L458 265 H552 L521 245 V185 Z" fill="none" stroke="#444" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- 第二行：ABCD-*+ / - E / F（E、/、F 正在计算） -->
+  <g stroke="#000" stroke-width="1">
+    <rect x="394" y="297" width="210" height="38" fill="#dae8fc"/>
+    <rect x="664" y="297" width="37" height="38" fill="#fff"/>
+    <rect x="703" y="297" width="37" height="38" fill="#f8cecc"/>
+    <rect x="742" y="297" width="36" height="38" fill="#f8cecc"/>
+    <rect x="780" y="297" width="36" height="38" fill="#f8cecc"/>
+  </g>
+  <g font-size="21" fill="#111" text-anchor="middle">
+    <text x="499" y="323">ABCD-*+</text>
+    <text x="682" y="323">-</text>
+    <text x="721" y="323">E</text>
+    <text x="760" y="323">/</text>
+    <text x="798" y="323">F</text>
+  </g>
+
+  <!-- 说明 -->
+  <text x="42" y="327" font-size="21" fill="#111">目前得到的后缀表达式</text>
+</svg>

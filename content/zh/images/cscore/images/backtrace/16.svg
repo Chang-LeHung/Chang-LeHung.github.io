@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1996 740" role="img" aria-label="对 [1, 1, 2] 逐个元素选择或不选择的决策树，绿色方块表示重复的子树" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1996" height="740">
+  <defs>
+    <marker id="arrow-backtrace16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <rect width="1996" height="740" fill="#d9d2d8"/>
+
+  <!-- 图例 -->
+  <rect x="44" y="54" width="72" height="62" rx="8" fill="#72a737" stroke="#669b31" stroke-width="2"/>
+  <text x="132" y="97" font-size="28" fill="#1d3541">表示重复的子树</text>
+
+  <!-- 左侧层次标注 -->
+  <g font-size="28" fill="#1d3541">
+    <text x="30" y="173">是否选择1（下标为0）</text>
+    <text x="30" y="310">是否选择1（下标为1）</text>
+    <text x="30" y="484">是否选择2（下标为2）</text>
+  </g>
+
+  <!-- 待处理的序列 -->
+  <rect x="937" y="66" width="162" height="34" fill="#fcfcfc"/>
+  <text x="1018" y="94" font-size="30" text-anchor="middle" fill="#1d3541">[ 1, 1, 2 ]</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2">
+    <path d="M1044 197 V243 H661 V283" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1044 243 H1525 V285" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M661 345 V385 H405 V438" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M661 385 H928 V438" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1525 347 V385 H1275 V438" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1525 385 H1798 V438" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M405 500 V548 H256 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M405 548 H571 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M928 500 V548 H802 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M928 548 H1050 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1275 500 V548 H1161 V602" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1275 548 H1409 V602" marker-end="url(#arrow-backtrace16)"/>
+
+    <path d="M1798 500 V548 H1674 V593" marker-end="url(#arrow-backtrace16)"/>
+    <path d="M1798 548 H1921 V593" marker-end="url(#arrow-backtrace16)"/>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="28" fill="#1d3541" text-anchor="middle">
+    <text x="905" y="228">选择</text>
+    <text x="1142" y="228">不选择</text>
+    <text x="540" y="376">选择</text>
+    <text x="782" y="376">不选择</text>
+    <text x="1395" y="376">选择</text>
+    <text x="1640" y="376">不选择</text>
+    <text x="325" y="536">选择</text>
+    <text x="480" y="536">不选择</text>
+    <text x="865" y="536">选择</text>
+    <text x="985" y="536">不选择</text>
+    <text x="1215" y="536">选择</text>
+    <text x="1330" y="536">不选择</text>
+    <text x="1740" y="536">选择</text>
+    <text x="1860" y="536">不选择</text>
+  </g>
+
+  <!-- 节点 -->
+  <g stroke-width="2">
+    <rect x="1008" y="136" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="625" y="283" width="73" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="1489" y="285" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="369" y="438" width="73" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="892" y="438" width="73" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1239" y="438" width="72" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1762" y="438" width="72" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="210" y="602" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="525" y="602" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="756" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1003" y="602" width="94" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1115" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1363" y="602" width="93" height="62" rx="8" fill="#72a737" stroke="#5c8a2c"/>
+    <rect x="1627" y="593" width="94" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+    <rect x="1875" y="593" width="93" height="62" rx="8" fill="#f6e6ca" stroke="#2f8f8f"/>
+  </g>
+
+  <g font-size="28" text-anchor="middle" fill="#1d3541">
+    <text x="1044" y="177">[]</text>
+    <text x="661" y="324">[1]</text>
+    <text x="1525" y="326">[]</text>
+    <text x="405" y="479" font-size="26">[1,1]</text>
+    <text x="928" y="479">[1]</text>
+    <text x="1275" y="479">[1]</text>
+    <text x="1798" y="479">[]</text>
+    <text x="256" y="643" font-size="24">[1,1,2]</text>
+    <text x="571" y="643" font-size="26">[1,1]</text>
+    <text x="802" y="643" font-size="26">[1,2]</text>
+    <text x="1050" y="643">[1]</text>
+    <text x="1161" y="643" font-size="26">[1,2]</text>
+    <text x="1409" y="643">[1]</text>
+    <text x="1674" y="634">[2]</text>
+    <text x="1921" y="634">[]</text>
+  </g>
+</svg>

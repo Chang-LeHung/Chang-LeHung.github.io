@@ -67,7 +67,7 @@
       <p>在本篇文章当中主要给大家介绍 cpython 虚拟机对于字节码的设计以及在调试过程当中一个比较重要的字段 co_lnotab 的设计原理！</p>
 <h2 id="python-字节码设计">python 字节码设计</h2>
 <p>一条 python 字节码主要有两部分组成，一部分是操作码，一部分是这个操作码的参数，在 cpython 当中只有部分字节码有参数，如果对应的字节码没有参数，那么 oparg 的值就等于 0 ，在 cpython 当中 opcode &lt; 90 的指令是没有参数的。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 114" role="img" aria-label="字节码指令的两个字段：opcode 在前，oparg 在后" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 114" role="img" aria-label="字节码指令的两个字段：opcode 在前，oparg 在后" style="display:block; margin:1.2em auto; max-width:488px" class="inline-svg">
   <rect x="60" y="25" width="183" height="58" fill="#f1d0cd" stroke="#ac5a54" stroke-width="1.5"/>
   <rect x="245" y="25" width="183" height="58" fill="#d9e7d6" stroke="#8cb26e" stroke-width="1.5"/>
 
@@ -96,7 +96,7 @@ bytecode:<span class="tok-w">  </span><span class="tok-o">[</span><span class="t
 <span class="tok-w">              </span><span class="tok-m">4</span><span class="tok-w"> </span>BINARY_ADD
 <span class="tok-w">              </span><span class="tok-m">6</span><span class="tok-w"> </span>RETURN_VALUE
 </code></pre></div><p>首先 需要了解的是 add.__code__.co_code 是函数 add 的字节码，是一个字节序列，<code>list(bytearray(add.__code__.co_code))</code> 是将和这个序列一个字节一个字节进行分开，并且将其变成 10 进制形式。根据前面我们谈到的每一条指令——字节码占用 2 个字节，因此上面的字节码有四条指令：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124 350" role="img" aria-label="字节码的字节序列：成对的字节分别对应 LOAD_FAST、BINARY_ADD、RETURN_VALUE 两条指令及各自的操作数" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124 350" role="img" aria-label="字节码的字节序列：成对的字节分别对应 LOAD_FAST、BINARY_ADD、RETURN_VALUE 两条指令及各自的操作数" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-46-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

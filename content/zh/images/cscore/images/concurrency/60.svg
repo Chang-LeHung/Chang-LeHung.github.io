@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1104 467" role="img"
+     aria-label="线程池结构：阻塞队列里排着五个任务，三个线程分别从队列中取任务，非线程池中的线程（比如主线程）把任务放进队列"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency60" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 线程池区域 -->
+  <rect x="223" y="43" width="846" height="390" fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5"/>
+
+  <!-- 阻塞队列 -->
+  <rect x="282" y="197" width="494" height="93" fill="#d1e3cf" stroke="#7da762" stroke-width="1.5"/>
+  <text x="484" y="183" font-size="17" text-anchor="middle">阻塞队列</text>
+
+  <!-- 队列里的任务 -->
+  <g fill="#f8b573" stroke="#b1671b" stroke-width="1.5">
+    <rect x="314" y="226" width="66" height="36"/>
+    <rect x="406" y="226" width="66" height="36"/>
+    <rect x="502" y="226" width="66" height="36"/>
+    <rect x="598" y="226" width="66" height="36"/>
+    <rect x="693" y="226" width="66" height="36"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="347" y="252">任务</text>
+    <text x="439" y="252">任务</text>
+    <text x="535" y="252">任务</text>
+    <text x="631" y="252">任务</text>
+    <text x="726" y="252">任务</text>
+  </g>
+
+  <!-- 线程 -->
+  <g fill="#c9c8dc" stroke="#4b4970" stroke-width="1.5">
+    <rect x="904" y="77" width="109" height="52"/>
+    <rect x="904" y="183" width="109" height="52"/>
+    <rect x="908" y="301" width="108" height="52"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="958" y="111">线程1</text>
+    <text x="958" y="217">线程2</text>
+    <text x="962" y="335">线程3</text>
+  </g>
+
+  <!-- 非线程池中的线程 -->
+  <text x="86" y="84" font-size="17" text-anchor="middle">非线程池中的线程</text>
+  <text x="86" y="107" font-size="17" text-anchor="middle">比如主线程</text>
+  <rect x="46" y="115" width="66" height="35" fill="#f8b573" stroke="#b1671b" stroke-width="1.5"/>
+  <text x="79" y="141" font-size="17" text-anchor="middle">任务</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M112 133 C180 133 200 180 214 210 C226 232 248 240 276 240" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M904 102 C820 62 668 88 635 218" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M904 209 C858 209 820 236 782 240" marker-end="url(#arrow-concurrency60)"/>
+    <path d="M908 326 C800 332 646 326 540 268" marker-end="url(#arrow-concurrency60)"/>
+  </g>
+</svg>

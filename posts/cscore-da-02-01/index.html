@@ -143,7 +143,7 @@
 <h2 id="01背包数据依赖问题分析">01背包数据依赖问题分析</h2>
 <p>在上文当中我们已经分析出来了我们的动态转移方程：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>大</mi><mi>于</mi><mi>等</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>小</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><p>根据上面两个公式分析，我们知道要想解出<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - v[i]]</code>的值和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系如下图所示：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp21" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
@@ -277,7 +277,7 @@
 <span class="tok-w">	</span><span class="tok-n">cout</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">backpack</span><span class="tok-p">();</span>
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
-</code></pre></div><figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" class="inline-svg">
+</code></pre></div><figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp22" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
@@ -441,7 +441,7 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - v[i]] + w[i], dp[i - 1][j])</code>我们知道，第<code>i</code>行的第<code>j</code>个数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破坏动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <rect x="0" y="0" width="914" height="358" fill="#ffffff"/>
 
   <text x="434.5" y="53" font-size="21.5" fill="#000000" text-anchor="middle">一维数组优化</text>
@@ -483,7 +483,7 @@
 </svg></figure><ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" style="display:block; margin:1.2em auto; max-width:636px" class="inline-svg">
   <rect x="0" y="0" width="636" height="239" fill="#ffffff"/>
 
   <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
@@ -505,7 +505,7 @@
   <rect x="54.5" y="175.5" width="65" height="26.5" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
   <text x="146" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
 </svg></figure><p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" style="display:block; margin:1.2em auto; max-width:661px" class="inline-svg">
   <rect x="0" y="0" width="661" height="257" fill="#ffffff"/>
 
   <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">

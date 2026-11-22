@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 381" role="img"
+     aria-label="后缀表达式的计算过程：顶部是已完成的部分 ABCD-*+ 与正在计算的部分 -E/F，箭头向下得到目前的后缀表达式 ABCD-*+ 与 EF/"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 图例 -->
+  <rect x="316" y="22" width="36" height="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="316" y="77" width="36" height="35" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="369" y="49" font-size="22">完成计算的部分</text>
+  <text x="369" y="104" font-size="22">正在计算的部分</text>
+
+  <!-- 上排：已完成的 ABCD-*+ 与正在计算的 -E/F -->
+  <rect x="379" y="126" width="209" height="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="483" y="151" text-anchor="middle" font-size="24">ABCD-*+</text>
+
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="650" y="125" width="38" height="36" fill="#ffffff"/>
+    <rect x="688" y="125" width="37" height="36" fill="#f8cecc"/>
+    <rect x="725" y="125" width="37" height="36" fill="#f8cecc"/>
+    <rect x="762" y="125" width="38" height="36" fill="#f8cecc"/>
+  </g>
+  <g font-size="23" text-anchor="middle" fill="#1a1a1a">
+    <text x="669" y="151">-</text>
+    <text x="706" y="151">E</text>
+    <text x="743" y="151">/</text>
+    <text x="781" y="151">F</text>
+  </g>
+
+  <!-- 空心虚线箭头 -->
+  <path d="M735 175 L758 175 L758 245 L782 245 L748 263 L711 245 L735 245 Z"
+        fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+  <!-- 下排 -->
+  <text x="30" y="322" font-size="22">目前得到的后缀表达式</text>
+
+  <rect x="381" y="296" width="210" height="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="486" y="321" text-anchor="middle" font-size="24">ABCD-*+</text>
+
+  <rect x="652" y="294" width="39" height="37" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="671" y="321" text-anchor="middle" font-size="23">-</text>
+  <rect x="725" y="294" width="78" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="764" y="321" text-anchor="middle" font-size="24">EF/</text>
+</svg>

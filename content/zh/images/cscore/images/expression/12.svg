@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 714 402" role="img"
+     aria-label="用栈把中缀表达式 A+B*(C-D)-E/F 转成后缀表达式：栈里只有一个 +，已遍历的部分与正在遍历的位置用不同底色标出"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <text x="55" y="35" font-size="24">栈顶</text>
+  <text x="52" y="385" font-size="24">栈底</text>
+
+  <!-- 栈 -->
+  <rect x="78" y="65" width="49" height="247" fill="#fad7ac" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="83" y="265" width="39" height="35" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="102" y="291" text-anchor="middle" font-size="24">+</text>
+
+  <!-- 图例 -->
+  <rect x="190" y="67" width="36" height="35" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="245" y="93" font-size="24">表示正在遍历的位置</text>
+  <rect x="190" y="121" width="36" height="35" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="245" y="147" font-size="24">已经遍历过的位置</text>
+
+  <!-- 表达式盒子 -->
+  <g stroke-width="1.5" font-size="24" text-anchor="middle">
+    <g fill="#b1ddf0" stroke="#6c8ebf">
+      <rect x="190" y="184" width="36" height="36"/>
+      <rect x="228" y="184" width="35" height="36"/>
+    </g>
+    <rect x="265" y="184" width="36" height="36" fill="#fad9d5" stroke="#b85450"/>
+    <g fill="#ffffff" stroke="#444">
+      <rect x="303" y="184" width="35" height="36"/>
+      <rect x="340" y="184" width="35" height="36"/>
+      <rect x="378" y="184" width="35" height="36"/>
+      <rect x="415" y="184" width="35" height="36"/>
+      <rect x="453" y="184" width="35" height="36"/>
+      <rect x="490" y="184" width="35" height="36"/>
+      <rect x="528" y="184" width="35" height="36"/>
+      <rect x="565" y="184" width="35" height="36"/>
+      <rect x="603" y="184" width="35" height="36"/>
+      <rect x="640" y="184" width="36" height="36"/>
+    </g>
+    <g fill="#1a1a1a">
+      <text x="208" y="209">A</text>
+      <text x="245" y="209">+</text>
+      <text x="283" y="209">B</text>
+      <text x="320" y="209">*</text>
+      <text x="357" y="209">(</text>
+      <text x="395" y="209">C</text>
+      <text x="432" y="209">-</text>
+      <text x="470" y="209">D</text>
+      <text x="507" y="209">)</text>
+      <text x="545" y="209">-</text>
+      <text x="582" y="209">E</text>
+      <text x="620" y="209">/</text>
+      <text x="658" y="209">F</text>
+    </g>
+  </g>
+</svg>

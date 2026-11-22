@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 798 556" role="img" aria-label="四层结构图：自上而下依次是 Native API、JVM、系统调用、操作系统" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="798" height="556">
+  <rect width="798" height="556" fill="#fff"/>
+
+  <g stroke-width="2">
+    <rect x="117" y="75" width="527" height="93" fill="#badcee" stroke="#34719a"/>
+    <rect x="117" y="169" width="527" height="92" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="117" y="263" width="527" height="93" fill="#fbe7cf" stroke="#d6a34a"/>
+    <rect x="117" y="357" width="527" height="127" fill="#f1d0cd" stroke="#ac5a54"/>
+  </g>
+
+  <g font-size="42" fill="#111" text-anchor="middle">
+    <text x="380" y="136">Native API</text>
+    <text x="380" y="230">JVM</text>
+    <text x="380" y="324">系统调用</text>
+    <text x="380" y="435">操作系统</text>
+  </g>
+</svg>

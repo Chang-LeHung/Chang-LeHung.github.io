@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 338 349" role="img"
+     aria-label="变量 t 保存的是指向保存线程 ID 的地址：箭头从 t 指向下面的线程 ID 方块"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="169" y="38" text-anchor="middle" font-size="20">t 保存的是指向保存线程ID的地址</text>
+
+  <rect x="87" y="67" width="105" height="34" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5" rx="6"/>
+  <text x="139" y="91" text-anchor="middle" font-size="20">t</text>
+
+  <path d="M192 84 H212 V310 H196" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-04)"/>
+
+  <rect x="87" y="293" width="105" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5" rx="6"/>
+  <text x="139" y="317" text-anchor="middle" font-size="20">线程 ID</text>
+</svg>

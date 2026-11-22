@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1252 302" role="img"
+     aria-label="Mark Word 的位域划分表：锁状态占 2bit，1bit 是否为偏向锁，4bit 分代年龄，23bit 标记对象的 HashCode，以及 2bit 的锁状态位"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 表头底色 -->
+  <g fill="#dde8fa">
+    <rect x="71" y="45" width="151" height="115"/>
+    <rect x="222" y="45" width="437" height="115"/>
+    <rect x="659" y="45" width="150" height="115"/>
+    <rect x="809" y="45" width="218" height="115"/>
+    <rect x="1027" y="45" width="144" height="115"/>
+  </g>
+  <!-- 数据行底色 -->
+  <rect x="71" y="160" width="1100" height="75" fill="#d9e7d6"/>
+
+  <!-- 表头网格 -->
+  <g fill="none" stroke="#6c8ebf" stroke-width="1.5">
+    <path d="M71 45 H1171 M71 101 H1171 M71 160 H1171"/>
+    <path d="M71 45 V160 M222 45 V160 M526 101 V160 M659 45 V160 M809 45 V160 M1027 45 V160 M1171 45 V160"/>
+  </g>
+  <!-- 数据行网格 -->
+  <g fill="none" stroke="#82b366" stroke-width="1.5">
+    <path d="M71 160 H1171 M71 160 V235 M222 160 V235 M659 160 V235 M809 160 V235 M1027 160 V235 M1171 160 V235 M71 235 H1171"/>
+  </g>
+
+  <g font-size="32" text-anchor="middle" fill="#000">
+    <text x="146" y="85">锁状态</text>
+    <text x="440" y="85">25bit</text>
+    <text x="734" y="85">4bit</text>
+    <text x="918" y="85">1bit</text>
+    <text x="1099" y="85">2bit</text>
+
+    <text x="374" y="141">23bit</text>
+    <text x="592" y="141">2bit</text>
+    <text x="918" y="141" font-size="30">是否为偏向锁</text>
+    <text x="1099" y="141">锁状态</text>
+
+    <text x="146" y="213">无状态</text>
+    <text x="440" y="213">标记对象的HashCode</text>
+    <text x="734" y="213" font-size="30">分代年龄</text>
+    <text x="918" y="213">0</text>
+    <text x="1099" y="213">01</text>
+  </g>
+</svg>

@@ -65,7 +65,7 @@
 
     <div class="prose">
       <p>在前面的文章当中我们详细的对于 pyc 文件的结构进行了分析，pyc 文件主要有下面的四个部分组成：魔术、 Bite Filed 、修改日期和 Code Object 组成。在前面的文章当中我们已经对前面三个部分进行了字节角度的分析，直接从 pyc 文件当中读取对应的数据并且打印出来了。而在本篇文章当中我们将主要对 Code Object 进行分析，并且详细它是如何被反序列化的，通过本篇文章我们将能够把握整个 pyc 文件结构。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652 342" role="img" aria-label="pyc 文件的布局：魔数、Bit Field、最后一次修改日期、文件大小四部分共组成 Header，其后是 CodeObject" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652 342" role="img" aria-label="pyc 文件的布局：魔数、Bit Field、最后一次修改日期、文件大小四部分共组成 Header，其后是 CodeObject" style="display:block; margin:1.2em auto; max-width:652px" class="inline-svg">
   <!-- 五个区段 -->
   <g stroke-width="1.5">
     <rect x="145" y="23" width="195" height="58" fill="#d5e5fa" stroke="#6c8ebf"/>
@@ -180,7 +180,7 @@
 <h2 id="python-对象反序列化">Python 对象反序列化</h2>
 <p>在本节当中将主要分析 python 对象序列化之后的二进制文件格式，我们到底应该如何解析这个文件，解析文件的规则是什么。在 cpython 当中对于每个数据类型的解析都是不一样的，marshal 支持 python 当中所有的基本数据类型，额外还支持 CodeObject ，在上面的验证代码当中我们已经使用 marshal 去做了一些序列化和反序列化操作。</p>
 <p>在对 python 对象进行序列化的时候，每一个 python 对象主要是由两个部分组成的：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 632 242" role="img" aria-label=".pyc 文件头的布局：type 字段在前，其后是 PyObject 的序列化内容" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 632 242" role="img" aria-label=".pyc 文件头的布局：type 字段在前，其后是 PyObject 的序列化内容" style="display:block; margin:1.2em auto; max-width:632px" class="inline-svg">
   <rect x="105" y="68" width="89" height="88" fill="#fbe7cf" stroke="#ce9d35" stroke-width="1.5"/>
   <rect x="194" y="68" width="355" height="88" fill="#d9e7d6" stroke="#8cb26e" stroke-width="1.5"/>
 

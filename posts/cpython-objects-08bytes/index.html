@@ -88,7 +88,7 @@
 <span class="tok-w">    </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_typeobject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ob_type</span><span class="tok-p">;</span>
 <span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-p">;</span>
 </code></pre></div><p>上面的数据结构用图示如下所示：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 560" role="img" aria-label="PyBytesObject 的结构体布局：前三个字段组成 PyVarObject，ob_hash 之后是变长的 ob_sval 数组，ob_size 指向数组末尾" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 560" role="img" aria-label="PyBytesObject 的结构体布局：前三个字段组成 PyVarObject，ob_hash 之后是变长的 ob_sval 数组，ob_size 指向数组末尾" style="display:block; margin:1.2em auto; max-width:644px" class="inline-svg">
   <defs>
     <marker id="arrow-28bytes" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -154,7 +154,7 @@
 </ul>
 <p>可能你会有疑问上面的结构体当中并没有后面的那么多字节啊，数组只有一个字节的数据啊，这是因为在 cpython 的实现当中除了申请 PyBytesObject 大的小内存空间之外，还会在这个基础之上申请连续的额外的内存空间用于保存数据，在后续的源码分析当中可以看到这一点。</p>
 <p>下面我们举几个例子来说明一下上面的布局：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 467" role="img" aria-label="bytes 对象的内存布局：左边是 b 空串，右边是三项内容的 bytes，ob_size 分别为 0 和 3，尾部各带一个 '\\0'" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 467" role="img" aria-label="bytes 对象的内存布局：左边是 b 空串，右边是三项内容的 bytes，ob_size 分别为 0 和 3，尾部各带一个 '\\0'" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <g stroke-width="1.5">
     <!-- 左列 -->
     <rect x="33" y="19" width="192" height="49" fill="#d5e5fa" stroke="#6284b4"/>

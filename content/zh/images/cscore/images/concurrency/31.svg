@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1648 1274" role="img" aria-label="Intel i5-4258U 的缓存层级：两个核心各有 Thread 0、Thread 1 和一级指令/数据缓存、共享的二级缓存，两个核心共用三级缓存，三级缓存再连接到主内存" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency31" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="11" markerHeight="11" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#595959"/>
+    </marker>
+  </defs>
+
+  <!-- 处理器外框与型号 -->
+  <rect x="35" y="16" width="1587" height="1006" fill="none" stroke="#707070"
+        stroke-width="2" stroke-dasharray="22 7 4 7"/>
+  <text x="64" y="84" font-size="40" fill="#656565">Intel(R) Core(TM) i5-4258U CPU @ 2.40GHz</text>
+
+  <!-- 两个核心 -->
+  <rect x="81" y="150" width="694" height="638" fill="none" stroke="#5d5d5d"
+        stroke-width="2" stroke-dasharray="2 6"/>
+  <rect x="882" y="150" width="693" height="638" fill="none" stroke="#5d5d5d"
+        stroke-width="2" stroke-dasharray="2 6"/>
+  <g font-size="38" fill="#000" text-anchor="middle">
+    <text x="428" y="210">Core 0</text>
+    <text x="1229" y="210">Core 1</text>
+  </g>
+
+  <!-- 线程 -->
+  <g fill="#eeb672">
+    <rect x="130" y="249" width="276" height="89"/>
+    <rect x="453" y="249" width="276" height="89"/>
+    <rect x="930" y="249" width="276" height="89"/>
+    <rect x="1252" y="249" width="276" height="89"/>
+  </g>
+  <g font-size="30" fill="#ffffff" text-anchor="middle">
+    <text x="268" y="304">Thread 0</text>
+    <text x="591" y="304">Thread 1</text>
+    <text x="1068" y="304">Thread 0</text>
+    <text x="1390" y="304">Thread 1</text>
+  </g>
+
+  <!-- 一级缓存 -->
+  <g fill="#a6c3e6">
+    <rect x="130" y="474" width="277" height="91"/>
+    <rect x="453" y="474" width="276" height="91"/>
+    <rect x="929" y="474" width="277" height="91"/>
+    <rect x="1252" y="474" width="277" height="91"/>
+  </g>
+  <g font-size="31" fill="#ffffff" text-anchor="middle">
+    <text x="268" y="515">L1 32 KB</text>
+    <text x="268" y="546">Instruction Cache</text>
+    <text x="591" y="515">L1 32KB</text>
+    <text x="591" y="546">Data Cache</text>
+    <text x="1067" y="515">L1 32 KB</text>
+    <text x="1067" y="546">Instruction Cache</text>
+    <text x="1390" y="515">L1 32KB</text>
+    <text x="1390" y="546">Data Cache</text>
+  </g>
+
+  <!-- 二级缓存 -->
+  <g fill="#7aa5d9">
+    <rect x="129" y="675" width="601" height="92"/>
+    <rect x="929" y="675" width="600" height="92"/>
+  </g>
+  <g font-size="31" fill="#ffffff" text-anchor="middle">
+    <text x="429" y="716">L2 256KB</text>
+    <text x="429" y="748">Cache</text>
+    <text x="1229" y="716">L2 256KB</text>
+    <text x="1229" y="748">Cache</text>
+  </g>
+
+  <!-- 三级缓存 -->
+  <rect x="130" y="877" width="1399" height="91" fill="#cea7bc"/>
+  <g font-size="31" fill="#ffffff" text-anchor="middle">
+    <text x="829" y="918">L3 3MB</text>
+    <text x="829" y="950">Cache</text>
+  </g>
+
+  <!-- 主存 -->
+  <rect x="36" y="1157" width="1586" height="110" fill="#b7b7b7"/>
+  <text x="829" y="1227" font-size="38" fill="#ffffff" text-anchor="middle">Main Memory</text>
+
+  <!-- 双向箭头 -->
+  <g fill="none" stroke="#595959" stroke-width="2"
+     marker-start="url(#arrow-concurrency31)" marker-end="url(#arrow-concurrency31)">
+    <path d="M 267 347 V 468"/>
+    <path d="M 590 347 V 468"/>
+    <path d="M 305 365 L 553 445"/>
+    <path d="M 553 365 L 311 445"/>
+    <path d="M 1067 347 V 468"/>
+    <path d="M 1390 347 V 468"/>
+    <path d="M 1105 365 L 1353 445"/>
+    <path d="M 1353 365 L 1111 445"/>
+    <path d="M 267 573 V 668"/>
+    <path d="M 590 573 V 668"/>
+    <path d="M 1067 573 V 668"/>
+    <path d="M 1390 573 V 668"/>
+    <path d="M 428 777 V 870"/>
+    <path d="M 1228 777 V 870"/>
+    <path d="M 828 1040 V 1140"/>
+  </g>
+</svg>

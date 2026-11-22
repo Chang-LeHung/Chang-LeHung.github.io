@@ -110,7 +110,7 @@
 <p>在 cpython 当中，当我们需要申请一个 frame object 对象的时候，首先需要申请内存空间，但是在申请内存空间的时候并不是单单申请一个 frameobject 大小的内存，而是会申请额外的内存空间，大致布局如下所示。</p>
 <figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 601 611" role="img"
      aria-label="PyFrameObject 与 f_localsplus 数组的布局：数组里依次是各作用域的局部变量、cell 变量、free 变量和求值栈"
-     class="inline-svg">
+     style="display:block; margin:1.2em auto; max-width:601px" class="inline-svg">
   <!-- 结构体：PyFrameObject 头 + f_localsplus 数组 -->
   <g stroke-width="1.5">
     <rect x="198" y="29" width="190" height="66" fill="#f8cecc" stroke="#b85450"/>
@@ -231,7 +231,7 @@
 <li>f_localsplus：局部变量和值栈的组合，是一个动态大小的数组。</li>
 </ul>
 <p>如果我们在一个函数当中调用另外一个函数，这个函数再调用其他函数就会形成函数的调用链，就会形成下图所示的链式结构。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1691 476" role="img" aria-label="四个 FrameObject 用 f_back 串成调用链：每个栈帧里 f_stacktop、f_valuestack 都指向自己的 stack 区域" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1691 476" role="img" aria-label="四个 FrameObject 用 f_back 串成调用链：每个栈帧里 f_stacktop、f_valuestack 都指向自己的 stack 区域" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-72frame" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -403,7 +403,7 @@
 <span class="tok-w">             </span><span class="tok-m">14</span><span class="tok-w"> </span>RETURN_VALUE
 </code></pre></div><p>函数 foo 的 stacksize 等于 2 。</p>
 <p>初始时 frameobject 的布局如下所示：</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1408 684" role="img" aria-label="foo() 的 FrameObject 与 f_globals、f_builtins、f_locals、f_valuestack、f_code 的指向关系，右侧是 foo 的字节码" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1408 684" role="img" aria-label="foo() 的 FrameObject 与 f_globals、f_builtins、f_locals、f_valuestack、f_code 的指向关系，右侧是 foo 的字节码" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-frame73" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
@@ -505,7 +505,7 @@
     <text x="1227" y="536">1 （b）</text>
   </g>
 </svg></figure><p>现在执行第一条指令 LOAD_CONST 此时的 f_lasti 等于 -1，执行完这条字节码之后栈帧情况如下：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1296 690" role="img" aria-label="FrameObject 的结构：f_locals、f_globals、f_builtins 分别指向三个字典，f_code 指向 foo 的字节码，f_valuestack 指向求值栈" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1296 690" role="img" aria-label="FrameObject 的结构：f_locals、f_globals、f_builtins 分别指向三个字典，f_code 指向 foo 的字节码，f_valuestack 指向求值栈" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-74-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -632,7 +632,7 @@
 <p>接下来两条指令分别将 a b 加载进入栈空间单中现在栈空间布局如下所示：</p>
 <figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1298 676" role="img"
      aria-label="frame 对象与它引用的命名空间及代码对象：f_locals、f_globals、f_builtins 分别指向局部、全局、内建命名空间，f_valuestack 指向求值栈，f_code 指向存放字节码的 code 对象"
-     class="inline-svg">
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-75-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

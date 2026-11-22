@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1128 816" role="img"
+     aria-label="volatile 读与两种屏障在指令序列中的位置：LoadLoad 与 LoadStore 屏障分别禁止其下方普通读、普通写与上方 volatile 读重排序"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-25" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <path d="M273 35 V770" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arrow-25)"/>
+  <text x="18" y="307" font-size="32">指令执行的顺序</text>
+
+  <rect x="470" y="37" width="242" height="120" fill="#f1d0cd" stroke="#b85450" stroke-width="1.5"/>
+  <text x="591" y="110" text-anchor="middle" font-size="32">Volatile读</text>
+
+  <rect x="470" y="212" width="242" height="120" rx="14" fill="#fdf2d0" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="591" y="285" text-anchor="middle" font-size="27">LoadLoad屏障</text>
+
+  <rect x="470" y="355" width="242" height="120" rx="14" fill="#fdf2d0" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="591" y="428" text-anchor="middle" font-size="27">LoadStore屏障</text>
+
+  <rect x="470" y="505" width="242" height="120" fill="#d9e7d6" stroke="#82b366" stroke-width="1.5"/>
+  <text x="591" y="578" text-anchor="middle" font-size="32">普通读</text>
+
+  <rect x="470" y="655" width="242" height="120" fill="#d9e7d6" stroke="#82b366" stroke-width="1.5"/>
+  <text x="591" y="728" text-anchor="middle" font-size="32">普通写</text>
+
+  <g font-size="26">
+    <text x="788" y="265">禁止下面的普通读和</text>
+    <text x="788" y="309">上面的volatile读重排序</text>
+    <text x="814" y="422">禁止下面的普通写和</text>
+    <text x="814" y="466">上面的volatile读重排序</text>
+  </g>
+</svg>

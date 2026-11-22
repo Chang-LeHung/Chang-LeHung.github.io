@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 831 291" role="img" aria-label="Java 内存模型：两个线程各自的线程工作内存都与主内存中的 data 双向交互" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect x="254" y="28" width="284" height="67" rx="12" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="396" y="71" font-size="26" fill="#111" text-anchor="middle">主内存 data = 0</text>
+
+  <rect x="45" y="183" width="234" height="53" rx="8" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="516" y="183" width="235" height="53" rx="8" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="162" y="216">线程工作内存 data = 0</text>
+    <text x="634" y="216">线程工作内存 data = 0</text>
+  </g>
+
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M166 188 L384 100" marker-start="url(#arrow-concurrency16)" marker-end="url(#arrow-concurrency16)"/>
+    <path d="M633 186 L411 100" marker-start="url(#arrow-concurrency16)" marker-end="url(#arrow-concurrency16)"/>
+  </g>
+</svg>

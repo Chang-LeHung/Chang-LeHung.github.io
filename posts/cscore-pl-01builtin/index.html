@@ -70,7 +70,7 @@
 <h3 id="使用内嵌函数实现">使用内嵌函数实现</h3>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 其中 x 一个整数</span>
 </code></pre></div><p>这个函数主要是用于得到函数的栈帧的，更具体的来说是得到函数的 rbp （如果是 x86_64 的机器，在 32 位系统上就是 ebp）的值，也就是栈帧的栈底的值。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arr03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="5" markerHeight="5" orient="auto-start-reverse">

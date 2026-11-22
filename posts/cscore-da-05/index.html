@@ -89,7 +89,7 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>当我们求第<code>6</code>个斐波拉契数的时候，函数<code>fibonacci</code>的调用过程如下所示：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp04" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -185,7 +185,7 @@
 </svg></figure><p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
 <p>我们容易发现我们在函数调用的过程当中存在重复，比如下图两个相同的部分表示对<code>fibonacci(4)</code>重新计算，因为他们的调用树都是一样的：</p>
 <p>这种使用递归的方式计算斐波拉契数列的时间和空间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp05" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -286,7 +286,7 @@
 </svg></figure><h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
 <p>既然是重复计算那么我们是否可用避免<code>重复计算</code>呢？在计算机一种常见的做法就是<code>空间换时间</code>，我们可以将之前计算的数据存下来，比如我们用数组<code>fib[]</code>存储我们计算得到的结果，<code>fib[i] = fibonacci(i) </code>，那么根据斐波拉契数列的公式我们可以知道：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>当我们通过数组存储中间计算的数据的时候，我们应该使用什么样的算法进行计算呢？</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-size="25" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-size="25" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="10" markerHeight="10" orient="auto-start-reverse">
@@ -321,7 +321,7 @@
   <text x="234" y="264">表示蓝色框依赖的数据</text>
 </svg></figure><p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>我们知道<code>绿色框</code>依赖它前面的两个数据，因此我们在计算<code>fib[i]</code>的时候，需要提前将前面两个它依赖的数据计算好，因此我们可以从左至右计算<code>fib</code>数组，这样的话我们在计算第<code>n</code>个<code>fib</code>数的时候前面<code>n - 1</code>个<code>fib</code>数已经计算好了。</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp11-black" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9.5" markerHeight="9.5" orient="auto-start-reverse">
@@ -468,7 +468,7 @@
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们知道计算机在进行运算的时候都是采用<code>2进制</code>进行运算，所有的正整数如果是2的整数次幂的话，数据的二进制当中只有一个为为<code>1</code>，其余位置为<code>0</code>。</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 448" role="img" aria-label="int 类型占 4 个字节共 32 bit 的二进制表示：0、1、2、4、8、16 分别写成 8 组四位二进制，每行只有一处 1" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 448" role="img" aria-label="int 类型占 4 个字节共 32 bit 的二进制表示：0、1、2、4、8、16 分别写成 8 组四位二进制，每行只有一处 1" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <text x="200" y="41.5" font-size="26" letter-spacing="-0.5">下面的二进制表示数据类型为 int 类型，占4个字节 32个bit</text>
 
   <g font-size="22">
@@ -599,7 +599,7 @@
     <text x="962.75" y="386">0000</text>
   </g>
 </svg></figure><p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 309" role="img" aria-label="1、2、4、7 的 32 位二进制表示，红框圈出最低的一位，说明只有最后一位或最后几位不同" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 309" role="img" aria-label="1、2、4、7 的 32 位二进制表示，红框圈出最低的一位，说明只有最后一位或最后几位不同" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <g font-size="22">
     <text x="27" y="73">1的二进制表示</text>
     <text x="27" y="129">2的二进制表示</text>
@@ -877,7 +877,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h2 id="总结">总结</h2>
 <p>我们现在来重新捋一下我们在上面学习斐波拉契数列的思路：</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" style="display:block; margin:1.2em auto; max-width:569px" class="inline-svg">
   <defs>
     <marker id="arrow-dp16" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

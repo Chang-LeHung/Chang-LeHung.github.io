@@ -119,7 +119,7 @@
 
 <span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">D</span><span class="tok-p">(</span><span class="tok-n">B</span><span class="tok-p">,</span> <span class="tok-n">C</span><span class="tok-p">):</span>
     <span class="tok-k">pass</span>
-</code></pre></div><figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 864 522" role="img" aria-label="菱形继承示意图：B 与 C 都继承 A，D 同时继承 B 与 C" class="inline-svg">
+</code></pre></div><figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 864 522" role="img" aria-label="菱形继承示意图：B 与 C 都继承 A，D 同时继承 B 与 C" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-78" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="11.5" markerHeight="10"
             orient="auto-start-reverse">
@@ -493,7 +493,7 @@ In<span class="tok-w"> </span>class<span class="tok-w"> </span>C
 <li>preservation of local precedence order</li>
 <li>fitting a monotonicity criterion</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525 332" role="img" aria-label="UML 类图：Class B 与 Class C 继承 Class A，Class D 同时继承 Class B 与 Class C" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525 332" role="img" aria-label="UML 类图：Class B 与 Class C 继承 Class A，Class D 同时继承 Class B 与 Class C" style="display:block; margin:1.2em auto; max-width:525px" class="inline-svg">
   <defs>
     <marker id="arrow-79" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -539,7 +539,7 @@ In<span class="tok-w"> </span>class<span class="tok-w"> </span>C
 <li>preservation of local precedence order（保留局部优先顺序），这一点表示 mro 要保证按照继承先后的顺序去查找，也就是说先继承的先查找，比如 D(B, C) 那么如果同一个方法类 B 和类 C 都有，那么就会优先使用 B 当中的方法。</li>
 <li>a consistent extended precedence graph，这一点是相对来说比较复杂的，这个特性也是一个关于优先级的特性，是之前局部优先的扩展，他的意思是如果两个类 A B 有相同的方法，如果 A 或者 A 的子类出现在 B 或者 B 的子类之前，那么 A 的优先级比 B 高。比如说对于下图当中的继承关系 editable-scrollable-pane 继承自 scrollable-pane 和 editable-pane，editable-pane继承自 editing-mixin 和 pane，scrollable-pane 继承自 scrolling-mixin 和 pane。现在有一个 editable-scrollable-pane 对象调用一个方法，如果这个方法只在 scrolling-mixin 和 editing-mixin 当中出现，那么会调用 scrolling-mixin 当中的方法，不会调用 editing-mixin 当中的方法。这是因为对于 editable-scrollable-pane 对象来说 scrollable-pane 在 editable-pane 前面，而前者是 scrolling-mixin 的子类，后者是 editing-mixin 的子类，这是符合前面我们所谈到的规则。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 623 454" role="img" aria-label="优先级图：scrollable-pane 与 editable-pane 指向 pane，editable-scrollable-pane 指向两者，另有 scrolling-mixin 与 editing-mixin；图注说明 Dylan 的线性化不遵循扩展优先级图" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 623 454" role="img" aria-label="优先级图：scrollable-pane 与 editable-pane 指向 pane，editable-scrollable-pane 指向两者，另有 scrolling-mixin 与 editing-mixin；图注说明 Dylan 的线性化不遵循扩展优先级图" style="display:block; margin:1.2em auto; max-width:623px" class="inline-svg">
   <defs>
     <marker id="arrow-81" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7.5" markerHeight="7"
             orient="auto-start-reverse">

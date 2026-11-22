@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 1120" role="img" aria-label="MESI 缓存一致性状态机：M、E、S、I 四个状态之间的本地读写迁移（实线）和总线事务迁移（红色虚线）" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="912" height="1120">
+  <defs>
+    <marker id="arrow-concurrency34" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+    <marker id="arrow-concurrency34-red" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f03e2f"/>
+    </marker>
+  </defs>
+
+  <rect width="912" height="1120" fill="#fff"/>
+
+  <!-- 四个状态 -->
+  <g fill="#fff" stroke="#6b6b6b" stroke-width="1.6">
+    <circle cx="458" cy="77" r="72"/>
+    <circle cx="458" cy="390" r="77"/>
+    <circle cx="458" cy="700" r="77"/>
+    <circle cx="458" cy="1040" r="77"/>
+  </g>
+  <g font-size="86" fill="#111" text-anchor="middle">
+    <text x="458" y="107">M</text>
+    <text x="458" y="420">E</text>
+    <text x="458" y="730">S</text>
+    <text x="458" y="1070">I</text>
+  </g>
+
+  <!-- 本地读写：自环 -->
+  <g fill="none" stroke="#111" stroke-width="4">
+    <path d="M412 150 C390 200 406 234 458 234 C510 234 522 198 504 150" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M416 468 C394 520 408 550 458 550 C508 550 520 518 500 468" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M416 778 C394 830 408 860 458 860 C508 860 520 828 500 778" marker-end="url(#arrow-concurrency34)"/>
+  </g>
+
+  <!-- 本地读写：状态之间的迁移 -->
+  <g fill="none" stroke="#111" stroke-width="4">
+    <path d="M400 330 C420 300 420 210 408 148" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M386 678 C310 650 300 230 392 124" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M386 1010 C120 970 96 250 384 108" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M404 974 C372 942 376 828 406 766" marker-end="url(#arrow-concurrency34)"/>
+    <path d="M388 1002 C340 942 330 700 392 464" marker-end="url(#arrow-concurrency34)"/>
+  </g>
+
+  <!-- 总线事务：红色虚线 -->
+  <g fill="none" stroke="#f03e2f" stroke-width="6" stroke-dasharray="16 12">
+    <path d="M506 34 C680 80 700 400 512 646" marker-end="url(#arrow-concurrency34-red)"/>
+    <path d="M524 442 C546 486 552 610 512 748" marker-end="url(#arrow-concurrency34-red)"/>
+    <path d="M520 118 C676 220 690 880 522 992" marker-end="url(#arrow-concurrency34-red)"/>
+    <path d="M524 460 C630 540 650 920 534 1036" marker-end="url(#arrow-concurrency34-red)"/>
+    <path d="M516 678 C566 742 540 940 512 1058" marker-end="url(#arrow-concurrency34-red)"/>
+  </g>
+
+  <!-- 本地读写标注 -->
+  <g font-size="24" fill="#111">
+    <text x="420" y="192" font-size="23">PrRd/-</text>
+    <text x="420" y="218" font-size="23">PrWr/-</text>
+    <text x="330" y="272">PrWr/-</text>
+    <text x="2" y="404">PrWr/</text>
+    <text x="2" y="434">BusRdX</text>
+    <text x="118" y="404">PrWr/</text>
+    <text x="118" y="434">BusRdX</text>
+    <text x="436" y="502">PrRd/-</text>
+    <text x="436" y="812">PrRd/-</text>
+    <text x="195" y="742">PrRd/-</text>
+    <text x="195" y="772">BusRd(S)</text>
+    <text x="180" y="898" font-size="23">PrRd/-</text>
+    <text x="180" y="928" font-size="23">BusRd(S)</text>
+  </g>
+
+  <!-- 总线事务标注 -->
+  <g font-size="22" fill="#111">
+    <text x="470" y="290">BusRd/Flush</text>
+    <text x="702" y="620">BusRd/-</text>
+    <text x="702" y="530">BusRdX/Flush</text>
+    <text x="702" y="760">BusRdX/Flush</text>
+    <text x="702" y="890">BusRdX/Flush</text>
+  </g>
+</svg>

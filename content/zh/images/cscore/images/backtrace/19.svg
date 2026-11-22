@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1750 1068" role="img"
+     aria-label="从 [1,1,2] 中依次选择数据的递归树：根节点分出三条选择分支，左侧分支再继续递归到 [1,1,2]"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <rect x="0" y="0" width="1750" height="1068" fill="#d9d2d8"/>
+
+  <defs>
+    <marker id="arrow-backtrace19" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2">
+    <path d="M1032 97 L416 305" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M1032 97 L943 305" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M1032 97 L1449 305" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M416 424 L228 666" marker-end="url(#arrow-backtrace19)"/>
+    <path d="M416 424 L627 666" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M943 424 L1032 666" marker-end="url(#arrow-backtrace19)"/>
+
+    <path d="M228 822 L228 914" marker-end="url(#arrow-backtrace19)"/>
+  </g>
+
+  <!-- 分支说明 -->
+  <g font-size="25" fill="#1d3541" text-anchor="middle">
+    <text x="575" y="168">选择下标为0的数据，也就是1</text>
+    <text x="935" y="238">选择下标为1的数据，也就是1</text>
+    <text x="1315" y="170">选择下标为2的数据，也就是2</text>
+
+    <text x="275" y="578">选择下标为0的数据，也就是1</text>
+    <text x="490" y="612">选择下标为1的数据，也就是2</text>
+    <text x="1000" y="465">选择下标为0的数据，也就是2</text>
+
+    <text x="225" y="808">选择下标为0的数据，也就是2</text>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#3f898c" stroke-width="2">
+    <rect x="845" y="30" width="375" height="67" rx="10"/>
+    <rect x="228" y="315" width="376" height="109" rx="10"/>
+    <rect x="755" y="315" width="376" height="109" rx="10"/>
+    <rect x="1261" y="315" width="376" height="109" rx="10"/>
+    <rect x="41" y="676" width="375" height="109" rx="10"/>
+    <rect x="440" y="676" width="375" height="109" rx="10"/>
+    <rect x="845" y="676" width="375" height="109" rx="10"/>
+    <rect x="41" y="924" width="375" height="110" rx="10"/>
+  </g>
+
+  <g font-size="27" fill="#1d3541" text-anchor="middle">
+    <text x="1032" y="73">从[1,1,2]当中选择数据</text>
+
+    <text x="416" y="360">从[1,2]当中选择数据</text>
+    <text x="416" y="396">当前选中的数据[1]</text>
+
+    <text x="943" y="360">从[2]当中选择数据</text>
+    <text x="943" y="396">当前选中的数据[1]</text>
+
+    <text x="1449" y="360">从[]当中选择数据</text>
+    <text x="1449" y="396">当前选中的数据[1]</text>
+
+    <text x="228" y="721">从[2]当中选择数据</text>
+    <text x="228" y="757">当前选中的数据[1,1]</text>
+
+    <text x="627" y="721">从[]当中选择数据</text>
+    <text x="627" y="757">当前选中的数据[1,2]</text>
+
+    <text x="1032" y="721">从[]当中选择数据</text>
+    <text x="1032" y="757">当前选中的数据[1,2]</text>
+
+    <text x="228" y="969">从[2]当中选择数据</text>
+    <text x="228" y="1005">当前选中的数据[1,1,2]</text>
+  </g>
+</svg>

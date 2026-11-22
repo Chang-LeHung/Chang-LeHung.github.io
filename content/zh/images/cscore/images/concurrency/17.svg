@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 747 293" role="img"
+     aria-label="线程工作内存与主内存的关系：主内存 data=1，两个线程各自的工作内存分别为 data=1 与 data=0"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <rect x="232" y="25" width="284" height="66" rx="10" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="374" y="66" text-anchor="middle" font-size="22">主内存 data = 1</text>
+
+  <rect x="18" y="184" width="233" height="48" rx="10" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="134" y="215" text-anchor="middle" font-size="20">线程工作内存 data = 1</text>
+
+  <rect x="497" y="184" width="242" height="48" rx="10" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="618" y="215" text-anchor="middle" font-size="20">线程工作内存 data = 0</text>
+
+  <path d="M152 182 L368 92" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-start="url(#arrow-17)" marker-end="url(#arrow-17)"/>
+  <path d="M600 182 L373 92" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-start="url(#arrow-17)" marker-end="url(#arrow-17)"/>
+</svg>

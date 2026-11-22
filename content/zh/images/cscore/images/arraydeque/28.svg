@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 727 309" role="img" aria-label="ArrayDeque 的环形数组：粉色格子表示存在数据，蓝色格子表示不存在数据，tail 指向第一个空位、head 指向结束位置之后的空位" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-arraydeque28" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="45" y="24" width="55" height="26" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="45" y="62" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="21" fill="#1a1a1a">
+    <text x="128" y="46">表示存在数据</text>
+    <text x="128" y="84">表示不存在数据</text>
+  </g>
+
+  <!-- 环形数组：12 个格子 -->
+  <g stroke-width="1.5">
+    <rect x="47" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="102" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="157" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="212" y="112" width="55" height="27" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="267" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="322" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="377" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="432" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="487" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="542" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="597" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="652" y="112" width="55" height="27" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+
+  <!-- tail：指向第一个空位 -->
+  <path d="M 61 219 L 62 203 Q 64 188 78 183 Q 100 177 114 172 Q 127 167 129 150 L 129 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+  <!-- head：从末尾格子之后的位置出发 -->
+  <path d="M 246 250 Q 276 246 287 216 Q 293 196 294 172 L 294 144"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-arraydeque28)"/>
+
+  <circle cx="61.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <circle cx="211.5" cy="251.5" r="31.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle" fill="#1a1a1a">
+    <text x="61" y="259">tail</text>
+    <text x="211" y="259">head</text>
+  </g>
+</svg>

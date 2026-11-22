@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 110" role="img" aria-label="ArrayDeque 的环形数组布局：四个格子依次存放 3、2、1、0，再跳到 15 到 8，上下两条横线表示数组首尾相接" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 上下两条横线：数组首尾相接 -->
+  <g stroke="#404040" stroke-width="1.5">
+    <line x1="35" y1="22" x2="788" y2="22"/>
+    <line x1="35" y1="80" x2="788" y2="80"/>
+  </g>
+
+  <g fill="#cdeb8b" stroke="#404040" stroke-width="1.5">
+    <rect x="43" y="37" width="38" height="29"/>
+    <rect x="107" y="37" width="38" height="29"/>
+    <rect x="174" y="37" width="38" height="29"/>
+    <rect x="236" y="37" width="38" height="29"/>
+    <rect x="333" y="37" width="38" height="29"/>
+    <rect x="396" y="37" width="38" height="29"/>
+    <rect x="457" y="37" width="38" height="29"/>
+    <rect x="518" y="37" width="38" height="29"/>
+    <rect x="573" y="37" width="38" height="29"/>
+    <rect x="632" y="37" width="38" height="29"/>
+    <rect x="691" y="37" width="38" height="29"/>
+    <rect x="743" y="37" width="38" height="29"/>
+  </g>
+
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <text x="62" y="59">3</text>
+    <text x="126" y="59">2</text>
+    <text x="193" y="59">1</text>
+    <text x="255" y="59">0</text>
+    <text x="352" y="59">15</text>
+    <text x="415" y="59">14</text>
+    <text x="476" y="59">13</text>
+    <text x="537" y="59">12</text>
+    <text x="592" y="59">11</text>
+    <text x="651" y="59">10</text>
+    <text x="710" y="59">9</text>
+    <text x="762" y="59">8</text>
+  </g>
+</svg>

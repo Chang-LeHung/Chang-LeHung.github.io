@@ -73,7 +73,7 @@
 </ul>
 <p>今天要谈到的链表在Java的<code>LinkedList</code>和C++的<code>list</code>当中就有使用到。</p>
 <p>那什么是链表呢？链表是由一个一个的节点组成的，每个节点包含两个字段，其中一个字段data表示真实需要表示的数据，另外一个字段next表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），data和next两者一起组成链表当中的节点(Node)。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -129,7 +129,7 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><h3 id="单链表">单链表</h3>
 <p>所谓单链表就是只有一个指向其他节点的变量，比如下图当中只有一个next变量指向其他同样的节点。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -175,7 +175,7 @@
   <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
 </svg></figure><h3 id="双向链表">双向链表</h3>
 <p>双向链表和单链表的区别就是他的指向有两个方向，而单链表只有一个方向，在双向链表的节点当中会有两个指向其他同样节点的变量，一个指向前一个节点，一个指向后一个节点，对应下图prev指向前一个节点，next指向后一个节点。</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 187" role="img" aria-label="四个双向链表结点，每个结点由 data、prev、next 三格组成，prev 指针向左、next 指针向右连成链" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 187" role="img" aria-label="四个双向链表结点，每个结点由 data、prev、next 三格组成，prev 指针向左、next 指针向右连成链" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-01" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -228,7 +228,7 @@
   <path d="M702,132 L760,132" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
 </svg></figure><h3 id="循环链表">循环链表</h3>
 <p>这个概念也比较简单，就是链表首尾相连，形成一个环，比如单循环链表：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 975 157" role="img" aria-label="五个单链表结点向右相连，最后一个结点的 next 从下方绕回第一个结点，形成循环链表" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 975 157" role="img" aria-label="五个单链表结点向右相连，最后一个结点的 next 从下方绕回第一个结点，形成循环链表" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-09" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -275,7 +275,7 @@
   <!-- 尾结点绕回第一个结点 -->
   <path d="M908,76.5 H938 V139 H100 V76.5 H129" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
 </svg></figure><p>双向循环链表，第一个节点（头结点）的prev指向最后一个节点（尾节点），尾节点的next指向头结点：</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-10" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -334,7 +334,7 @@
         fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
 </svg></figure><h3 id="静态链表">静态链表</h3>
 <p>我们前面所提到的链表中的节点除了数据域（data）还有一个变量指向其他的节点，节点与节点之间的内存地址是不连续的，而静态链表和前面提到的链表不一样，它是使用<strong>数组</strong>来实现链表，只是将next变成一个<code>int</code>类型的数据，表示下一跳数据的下标，比如下图当中所表示的那样（其中-1表示链表的结尾，因为next域存储的是下一个节点的下标，下标肯定大于等于0，因此可以使用-1表示链表的结尾）：</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 357" role="img" aria-label="静态链表的结构表格，下标、数据域、next域三列共五行，四条不同颜色的虚线分别把 next 域的值指向对应下标的数据" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 357" role="img" aria-label="静态链表的结构表格，下标、数据域、next域三列共五行，四条不同颜色的虚线分别把 next 域的值指向对应下标的数据" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-12k" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -423,7 +423,7 @@
   <path d="M378,302 V325 Q378,335 388,335 H550 Q560,335 560,325 V155 Q560,145 550,145 H429"
         fill="none" stroke="#3333ff" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12b)"/>
 </svg></figure><p>在上图当中对应的链表如下（通过分析上图当中next域的指向分析得到下图）：</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 127" role="img" aria-label="静态链表的五个结点，每个结点由 data 和 next 值两格组成，next 值用箭头指向下一个结点" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 127" role="img" aria-label="静态链表的五个结点，每个结点由 data 和 next 值两格组成，next 值用箭头指向下一个结点" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-13" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -494,7 +494,7 @@
 <li>我们需要有一个容器可以保存我们的数据</li>
 <li>我们的数据有一定的顺序性，比如我们现在容器当中的数据个数是10个，我们想在下标为3的地方插入一个数据</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 863 211" role="img" aria-label="一个下标 0 到 9 的数组，红色箭头从黄色 data 方框指向下标 3 的位置" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 863 211" role="img" aria-label="一个下标 0 到 9 的数组，红色箭头从黄色 data 方框指向下标 3 的位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-01-02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="8" markerHeight="8" orient="auto-start-reverse">
@@ -537,7 +537,7 @@
 <li>但是如果我们采用的是链表的方法的话，我们的时间复杂度可以做到O(1)。</li>
 </ul>
 <p>​	```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1118 262" role="img" aria-label="一行四个单链表结点向右相连，红色箭头从下方独立的 data/next 结点指向第三个结点后面的指针">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1118 262" role="img" aria-label="一行四个单链表结点向右相连，红色箭头从下方独立的 data/next 结点指向第三个结点后面的指针" style="display:block; margin:1.2em auto; max-width:580px">
 <defs>
 <marker id="arrow-01-03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
@@ -592,7 +592,7 @@
 ​	对于上面这种插入情况，我们只需要稍微改变一下next的指向就可以了：
 
 ```svg
-&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 1085 293&quot; role=&quot;img&quot; aria-label=&quot;链表中第 3 个结点的 next 指向下方一个游离结点，该结点的 next 又指回第 4 个结点，用洋红色曲线表示&quot;&gt;
+&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 1085 293&quot; role=&quot;img&quot; aria-label=&quot;链表中第 3 个结点的 next 指向下方一个游离结点，该结点的 next 又指回第 4 个结点，用洋红色曲线表示&quot; style=&quot;display:block; margin:1.2em auto; max-width:580px&quot;&gt;
   &lt;defs&gt;
     &lt;marker id=&quot;arrow-01-04&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;9.5&quot; refY=&quot;5&quot;
             markerWidth=&quot;9&quot; markerHeight=&quot;9&quot; orient=&quot;auto-start-reverse&quot;&gt;
@@ -658,7 +658,7 @@
 <li>如果我们需要在数组当中删除一个元素，同样的原理，因为某个数据被删除之后它所在的那个位置就空了，因此需要将后续的数据往前搬一个位置：</li>
 </ul>
 <p>比如我们需要删除下标为三的数据：</p>
-<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
 
 <!-- 顶部说明文字 -->
 <text x="465" y="26" font-size="18" fill="#1a1a1a" text-anchor="middle">删除下标为3的位置的数据，其后面的数据都需要往前移动一个位置</text>
@@ -720,7 +720,7 @@
 <text x="799" y="380" font-size="20" fill="#ffffff" text-anchor="middle">8</text>
 <text x="880" y="380" font-size="20" fill="#000000" text-anchor="middle">9</text>
 </svg></figure><p>但是如果我们使用的是链表的话我们也只需要简单移动链表即可，比如要删除节点N，只需要将节点N的上一个节点的next指向节点N的下一个节点即可，同时将节点N的next设置为空。</p>
-<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1026 318" role="img" aria-label="链表中第 3 个结点的 next 用红色箭头指向第 4 个结点，同时两条被红色叉号划掉的曲线从该结点绕到下方游离结点再绕回第 4 个结点" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1026 318" role="img" aria-label="链表中第 3 个结点的 next 用红色箭头指向第 4 个结点，同时两条被红色叉号划掉的曲线从该结点绕到下方游离结点再绕回第 4 个结点" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
 <defs>
   <marker id="arrow-01-07" viewBox="0 0 10 10" refX="9.5" refY="5"
           markerWidth="9" markerHeight="9" orient="auto-start-reverse">

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 976 580" role="img"
+     aria-label="Python 浅拷贝示意：拷贝后得到新对象，新对象的四个元素与原来对象 x 的四个元素指向同一批子对象"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-py07" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- 拷贝前的对象 x -->
+  <g fill="none" stroke="#999" stroke-width="1.5">
+    <circle cx="280" cy="60" r="30"/>
+    <circle cx="380" cy="60" r="30"/>
+    <circle cx="480" cy="60" r="30"/>
+    <circle cx="575" cy="60" r="30"/>
+  </g>
+  <rect x="290" y="118" width="268" height="72" rx="8" fill="#f2f2fe" stroke="#8c8c8c" stroke-width="1.5"/>
+
+  <g stroke-width="1.5">
+    <rect x="320" y="133" width="50" height="42" fill="#f7eaea" stroke="#b85450"/>
+    <rect x="373" y="133" width="50" height="42" fill="#f5f5f5" stroke="#8c8c8c"/>
+    <rect x="426" y="133" width="50" height="42" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="479" y="133" width="50" height="42" fill="#d9e7d6" stroke="#82b366"/>
+  </g>
+
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <path d="M345 133 L285 88" marker-end="url(#arrow-py07)"/>
+    <path d="M398 133 L378 88" marker-end="url(#arrow-py07)"/>
+    <path d="M451 133 L478 88" marker-end="url(#arrow-py07)"/>
+    <path d="M504 133 L573 88" marker-end="url(#arrow-py07)"/>
+  </g>
+
+  <text x="640" y="158" font-size="22">对象 x</text>
+  <path d="M632 150 H562" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow-py07)"/>
+
+  <!-- 中间说明 -->
+  <path d="M470 208 V276" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow-py07)"/>
+  <text x="512" y="248" font-size="22">浅拷贝之后的新数据</text>
+
+  <!-- 新对象与拷贝的对象 -->
+  <g fill="none" stroke="#999" stroke-width="1.5">
+    <circle cx="245" cy="308" r="30"/>
+    <circle cx="345" cy="308" r="30"/>
+    <circle cx="440" cy="308" r="30"/>
+    <circle cx="537" cy="308" r="30"/>
+  </g>
+
+  <rect x="20" y="400" width="266" height="76" rx="8" fill="#f2f2fe" stroke="#8c8c8c" stroke-width="1.5"/>
+  <g stroke-width="1.5">
+    <rect x="34" y="413" width="56" height="50" fill="#f7eaea" stroke="#b85450"/>
+    <rect x="99" y="413" width="56" height="50" fill="#f5f5f5" stroke="#8c8c8c"/>
+    <rect x="164" y="413" width="56" height="50" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="229" y="413" width="50" height="50" fill="#d9e7d6" stroke="#82b366"/>
+  </g>
+
+  <rect x="520" y="400" width="270" height="76" rx="8" fill="#f2f2fe" stroke="#8c8c8c" stroke-width="1.5"/>
+  <g stroke-width="1.5">
+    <rect x="534" y="413" width="56" height="50" fill="#f7eaea" stroke="#b85450"/>
+    <rect x="599" y="413" width="56" height="50" fill="#f5f5f5" stroke="#8c8c8c"/>
+    <rect x="664" y="413" width="56" height="50" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="729" y="413" width="50" height="50" fill="#d9e7d6" stroke="#82b366"/>
+  </g>
+
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <path d="M62 413 L242 342" marker-end="url(#arrow-py07)"/>
+    <path d="M127 413 L343 342" marker-end="url(#arrow-py07)"/>
+    <path d="M192 413 L438 342" marker-end="url(#arrow-py07)"/>
+    <path d="M254 413 L535 342" marker-end="url(#arrow-py07)"/>
+    <path d="M562 413 L250 342" marker-end="url(#arrow-py07)"/>
+    <path d="M627 413 L348 342" marker-end="url(#arrow-py07)"/>
+    <path d="M692 413 L443 342" marker-end="url(#arrow-py07)"/>
+    <path d="M754 413 L540 342" marker-end="url(#arrow-py07)"/>
+  </g>
+
+  <text x="370" y="446" font-size="22">对象 x</text>
+  <path d="M358 438 H296" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow-py07)"/>
+
+  <text x="836" y="446" font-size="22">拷贝的对象</text>
+  <path d="M828 438 H800" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow-py07)"/>
+</svg>

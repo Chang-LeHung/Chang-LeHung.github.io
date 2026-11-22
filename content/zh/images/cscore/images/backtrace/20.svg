@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1852 1212" role="img" aria-label="回溯去重的重复子树示意图：从根节点按选 1、选 2 展开三层选择树，两个绿色节点表示重复的子树，下方长框说明两种选择方式状态相同因而可以跳过" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-backtrace20" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1852" height="1212" fill="#d9d2d8"/>
+
+  <!-- 图例 -->
+  <rect x="57" y="102" width="201" height="92" rx="20" fill="#3c8825" stroke="#235614" stroke-width="1.5"/>
+  <text x="319" y="161" font-size="29" fill="#1d3541">表示重复的子树</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="2" marker-end="url(#arrow-backtrace20)">
+    <path d="M 1048 85 L 426 306"/>
+    <path d="M 1048 85 L 966 306"/>
+    <path d="M 1048 85 L 1468 306"/>
+    <path d="M 431 412 L 242 527"/>
+    <path d="M 431 412 L 647 526"/>
+    <path d="M 958 412 L 1010 522"/>
+    <path d="M 242 633 L 242 774"/>
+    <path d="M 647 633 L 727 818"/>
+    <path d="M 1036 629 L 1180 720"/>
+    <path d="M 1042 934 L 1190 818"/>
+    <path d="M 1056 934 L 938 906"/>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#3f898c" stroke-width="1.5">
+    <rect x="861" y="23" width="375" height="62" rx="20"/>
+    <rect x="244" y="306" width="375" height="106" rx="20"/>
+    <rect x="771" y="306" width="375" height="106" rx="20"/>
+    <rect x="1277" y="306" width="375" height="106" rx="20"/>
+    <rect x="55" y="527" width="375" height="106" rx="20"/>
+    <rect x="55" y="774" width="375" height="107" rx="20"/>
+    <rect x="513" y="934" width="1080" height="262" rx="24"/>
+  </g>
+  <g fill="#3c8825" stroke="#235614" stroke-width="1.5">
+    <rect x="460" y="526" width="375" height="107" rx="20"/>
+    <rect x="848" y="522" width="376" height="107" rx="20"/>
+  </g>
+
+  <!-- 节点文字 -->
+  <g font-size="26" fill="#1d3541" text-anchor="middle" transform="translate(0,-4)">
+    <text x="1048" y="67">从[1,1,2]当中选择数据</text>
+
+    <text x="431" y="356">从[1,2]当中选择数据</text>
+    <text x="431" y="386">当前选中的数据[1]</text>
+    <text x="958" y="356">从[2]当中选择数据</text>
+    <text x="958" y="386">当前选中的数据[1]</text>
+    <text x="1464" y="356">从[]当中选择数据</text>
+    <text x="1464" y="386">当前选中的数据[1]</text>
+
+    <text x="242" y="577">从[2]当中选择数据</text>
+    <text x="242" y="607">当前选中的数据[1,1]</text>
+    <text x="242" y="824">从[2]当中选择数据</text>
+    <text x="242" y="854">当前选中的数据[1,1,2]</text>
+  </g>
+  <g font-size="26" fill="#ffffff" text-anchor="middle" transform="translate(0,-4)">
+    <text x="647" y="576">从[]当中选择数据</text>
+    <text x="647" y="606">当前选中的数据[1, 2]</text>
+    <text x="1036" y="572">从[]当中选择数据</text>
+    <text x="1036" y="602">当前选中的数据[1, 2]</text>
+  </g>
+
+  <!-- 批注 -->
+  <g font-size="29" fill="#1d3541">
+    <text x="1067" y="767">这个节点是先跳过了第一个1</text>
+    <text x="1059" y="802">然后选择了第二个1，再选择2</text>
+    <text x="580" y="863">这个节点是先选择了1，</text>
+    <text x="542" y="899">然后直接跳过第二个1选择了2</text>
+  </g>
+
+  <!-- 底部说明 -->
+  <g font-size="29" fill="#1d3541" text-anchor="middle">
+    <text x="1053" y="991">这两种选择方式当前的状态是一样的，都是选择了[1,2]这个组合</text>
+    <text x="1053" y="1024">而且后续的状态也是一样的，在本个例子</text>
+    <text x="1053" y="1058">当中没有后续的数据了，如果还有数据的话</text>
+    <text x="1053" y="1094">他们能够选择的数据是相同的，因此他们当前的状态一样</text>
+    <text x="1053" y="1131">后续的状态也是一样的，因此他们会产生相同的结果，因此我们在</text>
+    <text x="1053" y="1164">第二次遇到的时候可以跳过，因为前面已经遍历过了</text>
+  </g>
+</svg>

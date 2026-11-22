@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 901 335" role="img"
+     aria-label="循环数组示意图：物理数组空间顺序 0 到 15，逻辑数据顺序按 3 2 1 0 15 14 13 12 11 10 9 8 排列"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <text x="345" y="48" text-anchor="middle" font-size="20">物理数组空间顺序</text>
+  <line x1="68" y1="88" x2="832" y2="88" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第一行：下标 0-15，已占用的 4-7 为空白格 -->
+  <g fill="#cdeb8b" stroke="#3b3b3b" stroke-width="1">
+    <rect x="128" y="108" width="39.3" height="30"/>
+    <rect x="167.3" y="108" width="39.3" height="30"/>
+    <rect x="206.6" y="108" width="39.3" height="30"/>
+    <rect x="245.9" y="108" width="39.3" height="30"/>
+    <rect x="285.2" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="324.5" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="363.8" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="403.1" y="108" width="39.3" height="30" fill="#ffffff"/>
+    <rect x="442.4" y="108" width="39.3" height="30"/>
+    <rect x="481.7" y="108" width="39.3" height="30"/>
+    <rect x="521" y="108" width="39.3" height="30"/>
+    <rect x="560.3" y="108" width="39.3" height="30"/>
+    <rect x="599.6" y="108" width="39.3" height="30"/>
+    <rect x="638.9" y="108" width="39.3" height="30"/>
+    <rect x="678.2" y="108" width="39.3" height="30"/>
+    <rect x="717.5" y="108" width="39.3" height="30"/>
+  </g>
+  <g font-size="18" text-anchor="middle" fill="#1a1a1a">
+    <text x="147.6" y="129">0</text>
+    <text x="186.9" y="129">1</text>
+    <text x="226.2" y="129">2</text>
+    <text x="265.5" y="129">3</text>
+    <text x="304.8" y="129">4</text>
+    <text x="344.1" y="129">5</text>
+    <text x="383.4" y="129">6</text>
+    <text x="422.7" y="129">7</text>
+    <text x="462" y="129">8</text>
+    <text x="501.3" y="129">9</text>
+    <text x="540.6" y="129">10</text>
+    <text x="579.9" y="129">11</text>
+    <text x="619.2" y="129">12</text>
+    <text x="658.5" y="129">13</text>
+    <text x="697.8" y="129">14</text>
+    <text x="737.1" y="129">15</text>
+  </g>
+
+  <line x1="68" y1="156" x2="832" y2="156" stroke="#444" stroke-width="1.5"/>
+
+  <text x="345" y="201" text-anchor="middle" font-size="20">逻辑数据顺序</text>
+  <line x1="68" y1="228" x2="832" y2="228" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第二行：逻辑顺序，队头在下标 3 -->
+  <g fill="#cdeb8b" stroke="#3b3b3b" stroke-width="1">
+    <rect x="72" y="240" width="38" height="32"/>
+    <rect x="112" y="240" width="38" height="32"/>
+    <rect x="152" y="240" width="38" height="32"/>
+    <rect x="192" y="240" width="38" height="32"/>
+    <rect x="355" y="240" width="48" height="32"/>
+    <rect x="405" y="240" width="48" height="32"/>
+    <rect x="455" y="240" width="48" height="32"/>
+    <rect x="505" y="240" width="48" height="32"/>
+    <rect x="555" y="240" width="48" height="32"/>
+    <rect x="605" y="240" width="48" height="32"/>
+    <rect x="655" y="240" width="48" height="32"/>
+    <rect x="705" y="240" width="48" height="32"/>
+  </g>
+  <g font-size="18" text-anchor="middle" fill="#1a1a1a">
+    <text x="91" y="262">3</text>
+    <text x="131" y="262">2</text>
+    <text x="171" y="262">1</text>
+    <text x="211" y="262">0</text>
+    <text x="379" y="262">15</text>
+    <text x="429" y="262">14</text>
+    <text x="479" y="262">13</text>
+    <text x="529" y="262">12</text>
+    <text x="579" y="262">11</text>
+    <text x="629" y="262">10</text>
+    <text x="679" y="262">9</text>
+    <text x="729" y="262">8</text>
+  </g>
+
+  <line x1="68" y1="292" x2="832" y2="292" stroke="#444" stroke-width="1.5"/>
+</svg>

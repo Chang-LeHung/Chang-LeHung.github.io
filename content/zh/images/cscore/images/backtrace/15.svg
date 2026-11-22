@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2006 674" role="img"
+     aria-label="对数组 [1, 1, 2] 回溯求子集的决策树：从空集合出发，逐层决定选择或不选择当前元素的 1 或 2"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9a2e23"/>
+    </marker>
+  </defs>
+
+  <!-- 标题 -->
+  <rect x="1024" y="6" width="132" height="48" fill="#fcfcfc" stroke="#c8c8c8" stroke-width="1.5"/>
+  <text x="1090" y="38" text-anchor="middle" font-size="24">[1, 1, 2]</text>
+
+  <!-- 左侧逐层说明 -->
+  <g font-size="22" fill="#333">
+    <text x="28" y="123">是否选择1（下标为0）</text>
+    <text x="28" y="269">是否选择1（下标为1）</text>
+    <text x="28" y="427">是否选择2（下标为2）</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#9a2e23" stroke-width="1.5">
+    <path d="M1090 145 V189 H610 V231" marker-end="url(#arrow-15)"/>
+    <path d="M1090 145 V189 H1570 V231" marker-end="url(#arrow-15)"/>
+    <path d="M610 291 V341 H370 V389" marker-end="url(#arrow-15)"/>
+    <path d="M610 291 V341 H850 V389" marker-end="url(#arrow-15)"/>
+    <path d="M1570 291 V341 H1330 V389" marker-end="url(#arrow-15)"/>
+    <path d="M1570 291 V341 H1810 V389" marker-end="url(#arrow-15)"/>
+    <path d="M370 449 V502 H250 V554" marker-end="url(#arrow-15)"/>
+    <path d="M370 449 V502 H490 V554" marker-end="url(#arrow-15)"/>
+    <path d="M850 449 V502 H730 V554" marker-end="url(#arrow-15)"/>
+    <path d="M850 449 V502 H970 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1330 449 V502 H1210 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1330 449 V502 H1450 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1810 449 V502 H1690 V554" marker-end="url(#arrow-15)"/>
+    <path d="M1810 449 V502 H1930 V554" marker-end="url(#arrow-15)"/>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#f6e6ca" stroke="#659b9f" stroke-width="1.5">
+    <rect x="1068" y="87" width="44" height="58"/>
+    <rect x="584" y="233" width="52" height="58"/>
+    <rect x="1548" y="233" width="44" height="58"/>
+    <rect x="333" y="391" width="74" height="58"/>
+    <rect x="824" y="391" width="52" height="58"/>
+    <rect x="1304" y="391" width="52" height="58"/>
+    <rect x="1788" y="391" width="44" height="58"/>
+    <rect x="202" y="556" width="96" height="58"/>
+    <rect x="452" y="556" width="76" height="58"/>
+    <rect x="692" y="556" width="76" height="58"/>
+    <rect x="944" y="556" width="52" height="58"/>
+    <rect x="1172" y="556" width="76" height="58"/>
+    <rect x="1424" y="556" width="52" height="58"/>
+    <rect x="1664" y="556" width="52" height="58"/>
+    <rect x="1908" y="556" width="44" height="58"/>
+  </g>
+
+  <!-- 节点文字 -->
+  <g font-size="21" fill="#1a1a1a" text-anchor="middle">
+    <text x="1090" y="124">[]</text>
+    <text x="610" y="270">[1]</text>
+    <text x="1570" y="270">[]</text>
+    <text x="370" y="428">[1,1]</text>
+    <text x="850" y="428">[1]</text>
+    <text x="1330" y="428">[1]</text>
+    <text x="1810" y="428">[]</text>
+    <text x="250" y="593">[1,1,2]</text>
+    <text x="490" y="593">[1,1]</text>
+    <text x="730" y="593">[1,2]</text>
+    <text x="970" y="593">[1]</text>
+    <text x="1210" y="593">[1,2]</text>
+    <text x="1450" y="593">[1]</text>
+    <text x="1690" y="593">[2]</text>
+    <text x="1930" y="593">[]</text>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="20" fill="#333">
+    <text x="1078" y="181" text-anchor="end">选择</text>
+    <text x="1102" y="181">不选择</text>
+    <text x="598" y="333" text-anchor="end">选择</text>
+    <text x="622" y="333">不选择</text>
+    <text x="1558" y="333" text-anchor="end">选择</text>
+    <text x="1582" y="333">不选择</text>
+    <text x="358" y="494" text-anchor="end">选择</text>
+    <text x="382" y="494">不选择</text>
+    <text x="838" y="494" text-anchor="end">选择</text>
+    <text x="862" y="494">不选择</text>
+    <text x="1318" y="494" text-anchor="end">选择</text>
+    <text x="1342" y="494">不选择</text>
+    <text x="1798" y="494" text-anchor="end">选择</text>
+    <text x="1822" y="494">不选择</text>
+  </g>
+</svg>

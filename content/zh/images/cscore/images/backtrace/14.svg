@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1832 722" role="img" aria-label="在三层数据中用选与不选展开的决策树：每个节点左侧是已选集合，右侧是待选数据，绿色节点为得到正确结果的节点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-backtrace14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <!-- 红色方框：标出根节点与第一层 -->
+  <rect x="829" y="18" width="978" height="225" fill="none" stroke="#fb3838" stroke-width="1.5"/>
+
+  <!-- 图例 -->
+  <g stroke-width="1.5">
+    <rect x="133" y="26" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="133" y="83" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="133" y="146" width="78" height="39" fill="#cdeb8b" stroke="#36393d"/>
+  </g>
+  <g font-size="22" fill="#111">
+    <text x="236" y="55">表示已经被选择的数据</text>
+    <text x="236" y="112">表示待选择的数据</text>
+    <text x="236" y="175">表示得到正确结果的节点</text>
+  </g>
+
+  <!-- 节点 -->
+  <g stroke-width="1.5">
+    <rect x="1265" y="37" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1345" y="37" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="860" y="184" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="940" y="184" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="1265" y="184" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1345" y="184" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="1631" y="184" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1711" y="184" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="1202" y="312" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1282" y="312" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="1381" y="312" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1461" y="312" width="78" height="39" fill="#cdeb8b" stroke="#36393d"/>
+    <rect x="1631" y="312" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1711" y="312" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="379" y="339" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="459" y="339" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="641" y="339" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="721" y="339" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="914" y="339" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="994" y="339" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="914" y="444" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="994" y="444" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="1202" y="465" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1282" y="465" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="1402" y="465" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1482" y="465" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="79" y="526" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="159" y="526" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="249" y="526" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="329" y="526" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="423" y="526" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="503" y="526" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="597" y="526" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="677" y="526" width="78" height="39" fill="#cdeb8b" stroke="#36393d"/>
+    <rect x="774" y="526" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="854" y="526" width="78" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+
+    <rect x="20" y="660" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="100" y="660" width="90" height="39" fill="#cdeb8b" stroke="#36393d"/>
+    <rect x="215" y="660" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="295" y="660" width="90" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+    <rect x="421" y="660" width="78" height="39" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="501" y="660" width="90" height="39" fill="#b0e3e6" stroke="#0e8088"/>
+  </g>
+
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="1304" y="63">[2,3,5]</text>
+    <text x="1384" y="63">[]</text>
+
+    <text x="899" y="210">[2,3,5]</text>
+    <text x="979" y="210">[2]</text>
+    <text x="1304" y="210">[3,5]</text>
+    <text x="1384" y="210">[3]</text>
+    <text x="1670" y="210">[5]</text>
+    <text x="1750" y="210">[5]</text>
+
+    <text x="1241" y="338">[3,5]</text>
+    <text x="1321" y="338">[3,3]</text>
+    <text x="1420" y="338">[5]</text>
+    <text x="1500" y="338">[3,5]</text>
+    <text x="1670" y="338">[5]</text>
+    <text x="1750" y="338">[5,5]</text>
+
+    <text x="418" y="365">[2,3,5]</text>
+    <text x="498" y="365">[2,2]</text>
+    <text x="680" y="365">[3,5]</text>
+    <text x="760" y="365">[2,3]</text>
+    <text x="953" y="365">[5]</text>
+    <text x="1033" y="365">[2,5]</text>
+
+    <text x="953" y="470">[5]</text>
+    <text x="1033" y="470">[2,5,5]</text>
+    <text x="1241" y="491">[3,5]</text>
+    <text x="1321" y="491">[3,3,3]</text>
+    <text x="1441" y="491">[5]</text>
+    <text x="1521" y="491">[3,3,5]</text>
+
+    <text x="118" y="552">[2,3,5]</text>
+    <text x="198" y="552">[2,2,2]</text>
+    <text x="288" y="552">[3,5]</text>
+    <text x="368" y="552">[2,2,3]</text>
+    <text x="462" y="552">[5]</text>
+    <text x="542" y="552">[2,2,5]</text>
+    <text x="636" y="552">[3,5]</text>
+    <text x="716" y="552">[2,3,3]</text>
+    <text x="813" y="552">[5]</text>
+    <text x="893" y="552">[2,3,5]</text>
+
+    <text x="59" y="686">[2,3,5]</text>
+    <text x="145" y="686">[2,2,2,2]</text>
+    <text x="254" y="686">[3,5]</text>
+    <text x="340" y="686">[2,2,2,3]</text>
+    <text x="460" y="686">[5]</text>
+    <text x="546" y="686">[2,2,2,5]</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M1344 77 V112"/>
+    <path d="M939 112 H1710"/>
+    <path d="M939 112 V184" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M1344 112 V184" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M1710 112 V184" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M939 224 V272"/>
+    <path d="M458 272 H993"/>
+    <path d="M458 272 V339" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M720 272 V339" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M993 272 V339" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M1344 224 V272"/>
+    <path d="M1281 272 H1460"/>
+    <path d="M1281 272 V312" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M1460 272 V312" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M1710 224 V312" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M458 379 V465"/>
+    <path d="M158 465 H502"/>
+    <path d="M158 465 V526" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M328 465 V526" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M502 465 V526" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M720 379 V452"/>
+    <path d="M676 452 H853"/>
+    <path d="M676 452 V526" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M853 452 V526" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M993 379 V444" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M1281 352 V406"/>
+    <path d="M1281 406 H1481"/>
+    <path d="M1281 406 V465" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M1481 406 V465" marker-end="url(#arrow-backtrace14)"/>
+
+    <path d="M158 566 V630"/>
+    <path d="M99 630 H500"/>
+    <path d="M99 630 V660" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M294 630 V660" marker-end="url(#arrow-backtrace14)"/>
+    <path d="M500 630 V660" marker-end="url(#arrow-backtrace14)"/>
+  </g>
+
+  <g font-size="22" fill="#111">
+    <text x="1055" y="105">选2</text>
+    <text x="1395" y="105">选3</text>
+    <text x="1618" y="105">选5</text>
+
+    <text x="470" y="305">选2</text>
+    <text x="735" y="305">选3</text>
+    <text x="1005" y="305">选5</text>
+
+    <text x="1250" y="305">选3</text>
+    <text x="1332" y="305">选5</text>
+    <text x="1720" y="275">选5</text>
+
+    <text x="118" y="492">选2</text>
+    <text x="278" y="492">选3</text>
+    <text x="478" y="492">选5</text>
+
+    <text x="640" y="496">选3</text>
+    <text x="860" y="496">选5</text>
+    <text x="1000" y="424">选5</text>
+
+    <text x="1150" y="432">选3</text>
+    <text x="1318" y="400">选5</text>
+
+    <text x="60" y="598">选2</text>
+    <text x="284" y="598">选3</text>
+    <text x="484" y="598">选5</text>
+  </g>
+</svg>

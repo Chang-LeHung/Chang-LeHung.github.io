@@ -66,7 +66,7 @@
     <div class="prose">
       <h2 id="linkedlist继承体系">LinkedList继承体系</h2>
 <p>首先先直观的看一下<code>LinedList</code>的继承体系和实现的接口</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 587" role="img" aria-label="LinkedList 的继承体系：Collection 继承 Iterable，AbstractCollection、List、Queue 实现 Collection，LinkedList 位于最底部" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 587" role="img" aria-label="LinkedList 的继承体系：Collection 继承 Iterable，AbstractCollection、List、Queue 实现 Collection，LinkedList 位于最底部" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist01-g" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -216,7 +216,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>根据上面的字段分析，<code>LinkedList</code>内部结构主要如下：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 886 343" role="img" aria-label="四个节点首尾相接，prev 指针向左、next 指针向右，first 指向第一个节点，last 指向最后一个节点" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 886 343" role="img" aria-label="四个节点首尾相接，prev 指针向左、next 指针向右，first 指向第一个节点，last 指向最后一个节点" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -515,7 +515,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>整个过程如下图所示：</p>
 <p>进行插入之前：</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 970 505" role="img" aria-label="五个节点用 prev 与 next 双向串联，first 与 last 分别指向首尾节点，下方是准备加入链表的集合数据" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 970 505" role="img" aria-label="五个节点用 prev 与 next 双向串联，first 与 last 分别指向首尾节点，下方是准备加入链表的集合数据" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -614,7 +614,7 @@
     <text x="516" y="436">item</text>
   </g>
 </svg></figure><p>插入之后：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist09" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -788,7 +788,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们可以看到如果对象不为 <code>null</code> 最终是调用对象的<code>toString</code>方法得到的字符串。<strong>因此当打印一个对象的时候，最终会打印这个对象的<code>toString</code>方法返回的字符串</strong>。</p>
 <p>我们在<code>LinkedList</code>类中搜索<code>toString</code>方法，发现这个方法是存在于<code>AbstractCollection</code>类当中，也就是下面这个类，<code>LinkedList</code>继承于它：</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 907 642" role="img" aria-label="LinkedList 的继承体系，其中 AbstractCollection 被红色圆角框圈出，作为重点" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 907 642" role="img" aria-label="LinkedList 的继承体系，其中 AbstractCollection 被红色圆角框圈出，作为重点" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist10-g" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -931,7 +931,7 @@
 <span class="tok-c1">// false</span>
 <span class="tok-c1">// true</span>
 </code></pre></div><p>其中 <code>==</code> 比较的是两个对象的内存地址（也就是<code>s1</code>和<code>s2</code>指向的两个对象）是否相同，也就是<code>s1</code>和<code>s2</code>是否是同一个对象，<code>equals</code>比较的是两个字符串对象的内容是否相同（不同的类实现方式不一样可能有差异，字符串<code>String</code>实现方式是只要内容相同<code>equlas</code>方法就返回<code>true</code>，否则返回<code>false</code>），上述代码在内存当中的布局大致如下：</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-linkedlist11" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

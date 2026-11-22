@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 790 662" role="img" aria-label="Future、Runnable、RunnableFuture、FutureTask 与 FunctionInterface 之间的继承关系：RunnableFuture 同时继承 Future 与 Runnable，FutureTask 实现 RunnableFuture" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="tri-concurrency38" viewBox="0 0 10 10" refX="10" refY="5"
+            markerWidth="16" markerHeight="16" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ffffff" stroke="#008200" stroke-width="1"/>
+    </marker>
+  </defs>
+
+  <!-- 方框阴影 -->
+  <g fill="#d8d8d8">
+    <rect x="178" y="25" width="552" height="66"/>
+    <rect x="28" y="199" width="238" height="59"/>
+    <rect x="313" y="199" width="285" height="59"/>
+    <rect x="86" y="369" width="435" height="59"/>
+    <rect x="133" y="533" width="338" height="60"/>
+  </g>
+
+  <g fill="#ffffe4" stroke="#c0c0c0" stroke-width="1.5">
+    <rect x="175" y="22" width="552" height="66"/>
+    <rect x="25" y="196" width="238" height="59"/>
+    <rect x="310" y="196" width="285" height="59"/>
+    <rect x="83" y="366" width="435" height="59"/>
+    <rect x="130" y="530" width="338" height="60"/>
+  </g>
+
+  <g font-family="monospace" font-size="38" fill="#000" text-anchor="middle">
+    <text x="451" y="68">FunctionalInterface</text>
+    <text x="144" y="238">Future</text>
+    <text x="452" y="238">Runnable</text>
+    <text x="300" y="408">RunnableFuture</text>
+    <text x="299" y="573">FutureTask</text>
+  </g>
+
+  <g fill="none" stroke="#008200" stroke-width="1.5">
+    <path d="M215 366 V275 H143 V258" marker-end="url(#tri-concurrency38)"/>
+    <path d="M410 366 V315 H445 V258" marker-end="url(#tri-concurrency38)"/>
+    <path d="M300 530 V437" stroke-dasharray="7 5" marker-end="url(#tri-concurrency38)"/>
+  </g>
+  <path d="M455 88 V196" fill="none" stroke="#999900" stroke-width="1.5" stroke-dasharray="2 5"/>
+</svg>

@@ -85,7 +85,7 @@
 <h2 id="hashmap整体设计">HashMap整体设计</h2>
 <p>我们实现的<code>HashMap</code>需要满足的最重要的功能是根据<code>键(key)</code>查询到对应的<code>值(value)</code>，比如上面提到的根据学生姓名查询成绩。</p>
 <p>因此我们可以有一个这样的设计，我们可以根据数据的<code>键值</code>计算出一个数字（像这种可以将一个数据转化成一个数字的叫做<code>哈希函数</code>，计算出来的值叫做<code>哈希值</code>我们后续将会仔细说明），将这个哈希值作为数组的下标，这样的话<code>键值</code>和下标就有了对应关系了，我们可以在数组对应的哈希值为下标的位置存储具体的数据，比如上面谈到的<code>成绩</code>，整个流程如下图所示：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 782 402" role="img" aria-label="姓名经哈希函数计算后得到成绩数组的下标" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 782 402" role="img" aria-label="姓名经哈希函数计算后得到成绩数组的下标" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap01" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -112,7 +112,7 @@
     <path d="M178 316 V343 M240 316 V343 M303 316 V343 M365 316 V343 M428 316 V343 M490 316 V343 M553 316 V343 M615 316 V343"/>
   </g>
 </svg></figure><p>但是像这种哈希函数计算出来的数值一般是没有范围的，因此我们通常通过哈希函数计算出来的数值通常会经过一个求余数操作(<code>%</code>)，对数组的长度进行求余数，否则求出来的数值将超过数组的长度。比如数组的长度是16，计算出来的哈希值为186，那么求余数之后的结果为<code>186%16=10</code>，那么我们可以将数据存储在数组当中下标为10的位置，下次我们来取的时候就取出下标为10位置的数据即可。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 492" role="img" aria-label="插入过程与查询过程的对比：姓名经哈希函数算出下标，再存入或取出成绩" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 492" role="img" aria-label="插入过程与查询过程的对比：姓名经哈希函数算出下标，再存入或取出成绩" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -274,7 +274,7 @@
 <p>假设我们的哈希函数为<code>H</code>，我们的数组长度为<code>m</code>，我们的键为<code>key</code>，那么我计算出来的下标为：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi></mrow></math></div><p>当我们有哈希冲突的时候，我们计算下标的方法变为：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi><mo>&#x0002C;</mo><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>i</mi></mrow></math></div><p>当我们第一次冲突的时候<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math>，如果重新进行计算仍然冲突那么<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>2</mn></mrow></math> ......</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 315" role="img" aria-label="哈希表下标 0 到 11 的数组，首次计算下标为 5，其余下标用箭头指向下一个位置" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 315" role="img" aria-label="哈希表下标 0 到 11 的数组，首次计算下标为 5，其余下标用箭头指向下一个位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -337,7 +337,7 @@
 <p>我们可以准备多个哈希函数，当使用一个哈希函数产生冲突的时候，我们可以换一个哈希函数，希望通过不同的哈希函数得到不同的哈希值，以解决哈希冲突的问题。</p>
 <h3 id="链地址法">链地址法</h3>
 <p>这个方法是目前使用比较多的方法，当产生哈希冲突的时候，数据用一个链表将冲突的数据链接起来，比如像下面这样：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 476" role="img" aria-label="哈希表数组：绿色格表示没有数据，粉色格表示有数据，两个粉色格向下挂出链表" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 476" role="img" aria-label="哈希表数组：绿色格表示没有数据，粉色格表示有数据，两个粉色格向下挂出链表" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap04" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

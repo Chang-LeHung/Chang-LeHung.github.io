@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 498 396" role="img"
+     aria-label="MESI 缓存状态能否转换的对照表：行是当前状态 M、E、S、I，列是目标状态，绿色对勾表示可以转换，红色叉表示不可以"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 底纹格 -->
+  <g fill="#eaecf0" stroke="#8c8c8c" stroke-width="1.5">
+    <rect x="105" y="30" width="65" height="70"/>
+    <rect x="170" y="30" width="292" height="70"/>
+    <rect x="105" y="100" width="65" height="277"/>
+  </g>
+
+  <!-- 网格 -->
+  <g fill="none" stroke="#8c8c8c" stroke-width="1.5">
+    <path d="M105 30 H462 M105 100 H462 M105 169 H462 M105 238 H462 M105 307 H462 M105 377 H462"/>
+    <path d="M105 30 V377 M170 30 V377 M243 30 V377 M316 30 V377 M389 30 V377 M462 30 V377"/>
+  </g>
+
+  <!-- 表头与行标题 -->
+  <g font-size="34" font-weight="bold" text-anchor="middle" fill="#1a1a1a">
+    <text x="206" y="76">M</text>
+    <text x="279" y="76">E</text>
+    <text x="352" y="76">S</text>
+    <text x="425" y="76">I</text>
+    <text x="137" y="146">M</text>
+    <text x="137" y="215">E</text>
+    <text x="137" y="284">S</text>
+    <text x="137" y="354">I</text>
+  </g>
+
+  <!-- 叉：不能转换 -->
+  <g stroke="#c0392b" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M193 121 L219 147 M219 121 L193 147"/>
+    <path d="M266 121 L292 147 M292 121 L266 147"/>
+    <path d="M339 121 L365 147 M365 121 L339 147"/>
+    <path d="M193 190 L219 216 M219 190 L193 216"/>
+    <path d="M266 190 L292 216 M292 190 L266 216"/>
+    <path d="M339 190 L365 216 M365 190 L339 216"/>
+    <path d="M193 259 L219 285 M219 259 L193 285"/>
+    <path d="M266 259 L292 285 M292 259 L266 285"/>
+  </g>
+
+  <!-- 对勾：可以转换 -->
+  <g stroke="#1e7b1e" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M413 134 L422 143 L438 121"/>
+    <path d="M413 203 L422 212 L438 190"/>
+    <path d="M340 272 L349 281 L365 259"/>
+    <path d="M413 272 L422 281 L438 259"/>
+    <path d="M193 342 L202 351 L218 329"/>
+    <path d="M266 342 L275 351 L291 329"/>
+    <path d="M340 342 L349 351 L365 329"/>
+    <path d="M413 342 L422 351 L438 329"/>
+  </g>
+</svg>

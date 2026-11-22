@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 320" role="img"
+     aria-label="循环数组中的头尾指针：head 指向第 5 个格子，tail 指向其后一个格子，红格表示已有数据"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-arraydeque27" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="30" y="18" width="46" height="30" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="88" y="40" font-size="19">表示存在数据</text>
+  <rect x="30" y="57" width="46" height="30" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="88" y="79" font-size="19">表示不存在数据</text>
+
+  <!-- 数组：12 格，第 5 格有数据 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="36" y="119" width="55" height="26"/>
+    <rect x="91" y="119" width="55" height="26"/>
+    <rect x="146" y="119" width="55" height="26"/>
+    <rect x="201" y="119" width="55" height="26"/>
+    <rect x="256" y="119" width="55" height="26" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="311" y="119" width="55" height="26"/>
+    <rect x="366" y="119" width="55" height="26"/>
+    <rect x="421" y="119" width="55" height="26"/>
+    <rect x="476" y="119" width="55" height="26"/>
+    <rect x="531" y="119" width="55" height="26"/>
+    <rect x="586" y="119" width="55" height="26"/>
+    <rect x="641" y="119" width="55" height="26"/>
+  </g>
+  <rect x="641" y="119" width="55" height="26" fill="none" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <!-- head、tail 指针 -->
+  <circle cx="134" cy="190" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="134" y="197" font-size="19" text-anchor="middle">head</text>
+
+  <circle cx="252" cy="275" r="35" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="252" y="282" font-size="19" text-anchor="middle">tail</text>
+
+  <path d="M169 190 H238 Q270 190 281 160 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+  <path d="M245 242 C272 214 322 210 336 162 V150" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-arraydeque27)"/>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 952 611" role="img" aria-label="Java 内存模型的四个线程与主内存的关系：每个线程的 CPU 和 CPU 缓存与线程工作内存双向相连，所有线程工作内存都与主内存双向相连" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="11" markerHeight="11" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 主内存 -->
+  <rect x="642" y="25" width="191" height="534" rx="22" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <text x="738" y="300" font-size="22" fill="#000" text-anchor="middle">主内存</text>
+
+  <!-- 四个线程的 CPU 与工作内存 -->
+  <g fill="#fad7ac" stroke="#c68a40" stroke-width="1.5">
+    <rect x="49" y="71" width="189" height="63"/>
+    <rect x="48" y="206" width="189" height="63"/>
+    <rect x="44" y="331" width="189" height="63"/>
+    <rect x="43" y="466" width="189" height="63"/>
+  </g>
+  <g fill="#d0cee2" stroke="#66628b" stroke-width="1.5">
+    <rect x="349" y="66" width="170" height="73" rx="8"/>
+    <rect x="349" y="201" width="170" height="73" rx="8"/>
+    <rect x="349" y="326" width="170" height="73" rx="8"/>
+    <rect x="349" y="461" width="170" height="73" rx="8"/>
+  </g>
+
+  <!-- 双向箭头 -->
+  <g fill="none" stroke="#000" stroke-width="1.5"
+     marker-start="url(#arrow-concurrency15)" marker-end="url(#arrow-concurrency15)">
+    <path d="M 238 102 H 349"/>
+    <path d="M 238 237 H 349"/>
+    <path d="M 238 362 H 349"/>
+    <path d="M 238 497 H 349"/>
+    <path d="M 519 107 L 642 155"/>
+    <path d="M 519 238 L 642 292"/>
+    <path d="M 519 360 L 642 339"/>
+    <path d="M 519 492 L 642 426"/>
+  </g>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="143" y="111">CPU和CPU缓存</text>
+    <text x="142" y="246">CPU和CPU缓存</text>
+    <text x="138" y="371">CPU和CPU缓存</text>
+    <text x="137" y="506">CPU和CPU缓存</text>
+    <text x="434" y="111">线程工作内存</text>
+    <text x="434" y="246">线程工作内存</text>
+    <text x="434" y="371">线程工作内存</text>
+    <text x="434" y="506">线程工作内存</text>
+  </g>
+</svg>

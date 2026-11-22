@@ -66,7 +66,7 @@
     <div class="prose">
       <p>本篇文章主要跟大家分析一下<code>ArrayList</code>的源代码。阅读本文你首先得对<code>ArrayList</code>有一些基本的了解，至少使用过它。如果你对<code>ArrayList</code>的一些基本使用还不太熟悉或者在阅读本文的时候感觉有点困难，你可以先阅读这篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483954&amp;idx=1&amp;sn=0671552fd0d33e0b07eab22f698ffaea&amp;chksm=cf0c9e3bf87b172d1e336d7533a79c536600518c085a4104f30667469992e797ff526c732563&amp;mpshare=1&amp;scene=23&amp;srcid=0706NTX8kMWtQryLVoqdqEYC&amp;sharer_sharetime=1657120181327&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">ArrayList设计与实现，自己动手写ArrayList</a>。</p>
 <h2 id="arraylist继承体系分析">ArrayList继承体系分析</h2>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array10-green" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -211,7 +211,7 @@
 <span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"data[5] = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-p">);</span>
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><p>而链表是不可以随机访问的，比如说我们想通过下标访问链表当中的某个数据，需要从头结点或者尾节点开始遍历，直到遍历到下标对应的数据，比如下图中的单链表找到第3个数据，需要从头开始遍历，而这个时间复杂度为<code>O(n)</code>。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="由五个节点组成的链表，每个节点分为 data 和 next 两格，由箭头依次相连，最后一个 next 指向空" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="由五个节点组成的链表，每个节点分为 data 和 next 两格，由箭头依次相连，最后一个 next 指向空" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-node08" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -384,7 +384,7 @@
 <ul>
 <li><code>add</code>方法，这个方法用于往容器的末尾增加数据，也是<code>ArrayList</code>当中最核心的方法。他的主要工作流程如下图所示：</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" style="display:block; margin:1.2em auto; max-width:649px" class="inline-svg">
   <defs>
     <marker id="arrow-array05" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -495,7 +495,7 @@
 <span class="tok-w">    </span><span class="tok-n">MAX_ARRAY_SIZE</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>上述代码的调用流程如下：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 939 684" role="img" aria-label="ArrayList 添加元素的调用流程：add 依次调用 ensureCapacityInternal、calculateCapicity、ensureExplicitCapacity，需要扩容时调用 grow" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 939 684" role="img" aria-label="ArrayList 添加元素的调用流程：add 依次调用 ensureCapacityInternal、calculateCapicity、ensureExplicitCapacity，需要扩容时调用 grow" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array13" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -622,7 +622,7 @@
 <span class="tok-w">                         </span><span class="tok-n">numMoved</span><span class="tok-p">);</span>
 <span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[--</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// clear to let GC do its work</span>
 <span class="tok-p">}</span>
-</code></pre></div><figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637 327" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" class="inline-svg">
+</code></pre></div><figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637 327" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" style="display:block; margin:1.2em auto; max-width:637px" class="inline-svg">
   <defs>
     <marker id="arrow-array08" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -887,7 +887,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>整个拷贝过程如下如所示：</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 933 633" role="img" aria-label="clone 方法里 elementData 数组的拷贝过程：上面的数组元素指向堆中的对象，下面的数组逐格复制这些引用" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 933 633" role="img" aria-label="clone 方法里 elementData 数组的拷贝过程：上面的数组元素指向堆中的对象，下面的数组逐格复制这些引用" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array14" viewBox="0 0 10 10" refX="9.5" refY="5"
              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -1179,7 +1179,7 @@
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>m</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mi>i</mi><mo stretchy="false">&#x00029;</mo><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo>&#x0002B;</mo><mo>&#x022EF;</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><mover><mrow><mfrac><mrow><mi>n</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow><mrow><mn>2</mn></mrow></mfrac></mrow><mo>&#x002D9;</mo></mover><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math></div><p>根据上面的分析我们知道，时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mfrac><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac><mo stretchy="false">&#x00029;</mo></mrow></math> = <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
 <h3 id="扩容机制">扩容机制</h3>
 <p>还记的我们在<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483954&amp;idx=1&amp;sn=0671552fd0d33e0b07eab22f698ffaea&amp;chksm=cf0c9e3bf87b172d1e336d7533a79c536600518c085a4104f30667469992e797ff526c732563&amp;mpshare=1&amp;scene=23&amp;srcid=0706NTX8kMWtQryLVoqdqEYC&amp;sharer_sharetime=1657120181327&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">ArrayList设计与实现，自己动手写ArrayList</a>当中自己实现<code>ArrayList</code>使用的扩容机制吗？我们自己的扩容机制为扩容为原来长度的两倍，而<code>ArrayList</code>当中的扩容机制为扩容为原来的1.5倍。</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 533" role="img" aria-label="扩容倍数对比折线图：1.5 倍与 2 倍增长随元素个数增加后的容量差距" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 533" role="img" aria-label="扩容倍数对比折线图：1.5 倍与 2 倍增长随元素个数增加后的容量差距" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <rect width="848" height="533" fill="#fff"/>
 
   <!-- 绘图区 -->

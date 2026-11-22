@@ -66,7 +66,7 @@
     <div class="prose">
       <p>动态规划作为一种非常经典的一类算法，不仅在解决实际问题当中有很多实际的应用，同时通常也是面试的一个重点。本篇文章一步步剖析动态规划的基本原理，通过<code>斐波拉契数列问题</code>（优化时间复杂度从<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>到<code>O(n)</code>再到<code>O(log(n))</code>）和经典的<code>01背包问题</code>一步一步带你从最基本的原理弄懂动态规划。我们首先分析斐波拉契数列问题，然后在分析问题的时候慢慢的深入动态规划。</p>
 <p>本篇文章的篇章结构：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 672" role="img" aria-label="文章结构思维导图：文章结构分出斐波拉契数列、背包问题、总结三条分支，每条分支下列出若干小节" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 672" role="img" aria-label="文章结构思维导图：文章结构分出斐波拉契数列、背包问题、总结三条分支，每条分支下列出若干小节" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <rect x="0" y="0" width="1106" height="672" fill="#ffffff"/>
 
   <!-- 主干连线 -->
@@ -146,7 +146,7 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>当我们求第<code>6</code>个斐波拉契数的时候，函数<code>fibonacci</code>的调用过程如下所示：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp04" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -242,7 +242,7 @@
 </svg></figure><p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
 <p>我们容易发现我们在函数调用的过程当中存在重复，比如下图两个相同的部分表示对<code>fibonacci(4)</code>重新计算，因为他们的调用树都是一样的：</p>
 <p>这种使用递归的方式计算斐波拉契数列的时间和空间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp05" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -343,7 +343,7 @@
 </svg></figure><h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
 <p>既然是重复计算那么我们是否可用避免<code>重复计算</code>呢？在计算机一种常见的做法就是<code>空间换时间</code>，我们可以将之前计算的数据存下来，比如我们用数组<code>fib[]</code>存储我们计算得到的结果，<code>fib[i] = fibonacci(i) </code>，那么根据斐波拉契数列的公式我们可以知道：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>当我们通过数组存储中间计算的数据的时候，我们应该使用什么样的算法进行计算呢？</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-size="25" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-size="25" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="10" markerHeight="10" orient="auto-start-reverse">
@@ -378,7 +378,7 @@
   <text x="234" y="264">表示蓝色框依赖的数据</text>
 </svg></figure><p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>我们知道<code>绿色框</code>依赖它前面的两个数据，因此我们在计算<code>fib[i]</code>的时候，需要提前将前面两个它依赖的数据计算好，因此我们可以从左至右计算<code>fib</code>数组，这样的话我们在计算第<code>n</code>个<code>fib</code>数的时候前面<code>n - 1</code>个<code>fib</code>数已经计算好了。</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp11-black" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9.5" markerHeight="9.5" orient="auto-start-reverse">
@@ -522,7 +522,7 @@
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们知道计算机在进行运算的时候都是采用<code>2进制</code>进行运算，所有的正整数如果是2的整数次幂的话，数据的二进制当中只有一个为为<code>1</code>，其余位置为<code>0</code>。</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 448" role="img" aria-label="int 类型占 4 个字节共 32 bit 的二进制表示：0、1、2、4、8、16 分别写成 8 组四位二进制，每行只有一处 1" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 448" role="img" aria-label="int 类型占 4 个字节共 32 bit 的二进制表示：0、1、2、4、8、16 分别写成 8 组四位二进制，每行只有一处 1" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <text x="200" y="41.5" font-size="26" letter-spacing="-0.5">下面的二进制表示数据类型为 int 类型，占4个字节 32个bit</text>
 
   <g font-size="22">
@@ -653,7 +653,7 @@
     <text x="962.75" y="386">0000</text>
   </g>
 </svg></figure><p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 309" role="img" aria-label="1、2、4、7 的 32 位二进制表示，红框圈出最低的一位，说明只有最后一位或最后几位不同" fill="#000" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 309" role="img" aria-label="1、2、4、7 的 32 位二进制表示，红框圈出最低的一位，说明只有最后一位或最后几位不同" fill="#000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <g font-size="22">
     <text x="27" y="73">1的二进制表示</text>
     <text x="27" y="129">2的二进制表示</text>
@@ -929,7 +929,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h2 id="我们从斐波拉契数列得到了什么">我们从斐波拉契数列得到了什么</h2>
 <p>我们现在来重新捋一下我们在上面学习斐波拉契数列的思路：</p>
-<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" style="display:block; margin:1.2em auto; max-width:569px" class="inline-svg">
   <defs>
     <marker id="arrow-dp16" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -1000,7 +1000,7 @@
 </table>
 <p>这个问题还是比较简单，我们直接看就知道选择物品B和物品C得到的价值最大。那么我们如何设计一个算法去实现这个问题呢？首先对于每一个物品都有两种情况，选择和不选择，我们需要选择两种情况当中能够获取最大价值的那种情况。</p>
 <h3 id="选择或者不选择">选择或者不选择</h3>
-<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 784 356" role="img" aria-label="背包问题状态转移示意：物品节点分出选与不选两条分支，各自给出总价值与剩余承重量的变化" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 784 356" role="img" aria-label="背包问题状态转移示意：物品节点分出选与不选两条分支，各自给出总价值与剩余承重量的变化" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp17" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
@@ -1031,7 +1031,7 @@
 <p>比如说：<code>dp[2][3]</code>表示在本题当中的四个物品<code>A,B,C,D</code>当中只选择前面两个物品<code>A,B</code>，且背包还能够承受<code>3</code>de 重量。</p>
 <p>根据上面的分析我们可以得到下面一个动态规划公式：</p>
 <p><code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，其中<code>w</code>和<code>v</code>分别表示第<code>i</code>个物品的重量和价值。</p>
-<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp18" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
@@ -1080,7 +1080,7 @@
 </svg></figure><h3 id="你真的理解了背包问题for循环的顺序吗">你真的理解了背包问题for循环的顺序吗</h3>
 <p>我们已经得到了我们的动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，我们现在了来好好分析这个公式：</p>
 <p>我们可以很清楚的看到要想求解<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - w]</code>和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系可以用下图来表示。</p>
-<figure class="diagram svg-figure" id="figure-11"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-11"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp21" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
@@ -1226,7 +1226,7 @@
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>我们在上述两份代码当中的<code>for</code>循环顺序是遍历所有的物品，然后背包容量从<code>0</code>变化到<code>V</code>，那么我们背包容量变化能不能从<code>V</code>变化到<code>0</code>呢？答案是可以的：</p>
-<figure class="diagram svg-figure" id="figure-12"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-12"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-dp22" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
@@ -1369,7 +1369,7 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>我们知道，第<code>i</code>行的数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破话动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-13"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-13"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <rect x="0" y="0" width="914" height="358" fill="#ffffff"/>
 
   <text x="434.5" y="53" font-size="21.5" fill="#000000" text-anchor="middle">一维数组优化</text>
@@ -1411,7 +1411,7 @@
 </svg></figure><ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-14"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-14"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" style="display:block; margin:1.2em auto; max-width:636px" class="inline-svg">
   <rect x="0" y="0" width="636" height="239" fill="#ffffff"/>
 
   <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
@@ -1433,7 +1433,7 @@
   <rect x="54.5" y="175.5" width="65" height="26.5" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
   <text x="146" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
 </svg></figure><p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<figure class="diagram svg-figure" id="figure-15"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-15"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" style="display:block; margin:1.2em auto; max-width:661px" class="inline-svg">
   <rect x="0" y="0" width="661" height="257" fill="#ffffff"/>
 
   <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">

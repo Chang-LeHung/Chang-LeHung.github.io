@@ -92,7 +92,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>但是遗憾的是<code>k</code>是一个变量，它不是一个定值，如果他是一个定值的话，那么我们就可以使用上面的循环操作去解决这个问题，而且是很高效的。那这个问题我们应该如何解决的？我们思考一下，对于每一个数我们都有两种选择：选择和不选择，也就是是否需要将这个数据加到集合当中去。</p>
 <p>现在我们对上述给定的例子进行求解**（n = 4, k = 2）**，每一个数据都有两种选择，选和不选（很多回溯的问题都是可以按照这种思路）具体过程入下图所示，其中蓝色的节点表示待选择的数据，红色的框表示当前被选中的数据的集合：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2049 738" role="img" aria-label="回溯选择二叉树：每个节点用蓝格记录层号、彩色格记录已选集合，绿色为答案节点" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2049 738" role="img" aria-label="回溯选择二叉树：每个节点用蓝格记录层号、彩色格记录已选集合，绿色为答案节点" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-backtrace02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

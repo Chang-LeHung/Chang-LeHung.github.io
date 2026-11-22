@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 645 395" role="img"
+     aria-label="中缀表达式转后缀时的栈与遍历位置：栈里只有 Q 和 A，字符序列遍历到 M * B = Q 里的星号"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <text x="72" y="39" font-size="21">栈顶</text>
+
+  <!-- 栈 -->
+  <rect x="70" y="64" width="46" height="247" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <rect x="75" y="219" width="36" height="38" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="75" y="265" width="36" height="38" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <g font-size="22" text-anchor="middle" fill="#1a1a1a">
+    <text x="93" y="244">Q</text>
+    <text x="93" y="290">A</text>
+  </g>
+
+  <text x="62" y="359" font-size="21">栈底</text>
+
+  <!-- 图例 -->
+  <rect x="180" y="66" width="36" height="35" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <text x="243" y="93" font-size="22">表示正在遍历的位置</text>
+  <rect x="180" y="120" width="36" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="243" y="142" font-size="22">已经遍历过的位置</text>
+
+  <!-- 第一行字符序列：A B C D - * + E F / - -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <rect x="180" y="184" width="35" height="37"/>
+    <rect x="218" y="184" width="35" height="37"/>
+    <rect x="255" y="184" width="35" height="37"/>
+    <rect x="293" y="184" width="35" height="37"/>
+    <rect x="330" y="184" width="35" height="37"/>
+  </g>
+  <rect x="368" y="184" width="35" height="37" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <g fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="405" y="184" width="35" height="37"/>
+    <rect x="443" y="184" width="35" height="37"/>
+    <rect x="480" y="184" width="35" height="37"/>
+    <rect x="518" y="184" width="35" height="37"/>
+    <rect x="555" y="184" width="35" height="37"/>
+  </g>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="197" y="209">A</text>
+    <text x="235" y="209">B</text>
+    <text x="272" y="209">C</text>
+    <text x="310" y="209">D</text>
+    <text x="347" y="209">-</text>
+    <text x="385" y="209">*</text>
+    <text x="422" y="209">+</text>
+    <text x="460" y="209">E</text>
+    <text x="497" y="209">F</text>
+    <text x="535" y="209">/</text>
+    <text x="572" y="209">-</text>
+  </g>
+
+  <!-- 第二行字符序列：M * B = Q -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <rect x="180" y="245" width="35" height="37"/>
+    <rect x="255" y="245" width="35" height="37"/>
+    <rect x="330" y="245" width="35" height="37"/>
+  </g>
+  <rect x="218" y="245" width="35" height="37" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <rect x="293" y="245" width="35" height="37" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="197" y="270">M</text>
+    <text x="235" y="270">*</text>
+    <text x="272" y="270">B</text>
+    <text x="310" y="270">=</text>
+    <text x="347" y="270">Q</text>
+  </g>
+</svg>

@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1818 739" role="img"
+     aria-label="从 [2,3,5] 中依次选择数据的递归树：每个节点由待选择集合与已选集合组成，青色为已选择、绿色为得到正确结果、洋红为需要递归返回"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-backtrace12" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="139" y="26" width="81" height="42" fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5"/>
+  <text x="240" y="55" font-size="26">表示已经被选择的数据</text>
+  <rect x="139" y="85" width="81" height="40" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="240" y="112" font-size="26">表示待选择的数据</text>
+  <rect x="139" y="145" width="81" height="42" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="240" y="173" font-size="26">表示得到正确结果的节点</text>
+  <rect x="139" y="209" width="81" height="42" fill="#d80073" stroke="#a50040" stroke-width="1.5"/>
+  <text x="240" y="237" font-size="26">表示需要进行递归返回的节点</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#000" stroke-width="2">
+    <path d="M1312 72 V131"/>
+    <path d="M906 131 H1677"/>
+    <path d="M906 131 V181" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M1312 131 V181" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M1677 131 V181" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M906 219 V282"/>
+    <path d="M425 282 H961"/>
+    <path d="M425 282 V336" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M688 282 V336" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M961 282 V336" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M1312 219 V268"/>
+    <path d="M1248 268 H1428"/>
+    <path d="M1248 268 V309" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M1428 268 V309" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M1677 219 V309" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M1249 347 V409"/>
+    <path d="M1249 409 H1448"/>
+    <path d="M1249 409 V462" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M1448 409 V462" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M425 374 V453"/>
+    <path d="M125 453 H470"/>
+    <path d="M125 453 V523" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M295 453 V523" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M470 453 V523" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M688 374 V461"/>
+    <path d="M648 461 H825"/>
+    <path d="M648 461 V523" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M825 461 V523" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M961 374 V416" marker-end="url(#arrow-backtrace12)"/>
+
+    <path d="M125 561 V614"/>
+    <path d="M66 614 H467"/>
+    <path d="M66 614 V657" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M262 614 V657" marker-end="url(#arrow-backtrace12)"/>
+    <path d="M467 614 V657" marker-end="url(#arrow-backtrace12)"/>
+  </g>
+
+  <!-- 分支标注 -->
+  <g font-size="22" text-anchor="middle" fill="#000">
+    <text x="1030" y="122">选2</text>
+    <text x="1345" y="120">选3</text>
+    <text x="1660" y="120">选5</text>
+
+    <text x="500" y="322">选2</text>
+    <text x="775" y="322">选3</text>
+    <text x="1040" y="322">选5</text>
+
+    <text x="1250" y="256">选3</text>
+    <text x="1432" y="256">选5</text>
+
+    <text x="1700" y="252">选5</text>
+
+    <text x="1205" y="440">选3</text>
+    <text x="1400" y="436">选5</text>
+
+    <text x="140" y="490">选2</text>
+    <text x="305" y="493">选3</text>
+    <text x="505" y="490">选5</text>
+
+    <text x="680" y="495">选3</text>
+    <text x="870" y="495">选5</text>
+
+    <text x="85" y="647">选2</text>
+    <text x="285" y="650">选3</text>
+    <text x="505" y="647">选5</text>
+  </g>
+
+  <!-- 节点：[待选择] | [已选择] -->
+  <g stroke-width="1.5">
+    <!-- 根 -->
+    <rect x="1274" y="39" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1353" y="39" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="1312" y="64" font-size="21" text-anchor="middle">[2,3,5]</text>
+    <text x="1391" y="64" font-size="21" text-anchor="middle">[]</text>
+
+    <!-- 第一层 -->
+    <rect x="868" y="186" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="948" y="186" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="906" y="211" font-size="21" text-anchor="middle">[2,3,5]</text>
+    <text x="986" y="211" font-size="21" text-anchor="middle">[2]</text>
+
+    <rect x="1274" y="186" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1353" y="186" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="1312" y="211" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="1391" y="211" font-size="21" text-anchor="middle">[3]</text>
+
+    <rect x="1639" y="186" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1719" y="186" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="1677" y="211" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1757" y="211" font-size="21" text-anchor="middle">[5]</text>
+
+    <!-- 选3 -> [3,5] 的两个分支 -->
+    <rect x="1211" y="314" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1290" y="314" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="1249" y="339" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="1328" y="339" font-size="21" text-anchor="middle">[3,3]</text>
+
+    <rect x="1389" y="314" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1469" y="314" width="77" height="33" fill="#cdeb8b" stroke="#36393d"/>
+    <text x="1427" y="339" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1507" y="339" font-size="21" text-anchor="middle">[3,5]</text>
+
+    <!-- 选5 -> [5] 的分支 -->
+    <rect x="1639" y="314" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1719" y="314" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="1677" y="339" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1757" y="339" font-size="21" text-anchor="middle" fill="#ffffff">[5,5]</text>
+
+    <!-- 选2 -> [2,3,5] 的三个分支 -->
+    <rect x="387" y="341" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="467" y="341" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="425" y="366" font-size="21" text-anchor="middle">[2,3,5]</text>
+    <text x="505" y="366" font-size="21" text-anchor="middle">[2,2]</text>
+
+    <rect x="650" y="341" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="730" y="341" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="688" y="366" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="768" y="366" font-size="21" text-anchor="middle">[2,3]</text>
+
+    <rect x="923" y="341" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1003" y="341" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="961" y="366" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1041" y="366" font-size="21" text-anchor="middle">[2,5]</text>
+
+    <rect x="923" y="421" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1003" y="421" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="961" y="446" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1041" y="446" font-size="21" text-anchor="middle" fill="#ffffff">[2,5,5]</text>
+
+    <!-- [3,5]|[3,3] 的两个分支 -->
+    <rect x="1211" y="467" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1290" y="467" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="1249" y="492" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="1328" y="492" font-size="21" text-anchor="middle" fill="#ffffff">[3,3,3]</text>
+
+    <rect x="1410" y="467" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="1490" y="467" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="1448" y="492" font-size="21" text-anchor="middle">[5]</text>
+    <text x="1528" y="492" font-size="21" text-anchor="middle" fill="#ffffff">[3,3,5]</text>
+
+    <!-- [2,3,5]|[2,2] 的三个分支 -->
+    <rect x="87" y="528" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="167" y="528" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="125" y="553" font-size="21" text-anchor="middle">[2,3,5]</text>
+    <text x="205" y="553" font-size="21" text-anchor="middle">[2,2,2]</text>
+
+    <rect x="257" y="528" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="337" y="528" width="77" height="33" fill="#b0e3e6" stroke="#0e8088"/>
+    <text x="295" y="553" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="375" y="553" font-size="21" text-anchor="middle">[2,2,3]</text>
+
+    <rect x="432" y="528" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="511" y="528" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="470" y="553" font-size="21" text-anchor="middle">[5]</text>
+    <text x="549" y="553" font-size="21" text-anchor="middle" fill="#ffffff">[2,2,5]</text>
+
+    <!-- [3,5]|[2,3] 的两个分支 -->
+    <rect x="610" y="528" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="690" y="528" width="77" height="33" fill="#cdeb8b" stroke="#36393d"/>
+    <text x="648" y="553" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="728" y="553" font-size="21" text-anchor="middle">[2,3,3]</text>
+
+    <rect x="786" y="528" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="866" y="528" width="77" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="824" y="553" font-size="21" text-anchor="middle">[5]</text>
+    <text x="904" y="553" font-size="21" text-anchor="middle" fill="#ffffff">[2,3,5]</text>
+
+    <!-- 最下一层：四元素的集合 -->
+    <rect x="28" y="662" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="108" y="662" width="90" height="33" fill="#cdeb8b" stroke="#36393d"/>
+    <text x="66" y="687" font-size="21" text-anchor="middle">[2,3,5]</text>
+    <text x="153" y="687" font-size="21" text-anchor="middle">[2,2,2,2]</text>
+
+    <rect x="224" y="662" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="303" y="662" width="90" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="262" y="687" font-size="21" text-anchor="middle">[3,5]</text>
+    <text x="348" y="687" font-size="21" text-anchor="middle" fill="#ffffff">[2,2,2,3]</text>
+
+    <rect x="429" y="662" width="77" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="509" y="662" width="90" height="33" fill="#d80073" stroke="#a50040"/>
+    <text x="467" y="687" font-size="21" text-anchor="middle">[5]</text>
+    <text x="554" y="687" font-size="21" text-anchor="middle" fill="#ffffff">[2,2,2,5]</text>
+  </g>
+</svg>

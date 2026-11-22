@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1017 581" role="img"
+     aria-label="环形数组的两次状态：上排 tail=4、head=8，取出元素后下排 tail=4、head=7，新元素写入下标 7 的格子"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-15" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="130" y="19" width="38" height="27" fill="#b1ddf0" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="196" y="41" font-size="22">待加入队列的数据</text>
+  <rect x="130" y="72" width="38" height="27" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="194" y="100" font-size="22">不存在数据</text>
+  <rect x="130" y="129" width="38" height="28" fill="#cdeb8b" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="194" y="152" font-size="22">存在数据</text>
+
+  <!-- 上排：整体上下两道横线 -->
+  <line x1="64" y1="199" x2="818" y2="199" stroke="#444" stroke-width="2"/>
+  <line x1="64" y1="257" x2="818" y2="257" stroke="#444" stroke-width="2"/>
+
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="121" y="213" width="160" height="30" fill="#cdeb8b"/>
+    <rect x="281" y="213" width="160" height="30" fill="#ffffff"/>
+    <rect x="441" y="213" width="320" height="30" fill="#cdeb8b"/>
+    <g fill="none">
+      <line x1="161" y1="213" x2="161" y2="243"/>
+      <line x1="201" y1="213" x2="201" y2="243"/>
+      <line x1="241" y1="213" x2="241" y2="243"/>
+      <line x1="321" y1="213" x2="321" y2="243"/>
+      <line x1="361" y1="213" x2="361" y2="243"/>
+      <line x1="401" y1="213" x2="401" y2="243"/>
+      <line x1="481" y1="213" x2="481" y2="243"/>
+      <line x1="521" y1="213" x2="521" y2="243"/>
+      <line x1="561" y1="213" x2="561" y2="243"/>
+      <line x1="601" y1="213" x2="601" y2="243"/>
+      <line x1="641" y1="213" x2="641" y2="243"/>
+      <line x1="681" y1="213" x2="681" y2="243"/>
+      <line x1="721" y1="213" x2="721" y2="243"/>
+    </g>
+  </g>
+  <g font-size="23" text-anchor="middle" fill="#1a1a1a">
+    <text x="141" y="235">0</text>
+    <text x="181" y="235">1</text>
+    <text x="221" y="235">2</text>
+    <text x="261" y="235">3</text>
+    <text x="301" y="235">4</text>
+    <text x="341" y="235">5</text>
+    <text x="381" y="235">6</text>
+    <text x="421" y="235">7</text>
+    <text x="461" y="235">8</text>
+    <text x="501" y="235">9</text>
+    <text x="541" y="235">10</text>
+    <text x="581" y="235">11</text>
+    <text x="621" y="235">12</text>
+    <text x="661" y="235">13</text>
+    <text x="701" y="235">14</text>
+    <text x="741" y="235">15</text>
+  </g>
+
+  <!-- tail=4 / head=8 的粉色标注 -->
+  <g fill="#ffcccc" stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="156" y="311" width="76" height="38" rx="6"/>
+    <rect x="520" y="311" width="89" height="38" rx="6"/>
+  </g>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="194" y="337">tail=4</text>
+    <text x="564" y="337">head=8</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-15)">
+    <path d="M232 330 H301 V246"/>
+    <path d="M520 330 H461 V246"/>
+  </g>
+
+  <!-- 下移"新元素"的空心大箭头 -->
+  <path d="M360 280 H378 V345 H409 L369 395 L330 345 H360 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 右侧虚线箭头：新元素从外部进入 -->
+  <path d="M785 228 L835 211 V221 H910 V234 H835 V244 Z"
+        fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="950" y="215" width="37" height="27" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+
+  <!-- 下排 -->
+  <line x1="60" y1="399" x2="814" y2="399" stroke="#444" stroke-width="2"/>
+  <line x1="60" y1="457" x2="814" y2="457" stroke="#444" stroke-width="2"/>
+
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="117" y="413" width="160" height="30" fill="#cdeb8b"/>
+    <rect x="277" y="413" width="120" height="30" fill="#ffffff"/>
+    <rect x="397" y="413" width="40" height="30" fill="#b1ddf0"/>
+    <rect x="437" y="413" width="320" height="30" fill="#cdeb8b"/>
+    <g fill="none">
+      <line x1="157" y1="413" x2="157" y2="443"/>
+      <line x1="197" y1="413" x2="197" y2="443"/>
+      <line x1="237" y1="413" x2="237" y2="443"/>
+      <line x1="317" y1="413" x2="317" y2="443"/>
+      <line x1="357" y1="413" x2="357" y2="443"/>
+      <line x1="477" y1="413" x2="477" y2="443"/>
+      <line x1="517" y1="413" x2="517" y2="443"/>
+      <line x1="557" y1="413" x2="557" y2="443"/>
+      <line x1="597" y1="413" x2="597" y2="443"/>
+      <line x1="637" y1="413" x2="637" y2="443"/>
+      <line x1="677" y1="413" x2="677" y2="443"/>
+      <line x1="717" y1="413" x2="717" y2="443"/>
+    </g>
+  </g>
+  <g font-size="23" text-anchor="middle" fill="#1a1a1a">
+    <text x="137" y="435">0</text>
+    <text x="177" y="435">1</text>
+    <text x="217" y="435">2</text>
+    <text x="257" y="435">3</text>
+    <text x="297" y="435">4</text>
+    <text x="337" y="435">5</text>
+    <text x="377" y="435">6</text>
+    <text x="417" y="435">7</text>
+    <text x="457" y="435">8</text>
+    <text x="497" y="435">9</text>
+    <text x="537" y="435">10</text>
+    <text x="577" y="435">11</text>
+    <text x="617" y="435">12</text>
+    <text x="657" y="435">13</text>
+    <text x="697" y="435">14</text>
+    <text x="737" y="435">15</text>
+  </g>
+
+  <g fill="#ffcccc" stroke="#1a1a1a" stroke-width="1.5">
+    <rect x="152" y="511" width="76" height="38" rx="6"/>
+    <rect x="516" y="511" width="89" height="38" rx="6"/>
+  </g>
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="190" y="537">tail=4</text>
+    <text x="560" y="537">head=7</text>
+  </g>
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-15)">
+    <path d="M228 530 H297 V446"/>
+    <path d="M516 530 H417 V446"/>
+  </g>
+</svg>

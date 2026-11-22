@@ -1,0 +1,278 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2478 924" role="img" aria-label="子集枚举决策树：四个元素逐个选择或不选择，蓝格是层号，右侧格是已选集合，绿色为答案节点，紫色与红色是被剪枝或重复的子树" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="2478" height="924">
+  <defs>
+    <marker id="arrow-backtrace04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="2478" height="924" fill="#fff"/>
+
+  <!-- 图例 -->
+  <rect x="39" y="122" width="75" height="48" fill="#d3ea96" stroke="#97bf4a" stroke-width="1"/>
+  <text x="142" y="156" font-size="25" fill="#111">答案节点</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#111" stroke-width="1.5">
+    <path d="M1254 92 V152 H792 V162" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1254 152 H1959 V162" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M792 211 V315 H347 V342" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M792 315 H1037 V342" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1959 211 V315 H1685 V342" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1959 315 H2172 V342" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M347 392 V436 H236 V536" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M347 436 H444 V536" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1037 392 V510 H856 V536" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1037 510 H1152 V536" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1685 392 V510 H1548 V536" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1685 510 H1796 V536" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M2172 392 V510 H2045 V536" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M2172 510 H2316 V536" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M236 588 V620 H98 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M236 620 H263 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M444 588 V620 H422 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M444 620 H591 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M856 588 V676 H764 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M856 676 H929 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1152 588 V676 H1088 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1152 676 H1253 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1548 588 V620 H1436 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1548 620 H1601 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M1796 588 V676 H1757 V700" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M1796 676 H1922 V700" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M2045 588 V676 H1988 V824" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M2045 676 H2115 V824" marker-end="url(#arrow-backtrace04)"/>
+
+    <path d="M2316 588 V620 H2201 V710" marker-end="url(#arrow-backtrace04)"/>
+    <path d="M2316 620 H2365 V710" marker-end="url(#arrow-backtrace04)"/>
+  </g>
+
+  <!-- 分支标注：普通文字 -->
+  <g font-size="22" fill="#111" text-anchor="middle">
+    <text x="1023" y="146">选择</text>
+    <text x="1507" y="146">不选择</text>
+    <text x="570" y="308">选择</text>
+    <text x="914" y="308">不选择</text>
+    <text x="1822" y="308">选择</text>
+    <text x="2065" y="308">不选择</text>
+    <text x="947" y="502">选择</text>
+    <text x="1095" y="502">不选择</text>
+    <text x="1617" y="502">选择</text>
+    <text x="1741" y="502">不选择</text>
+    <text x="2109" y="502">选择</text>
+    <text x="2244" y="502">不选择</text>
+    <text x="810" y="668">选择</text>
+    <text x="893" y="668">不选择</text>
+    <text x="1120" y="668">选择</text>
+    <text x="1203" y="668">不选择</text>
+    <text x="1777" y="668">选择</text>
+    <text x="1859" y="668">不选择</text>
+    <text x="1975" y="668">选择</text>
+    <text x="2078" y="668">不选择</text>
+  </g>
+
+  <!-- 分支标注：紫底 / 红底 -->
+  <g font-size="24" text-anchor="middle" fill="#fff">
+    <rect x="136" y="601" width="63" height="38" fill="#610ff5"/>
+    <text x="167" y="629">选择</text>
+    <rect x="208" y="601" width="85" height="38" fill="#610ff5"/>
+    <text x="250" y="629">不选择</text>
+
+    <rect x="402" y="601" width="63" height="38" fill="#610ff5"/>
+    <text x="433" y="629">选择</text>
+    <rect x="476" y="601" width="85" height="38" fill="#610ff5"/>
+    <text x="518" y="629">不选择</text>
+
+    <rect x="1461" y="601" width="63" height="38" fill="#610ff5"/>
+    <text x="1492" y="629">选择</text>
+    <rect x="1533" y="601" width="85" height="38" fill="#610ff5"/>
+    <text x="1575" y="629">不选择</text>
+
+    <rect x="2228" y="601" width="63" height="38" fill="#c62a72"/>
+    <text x="2259" y="629">选择</text>
+    <rect x="2299" y="601" width="85" height="38" fill="#c62a72"/>
+    <text x="2341" y="629">不选择</text>
+
+    <rect x="261" y="417" width="63" height="38" fill="#610ff5"/>
+    <text x="292" y="445">选择</text>
+    <rect x="354" y="417" width="85" height="38" fill="#610ff5"/>
+    <text x="396" y="445">不选择</text>
+  </g>
+
+  <!-- 节点：一格层号 + 一格集合 -->
+  <g stroke-width="1">
+    <!-- 第 1 层 -->
+    <rect x="1178" y="44" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1255" y="44" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1215" y="77" font-size="28" text-anchor="middle" fill="#111">1</text>
+    <text x="1292" y="76" font-size="26" text-anchor="middle" fill="#111">[]</text>
+
+    <!-- 第 2 层 -->
+    <rect x="716" y="162" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="793" y="162" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="753" y="195" font-size="28" text-anchor="middle" fill="#111">2</text>
+    <text x="830" y="194" font-size="26" text-anchor="middle" fill="#111">[1]</text>
+
+    <rect x="1883" y="162" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1960" y="162" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1920" y="195" font-size="28" text-anchor="middle" fill="#111">2</text>
+    <text x="1997" y="194" font-size="26" text-anchor="middle" fill="#111">[]</text>
+
+    <!-- 第 3 层 -->
+    <rect x="271" y="342" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="348" y="342" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="308" y="375" font-size="28" text-anchor="middle" fill="#111">3</text>
+    <text x="385" y="374" font-size="24" text-anchor="middle" fill="#111">[1, 2]</text>
+
+    <rect x="962" y="342" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1039" y="342" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="999" y="375" font-size="28" text-anchor="middle" fill="#111">3</text>
+    <text x="1076" y="374" font-size="26" text-anchor="middle" fill="#111">[1]</text>
+
+    <rect x="1610" y="342" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1687" y="342" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1647" y="375" font-size="28" text-anchor="middle" fill="#111">3</text>
+    <text x="1724" y="374" font-size="26" text-anchor="middle" fill="#111">[2]</text>
+
+    <rect x="2097" y="342" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="2174" y="342" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="2134" y="375" font-size="28" text-anchor="middle" fill="#111">3</text>
+    <text x="2211" y="374" font-size="26" text-anchor="middle" fill="#111">[]</text>
+
+    <!-- 第 4 层 -->
+    <rect x="160" y="536" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="237" y="536" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="197" y="569" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="274" y="568" font-size="21" text-anchor="middle" fill="#fff">[1, 2, 3]</text>
+
+    <rect x="368" y="536" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="445" y="536" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="405" y="569" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="482" y="568" font-size="24" text-anchor="middle" fill="#fff">[1, 2]</text>
+
+    <rect x="781" y="536" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="858" y="536" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="818" y="569" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="895" y="568" font-size="24" text-anchor="middle" fill="#111">[1, 3]</text>
+
+    <rect x="1077" y="536" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1154" y="536" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1114" y="569" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1191" y="568" font-size="26" text-anchor="middle" fill="#111">[1]</text>
+
+    <rect x="1473" y="536" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1550" y="536" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="1510" y="569" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1587" y="568" font-size="24" text-anchor="middle" fill="#111">[2, 3]</text>
+
+    <rect x="1721" y="536" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1798" y="536" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1758" y="569" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1835" y="568" font-size="26" text-anchor="middle" fill="#111">[2]</text>
+
+    <rect x="1971" y="536" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="2048" y="536" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="2008" y="569" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="2085" y="568" font-size="26" text-anchor="middle" fill="#111">[3]</text>
+
+    <rect x="2240" y="536" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <rect x="2317" y="536" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <text x="2277" y="569" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="2354" y="568" font-size="26" text-anchor="middle" fill="#fff">[]</text>
+
+    <!-- 第 5 层 -->
+    <rect x="23" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="100" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="60" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="137" y="731" font-size="17" text-anchor="middle" fill="#fff">[1,2,3,4]</text>
+
+    <rect x="188" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="265" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="225" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="302" y="732" font-size="21" text-anchor="middle" fill="#fff">[1, 2, 3]</text>
+
+    <rect x="347" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="424" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="384" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="461" y="732" font-size="21" text-anchor="middle" fill="#fff">[1,2, 4]</text>
+
+    <rect x="514" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="591" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="551" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="628" y="732" font-size="24" text-anchor="middle" fill="#fff">[1, 2]</text>
+
+    <rect x="689" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="766" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="726" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="803" y="732" font-size="21" text-anchor="middle" fill="#fff">[1,3,4]</text>
+
+    <rect x="854" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="931" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="891" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="968" y="732" font-size="24" text-anchor="middle" fill="#fff">[1, 3]</text>
+
+    <rect x="1013" y="700" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1090" y="700" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="1050" y="733" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1127" y="732" font-size="24" text-anchor="middle" fill="#111">[1, 4]</text>
+
+    <rect x="1178" y="700" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1255" y="700" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1215" y="733" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1292" y="732" font-size="26" text-anchor="middle" fill="#111">[1]</text>
+
+    <rect x="1360" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="1437" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="1397" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="1474" y="732" font-size="21" text-anchor="middle" fill="#fff">[2, 3, 4]</text>
+
+    <rect x="1525" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <rect x="1601" y="700" width="75" height="48" fill="#610ff5" stroke="#4a0bc0"/>
+    <text x="1562" y="733" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="1638" y="732" font-size="24" text-anchor="middle" fill="#fff">[2, 3]</text>
+
+    <rect x="1681" y="700" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1758" y="700" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="1718" y="733" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1795" y="732" font-size="24" text-anchor="middle" fill="#111">[2, 4]</text>
+
+    <rect x="1845" y="700" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1922" y="700" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="1882" y="733" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="1959" y="732" font-size="26" text-anchor="middle" fill="#111">[2]</text>
+
+    <rect x="2125" y="710" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <rect x="2202" y="710" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <text x="2162" y="743" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="2239" y="742" font-size="26" text-anchor="middle" fill="#fff">[4]</text>
+
+    <rect x="2289" y="710" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <rect x="2366" y="710" width="75" height="48" fill="#c62a72" stroke="#9c215a"/>
+    <text x="2326" y="743" font-size="28" text-anchor="middle" fill="#fff">4</text>
+    <text x="2403" y="742" font-size="26" text-anchor="middle" fill="#fff">[]</text>
+
+    <!-- 第 6 层 -->
+    <rect x="1912" y="824" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="1989" y="824" width="75" height="48" fill="#d3ea96" stroke="#97bf4a"/>
+    <text x="1949" y="857" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="2026" y="856" font-size="24" text-anchor="middle" fill="#111">[3, 4]</text>
+
+    <rect x="2077" y="824" width="75" height="48" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="2154" y="824" width="75" height="48" fill="#f1d0cd" stroke="#b85450"/>
+    <text x="2114" y="857" font-size="28" text-anchor="middle" fill="#111">4</text>
+    <text x="2191" y="856" font-size="26" text-anchor="middle" fill="#111">[3]</text>
+  </g>
+</svg>

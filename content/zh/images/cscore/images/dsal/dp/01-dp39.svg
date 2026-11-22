@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 556" role="img"
+     aria-label="状态转移：上一行的 dp[N-1][0..4] 经过 -prices[i] 或 +prices[i] 转移到下一行的 dp[N][1..4]，dp[N][0] 直接由 dp[N-1][0] 转移而来"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-dp39" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- 上一行 -->
+  <g fill="#ffffff" stroke="#1a1a1a" stroke-width="2">
+    <circle cx="170" cy="106" r="70"/>
+    <circle cx="407" cy="106" r="70"/>
+    <circle cx="644" cy="106" r="70"/>
+    <circle cx="881" cy="106" r="70"/>
+    <circle cx="1118" cy="106" r="70"/>
+  </g>
+  <g font-size="28" text-anchor="middle" fill="#1a1a1a">
+    <text x="170" y="95">dp[N-1]</text>
+    <text x="170" y="140">[0]</text>
+    <text x="407" y="95">dp[N-1]</text>
+    <text x="407" y="140">[1]</text>
+    <text x="644" y="95">dp[N-1]</text>
+    <text x="644" y="140">[2]</text>
+    <text x="881" y="95">dp[N-1]</text>
+    <text x="881" y="140">[3]</text>
+    <text x="1118" y="95">dp[N-1]</text>
+    <text x="1118" y="140">[4]</text>
+  </g>
+
+  <!-- 下一行 -->
+  <g fill="#ffffff" stroke="#1a1a1a" stroke-width="2">
+    <circle cx="170" cy="401" r="69"/>
+    <circle cx="407" cy="401" r="69"/>
+    <circle cx="644" cy="401" r="69"/>
+    <circle cx="881" cy="401" r="69"/>
+    <circle cx="1118" cy="401" r="69"/>
+  </g>
+  <g font-size="28" text-anchor="middle" fill="#1a1a1a">
+    <text x="170" y="411">dp[N][0]</text>
+    <text x="407" y="411">dp[N][1]</text>
+    <text x="644" y="411">dp[N][2]</text>
+    <text x="881" y="411">dp[N][3]</text>
+    <text x="1118" y="411">dp[N][4]</text>
+  </g>
+
+  <!-- 转移箭头 -->
+  <g fill="none" stroke="#1a1a1a" stroke-width="2" marker-end="url(#arrow-dp39)">
+    <path d="M100 148 C40 200 45 320 98 396"/>
+    <path d="M172 172 C178 205 200 232 255 247 C320 264 392 282 401 314"/>
+    <path d="M409 172 C415 205 437 232 492 247 C557 264 629 282 638 314"/>
+    <path d="M646 172 C652 205 674 232 729 247 C794 264 866 282 875 314"/>
+    <path d="M883 172 C889 205 911 232 966 247 C1031 264 1103 282 1112 314"/>
+  </g>
+
+  <!-- 权重标注 -->
+  <g font-size="26" fill="#1a1a1a">
+    <text x="205" y="225">-prices[i]</text>
+    <text x="442" y="225">+prices[i]</text>
+    <text x="679" y="225">-prices[i]</text>
+    <text x="916" y="225">+prices[i]</text>
+  </g>
+</svg>

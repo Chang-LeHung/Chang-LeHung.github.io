@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 385" role="img"
+     aria-label="后缀表达式拼接过程：已算完的 ABCD-*+ 与正在计算的 EF/ 合成为 ABCD-*+EF/-"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <!-- 图例 -->
+  <rect x="272" y="28" width="36" height="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="324" y="54" font-size="20">完成计算的部分</text>
+  <rect x="272" y="83" width="36" height="35" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="324" y="109" font-size="20">正在计算的部分</text>
+
+  <!-- 待合并的三段 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="333" y="124" width="212" height="39"/>
+    <rect x="606" y="124" width="39" height="39"/>
+    <rect x="678" y="124" width="79" height="39"/>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#1a1a1a">
+    <text x="439" y="152">ABCD-*+</text>
+    <text x="625" y="152">-</text>
+    <text x="717" y="152">EF/</text>
+  </g>
+
+  <!-- 结果 -->
+  <rect x="379" y="297" width="209" height="39" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="483" y="325" font-size="22" text-anchor="middle" fill="#1a1a1a">ABCD-*+EF/-</text>
+
+  <!-- 虚线的空心箭头 -->
+  <path d="M574 193 H594 V275 H618 L571 311 L524 275 H574 Z" fill="none"
+        stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="6 4" stroke-linejoin="round"/>
+
+  <text x="30" y="328" font-size="20" fill="#1a1a1a">目前得到的后缀表达式</text>
+</svg>

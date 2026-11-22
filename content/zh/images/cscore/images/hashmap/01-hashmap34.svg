@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 578 227" role="img"
+     aria-label="HashMap 扩容前后由 hash 值取下标的与操作对比：1100 与 1111 得到 12 是扩容后的结果，1100 与 0111 得到 4 是扩容前的结果"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect x="160" y="30" width="96" height="48" fill="#ffcccc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="208" y="62" text-anchor="middle" font-size="26">4</text>
+  <text x="272" y="62" font-size="23">扩容前后的&amp;操作</text>
+
+  <text x="95" y="133" font-size="23">1100 &amp; 1111 = 12</text>
+  <text x="310" y="133" font-size="23">扩容后的&amp;操作</text>
+
+  <text x="95" y="181" font-size="23">1100 &amp; 0111 = 4</text>
+  <text x="310" y="181" font-size="23">扩容前的&amp;操作</text>
+</svg>

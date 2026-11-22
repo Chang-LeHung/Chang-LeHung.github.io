@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 981 596" role="img"
+     aria-label="顺序队列扩容示意：环状使用的数组由 tail 与 head 指向，绿色为已用的 0-3，粉色为 4-7，扩容后数据被搬到一个 16 格的数组中"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 上半部分：8 格数组与 tail / head -->
+  <path d="M190 53 V29 H726 V55" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M423 29 V58" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <rect x="160" y="53" width="59" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="189" y="81" text-anchor="middle" font-size="19">tail</text>
+  <rect x="699" y="55" width="56" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="727" y="83" text-anchor="middle" font-size="19">head</text>
+
+  <g stroke-width="1.5" font-size="20" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="264" y="60" width="41" height="30"/>
+      <rect x="305" y="60" width="41" height="30"/>
+      <rect x="346" y="60" width="41" height="30"/>
+      <rect x="387" y="60" width="41" height="30"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="428" y="60" width="41" height="30"/>
+      <rect x="469" y="60" width="41" height="30"/>
+      <rect x="510" y="60" width="41" height="30"/>
+      <rect x="551" y="60" width="41" height="30"/>
+    </g>
+    <text x="284" y="82">0</text>
+    <text x="325" y="82">1</text>
+    <text x="366" y="82">2</text>
+    <text x="407" y="82">3</text>
+    <text x="448" y="82">4</text>
+    <text x="489" y="82">5</text>
+    <text x="530" y="82">6</text>
+    <text x="571" y="82">7</text>
+  </g>
+
+  <path d="M206 116 H672" fill="none" stroke="#444" stroke-width="1.5"/>
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="203" y="130" width="40" height="33"/>
+      <rect x="253" y="130" width="40" height="33"/>
+      <rect x="303" y="130" width="40" height="33"/>
+      <rect x="353" y="130" width="40" height="33"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="403" y="130" width="40" height="33"/>
+      <rect x="453" y="130" width="40" height="33"/>
+      <rect x="503" y="130" width="40" height="33"/>
+      <rect x="553" y="130" width="40" height="33"/>
+    </g>
+    <text x="223" y="153">3</text>
+    <text x="273" y="153">2</text>
+    <text x="323" y="153">1</text>
+    <text x="373" y="153">0</text>
+    <text x="423" y="153">7</text>
+    <text x="473" y="153">6</text>
+    <text x="523" y="153">5</text>
+    <text x="573" y="153">4</text>
+  </g>
+  <path d="M206 206 H672" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="697" y="161" font-size="21">数组数据对应的逻辑顺序</text>
+
+  <!-- 扩容箭头 -->
+  <path d="M400 213 H453 V323 H470 L423.5 363 L377 323 H400 Z" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="466" y="276" font-size="21">扩容之后</text>
+
+  <!-- 下半部分：扩容后的 16 格数组 -->
+  <rect x="161" y="315" width="59" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="190" y="343" text-anchor="middle" font-size="19">tail</text>
+  <path d="M192 357 V376 H462 V396" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <rect x="52" y="466" width="58" height="42" rx="6" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="81" y="494" text-anchor="middle" font-size="19">head</text>
+  <path d="M110 486 H163 V432" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-21)"/>
+
+  <g stroke-width="1.5" font-size="20" text-anchor="middle">
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="147" y="399" width="40" height="30"/>
+      <rect x="187" y="399" width="40" height="30"/>
+      <rect x="227" y="399" width="40" height="30"/>
+      <rect x="267" y="399" width="40" height="30"/>
+    </g>
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="307" y="399" width="40" height="30"/>
+      <rect x="347" y="399" width="40" height="30"/>
+      <rect x="387" y="399" width="40" height="30"/>
+      <rect x="427" y="399" width="40" height="30"/>
+    </g>
+    <g fill="#ffffff" stroke="#444">
+      <rect x="467" y="399" width="40" height="30"/>
+      <rect x="507" y="399" width="40" height="30"/>
+      <rect x="547" y="399" width="40" height="30"/>
+      <rect x="587" y="399" width="40" height="30"/>
+      <rect x="627" y="399" width="40" height="30"/>
+      <rect x="667" y="399" width="40" height="30"/>
+      <rect x="707" y="399" width="40" height="30"/>
+      <rect x="747" y="399" width="40" height="30"/>
+    </g>
+    <text x="167" y="421">4</text>
+    <text x="207" y="421">5</text>
+    <text x="247" y="421">6</text>
+    <text x="287" y="421">7</text>
+    <text x="327" y="421">0</text>
+    <text x="367" y="421">1</text>
+    <text x="407" y="421">2</text>
+    <text x="447" y="421">3</text>
+  </g>
+
+  <path d="M200 473 H667" fill="none" stroke="#444" stroke-width="1.5"/>
+  <g stroke-width="1.5" font-size="18" text-anchor="middle">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="217" y="493" width="40" height="33"/>
+      <rect x="268" y="493" width="40" height="33"/>
+      <rect x="319" y="493" width="40" height="33"/>
+      <rect x="369" y="493" width="40" height="33"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="420" y="493" width="40" height="33"/>
+      <rect x="471" y="493" width="40" height="33"/>
+      <rect x="522" y="493" width="40" height="33"/>
+      <rect x="572" y="493" width="40" height="33"/>
+    </g>
+    <text x="237" y="516">3</text>
+    <text x="288" y="516">2</text>
+    <text x="339" y="516">1</text>
+    <text x="389" y="516">0</text>
+    <text x="440" y="516">7</text>
+    <text x="491" y="516">6</text>
+    <text x="542" y="516">5</text>
+    <text x="592" y="516">4</text>
+  </g>
+  <path d="M200 543 H667" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="697" y="524" font-size="21">数组数据对应的逻辑顺序</text>
+</svg>

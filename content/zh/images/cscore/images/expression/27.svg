@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 621 381" role="img" aria-label="把中缀表达式 A + B * （ C - D ） - E / F 转成后缀时栈的变化：栈顶到栈底依次是 F、E、P，A 到第二个 - 号都已遍历过，正在遍历 / 和它后面的操作数" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <text x="58" y="37" font-size="22" fill="#111">栈顶</text>
+  <text x="48" y="357" font-size="22" fill="#111">栈底</text>
+
+  <rect x="55" y="62" width="48" height="246" fill="#fad7ac" stroke="#c68330" stroke-width="1.5"/>
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <rect x="62" y="174" width="36" height="35"/>
+    <rect x="62" y="219" width="36" height="35"/>
+    <rect x="62" y="264" width="36" height="35"/>
+  </g>
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="80" y="199">F</text>
+    <text x="80" y="244">E</text>
+    <text x="80" y="289">P</text>
+  </g>
+
+  <rect x="167" y="63" width="37" height="36" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="167" y="117" width="37" height="36" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="231" y="93" font-size="22" fill="#111">表示正在遍历的位置</text>
+  <text x="237" y="142" font-size="22" fill="#111">已经遍历过的位置</text>
+
+  <g stroke="#111" stroke-width="1.5">
+    <rect x="165" y="182" width="38" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="203" y="182" width="37" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="240" y="182" width="38" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="278" y="182" width="37" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="315" y="182" width="38" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="353" y="182" width="37" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="390" y="182" width="38" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="428" y="182" width="37" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="465" y="182" width="38" height="35" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="503" y="182" width="38" height="35" fill="#ffffff"/>
+    <rect x="541" y="182" width="37" height="35" fill="#ffffff"/>
+  </g>
+  <g font-size="20" fill="#111" text-anchor="middle">
+    <text x="184" y="207">A</text>
+    <text x="221" y="207">B</text>
+    <text x="259" y="207">C</text>
+    <text x="296" y="207">D</text>
+    <text x="334" y="207">-</text>
+    <text x="371" y="207">*</text>
+    <text x="409" y="207">+</text>
+    <text x="446" y="207">E</text>
+    <text x="484" y="207">F</text>
+    <text x="522" y="207">/</text>
+    <text x="559" y="207">-</text>
+  </g>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 312" role="img" aria-label="偏向锁的标记位域划分：锁状态 25bit 中 23bit 是线程 ID、2bit 是 epoch，另有 4bit 分代年龄、1bit 是否为偏向锁、2bit 锁状态" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1254" height="312">
+  <rect width="1254" height="312" fill="#fff"/>
+
+  <!-- 表头（蓝） -->
+  <g fill="#dde8fa" stroke="#738dbb" stroke-width="2">
+    <rect x="81" y="55" width="150" height="119"/>
+    <rect x="231" y="55" width="439" height="55"/>
+    <rect x="231" y="110" width="305" height="64"/>
+    <rect x="536" y="110" width="134" height="64"/>
+    <rect x="670" y="55" width="148" height="119"/>
+    <rect x="818" y="55" width="219" height="55"/>
+    <rect x="818" y="110" width="219" height="64"/>
+    <rect x="1037" y="55" width="143" height="55"/>
+    <rect x="1037" y="110" width="143" height="64"/>
+  </g>
+
+  <!-- 字段值（橙） -->
+  <g fill="#fbe7cf" stroke="#ce9d35" stroke-width="2">
+    <rect x="81" y="174" width="150" height="73"/>
+    <rect x="231" y="174" width="305" height="73"/>
+    <rect x="536" y="174" width="134" height="73"/>
+    <rect x="670" y="174" width="148" height="73"/>
+    <rect x="818" y="174" width="219" height="73"/>
+    <rect x="1037" y="174" width="143" height="73"/>
+  </g>
+
+  <g font-size="30" fill="#111" text-anchor="middle">
+    <text x="156" y="124">锁状态</text>
+    <text x="450" y="92">25bit</text>
+    <text x="383" y="151">23bit</text>
+    <text x="603" y="151">2bit</text>
+    <text x="744" y="124">4bit</text>
+    <text x="927" y="92">1bit</text>
+    <text x="927" y="151">是否为偏向锁</text>
+    <text x="1108" y="92">2bit</text>
+    <text x="1108" y="151">锁状态</text>
+  </g>
+
+  <g font-size="30" fill="#111" text-anchor="middle">
+    <text x="156" y="220">偏向锁</text>
+    <text x="383" y="220">线程ID</text>
+    <text x="603" y="220">epoch</text>
+    <text x="744" y="220">分代年龄</text>
+    <text x="927" y="220">1</text>
+    <text x="1108" y="220">01</text>
+  </g>
+</svg>

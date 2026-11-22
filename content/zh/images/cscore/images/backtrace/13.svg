@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1824 712" role="img" aria-label="回溯去重的搜索树：每个节点由「待选择的数据」与「已选择的数据」两格组成，边上的选2、选3、选5 是本轮选择的数据，绿色格子表示得到正确结果的节点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-backtrace13" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="127" y="19" width="80" height="42" fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5"/>
+  <rect x="127" y="76" width="80" height="42" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="127" y="139" width="80" height="42" fill="#cdeb8b" stroke="#404040" stroke-width="1.5"/>
+  <g font-size="25" fill="#000">
+    <text x="228" y="51">表示已经被选择的数据</text>
+    <text x="228" y="108">表示待选择的数据</text>
+    <text x="228" y="165">表示得到正确结果的节点</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-backtrace13)">
+    <path d="M 1298 71 V 124 H 893 V 174"/>
+    <path d="M 1298 71 V 174"/>
+    <path d="M 1298 71 V 124 H 1664 V 174"/>
+    <path d="M 893 218 V 275 H 412 V 330"/>
+    <path d="M 893 218 V 275 H 675 V 330"/>
+    <path d="M 893 218 V 275 H 948 V 330"/>
+    <path d="M 1298 218 V 261 H 1236 V 302"/>
+    <path d="M 1298 218 V 261 H 1414 V 302"/>
+    <path d="M 1664 218 V 302"/>
+    <path d="M 412 374 V 446 H 112 V 517"/>
+    <path d="M 412 374 V 446 H 282 V 517"/>
+    <path d="M 412 374 V 446 H 456 V 517"/>
+    <path d="M 675 374 V 446 H 631 V 517"/>
+    <path d="M 675 374 V 446 H 807 V 517"/>
+    <path d="M 948 374 V 435"/>
+    <path d="M 1235 346 V 456"/>
+    <path d="M 1235 402 H 1435 V 456"/>
+    <path d="M 112 561 V 607 H 53 V 651"/>
+    <path d="M 112 561 V 607 H 249 V 651"/>
+    <path d="M 112 561 V 607 H 454 V 651"/>
+  </g>
+
+  <!-- 边上的选择 -->
+  <g font-size="25" fill="#000" text-anchor="middle">
+    <text x="1008" y="115">选2</text>
+    <text x="1329" y="115">选3</text>
+    <text x="1607" y="107">选5</text>
+    <text x="441" y="311">选2</text>
+    <text x="716" y="311">选3</text>
+    <text x="989" y="306">选5</text>
+    <text x="1258" y="252">选3</text>
+    <text x="1344" y="252">选5</text>
+    <text x="1697" y="262">选5</text>
+    <text x="147" y="491">选2</text>
+    <text x="315" y="487">选3</text>
+    <text x="485" y="487">选5</text>
+    <text x="670" y="491">选3</text>
+    <text x="859" y="487">选5</text>
+    <text x="1008" y="411">选5</text>
+    <text x="1201" y="432">选3</text>
+    <text x="1338" y="397">选5</text>
+    <text x="84" y="598">选2</text>
+    <text x="286" y="598">选3</text>
+    <text x="496" y="598">选5</text>
+  </g>
+
+  <!-- 节点：左格为待选择的数据 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="1259" y="29" width="80" height="42"/>
+    <rect x="854" y="176" width="79" height="42"/>
+    <rect x="1259" y="176" width="79" height="42"/>
+    <rect x="1624" y="176" width="80" height="42"/>
+    <rect x="373" y="332" width="79" height="42"/>
+    <rect x="635" y="332" width="80" height="42"/>
+    <rect x="908" y="332" width="80" height="42"/>
+    <rect x="1624" y="304" width="80" height="42"/>
+    <rect x="908" y="437" width="80" height="42"/>
+    <rect x="73" y="519" width="79" height="42"/>
+    <rect x="243" y="519" width="79" height="42"/>
+    <rect x="417" y="519" width="79" height="42"/>
+    <rect x="591" y="519" width="80" height="42"/>
+    <rect x="768" y="519" width="79" height="42"/>
+    <rect x="14" y="653" width="79" height="42"/>
+    <rect x="209" y="653" width="79" height="42"/>
+    <rect x="415" y="653" width="79" height="42"/>
+  </g>
+  <g fill="#fad9d5" stroke="#b85450" stroke-width="1.5">
+    <rect x="1196" y="304" width="79" height="42"/>
+    <rect x="1374" y="304" width="80" height="42"/>
+    <rect x="1195" y="458" width="80" height="42"/>
+    <rect x="1395" y="458" width="80" height="42"/>
+  </g>
+
+  <!-- 节点：右格为已选择的数据 -->
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="1339" y="29" width="79" height="42"/>
+    <rect x="933" y="176" width="80" height="42"/>
+    <rect x="1338" y="176" width="80" height="42"/>
+    <rect x="1704" y="176" width="80" height="42"/>
+    <rect x="452" y="332" width="81" height="42"/>
+    <rect x="715" y="332" width="81" height="42"/>
+    <rect x="988" y="332" width="81" height="42"/>
+    <rect x="1275" y="304" width="81" height="42"/>
+    <rect x="1704" y="304" width="80" height="42"/>
+    <rect x="988" y="437" width="81" height="42"/>
+    <rect x="1275" y="458" width="81" height="42"/>
+    <rect x="1475" y="458" width="81" height="42"/>
+    <rect x="152" y="519" width="80" height="42"/>
+    <rect x="322" y="519" width="80" height="42"/>
+    <rect x="496" y="519" width="80" height="42"/>
+    <rect x="847" y="519" width="80" height="42"/>
+    <rect x="288" y="653" width="93" height="42"/>
+    <rect x="494" y="653" width="93" height="42"/>
+  </g>
+  <g fill="#cdeb8b" stroke="#404040" stroke-width="1.5">
+    <rect x="1454" y="304" width="80" height="42"/>
+    <rect x="671" y="519" width="79" height="42"/>
+    <rect x="93" y="653" width="93" height="42"/>
+  </g>
+
+  <!-- 格子里的数据 -->
+  <g font-size="24" fill="#000" text-anchor="middle">
+    <text x="1299" y="61">[2,3,5]</text>
+    <text x="1378" y="61">[]</text>
+
+    <text x="894" y="208">[2,3,5]</text>
+    <text x="973" y="208">[2]</text>
+    <text x="1298" y="208">[3,5]</text>
+    <text x="1378" y="208">[3]</text>
+    <text x="1664" y="208">[5]</text>
+    <text x="1744" y="208">[5]</text>
+
+    <text x="413" y="364">[2,3,5]</text>
+    <text x="493" y="364">[2,2]</text>
+    <text x="675" y="364">[3,5]</text>
+    <text x="756" y="364">[2,3]</text>
+    <text x="948" y="364">[5]</text>
+    <text x="1029" y="364">[2,5]</text>
+
+    <text x="1235" y="336">[3,5]</text>
+    <text x="1316" y="336">[3,3]</text>
+    <text x="1414" y="336">[5]</text>
+    <text x="1494" y="336">[3,5]</text>
+    <text x="1664" y="336">[5]</text>
+    <text x="1744" y="336">[5,5]</text>
+
+    <text x="948" y="469">[5]</text>
+    <text x="1028" y="469">[2,5,5]</text>
+
+    <text x="1235" y="490">[3,5]</text>
+    <text x="1315" y="490">[3,3,3]</text>
+    <text x="1435" y="490">[5]</text>
+    <text x="1515" y="490">[3,3,5]</text>
+
+    <text x="112" y="551">[2,3,5]</text>
+    <text x="192" y="551">[2,2,2]</text>
+    <text x="282" y="551">[3,5]</text>
+    <text x="362" y="551">[2,2,3]</text>
+    <text x="456" y="551">[5]</text>
+    <text x="536" y="551">[2,2,5]</text>
+    <text x="631" y="551">[3,5]</text>
+    <text x="710" y="551">[2,3,3]</text>
+    <text x="807" y="551">[5]</text>
+    <text x="887" y="551">[2,3,5]</text>
+
+    <text x="53" y="685">[2,3,5]</text>
+    <text x="139" y="685">[2,2,2,2]</text>
+    <text x="248" y="685">[3,5]</text>
+    <text x="334" y="685">[2,2,2,3]</text>
+    <text x="454" y="685">[5]</text>
+    <text x="540" y="685">[2,2,2,5]</text>
+  </g>
+</svg>

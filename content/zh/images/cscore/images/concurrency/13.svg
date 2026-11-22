@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 468 499" role="img"
+     aria-label="一个进程内部包含线程1、线程2、线程3、线程4 四个线程"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect x="166" y="31" width="148" height="412" rx="22" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="240" y="82" text-anchor="middle" font-size="19">进程</text>
+
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="202" y="102" width="82" height="36"/>
+    <rect x="202" y="186" width="82" height="36"/>
+    <rect x="202" y="269" width="82" height="36"/>
+    <rect x="202" y="353" width="82" height="36"/>
+  </g>
+  <g fill="#1a1a1a" font-size="19" text-anchor="middle">
+    <text x="243" y="126">线程1</text>
+    <text x="243" y="210">线程2</text>
+    <text x="243" y="293">线程3</text>
+    <text x="243" y="377">线程4</text>
+  </g>
+</svg>

@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2860 972" role="img" aria-label="Volatile 与 JMM 的思维导图：左侧是 Volatile 的实现原理与内存屏障指令，右侧是为什么需要 Volatile 与 Java 内存模型的两组要点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 左侧连线 -->
+  <g fill="none" stroke="#e3c53f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M267 70 H295 M267 145 H295 M267 222 H295 M267 297 H295"/>
+    <path d="M295 70 V297"/>
+    <path d="M295 183 H323"/>
+
+    <path d="M158 374 H182 M158 449 H182 M158 525 H182"/>
+    <path d="M182 374 V525"/>
+    <path d="M182 449 H212"/>
+
+    <path d="M455 183 H470 M455 449 H470"/>
+    <path d="M470 183 V449"/>
+    <path d="M470 316 H508"/>
+
+    <path d="M455 598 H480 M455 673 H480"/>
+    <path d="M480 598 V673"/>
+    <path d="M480 635 H510"/>
+
+    <path d="M484 746 H508 M484 821 H508 M484 897 H508"/>
+    <path d="M508 746 V897"/>
+    <path d="M508 821 H540"/>
+
+    <path d="M728 316 H745 M728 635 H745 M728 821 H745"/>
+    <path d="M745 316 V821"/>
+    <path d="M745 570 H780"/>
+
+    <path d="M1124 570 C1185 570 1190 540 1240 516"/>
+  </g>
+
+  <!-- 右侧连线 -->
+  <g fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1753 455 C1805 430 1800 340 1855 292" stroke="#cf4436"/>
+    <path d="M2230 290 H2250 M2250 216 V364 M2250 216 H2285 M2250 290 H2285 M2250 364 H2285" stroke="#cf4436"/>
+
+    <path d="M1755 508 C1815 535 1820 575 1857 598" stroke="#dfa05c"/>
+    <path d="M2298 598 H2325 M2325 505 V715 M2325 505 H2360 M2325 570 H2360 M2325 715 H2365" stroke="#dfa05c"/>
+
+    <path d="M2452 715 H2477 M2477 646 V790 M2477 646 H2490 M2477 715 H2493 M2477 790 H2493" stroke="#dfa05c"/>
+  </g>
+
+  <!-- 节点 -->
+  <g fill="#fcf7d7" stroke="none">
+    <rect x="118" y="42" width="149" height="56" rx="12"/>
+    <rect x="113" y="118" width="154" height="54" rx="12"/>
+    <rect x="113" y="195" width="154" height="55" rx="12"/>
+    <rect x="113" y="270" width="154" height="55" rx="12"/>
+    <rect x="323" y="155" width="132" height="57" rx="12"/>
+    <rect x="508" y="288" width="220" height="57" rx="12"/>
+    <rect x="56" y="346" width="102" height="56" rx="12"/>
+    <rect x="50" y="421" width="108" height="56" rx="12"/>
+    <rect x="38" y="497" width="120" height="56" rx="12"/>
+    <rect x="212" y="421" width="243" height="56" rx="12"/>
+    <rect x="323" y="570" width="132" height="56" rx="12"/>
+    <rect x="258" y="645" width="197" height="56" rx="12"/>
+    <rect x="510" y="607" width="218" height="57" rx="12"/>
+    <rect x="302" y="718" width="182" height="56" rx="12"/>
+    <rect x="283" y="793" width="201" height="57" rx="12"/>
+    <rect x="540" y="793" width="188" height="57" rx="12"/>
+    <rect x="342" y="869" width="142" height="57" rx="12"/>
+  </g>
+
+  <g font-size="26" fill="#2b2b2b" text-anchor="middle">
+    <text x="192" y="79">LoadLoad</text>
+    <text x="190" y="154">StoreStore</text>
+    <text x="190" y="231">LoadStore</text>
+    <text x="190" y="306">StoreLoad</text>
+    <text x="389" y="192">内存屏障</text>
+    <text x="618" y="325">禁止重排序原理</text>
+    <text x="107" y="383">lfence</text>
+    <text x="104" y="458">sfence</text>
+    <text x="98" y="534">mfence</text>
+    <text x="333" y="458">X86内存屏障指令</text>
+    <text x="389" y="607">内存屏障</text>
+    <text x="356" y="682">X86 lock指令</text>
+    <text x="619" y="644">可见性实现原理</text>
+    <text x="393" y="755">Store Buffer</text>
+    <text x="383" y="830">Invalid Queue</text>
+    <text x="634" y="830">深入内存屏障</text>
+    <text x="413" y="906">MESI协议</text>
+  </g>
+
+  <rect x="780" y="528" width="344" height="84" rx="14" fill="#eed44e"/>
+  <text x="952" y="583" font-size="32" fill="#2b2b2b" text-anchor="middle">Volatile实现原理</text>
+
+  <rect x="1228" y="376" width="525" height="138" rx="16" fill="#000227"/>
+  <text x="1490" y="455" font-size="46" font-weight="bold" fill="#ffffff" text-anchor="middle">Volatile和JMM</text>
+
+  <rect x="1855" y="248" width="375" height="84" rx="14" fill="#e55244"/>
+  <text x="2042" y="303" font-size="32" fill="#ffffff" text-anchor="middle">为什么需要Volatile</text>
+
+  <g fill="#f8dbd9">
+    <rect x="2285" y="190" width="249" height="52" rx="12"/>
+    <rect x="2285" y="265" width="196" height="50" rx="12"/>
+    <rect x="2285" y="338" width="196" height="52" rx="12"/>
+  </g>
+  <g font-size="26" fill="#2b2b2b" text-anchor="middle">
+    <text x="2409" y="225">保证数据的可见性</text>
+    <text x="2383" y="299">禁止指令重排</text>
+    <text x="2383" y="373">不保证原子性</text>
+  </g>
+
+  <rect x="1857" y="558" width="441" height="80" rx="14" fill="#e9a45d"/>
+  <text x="2077" y="611" font-size="32" fill="#2b2b2b" text-anchor="middle">Java内存模型（JMM）</text>
+
+  <g fill="#fae7dd">
+    <rect x="2360" y="480" width="225" height="48" rx="12"/>
+    <rect x="2360" y="545" width="215" height="50" rx="12"/>
+    <rect x="2365" y="690" width="87" height="50" rx="12"/>
+    <rect x="2490" y="620" width="237" height="52" rx="12"/>
+    <rect x="2493" y="690" width="292" height="50" rx="12"/>
+    <rect x="2493" y="765" width="230" height="50" rx="12"/>
+  </g>
+  <g font-size="26" fill="#2b2b2b" text-anchor="middle">
+    <text x="2472" y="514">JMM内存逻辑结构</text>
+    <text x="2467" y="579">内存交互操作</text>
+    <text x="2408" y="724">重排序</text>
+    <text x="2608" y="655">as if serial 原则</text>
+    <text x="2639" y="724">happen before原则</text>
+    <text x="2608" y="799">volatile重排序原则</text>
+  </g>
+</svg>

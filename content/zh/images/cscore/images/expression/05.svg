@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 887 391" role="img"
+     aria-label="中缀表达式 A+B*CD- 的转换过程：已计算完的部分与正在计算的部分用不同底色标出，得到后缀表达式 A+BCD-*"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 图例 -->
+  <rect x="330" y="28" width="38" height="34" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="390" y="55" font-size="24">完成计算的部分</text>
+  <rect x="330" y="88" width="38" height="34" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="390" y="115" font-size="24">正在计算的部分</text>
+
+  <!-- 第一行：待处理的中缀表达式 -->
+  <g stroke="#444" stroke-width="1.5" font-size="26" text-anchor="middle">
+    <g fill="#ffffff">
+      <rect x="330" y="143" width="38" height="39"/>
+      <rect x="368" y="143" width="38" height="39"/>
+    </g>
+    <g fill="#dae8fc" stroke="#6c8ebf">
+      <rect x="406" y="143" width="38" height="39"/>
+      <rect x="444" y="143" width="38" height="39"/>
+      <rect x="528" y="143" width="78" height="39"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="668" y="143" width="38" height="39"/>
+      <rect x="706" y="143" width="38" height="39"/>
+      <rect x="744" y="143" width="37" height="39"/>
+      <rect x="781" y="143" width="37" height="39"/>
+    </g>
+    <text x="349" y="171">A</text>
+    <text x="387" y="171">+</text>
+    <text x="425" y="171">B</text>
+    <text x="463" y="171">*</text>
+    <text x="567" y="171">CD-</text>
+    <text x="687" y="171">-</text>
+    <text x="725" y="171">E</text>
+    <text x="762" y="171">/</text>
+    <text x="799" y="171">F</text>
+  </g>
+
+  <!-- 虚线箭头 -->
+  <path d="M490 190 H520 V264 H542 L504 282 L466 264 H490 Z" fill="none" stroke="#333" stroke-width="1.6"
+        stroke-dasharray="6 4" stroke-linejoin="miter"/>
+
+  <text x="45" y="340" font-size="24">目前得到的后缀表达式</text>
+
+  <!-- 第二行：得到的后缀表达式 -->
+  <g stroke-width="1.5" font-size="26" text-anchor="middle">
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="330" y="302" width="38" height="39"/>
+      <rect x="368" y="302" width="38" height="39"/>
+      <rect x="482" y="302" width="128" height="39"/>
+    </g>
+    <g fill="#ffffff" stroke="#444">
+      <rect x="668" y="302" width="38" height="39"/>
+      <rect x="706" y="302" width="38" height="39"/>
+      <rect x="744" y="302" width="37" height="39"/>
+      <rect x="781" y="302" width="37" height="39"/>
+    </g>
+    <text x="349" y="330" fill="#1a1a1a">A</text>
+    <text x="387" y="330" fill="#1a1a1a">+</text>
+    <text x="546" y="330" fill="#1a1a1a">BCD-*</text>
+    <text x="687" y="330" fill="#1a1a1a">-</text>
+    <text x="725" y="330" fill="#1a1a1a">E</text>
+    <text x="762" y="330" fill="#1a1a1a">/</text>
+    <text x="799" y="330" fill="#1a1a1a">F</text>
+  </g>
+</svg>

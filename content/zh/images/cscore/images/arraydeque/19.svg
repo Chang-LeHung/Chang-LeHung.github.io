@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 124" role="img" aria-label="长度 16 的数组，下标 0 到 15；下标 0 至 3 与 8 至 15 已存放数据" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g stroke="#36393d" stroke-width="1.5">
+    <line x1="25" y1="23" x2="779" y2="23"/>
+    <line x1="25" y1="80" x2="779" y2="80"/>
+    <g fill="#cdeb8b">
+      <rect x="82" y="37" width="40" height="30"/>
+      <rect x="122" y="37" width="40" height="30"/>
+      <rect x="162" y="37" width="40" height="30"/>
+      <rect x="202" y="37" width="40" height="30"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="242" y="37" width="40" height="30"/>
+      <rect x="282" y="37" width="40" height="30"/>
+      <rect x="322" y="37" width="40" height="30"/>
+      <rect x="362" y="37" width="40" height="30"/>
+    </g>
+    <g fill="#cdeb8b">
+      <rect x="402" y="37" width="40" height="30"/>
+      <rect x="442" y="37" width="40" height="30"/>
+      <rect x="482" y="37" width="40" height="30"/>
+      <rect x="522" y="37" width="40" height="30"/>
+      <rect x="562" y="37" width="40" height="30"/>
+      <rect x="602" y="37" width="40" height="30"/>
+      <rect x="642" y="37" width="40" height="30"/>
+      <rect x="682" y="37" width="40" height="30"/>
+    </g>
+  </g>
+  <g font-size="16" fill="#111" text-anchor="middle">
+    <text x="102" y="57">0</text>
+    <text x="142" y="57">1</text>
+    <text x="182" y="57">2</text>
+    <text x="222" y="57">3</text>
+    <text x="262" y="57">4</text>
+    <text x="302" y="57">5</text>
+    <text x="342" y="57">6</text>
+    <text x="382" y="57">7</text>
+    <text x="422" y="57">8</text>
+    <text x="462" y="57">9</text>
+    <text x="502" y="57">10</text>
+    <text x="542" y="57">11</text>
+    <text x="582" y="57">12</text>
+    <text x="622" y="57">13</text>
+    <text x="662" y="57">14</text>
+    <text x="702" y="57">15</text>
+  </g>
+</svg>

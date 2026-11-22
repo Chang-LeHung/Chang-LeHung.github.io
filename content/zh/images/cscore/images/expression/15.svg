@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 715 384" role="img"
+     aria-label="后缀表达式求值时的栈与遍历位置：栈里依次压着 + * ( -，字符序列遍历到 C 之后的减号"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <text x="64" y="42" font-size="21">栈顶</text>
+
+  <!-- 栈 -->
+  <rect x="62" y="66" width="46" height="239" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <g fill="#fad9d5" stroke="#ae4132" stroke-width="1.5">
+    <rect x="67" y="116" width="36" height="39"/>
+    <rect x="67" y="166" width="36" height="39"/>
+    <rect x="67" y="215" width="36" height="39"/>
+    <rect x="67" y="265" width="36" height="39"/>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#1a1a1a">
+    <text x="85" y="141">-</text>
+    <text x="85" y="191">(</text>
+    <text x="85" y="241">*</text>
+    <text x="85" y="291">+</text>
+  </g>
+
+  <text x="54" y="362" font-size="21">栈底</text>
+
+  <!-- 图例 -->
+  <rect x="172" y="69" width="36" height="35" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <text x="237" y="96" font-size="22">表示正在遍历的位置</text>
+  <rect x="172" y="123" width="36" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="237" y="150" font-size="22">已经遍历过的位置</text>
+
+  <!-- 字符序列 -->
+  <rect x="172" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="210" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="247" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="285" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="322" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="360" y="186" width="35" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="397" y="186" width="35" height="35" fill="#fad9d5" stroke="#ae4132" stroke-width="1.5"/>
+  <rect x="435" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <rect x="472" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <rect x="510" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <rect x="547" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <rect x="585" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+  <rect x="622" y="186" width="35" height="35" fill="#ffffff" stroke="#1a1a1a" stroke-width="1.5"/>
+
+  <g font-size="21" text-anchor="middle" fill="#1a1a1a">
+    <text x="189" y="211">A</text>
+    <text x="227" y="211">+</text>
+    <text x="264" y="211">B</text>
+    <text x="302" y="211">*</text>
+    <text x="339" y="211">(</text>
+    <text x="377" y="211">C</text>
+    <text x="414" y="211">-</text>
+    <text x="452" y="211">D</text>
+    <text x="489" y="211">)</text>
+    <text x="527" y="211">-</text>
+    <text x="564" y="211">E</text>
+    <text x="602" y="211">/</text>
+    <text x="639" y="211">F</text>
+  </g>
+</svg>

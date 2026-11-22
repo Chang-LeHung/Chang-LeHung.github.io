@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1029 408" role="img" aria-label="动态规划表格中蓝色格子 (i, j) 的取值依赖上一行的 dp[i - 1][j]，并可能依赖同一行中 dp[i][j - v[i]] 覆盖到的若干格子" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-dp32" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <!-- 彩色格子 -->
+  <g>
+    <rect x="46" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="111" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="176" y="218" width="65" height="28" fill="#ffcc99"/>
+    <rect x="241" y="218" width="66" height="28" fill="#ffcc99"/>
+    <rect x="307" y="218" width="65" height="28" fill="#b1ddf0"/>
+    <rect x="307" y="191" width="65" height="27" fill="#cdeb8b"/>
+  </g>
+
+  <!-- 表格线 -->
+  <g stroke="#000" stroke-width="1.5" fill="none">
+    <path d="M46 109 V354 M111 109 V354 M176 109 V354 M241 109 V354 M307 109 V354 M372 109 V354 M437 109 V354 M502 109 V354 M568 109 V354"/>
+    <path d="M46 109 H568 M46 137 H568 M46 164 H568 M46 191 H568 M46 218 H568 M46 246 H568 M46 273 H568 M46 300 H568 M46 327 H568 M46 354 H568"/>
+  </g>
+  <text x="340" y="240" font-size="20" fill="#111" text-anchor="middle">(i, j)</text>
+
+  <!-- 依赖说明框 -->
+  <rect x="110" y="34" width="147" height="34" rx="6" fill="#ffcc99" stroke="#36393d" stroke-width="1.5"/>
+  <text x="183" y="58" font-size="20" fill="#111" text-anchor="middle">dp[i][j - v[i]]</text>
+  <rect x="329" y="34" width="129" height="32" rx="6" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="393" y="57" font-size="20" fill="#111" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 红色箭头 -->
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M394 66 V115 H343 V191" marker-end="url(#arrow-dp32)"/>
+
+    <path d="M182 68 V119" stroke-dasharray="6 4"/>
+    <path d="M74 119 H279" stroke-dasharray="6 4"/>
+    <path d="M74 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M140 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M279 119 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+    <path d="M182 119 V143 H211 V218" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+
+  <!-- 图例 -->
+  <g stroke="#36393d" stroke-width="1.5">
+    <rect x="603" y="115" width="63" height="24" fill="#cce5ff"/>
+    <rect x="603" y="181" width="63" height="24" fill="#ffcc99"/>
+    <rect x="603" y="242" width="63" height="24" fill="#cdeb8b"/>
+  </g>
+  <g font-size="26" fill="#111">
+    <text x="696" y="139">表示待计算的数据</text>
+    <text x="696" y="204">表示蓝色框可能依赖的数据</text>
+    <text x="696" y="265">表示蓝色框依赖的数据</text>
+    <text x="708" y="313">表示被依赖的数据</text>
+    <text x="708" y="360">表示可能被依赖的数据</text>
+  </g>
+  <g fill="none" stroke="#ff0000" stroke-width="2">
+    <path d="M603 302 H660" marker-end="url(#arrow-dp32)"/>
+    <path d="M603 347 H660" stroke-dasharray="6 4" marker-end="url(#arrow-dp32)"/>
+  </g>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 823 309" role="img"
+     aria-label="ArrayDeque 的数组：粉色格子表示存在数据，蓝色格子表示不存在数据，head 指向第一个格子，tail 指向第一个不存在的格子"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-26" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="146" y="26" width="53" height="24" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="146" y="65" width="53" height="24" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="228" y="48" font-size="22">表示存在数据</text>
+  <text x="228" y="86" font-size="22">表示不存在数据</text>
+
+  <!-- 12 个格子：前 5 格存在数据，后 7 格不存在 -->
+  <g stroke="#1a1a1a" stroke-width="1.5">
+    <g fill="#f8cecc">
+      <rect x="149" y="115" width="53" height="24"/>
+      <rect x="204" y="115" width="53" height="24"/>
+      <rect x="259" y="115" width="53" height="24"/>
+      <rect x="314" y="115" width="53" height="24"/>
+      <rect x="369" y="115" width="53" height="24"/>
+    </g>
+    <g fill="#dae8fc">
+      <rect x="424" y="115" width="53" height="24"/>
+      <rect x="479" y="115" width="53" height="24"/>
+      <rect x="534" y="115" width="53" height="24"/>
+      <rect x="589" y="115" width="53" height="24"/>
+      <rect x="644" y="115" width="53" height="24"/>
+      <rect x="699" y="115" width="53" height="24"/>
+      <rect x="754" y="115" width="53" height="24"/>
+    </g>
+  </g>
+
+  <!-- head / tail 两个圆 -->
+  <circle cx="52" cy="225" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="52" y="232" text-anchor="middle" font-size="20">head</text>
+  <circle cx="354" cy="265" r="31" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="354" y="272" text-anchor="middle" font-size="20">tail</text>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-26)">
+    <path d="M80 208 C120 214 146 190 155 144"/>
+    <path d="M340 248 C372 232 415 205 428 144"/>
+  </g>
+</svg>

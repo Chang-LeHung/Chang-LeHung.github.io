@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 333 416" role="img"
+     aria-label="多线程进程的内存布局：一个进程内四个线程各有自己的栈和寄存器，堆、数据段与代码段由所有线程共享"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-p02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <text x="166" y="30" text-anchor="middle" font-size="25">Multithreaded Process</text>
+
+  <rect x="70" y="49" width="98" height="303" fill="#26affa"/>
+
+  <!-- 四个线程栈 -->
+  <g font-size="21" fill="#000">
+    <text x="78" y="78">Stack</text>
+    <text x="78" y="127">Stack</text>
+    <text x="78" y="173">Stack</text>
+    <text x="78" y="219">Stack</text>
+  </g>
+  <g fill="none" stroke="#000" stroke-width="2">
+    <path d="M148 60 V74" marker-end="url(#arrow-p02)"/>
+    <path d="M148 109 V123" marker-end="url(#arrow-p02)"/>
+    <path d="M148 155 V169" marker-end="url(#arrow-p02)"/>
+    <path d="M148 201 V215" marker-end="url(#arrow-p02)"/>
+  </g>
+
+  <!-- 共享区 -->
+  <g font-size="21" fill="#000" text-anchor="middle">
+    <text x="119" y="277">Heap</text>
+    <text x="119" y="305">Data</text>
+    <text x="119" y="333">Code</text>
+  </g>
+
+  <!-- 寄存器 -->
+  <g fill="#57e14c" stroke="#0e1c0c" stroke-width="1.5">
+    <rect x="197" y="52" width="114" height="36"/>
+    <rect x="197" y="101" width="114" height="34"/>
+    <rect x="197" y="147" width="114" height="33"/>
+    <rect x="197" y="193" width="114" height="33"/>
+  </g>
+  <g font-size="21" fill="#000">
+    <text x="206" y="78">Registers</text>
+    <text x="206" y="125">Registers</text>
+    <text x="206" y="170">Registers</text>
+    <text x="206" y="216">Registers</text>
+  </g>
+
+  <g stroke="#000" stroke-width="2.5">
+    <path d="M174 70 H197"/>
+    <path d="M174 118 H197"/>
+    <path d="M174 163 H197"/>
+    <path d="M174 209 H197"/>
+  </g>
+  <g fill="#000">
+    <circle cx="176" cy="70" r="4.5"/>
+    <circle cx="176" cy="118" r="4.5"/>
+    <circle cx="176" cy="163" r="4.5"/>
+    <circle cx="176" cy="209" r="4.5"/>
+  </g>
+
+  <text x="166" y="392" text-anchor="middle" font-size="25">Multiple execution flows</text>
+</svg>

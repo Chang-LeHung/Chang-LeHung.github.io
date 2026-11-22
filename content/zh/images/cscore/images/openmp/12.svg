@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 314" role="img"
+     aria-label="结构体 two 与 data 在内存中的布局顺序及各自的地址偏移：two 在 0x8 处，data 在 0x4 处，首地址为 0x0"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-o12" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect x="119" y="66" width="235" height="86" fill="none" stroke="#b93a33" stroke-width="2.5"/>
+  <text x="237" y="120" text-anchor="middle" font-size="32" fill="#b93a33">two</text>
+
+  <rect x="119" y="150" width="240" height="88" fill="none" stroke="#5a8a2a" stroke-width="2.5"/>
+  <text x="239" y="206" text-anchor="middle" font-size="32" fill="#5a8a2a">data</text>
+
+  <g fill="none" stroke="#000" stroke-width="2.5">
+    <path d="M462 84 H360" marker-end="url(#arrow-o12)"/>
+    <path d="M462 166 H360" marker-end="url(#arrow-o12)"/>
+    <path d="M462 244 H360" marker-end="url(#arrow-o12)"/>
+  </g>
+
+  <g font-size="32" fill="#000">
+    <text x="500" y="96">0x8</text>
+    <text x="500" y="178">0x4</text>
+    <text x="500" y="256">0x0</text>
+  </g>
+</svg>

@@ -78,7 +78,7 @@
 <span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的程序当中，<code>str</code>是一个全局变量，一个指向只读数据<code>hello world</code>的指针，因为指向的数据存放在只读数据区，如下图所示（rodata区域）：</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arr03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="5" markerHeight="5" orient="auto-start-reverse">

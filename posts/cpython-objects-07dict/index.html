@@ -90,7 +90,7 @@
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">me_key</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">me_value</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* This field is only meaningful for combined tables */</span>
 <span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-p">;</span>
-</code></pre></div><figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 414 364" role="img" aria-label="PyDictObject 的内存布局：ob_refcnt 与 ob_type 组成 PyObject，另有 ma_used、ma_keys、ma_values 三格" class="inline-svg">
+</code></pre></div><figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 414 364" role="img" aria-label="PyDictObject 的内存布局：ob_refcnt 与 ob_type 组成 PyObject，另有 ma_used、ma_keys、ma_values 三格" style="display:block; margin:1.2em auto; max-width:414px" class="inline-svg">
   <text x="145" y="27" font-size="21" text-anchor="middle">PyDictObject</text>
 
   <!-- PyObject 部分：两格蓝 -->
@@ -131,7 +131,7 @@
 <p>整个哈希表的布局大致如下图所示：</p>
 <figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 561 701" role="img"
      aria-label="PyDictObject 与 PyDictKeyEntry：ob_refcnt 与 ob_type 组成 PyObject，ma_keys 指向由 dk_refcnt、dk_size、dk_usable 和 dk_entries 数组组成的键表"
-     class="inline-svg">
+     style="display:block; margin:1.2em auto; max-width:561px" class="inline-svg">
   <defs>
     <marker id="arrow-27-dict" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

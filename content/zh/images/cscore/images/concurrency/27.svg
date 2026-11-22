@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2018 404" role="img"
+     aria-label="第一个操作与第二个操作能否重排序的对照表：volatile写 与 volatile读 组合时不能重排序，用红框标出"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect x="0" y="0" width="2018" height="404" fill="#fcfcfc"/>
+
+  <g stroke="#dddddd" stroke-width="2">
+    <line x1="46" y1="96" x2="1974" y2="96"/>
+    <line x1="46" y1="170" x2="1974" y2="170"/>
+    <line x1="46" y1="244" x2="1974" y2="244"/>
+    <line x1="46" y1="318" x2="1974" y2="318"/>
+  </g>
+
+  <g font-size="32" fill="#333333">
+    <text x="64" y="76">是否可以重排序</text>
+    <text x="657" y="76">第二个操作</text>
+    <text x="1102" y="76">第二个操作</text>
+    <text x="1547" y="76">第二个操作</text>
+
+    <text x="64" y="150">第一个操作</text>
+    <text x="657" y="150">普通读/写</text>
+    <text x="1100" y="150">volatile读</text>
+    <text x="1545" y="150">volatile写</text>
+
+    <text x="64" y="225">普通读/写</text>
+    <text x="655" y="225">Yes</text>
+    <text x="1100" y="225">Yes</text>
+    <text x="1547" y="225">No</text>
+
+    <text x="63" y="298">volatile读</text>
+    <text x="657" y="298">No</text>
+    <text x="1102" y="298">No</text>
+    <text x="1547" y="298">No</text>
+
+    <text x="63" y="372">volatile写</text>
+    <text x="655" y="372">Yes</text>
+    <text x="1102" y="372">No</text>
+    <text x="1547" y="372">No</text>
+  </g>
+
+  <rect x="1052" y="311" width="155" height="89" fill="none" stroke="#ea3323" stroke-width="4"/>
+</svg>

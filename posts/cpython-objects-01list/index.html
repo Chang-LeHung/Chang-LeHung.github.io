@@ -100,7 +100,7 @@
 </code></pre></div><p>将上面的结构体展开之后，PyListObject 的结构大致如下所示：</p>
 <figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 437 366" role="img"
      aria-label="PyListObject 的内存布局：外层是 PyListObject 结构体，内部按顺序排列 ob_refcnt、ob_type、ob_size、ob_item、allocated 五个字段"
-     class="inline-svg">
+     style="display:block; margin:1.2em auto; max-width:437px" class="inline-svg">
   <!-- 外层结构体 -->
   <rect x="73" y="60" width="284" height="241" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
   <text x="88" y="95" font-size="18">PyListObject</text>
@@ -138,7 +138,7 @@
 <p>ob_item，这是一个指针，指向真正保存 python 对象数据的地址，大致的内存他们之间大致的内存布局如下所示：</p>
 </li>
 </ul>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1167 445" role="img" aria-label="PyListObject 的 ob_item 数组：每个元素都是指向真实数据的 PyObject* 指针" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1167 445" role="img" aria-label="PyListObject 的 ob_item 数组：每个元素都是指向真实数据的 PyObject* 指针" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-02list" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -371,7 +371,7 @@
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>n</mi><mi>e</mi><mi>w</mi><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x02248;</mo><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x000B7;</mo><mo stretchy="false">&#x00028;</mo><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x0002B;</mo><mn>1</mn><msup><mo stretchy="false">&#x00029;</mo><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>8</mn></mrow></mfrac></mrow></msup></mrow></math></div><p><img src="/content/zh/images/cpython/03-list.webp" alt="" loading="lazy" /></p>
 <h3 id="列表的插入函数-insert">列表的插入函数 insert</h3>
 <p>在列表当中插入一个数据比较简单，只需要将插入位置和其后面的元素往后移动一个位置即可，整个过程如下所示：</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1241 295" role="img" aria-label="向数组中插入元素：左侧五个槽位的数组在下标 3 处插入新元素，右侧为插入后变成六个槽位的数组" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1241 295" role="img" aria-label="向数组中插入元素：左侧五个槽位的数组在下标 3 处插入新元素，右侧为插入后变成六个槽位的数组" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-04list" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -477,7 +477,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h3 id="列表的删除函数-remove">列表的删除函数 remove</h3>
 <p>对于数组 ob_item 来说，删除一个元素就需要将这个元素后面的元素往前移动，因此整个过程如下所示：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1411 169" role="img" aria-label="数组下标与元素对应：左侧六个槽位的数组在下标 3 处插入一个新元素，右侧变成五个槽位" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1411 169" role="img" aria-label="数组下标与元素对应：左侧六个槽位的数组在下标 3 处插入一个新元素，右侧变成五个槽位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 左：数组与下标，六列，插入位置在下标 3 -->
   <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
     <rect x="107" y="44" width="94" height="40"/>
@@ -635,7 +635,7 @@
 <span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">np</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>下图就是使用 a.copy() 浅拷贝的时候，内存的布局的示意图，可以看到列表指向的对象数组发生了变化，但是数组中元素指向的 python 对象并没有发生变化。</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1144 344" role="img" aria-label="PyListObject 的 ob_item 指向 PyObject* 数组，数组的四个元素分别指向数字 1、2、列表 [1, 2] 和元组 (1, 2)" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1144 344" role="img" aria-label="PyListObject 的 ob_item 指向 PyObject* 数组，数组的四个元素分别指向数字 1、2、列表 [1, 2] 和元组 (1, 2)" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-07-list" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -733,7 +733,7 @@
 </svg></figure><p>下面是对列表对象进行深拷贝的时候内存的大致示意图，可以看到数组指向的 python 对象也是不一样的。</p>
 <figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1297 322" role="img"
      aria-label="PyListObject 的 ob_item 指向 PyObject* 数组，数组元素分别指向整数 1、整数 2、列表 [1, 2] 和元组 (1,2)；右侧是同一结构反向排列的对照"
-     class="inline-svg">
+     style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-08-list" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1058 577" role="img"
+     aria-label="Thread-0 到 Thread-4 五个线程各自向下走到同一道屏障，路障 CyclicBarrier 横在下方"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-20" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <circle cx="132" cy="65" r="41"/>
+    <circle cx="359" cy="65" r="41"/>
+    <circle cx="554" cy="65" r="41"/>
+    <circle cx="762" cy="65" r="41"/>
+    <circle cx="923" cy="65" r="41"/>
+  </g>
+  <g font-size="19" text-anchor="middle" fill="#1a1a1a">
+    <text x="132" y="72">Thread-0</text>
+    <text x="359" y="72">Thread-1</text>
+    <text x="554" y="72">Thread-2</text>
+    <text x="762" y="72">Thread-3</text>
+    <text x="923" y="72">Thread-4</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-20)">
+    <path d="M132 107 V414"/>
+    <path d="M359 107 V353"/>
+    <path d="M554 107 V287"/>
+    <path d="M762 107 V233"/>
+    <path d="M923 107 V428"/>
+  </g>
+
+  <rect x="57" y="445" width="956" height="83" rx="14" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="535" y="496" text-anchor="middle" font-size="22">路障 CyclicBarrier</text>
+</svg>

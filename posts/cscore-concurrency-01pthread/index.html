@@ -175,7 +175,7 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 <p>可以看到函数参数已经做到了正确传递。</p>
 <h3 id="深入理解参数-attr">深入理解参数 attr</h3>
 <p>在深入介绍参数 attr 前，我们首先需要了解一下程序的内存布局，在64位操作系统当中程序的虚拟内存布局大致如下所示，从下往上依次为：只读数据/代码区、可读可写数据段、堆区、共享库的映射区、程序栈区以及内核内存区域。我们程序执行的区域就是在栈区。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arr03" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="5" markerHeight="5" orient="auto-start-reverse">

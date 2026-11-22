@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1090 592" role="img"
+     aria-label="pthread_cleanup_pop(0) 的效果：调用后栈顶的 handler2 被弹出但不会执行，栈里只剩下 handler1"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-p14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 左侧清理栈 -->
+  <g stroke-width="1.5">
+    <rect x="134" y="60" width="117" height="199" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="134" y="259" width="117" height="103" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="134" y="362" width="117" height="102" fill="#dde8fa" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="26" text-anchor="middle" fill="#1a1a1a">
+    <text x="193" y="320">handler2</text>
+    <text x="193" y="422">handler1</text>
+  </g>
+
+  <!-- 中间箭头 -->
+  <path d="M345 158 H640" fill="none" stroke="#000" stroke-width="6" marker-end="url(#arrow-p14)"/>
+
+  <g font-size="26" text-anchor="middle" fill="#1a1a1a">
+    <text x="490" y="302">执行pthread_cleanup_pop(0)</text>
+    <text x="490" y="340">弹出栈顶函数但是不执行</text>
+  </g>
+
+  <!-- 右侧清理栈 -->
+  <g stroke-width="1.5">
+    <rect x="794" y="60" width="117" height="302" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="794" y="362" width="117" height="102" fill="#dde8fa" stroke="#6c8ebf"/>
+  </g>
+  <text x="853" y="422" font-size="26" text-anchor="middle" fill="#1a1a1a">handler1</text>
+
+  <g font-size="26" fill="#1a1a1a">
+    <text x="70" y="512">clean-up handler stack</text>
+    <text x="720" y="512">clean-up handler stack</text>
+  </g>
+</svg>

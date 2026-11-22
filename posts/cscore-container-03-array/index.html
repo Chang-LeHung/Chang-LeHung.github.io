@@ -90,7 +90,7 @@
 <h2 id="设计原理分析">设计原理分析</h2>
 <p>首先明白一点我们需要使用什么工具去实现这样一个容器。我们手里有的工具就是<code>Java</code>提供给我们的最基本的功能——数组（这个好像是废话，我们的标题就是<strong>数组容器</strong>🤣）。</p>
 <p>当我们在<code>Java</code>当中使用数组去存储数据时，数据在<code>Java</code>当中的内存布局大致如下图所示。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1109 514" role="img" aria-label="Java 堆区中的对象与数组下标的对应关系：前四个下标有数据，用曲线分别指向堆中的对象" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1109 514" role="img" aria-label="Java 堆区中的对象与数组下标的对应关系：前四个下标有数据，用曲线分别指向堆中的对象" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -179,7 +179,7 @@
 <li>当数组满了之后怎么办，也就是我们的扩容机制。</li>
 </ul>
 <p>对于这两个问题，首先我们数组的初始大小可以有默认值，在我们自己实现的<code>MyArrayList</code>当中设置为10，我们在使用类时也可以传递一个参数指定初始大小。第二个问题当我们的数组满的时候我们需要对数组进行扩容，在我们实现的<code>MyArrayList</code>当中我们采取的方式是，新数组的长度是原数组的两倍（这个跟<code>JDK</code>的<code>ArrayList</code>方式不一样，<code>ArrayList</code>扩容为原来的1.5倍）。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1105 379" role="img" aria-label="数组满了以后扩容：六格的数组前六格有数据，向下扩成十二格" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1105 379" role="img" aria-label="数组满了以后扩容：六格的数组前六格有数据，向下扩成十二格" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
 
   <!-- 上：容量为 6 的数组 -->
   <g fill="none" stroke="#000" stroke-width="1.5">
@@ -330,7 +330,7 @@
 </ul>
 </li>
 </ul>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" style="display:block; margin:1.2em auto; max-width:649px" class="inline-svg">
   <defs>
     <marker id="arrow-array05" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -492,7 +492,7 @@
 </ul>
 </li>
 </ul>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 945 547" role="img" aria-label="数组插入元素的过程：先把下标 4 及其后的数据往后移一格，空出位置再把数据放进去" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 945 547" role="img" aria-label="数组插入元素的过程：先把下标 4 及其后的数据往后移一格，空出位置再把数据放进去" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array06" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -646,7 +646,7 @@
 </ul>
 </li>
 </ul>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 951 477" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 951 477" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-array07" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

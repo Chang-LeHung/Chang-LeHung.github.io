@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1258 312" role="img"
+     aria-label="轻量级锁状态下的 Mark Word 位域划分：锁状态、25bit 指针、4bit、1bit 是否偏向锁和 2bit 锁状态"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <!-- 表头 -->
+  <g fill="#dde8fa" stroke="#738dbb" stroke-width="1.5">
+    <rect x="66" y="51" width="150" height="119"/>
+    <rect x="216" y="51" width="438" height="59"/>
+    <rect x="654" y="51" width="149" height="119"/>
+    <rect x="803" y="51" width="218" height="59"/>
+    <rect x="1021" y="51" width="143" height="59"/>
+  </g>
+  <g fill="#dde8fa" stroke="#738dbb" stroke-width="1.5">
+    <rect x="216" y="110" width="304" height="60"/>
+    <rect x="520" y="110" width="134" height="60"/>
+    <rect x="803" y="110" width="218" height="60"/>
+    <rect x="1021" y="110" width="143" height="60"/>
+  </g>
+
+  <!-- 数据行 -->
+  <g fill="#ffff98" stroke="#738dbb" stroke-width="1.5">
+    <rect x="66" y="170" width="150" height="73"/>
+    <rect x="216" y="170" width="805" height="73"/>
+    <rect x="1021" y="170" width="143" height="73"/>
+  </g>
+
+  <g font-size="35" text-anchor="middle" fill="#000">
+    <text x="141" y="125">锁状态</text>
+    <text x="435" y="95">25bit</text>
+    <text x="728" y="123">4bit</text>
+    <text x="912" y="95">1bit</text>
+    <text x="1092" y="95">2bit</text>
+
+    <text x="368" y="154">23bit</text>
+    <text x="587" y="154">2bit</text>
+    <text x="912" y="156">是否为偏向锁</text>
+    <text x="1092" y="156">锁状态</text>
+
+    <text x="141" y="219">轻量级锁</text>
+    <text x="618" y="219">指向重量级锁的指针</text>
+    <text x="1092" y="219">10</text>
+  </g>
+</svg>

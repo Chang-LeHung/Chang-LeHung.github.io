@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 399" role="img"
+     aria-label="栈里自底向上是 A、B、M，表达式正在遍历乘号，括号前的 C-D 已算过，等号右边待算的是 M"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 栈 -->
+  <text x="62" y="51" font-size="22">栈顶</text>
+  <rect x="61" y="78" width="46" height="243" fill="#fad7ac" stroke="#d79b00" stroke-width="1.5"/>
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <rect x="66" y="179" width="36" height="36"/>
+    <rect x="66" y="229" width="36" height="36"/>
+    <rect x="66" y="279" width="36" height="36"/>
+  </g>
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <text x="84" y="205">M</text>
+    <text x="84" y="255">B</text>
+    <text x="84" y="305">A</text>
+  </g>
+  <text x="52" y="371" font-size="22">栈底</text>
+
+  <!-- 图例 -->
+  <rect x="171" y="78" width="36" height="35" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="235" y="107" font-size="22">表示正在遍历的位置</text>
+  <rect x="171" y="132" width="36" height="35" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="241" y="156" font-size="22">已经遍历过的位置</text>
+
+  <!-- 待遍历的表达式 -->
+  <g stroke-width="1.5">
+    <rect x="169.5" y="196" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="207.5" y="196" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="245.5" y="196" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="283.5" y="196" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="321.5" y="196" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="359.5" y="196" width="38" height="36" fill="#fad9d5" stroke="#b85450"/>
+    <rect x="397.5" y="196" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="435.5" y="196" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="473.5" y="196" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="511.5" y="196" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="549.5" y="196" width="34" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+  </g>
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <text x="188.5" y="222">A</text>
+    <text x="226.5" y="222">B</text>
+    <text x="264.5" y="222">C</text>
+    <text x="302.5" y="222">D</text>
+    <text x="340.5" y="222">-</text>
+    <text x="378.5" y="222">*</text>
+    <text x="416.5" y="222">+</text>
+    <text x="454.5" y="222">E</text>
+    <text x="492.5" y="222">F</text>
+    <text x="530.5" y="222">/</text>
+    <text x="566.5" y="222">-</text>
+  </g>
+
+  <g stroke-width="1.5">
+    <rect x="169.5" y="259" width="38" height="36" fill="#b1ddf0" stroke="#10739e"/>
+    <rect x="207.5" y="259" width="38" height="36" fill="#fad9d5" stroke="#b85450"/>
+    <rect x="245.5" y="259" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="283.5" y="259" width="38" height="36" fill="#ffffff" stroke="#1a1a1a"/>
+    <rect x="321.5" y="259" width="36" height="36" fill="#b1ddf0" stroke="#10739e"/>
+  </g>
+  <g font-size="24" text-anchor="middle" fill="#1a1a1a">
+    <text x="188.5" y="285">C</text>
+    <text x="226.5" y="285">-</text>
+    <text x="264.5" y="285">D</text>
+    <text x="302.5" y="285">=</text>
+    <text x="339.5" y="285">M</text>
+  </g>
+</svg>

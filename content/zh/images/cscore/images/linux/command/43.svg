@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1122 712" role="img" aria-label="进程组与session关系图：session 内含两个后台进程组和一个前台进程组，底部控制终端通过 hang-up 信号和终端输入影响它们" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1122" height="712">
+  <defs>
+    <marker id="arrow-command43" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="1122" height="712" fill="#fff"/>
+
+  <!-- session 外框 -->
+  <text x="573" y="45" font-size="21" text-anchor="middle">session</text>
+  <rect x="72" y="56" width="996" height="312" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="28 16"/>
+
+  <!-- 三个进程组 -->
+  <rect x="130" y="112" width="148" height="88" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+  <rect x="340" y="112" width="305" height="88" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+  <rect x="710" y="112" width="300" height="206" fill="none" stroke="#000" stroke-width="1.4" stroke-dasharray="16 10"/>
+
+  <!-- 进程方框 -->
+  <g fill="none" stroke="#000" stroke-width="1.4">
+    <rect x="148" y="130" width="116" height="50"/>
+    <rect x="362" y="130" width="113" height="50"/>
+    <rect x="513" y="130" width="115" height="50"/>
+    <rect x="730" y="130" width="115" height="50"/>
+    <rect x="880" y="130" width="115" height="50"/>
+    <rect x="806" y="245" width="119" height="50"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle">
+    <text x="206" y="163">login shell</text>
+    <text x="419" y="163">proc1</text>
+    <text x="571" y="163">proc2</text>
+    <text x="788" y="163">proc3</text>
+    <text x="938" y="163">proc4</text>
+    <text x="866" y="278">proc5</text>
+  </g>
+
+  <!-- 进程组标注 -->
+  <g font-size="19">
+    <text x="76" y="229">background process group</text>
+    <text x="205" y="255" text-anchor="middle">session leader =</text>
+    <text x="205" y="281" text-anchor="middle">controlling process</text>
+    <text x="358" y="229">background process group</text>
+    <text x="733" y="345">foreground process group</text>
+  </g>
+
+  <!-- 控制终端 -->
+  <ellipse cx="403" cy="540" rx="73" ry="55" fill="none" stroke="#000" stroke-width="1.4"/>
+  <text x="403" y="534" font-size="19" text-anchor="middle">controlling</text>
+  <text x="403" y="558" font-size="19" text-anchor="middle">terminal</text>
+
+  <!-- 两条带标注的箭头 -->
+  <path d="M352 492 L256 302" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-command43)"/>
+  <g transform="translate(-50,27) rotate(-62 320 400)" font-size="19" text-anchor="middle">
+    <text x="320" y="400">modem disconnect</text>
+    <text x="320" y="424">(hang-up signal)</text>
+  </g>
+
+  <path d="M452 510 L795 352" fill="none" stroke="#000" stroke-width="1.4" marker-end="url(#arrow-command43)"/>
+  <g transform="translate(-11,-25) rotate(-25 620 432)" font-size="19" text-anchor="middle">
+    <text x="620" y="432">terminal input and</text>
+    <text x="620" y="456">terminal-generated signals</text>
+  </g>
+
+  <!-- 图注 -->
+  <text x="244" y="681" font-size="19" font-weight="bold">Figure 9.7</text>
+  <text x="356" y="681" font-size="19">Process groups and sessions showing controlling terminal</text>
+</svg>

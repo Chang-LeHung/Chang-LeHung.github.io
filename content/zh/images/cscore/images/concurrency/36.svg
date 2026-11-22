@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1890 232" role="img"
+     aria-label="对象内存布局：ObjectHeader 之后是填充、三个变量与填充，按字节对齐排列"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+
+  <g stroke-width="1.5">
+    <rect x="52" y="62" width="320" height="101" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="375" y="62" width="240" height="101" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="618" y="62" width="240" height="101" fill="#badcee" stroke="#6c8ebf"/>
+    <rect x="861" y="62" width="240" height="101" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="1104" y="62" width="240" height="101" fill="#badcee" stroke="#6c8ebf"/>
+    <rect x="1347" y="62" width="240" height="101" fill="#badcee" stroke="#6c8ebf"/>
+    <rect x="1590" y="62" width="240" height="101" fill="#f1d0cd" stroke="#b85450"/>
+  </g>
+
+  <g font-size="32" text-anchor="middle" fill="#000">
+    <text x="212" y="124">ObjectHeader(12字节)</text>
+    <text x="495" y="124">Padding(132节)</text>
+    <text x="738" y="124">变量a(8字节)</text>
+    <text x="981" y="124">Padding(128节)</text>
+    <text x="1224" y="124">变量b(8字节)</text>
+    <text x="1467" y="124">变量c(8字节)</text>
+    <text x="1710" y="124">Padding(128节)</text>
+  </g>
+</svg>

@@ -83,7 +83,7 @@
 before<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
 this<span class="tok-w"> </span>is<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
 </code></pre></div><p>由此可见main函数并不是第一个被执行的函数，那么程序第一次执行的函数是什么呢？很简单我们看一下程序的调用栈即可。</p>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 254" role="img" aria-label="IDE 的调用栈面板：标题栏为 CALL STACK 与 Paused on breakpoint，下面四行依次是 init1（exit3.c 第 17 行第 3 列）、__libc_csu_init（第 26 行）、__libc_start_main（第 41 行）和 _start（第 15 行）" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 254" role="img" aria-label="IDE 的调用栈面板：标题栏为 CALL STACK 与 Paused on breakpoint，下面四行依次是 init1（exit3.c 第 17 行第 3 列）、__libc_csu_init（第 26 行）、__libc_start_main（第 41 行）和 _start（第 15 行）" style="display:block; margin:1.2em auto; max-width:644px" class="inline-svg">
   <!-- 背景与标题栏 -->
   <rect width="644" height="254" fill="#f2f2f2"/>
   <rect width="644" height="40" fill="#ece8ee"/>
@@ -203,7 +203,7 @@ this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"
 this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span><span class="tok-nb">exit</span>
 this<span class="tok-w"> </span>is<span class="tok-w"> </span><span class="tok-nb">exit</span>
 </code></pre></div><p>从输出的结果看确实和上面我们提到的规则一样，先注册的函数后执行。这一点再linux程序员开发手册里面也提到了。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2448 218" role="img" aria-label="atexit 手册页的 DESCRIPTION 段：atexit() 函数登记在程序正常终止时被调用的函数，通过 exit(3) 或从 main() 返回；登记的函数按逆序调用，且不传参数。图中用红框圈出 reverse order 两个词" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2448 218" role="img" aria-label="atexit 手册页的 DESCRIPTION 段：atexit() 函数登记在程序正常终止时被调用的函数，通过 exit(3) 或从 main() 返回；登记的函数按逆序调用，且不传参数。图中用红框圈出 reverse order 两个词" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <rect width="2448" height="218" fill="#f5f5f5"/>
 
   <!-- 小节标题 -->

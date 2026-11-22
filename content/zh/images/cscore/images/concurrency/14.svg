@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1228 647" role="img"
+     aria-label="五个线程一起竞争 CPU 子资源：线程沿各自箭头指向 CPU 核心组，中间说明调度顺序不确定"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M238 108 V490" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M465 108 V345" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M660 108 V279" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M868 108 V225" marker-end="url(#arrow-concurrency14)"/>
+    <path d="M1029 108 V420" marker-end="url(#arrow-concurrency14)"/>
+  </g>
+
+  <g fill="#b1ddf0" stroke="#3186ac" stroke-width="1.5">
+    <circle cx="238" cy="68" r="40"/>
+    <circle cx="465" cy="68" r="40"/>
+    <circle cx="660" cy="68" r="40"/>
+    <circle cx="868" cy="68" r="40"/>
+    <circle cx="1029" cy="68" r="40"/>
+  </g>
+  <g font-size="17" text-anchor="middle" fill="#000">
+    <text x="238" y="74">Thread-0</text>
+    <text x="465" y="74">Thread-1</text>
+    <text x="660" y="74">Thread-2</text>
+    <text x="868" y="74">Thread-3</text>
+    <text x="1029" y="74">Thread-4</text>
+  </g>
+
+  <g font-size="23" text-anchor="middle" fill="#000">
+    <text x="590" y="387">5个线程一起竞争CPU子资源</text>
+    <text x="590" y="415">事实上是有操作系统调度，而操作系统</text>
+    <text x="590" y="443">调度的顺序是不读确定的</text>
+  </g>
+
+  <rect x="103" y="497" width="1039" height="100" rx="8" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <text x="622" y="554" font-size="24" text-anchor="middle" fill="#000">CPUs（多个CPU核心）</text>
+</svg>

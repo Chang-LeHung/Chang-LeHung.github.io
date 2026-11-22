@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 589" role="img"
+     aria-label="求数组 [1, 2, 3] 全部子集的决策树：每个节点框内写明本次选择，逐层决定含有或不含有元素 1、2、3，绿色为最终生成的子集"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-d02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="378" y="30" width="57" height="45" rx="8" fill="#b1ddf0" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="455" y="61" font-size="21">中间情况的子集</text>
+  <rect x="637" y="30" width="52" height="45" rx="8" fill="#cdeb8b" stroke="#82b366" stroke-width="1.5"/>
+  <text x="710" y="61" font-size="21">最终生成的子集</text>
+
+  <text x="279" y="132" font-size="21">框内左侧是生成的集合，右侧是当前数组当中还能选择的数据</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#333" stroke-width="1.5">
+    <path d="M601 188 V225 H330 V260" marker-end="url(#arrow-d02)"/>
+    <path d="M601 188 V225 H902 V260" marker-end="url(#arrow-d02)"/>
+    <path d="M330 300 V333 H176 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M330 300 V333 H454 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M902 300 V333 H779 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M902 300 V333 H1034 V364" marker-end="url(#arrow-d02)"/>
+    <path d="M176 404 V439 H103 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M176 404 V439 H244 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M454 404 V439 H407 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M454 404 V439 H532 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M779 404 V439 H691 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M779 404 V439 H831 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M1034 404 V439 H971 V472" marker-end="url(#arrow-d02)"/>
+    <path d="M1034 404 V439 H1117 V472" marker-end="url(#arrow-d02)"/>
+  </g>
+
+  <!-- 方框 -->
+  <g stroke-width="1.5">
+    <g fill="#b1ddf0" stroke="#6c8ebf">
+      <rect x="536" y="150" width="130" height="38" rx="6"/>
+      <rect x="265" y="262" width="130" height="38" rx="6"/>
+      <rect x="837" y="262" width="130" height="38" rx="6"/>
+      <rect x="113" y="366" width="127" height="38" rx="6"/>
+      <rect x="391" y="366" width="127" height="38" rx="6"/>
+      <rect x="716" y="366" width="127" height="38" rx="6"/>
+      <rect x="971" y="366" width="127" height="38" rx="6"/>
+    </g>
+    <g fill="#cdeb8b" stroke="#82b366">
+      <rect x="41" y="474" width="125" height="38" rx="6"/>
+      <rect x="182" y="474" width="125" height="38" rx="6"/>
+      <rect x="324" y="474" width="125" height="38" rx="6"/>
+      <rect x="470" y="474" width="125" height="38" rx="6"/>
+      <rect x="629" y="474" width="125" height="38" rx="6"/>
+      <rect x="769" y="474" width="125" height="38" rx="6"/>
+      <rect x="909" y="474" width="125" height="38" rx="6"/>
+      <rect x="1055" y="474" width="125" height="38" rx="6"/>
+    </g>
+  </g>
+
+  <g font-size="20" fill="#1a1a1a" text-anchor="middle">
+    <text x="601" y="175">[]，[1, 2, 3]</text>
+    <text x="330" y="287">含有1的子集</text>
+    <text x="902" y="287">不含1的子集</text>
+    <text x="176" y="391">含有2的子集</text>
+    <text x="454" y="391">不含2的子集</text>
+    <text x="779" y="391">含有2的子集</text>
+    <text x="1034" y="391">不含2的子集</text>
+    <text x="103" y="499">含有3的子集</text>
+    <text x="244" y="499">不含3的子集</text>
+    <text x="386" y="499">含有3的子集</text>
+    <text x="532" y="499">不含3的子集</text>
+    <text x="691" y="499">含有3的子集</text>
+    <text x="831" y="499">不含3的子集</text>
+    <text x="971" y="499">含有3的子集</text>
+    <text x="1117" y="499">不含3的子集</text>
+  </g>
+</svg>

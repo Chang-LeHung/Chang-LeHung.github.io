@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1686 509" role="img" aria-label="Java 并发开篇的思维导图：主干分出 Java 实现并发、FutureTask 机制、并发的需求、并发的基础概念和第一个并发任务求积分" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1686" height="509">
+  <rect width="1686" height="509" fill="#fff"/>
+
+  <!-- 左侧：Java 实现并发的三个要点 -->
+  <g stroke="#443295" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M66 72 H300"/>
+    <path d="M66 132 H300"/>
+    <path d="M30 195 H300"/>
+    <path d="M300 74 C356 80 368 108 368 143 C368 178 356 197 300 197"/>
+    <path d="M368 143 H380"/>
+  </g>
+  <g font-size="28" fill="#333">
+    <text x="125" y="62">继承Thread类</text>
+    <text x="75" y="122">使用Runnable接口</text>
+    <text x="36" y="185">理解主线程和join函数</text>
+  </g>
+
+  <!-- 分支曲线 -->
+  <g fill="none" stroke-width="7" stroke-linecap="round">
+    <path d="M645 143 C700 148 720 190 723 250" stroke="#443295"/>
+    <path d="M643 370 C700 378 735 352 742 320" stroke="#518cd8"/>
+    <path d="M1100 186 C1100 128 1132 100 1215 102" stroke="#fd6d5a"/>
+    <path d="M1141 246 H1215" stroke="#feb40b"/>
+    <path d="M1096 324 C1096 378 1132 404 1217 406" stroke="#6dc354"/>
+  </g>
+
+  <!-- 中心节点 -->
+  <rect x="723" y="185" width="418" height="138" rx="16" fill="none" stroke="#2ebdff" stroke-width="5"/>
+  <rect x="730" y="192" width="404" height="124" rx="10" fill="#fff" stroke="#8793a5" stroke-width="6"/>
+  <text x="932" y="272" font-size="48" font-weight="bold" fill="#222" text-anchor="middle">Java并发开篇</text>
+
+  <!-- 左侧两个分支 -->
+  <rect x="380" y="99" width="265" height="87" rx="10" fill="#fff" stroke="#443295" stroke-width="5"/>
+  <text x="512" y="152" font-size="30" font-weight="bold" fill="#222" text-anchor="middle">Java实现并发</text>
+
+  <rect x="341" y="322" width="302" height="87" rx="10" fill="#fff" stroke="#518cd8" stroke-width="5"/>
+  <text x="492" y="375" font-size="30" fill="#222" text-anchor="middle">FutureTask机制</text>
+
+  <!-- 右侧三个分支 -->
+  <rect x="1215" y="65" width="233" height="86" rx="14" fill="#fff" stroke="#fd6d5a" stroke-width="6"/>
+  <text x="1332" y="119" font-size="32" font-weight="bold" fill="#222" text-anchor="middle">并发的需求</text>
+
+  <rect x="1215" y="211" width="295" height="86" rx="14" fill="#fff" stroke="#feb40b" stroke-width="6"/>
+  <text x="1362" y="265" font-size="30" font-weight="bold" fill="#222" text-anchor="middle">并发的基础概念</text>
+
+  <rect x="1217" y="357" width="396" height="86" rx="14" fill="#fff" stroke="#6dc354" stroke-width="6"/>
+  <text x="1415" y="412" font-size="32" font-weight="bold" fill="#222" text-anchor="middle">第一个并发任务·求积分</text>
+</svg>

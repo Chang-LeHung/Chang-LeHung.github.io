@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1456 748" role="img" aria-label="线程池提交任务的判断流程：提交任务后依次判断核心线程数是否已满、队列是否已满、是否达到最大线程数，都不满足才按拒绝策略执行，否则分别创建线程、加入队列或新增线程" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-concurrency61" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 提交任务 -->
+  <rect x="109" y="32" width="172" height="99" rx="8" fill="#f4d8b1" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="195" y="95" font-size="27" text-anchor="middle" fill="#000">提交任务</text>
+
+  <!-- 三个判断与拒绝策略 -->
+  <polygon points="195,288 303,382 195,477 88,382" fill="#d9e7d6" stroke="#82b366" stroke-width="1.5"/>
+  <polygon points="554,288 662,382 554,476 446,382" fill="#fbe7cf" stroke="#d79b00" stroke-width="1.5"/>
+  <polygon points="929,288 1037,382 929,476 821,382" fill="#dde8fa" stroke="#6c8ebf" stroke-width="1.5"/>
+  <polygon points="1287,288 1395,382 1287,476 1180,382" fill="#f1d0cd" stroke="#b85450" stroke-width="1.5"/>
+
+  <g font-size="27" fill="#000" text-anchor="middle">
+    <text x="195" y="376">核心线程数是否</text>
+    <text x="195" y="410">已经达到了</text>
+    <text x="554" y="376">队列是否已经满</text>
+    <text x="554" y="410">了</text>
+    <text x="929" y="376">是否达到了最大</text>
+    <text x="929" y="410">的线程数</text>
+    <text x="1287" y="376">按照拒绝策略执</text>
+    <text x="1287" y="410">行</text>
+  </g>
+
+  <!-- 三个处理框 -->
+  <g fill="#badcee" stroke="#34719a" stroke-width="2">
+    <rect x="104" y="595" width="183" height="107"/>
+    <rect x="462" y="595" width="183" height="107"/>
+    <rect x="837" y="595" width="183" height="107"/>
+  </g>
+  <g font-size="27" fill="#000" text-anchor="middle">
+    <text x="195" y="643">创建线程执行</text>
+    <text x="195" y="676">任务</text>
+    <text x="553" y="643">将任务加入到</text>
+    <text x="553" y="676">任务队列当中</text>
+    <text x="928" y="643">新增一个线程</text>
+    <text x="928" y="676">并且执行任务</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#000" stroke-width="2" marker-end="url(#arrow-concurrency61)">
+    <path d="M 194 131 V 284"/>
+    <path d="M 303 382 H 440"/>
+    <path d="M 662 382 H 815"/>
+    <path d="M 1037 382 H 1174"/>
+    <path d="M 194 477 V 590"/>
+    <path d="M 554 476 V 590"/>
+    <path d="M 929 476 V 590"/>
+  </g>
+
+  <g font-size="27" fill="#000" text-anchor="middle">
+    <text x="354" y="393">是</text>
+    <text x="740" y="396">是</text>
+    <text x="1094" y="393">是</text>
+    <text x="197" y="532">否</text>
+    <text x="553" y="532">否</text>
+    <text x="926" y="532">否</text>
+  </g>
+</svg>

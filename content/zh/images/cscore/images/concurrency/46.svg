@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 316" role="img"
+     aria-label="轻量级锁对象头位域划分：25bit 分 23bit 与 2bit，另有 4bit、1bit 是否偏向锁、2bit 锁状态；轻量级锁的值为指向栈中锁记录指针加 00"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect x="58" y="49" width="1098" height="118" fill="#dde8fa" stroke="#738dbb" stroke-width="2"/>
+  <rect x="58" y="167" width="1098" height="74" fill="#f1d0cd" stroke="#ac5a54" stroke-width="2"/>
+
+  <g stroke="#738dbb" stroke-width="2">
+    <line x1="208" y1="49" x2="208" y2="167"/>
+    <line x1="645" y1="49" x2="645" y2="167"/>
+    <line x1="795" y1="49" x2="795" y2="167"/>
+    <line x1="1013" y1="49" x2="1013" y2="167"/>
+    <line x1="511" y1="110" x2="511" y2="167"/>
+    <line x1="208" y1="110" x2="645" y2="110"/>
+    <line x1="795" y1="110" x2="1156" y2="110"/>
+  </g>
+  <g stroke="#ac5a54" stroke-width="2">
+    <line x1="207" y1="167" x2="207" y2="241"/>
+    <line x1="1013" y1="167" x2="1013" y2="241"/>
+  </g>
+
+  <g fill="#1a1a1a" font-size="35" text-anchor="middle">
+    <text x="133" y="122">锁状态</text>
+    <text x="426" y="93" font-size="37">25bit</text>
+    <text x="360" y="152" font-size="37">23bit</text>
+    <text x="578" y="152" font-size="37">2bit</text>
+    <text x="720" y="121" font-size="37">4bit</text>
+    <text x="904" y="93" font-size="37">1bit</text>
+    <text x="904" y="152">是否为偏向锁</text>
+    <text x="1084" y="93" font-size="37">2bit</text>
+    <text x="1084" y="152">锁状态</text>
+
+    <text x="132" y="219">轻量级锁</text>
+    <text x="610" y="219">指向栈中锁记录指针</text>
+    <text x="1084" y="216" font-size="37">00</text>
+  </g>
+</svg>
