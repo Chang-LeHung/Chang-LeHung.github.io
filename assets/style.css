@@ -714,7 +714,11 @@ main { container-type: inline-size; }
   color: var(--code-comment);
   font-style: italic;
 }
-.tok-err { border-bottom: 1px solid currentColor; }
+/* Pygments marks anything its lexer did not recognise as an error token.  In a
+   listing that is usually a grammar mismatch (an objdump listing read as GNU
+   asm, say), not a mistake worth pointing a line at, so keep the text plain
+   instead of underlining half the bytes. */
+.tok-err { color: inherit; }
 
 /* 10. algorithms ---------------------------------------------------------- */
 /* The `algorithm` package: top rule, caption rule, bottom rule, nothing else. */
