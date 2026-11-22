@@ -75,7 +75,7 @@
 <p>那什么是链表呢？链表是由一个一个的节点组成的，每个节点包含两个字段，其中一个字段data表示真实需要表示的数据，另外一个字段next表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），data和next两者一起组成链表当中的节点(Node)。</p>
 <figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
-    <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
+    <marker id="arrow-01-08-2" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
     </marker>
@@ -112,11 +112,11 @@
   <text x="834" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
 
   <!-- next 指针 -->
-  <path d="M179,85.5 L271,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
-  <path d="M353,85.5 L445,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
-  <path d="M527,85.5 L619,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
-  <path d="M701,85.5 L793,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
-  <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M179,85.5 L271,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08-2)"/>
+  <path d="M353,85.5 L445,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08-2)"/>
+  <path d="M527,85.5 L619,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08-2)"/>
+  <path d="M701,85.5 L793,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08-2)"/>
+  <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08-2)"/>
 </svg></figure><p>其中<code>data</code>表示链表当中存储的真实的数据，而<code>next</code>表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），<code>data</code>和<code>next</code>两者一起组成链表当中的节点(Node)。</p>
 <p><code>Java</code>代码：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>

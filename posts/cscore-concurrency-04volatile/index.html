@@ -229,7 +229,7 @@
 <p>这实际上就是一种可见性的问题，<code>updater</code>线程更新数据之后，<code>reader</code>线程看不到，在分析这个问题之间我们首先先来了解一下Java内存模型的逻辑布局：</p>
 <figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1452 988" role="img" aria-label="JMM 中线程、工作内存与主内存的关系：线程Reader 和线程Updater 各自把变量 flag 的副本放在本地内存，线程本地内存与主内存之间的交互由 JMM 控制" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
-    <marker id="arrow-concurrency23" viewBox="0 0 10 10" refX="9.5" refY="5"
+    <marker id="arrow-concurrency23-2" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="10" markerHeight="10" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
     </marker>
@@ -263,7 +263,7 @@
 
   <!-- 双向箭头与曲线 -->
   <g fill="none" stroke="#000" stroke-width="1.5"
-     marker-start="url(#arrow-concurrency23)" marker-end="url(#arrow-concurrency23)">
+     marker-start="url(#arrow-concurrency23-2)" marker-end="url(#arrow-concurrency23-2)">
     <path d="M 310 128 V 232"/>
     <path d="M 1012 124 V 232"/>
     <path d="M 311 463 C 312 530 325 565 352 583 C 395 610 424 630 428 670 L 429 700"/>
