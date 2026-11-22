@@ -69,7 +69,7 @@
 <h3 id="使用内嵌函数实现">使用内嵌函数实现</h3>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 其中 x 一个整数</span>
 </code></pre></div><p>这个函数主要是用于得到函数的栈帧的，更具体的来说是得到函数的 rbp （如果是 x86_64 的机器，在 32 位系统上就是 ebp）的值，也就是栈帧的栈底的值。</p>
-<p><img src="/content/zh/images/cscore/images/programming/03.webp" alt="03" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/programming/03.svg" alt="03" loading="lazy" /></p>
 <p>我们现在使用一个例子来验证测试一下：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 

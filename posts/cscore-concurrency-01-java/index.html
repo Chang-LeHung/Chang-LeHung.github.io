@@ -71,7 +71,7 @@
 <li>我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况下对于一个进程或者一个任务来说可能想要同时执行两个不同的子任务，因此就需要在一个进程当中产生多个子线程，不同的线程执行不同的任务。</li>
 <li>现在的机器的CPU核心个数一般都有很多个，比如现在一般的电脑都会有4个CPU，而每一个CPU在同一个时刻都可以执行一个任务，因此为了充分利用CPU的计算资源，我们可以让这多个CPU同时执行不同的任务，让他们同时工作起来，而不是空闲没有事可做。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/01.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/concurrency/01.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>还有就是在科学计算和高性能计算领域有这样的需求，比如矩阵计算，如果一个线程进行计算的话需要很长的时间，那么我们就可能使用多核的优势，让多个CPU同时进行计算，这样一个计算任务的计算时间就会比之前少很多，比如一个任务单线程的计算时间为24小时，如果我们有24个CPU核心，那么我们的计算任务可能在1-2小时就计算完成了，可以节约非常多的时间。</li>
 </ul>
@@ -207,13 +207,13 @@
 <span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
 <span class="tok-n">main</span>
 </code></pre></div><p>上面代码的执行流程大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/08.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/concurrency/08.svg" alt="" loading="lazy" /></p>
 <p>我们需要知道的一点是<code>thread.join()</code>这条语句是主线程执行的，它的主要功能就是等待线程<code>thread</code>执行完成，只有<code>thread</code>执行完成之后主线程才会继续执行<code>thread.join()</code>后面的语句。</p>
 <h2 id="第一个并发任务求x2的积分">第一个并发任务——求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分</h2>
 <p>接下来我们用一个例子去具体体会并发带来的效果提升。我们的这个例子就是求函数的积分，我们的函数为最简单的二次函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>，当然我们就积分（下图当中的阴影部分）完全可以根据公式进行求解（如果你不懂积分也没有关系，下文我们会把这个函数写出来，不会影响你对并发的理解）：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/04.webp" alt="" loading="lazy" /></p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/04.svg" alt="" loading="lazy" /></p>
 <p>但是我们用程序去求解的时候并不是采用上面的方法，而是使用微元法：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/06.webp" alt="" loading="lazy" /></p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/06.svg" alt="" loading="lazy" /></p>
 <p>下面我们用一个单线程先写出求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>积分的代码：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">X2</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
@@ -253,7 +253,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>从上面的结果来看计算区间<code>[0, 10000]</code>之间的积分结果且<code>delta = 0.000001</code>，现在假设我们使用<code>8</code>个线程来做这件事，我们改如何去规划呢？</p>
 <p>因为我们是采用<code>8</code>个线程来做这件事儿，因此我们可以将这个区间分成<code>8</code>段，每个线程去执行一小段，最终我们将每一个小段的结果加起来就行，整个过程大致如下。</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/10.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/concurrency/10.svg" alt="" loading="lazy" /></p>
 <p>首先我们先定义一个继承<code>Thread</code>的类（因为我们要进行多线程计算，所以要继承这个类）去计算区间<code>[a, b]</code>之间的函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">ThreadX2</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>

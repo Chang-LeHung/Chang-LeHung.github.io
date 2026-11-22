@@ -70,19 +70,19 @@
 <ul>
 <li>数据从双端队列左侧进入。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/02.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/02.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>数据从双端队列右侧进入。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/03.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/03.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>数据从双端队列左侧弹出。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/04.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/04.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>数据从双端队列右侧弹出。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/05.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/05.svg" alt="" loading="lazy" /></p>
 <p>而在<code>ArrayDeque</code>当中也给我们提供了对应的方法去实现，比如下面这个例子就是上图对应的代码操作：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">test</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">ArrayDeque</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">deque</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayDeque</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
@@ -105,12 +105,12 @@
 <span class="tok-o">[</span><span class="tok-mi">100</span><span class="tok-o">]</span>
 </code></pre></div><h2 id="数组实现arraydeque双端队列的原理">数组实现ArrayDeque(双端队列)的原理</h2>
 <p><code>ArrayDeque</code>底层是使用数组实现的，而且数组的长度必须是<code>2</code>的整数次幂，这么操作的原因是为了后面位运算好操作。在<code>ArrayDeque</code>当中有两个整形变量<code>head</code>和<code>tail</code>，分别指向右侧的第一个进入队列的数据和左侧第一个进行队列的数据，整个内存布局如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/arraydeque/06.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/06.svg" alt="" loading="lazy" /></p>
 <p>其中<code>tail</code>指的位置没有数据，<code>head</code>指的位置存在数据。</p>
 <ul>
 <li>当我们需要从左往右增加数据时（入队），内存当中数据变化情况如下：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/14.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/14.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>当我们需要从右往做左增加数据时（入队），内存当中数据变化情况如下：</li>
 </ul>
@@ -118,11 +118,11 @@
 <ul>
 <li>当我们需要从右往左删除数据时（出队），内存当中数据变化情况如下：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/13.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/13.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>当我们需要从左往右删除数据时（出队），内存当中数据变化情况如下：</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/arraydeque/12.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/12.svg" alt="" loading="lazy" /></p>
 <h2 id="底层数据遍历顺序和逻辑顺序">底层数据遍历顺序和逻辑顺序</h2>
 <p>上面主要谈论到的数组在内存当中的布局，但是他是具体的物理存储数据的顺序，这个顺序和我们的逻辑上的顺序是不一样的，根据上面的插入顺序，我们可以画出下面的图，大家可以仔细分析一下这个图的顺序问题。</p>
 <p><img src="/content/zh/images/cscore/images/arraydeque/16.webp" alt="" loading="lazy" /></p>

@@ -82,7 +82,7 @@
 before<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
 this<span class="tok-w"> </span>is<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
 </code></pre></div><p>由此可见main函数并不是第一个被执行的函数，那么程序第一次执行的函数是什么呢？很简单我们看一下程序的调用栈即可。</p>
-<p><img src="/content/zh/images/cscore/images/programming/01.webp" alt="01" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/programming/01.svg" alt="01" loading="lazy" /></p>
 <p>从上面的结果可以知道，程序第一个执行的函数是<code>_start</code>，这是在类Unix操作系统上执行的第一个函数。</p>
 <p>那么main函数是程序执行的最后一个函数吗？我们看下面的代码：</p>
 <div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
@@ -172,7 +172,7 @@ this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"
 this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span><span class="tok-nb">exit</span>
 this<span class="tok-w"> </span>is<span class="tok-w"> </span><span class="tok-nb">exit</span>
 </code></pre></div><p>从输出的结果看确实和上面我们提到的规则一样，先注册的函数后执行。这一点再linux程序员开发手册里面也提到了。</p>
-<p><img src="/content/zh/images/cscore/images/programming/02.webp" alt="01" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/programming/02.svg" alt="01" loading="lazy" /></p>
 <p>但是这里有一点需要注意的是我们应该尽可能使用atexit函数，而不是使用on_exit函数，因为atexit函数是标准规定的，而on_exit并不是标准规定的。</p>
 <h3 id="exit和_exit函数">exit和_exit函数</h3>
 <p>其中exit函数是libc给我们提供的函数，我们可以使用这个函数正常的终止程序的执行，而且我们在前面注册的函数还是能够被执行。比如在下面的代码当中：</p>

@@ -77,7 +77,7 @@
 <span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的程序当中，<code>str</code>是一个全局变量，一个指向只读数据<code>hello world</code>的指针，因为指向的数据存放在只读数据区，如下图所示（rodata区域）：</p>
-<p><img src="/content/zh/images/cscore/images/programming/03.webp" alt="03" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/programming/03.svg" alt="03" loading="lazy" /></p>
 <h3 id="数组下标越界">数组下标越界</h3>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 

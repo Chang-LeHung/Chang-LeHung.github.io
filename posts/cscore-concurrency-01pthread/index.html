@@ -174,7 +174,7 @@ gcc<span class="tok-w"> </span>helloworld.c<span class="tok-w"> </span>-o<span c
 <p>可以看到函数参数已经做到了正确传递。</p>
 <h3 id="深入理解参数-attr">深入理解参数 attr</h3>
 <p>在深入介绍参数 attr 前，我们首先需要了解一下程序的内存布局，在64位操作系统当中程序的虚拟内存布局大致如下所示，从下往上依次为：只读数据/代码区、可读可写数据段、堆区、共享库的映射区、程序栈区以及内核内存区域。我们程序执行的区域就是在栈区。</p>
-<p><img src="/content/zh/images/cscore/images/programming/03.webp" alt="03" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/programming/03.svg" alt="03" loading="lazy" /></p>
 <p>根据上面的虚拟内存布局示意图，我们将其简化一下得到单个线程的执行流和大致的内存布局如下所示（程序执行的时候有他的栈帧以及寄存器现场，图中将寄存器也做出了标识）：</p>
 <p><img src="/content/zh/images/cscore/images/pthread/01.webp" alt="01" loading="lazy" /></p>
 <p>程序执行的时候当我们进行函数调用的时候函数的栈帧就会从上往下生长，我们现在进行一下测试，看看程序的栈帧最大能够达到多少。</p>
