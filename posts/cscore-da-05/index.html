@@ -88,18 +88,18 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>当我们求第<code>6</code>个斐波拉契数的时候，函数<code>fibonacci</code>的调用过程如下所示：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp04.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp04.svg" alt="" loading="lazy" /></p>
 <p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
 <p>我们容易发现我们在函数调用的过程当中存在重复，比如下图两个相同的部分表示对<code>fibonacci(4)</code>重新计算，因为他们的调用树都是一样的：</p>
 <p>这种使用递归的方式计算斐波拉契数列的时间和空间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp05.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp05.svg" alt="" loading="lazy" /></p>
 <h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
 <p>既然是重复计算那么我们是否可用避免<code>重复计算</code>呢？在计算机一种常见的做法就是<code>空间换时间</code>，我们可以将之前计算的数据存下来，比如我们用数组<code>fib[]</code>存储我们计算得到的结果，<code>fib[i] = fibonacci(i) </code>，那么根据斐波拉契数列的公式我们可以知道：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>当我们通过数组存储中间计算的数据的时候，我们应该使用什么样的算法进行计算呢？</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp06.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp06.svg" alt="" loading="lazy" /></p>
 <p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>我们知道<code>绿色框</code>依赖它前面的两个数据，因此我们在计算<code>fib[i]</code>的时候，需要提前将前面两个它依赖的数据计算好，因此我们可以从左至右计算<code>fib</code>数组，这样的话我们在计算第<code>n</code>个<code>fib</code>数的时候前面<code>n - 1</code>个<code>fib</code>数已经计算好了。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp11.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp11.svg" alt="" loading="lazy" /></p>
 <p>因此我们的代码可以像下面这样：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">fibonacci</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span>
@@ -158,9 +158,9 @@
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们知道计算机在进行运算的时候都是采用<code>2进制</code>进行运算，所有的正整数如果是2的整数次幂的话，数据的二进制当中只有一个为为<code>1</code>，其余位置为<code>0</code>。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp12.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp12.svg" alt="" loading="lazy" /></p>
 <p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp14.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp14.svg" alt="" loading="lazy" /></p>
 <p>同样的我们需要求解的<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>上的<code>n</code>也是可以通过加法得到，比如说<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mn>7</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>4</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn><mo>&#x0002B;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></msup></mrow></math>，因此我们可以使用下面的代码进行快速幂的求解：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 这个函数的目的是求解 base 的 n 次方</span>
@@ -349,7 +349,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h2 id="总结">总结</h2>
 <p>我们现在来重新捋一下我们在上面学习斐波拉契数列的思路：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp16.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp16.svg" alt="" loading="lazy" /></p>
 <p>首先我们用于解决斐波拉契数列的方法是<code>递归法</code>但是这个方法有一个很大的问题，就是计算某个斐波拉契数的时候它依赖于它前面的斐波拉契数（这个过程相当于将一个大问题划分成若干个小问题），这个依赖会导致我们进行很多重复的运算，为了解决这个问题我们用到了<code>数组法</code>，这其实就是一个用空间换时间的方法，用数组将前面计算你的结果存储下来，避免重复计算。</p>
 <p>通过分析我们公式，我们发现我们的数据依赖关系，我们在计算某个斐波拉契数的时候只需要依赖它前面的两个斐波拉契数，因此我们不用存储我们计算的每一个斐波拉契数，只需要保存两个值即可，这就是我们<code>优化数组法</code>的原理。</p>
 <p>最后我们通过<code>快速矩阵幂</code>的方法将我们的时间复杂度从<code>O(n)</code>降低到了<code>O(long(n))</code>，这个方法其实带有一定的技巧性，在大多数动态规划的算法当中我们用不到它，也就是说它的普适性并不强。</p>

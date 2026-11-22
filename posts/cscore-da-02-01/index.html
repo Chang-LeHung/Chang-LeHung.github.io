@@ -142,7 +142,7 @@
 <h2 id="01背包数据依赖问题分析">01背包数据依赖问题分析</h2>
 <p>在上文当中我们已经分析出来了我们的动态转移方程：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>大</mi><mi>于</mi><mi>等</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>小</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><p>根据上面两个公式分析，我们知道要想解出<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - v[i]]</code>的值和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp21.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp21.svg" alt="" loading="lazy" /></p>
 <p>基于上面的数据依赖关系，我们知道我们如果想求<code>dp[N][V]</code>的值，首先要求出<code>dp</code>数组第<code>N - 1</code>行的所有的值，因为<code>dp[N][V]</code>依赖<code>dp[N - 1][V]</code>，而且可能依赖<code>dp[N - 1][i]</code>的值（<code>i</code>大于等于<code>0</code>，小于<code>V</code>），而<code>dp[N - 1][V]</code>又依赖<code>dp[N - 2][]V</code>......</p>
 <p>根据上面的分析过程，如果我们想计算出<code>dp[N][V]</code>的结果，那就需要从第<code>1</code>行开始往后计算，一直算到第<code>N</code>行，因此我们可以写出下面的代码：</p>
 <p><code>Java</code>版本：</p>
@@ -219,7 +219,7 @@
 <span class="tok-w">	</span><span class="tok-n">cout</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">backpack</span><span class="tok-p">();</span>
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
-</code></pre></div><p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp22.webp" alt="" loading="lazy" /></p>
+</code></pre></div><p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp22.svg" alt="" loading="lazy" /></p>
 <p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
 <p>因此下面的代码也是正确的：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -318,13 +318,13 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - v[i]] + w[i], dp[i - 1][j])</code>我们知道，第<code>i</code>行的第<code>j</code>个数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破坏动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp23.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp23.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp24.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp24.svg" alt="" loading="lazy" /></p>
 <p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp25.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/dsal/dp/01-dp25.svg" alt="" loading="lazy" /></p>
 <h2 id="问题答案">问题答案</h2>
 <p>如果你已经看懂上面所谈论到的内容的话，关于前面的几个问题相信你已经有了答案。上面那些问题最终涉及到的就是01背包问题的动态转移方程了，我们在写代码的时候一定不能破坏动态转移方程，也就是要满足动态转移方程的依赖关系，即第<code>i</code>行的第<code>j</code>个数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。</p>
 <ul>

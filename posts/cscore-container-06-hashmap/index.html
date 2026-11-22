@@ -124,7 +124,7 @@
 <span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">;</span>
 <span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为3</span>
 </code></pre></div><p>上述代码的位运算操作如下：</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap05.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap05.svg" alt="" loading="lazy" /></p>
 <p>进行位运算是，二进制数的对应位置进行相应的操作，<code>&amp;</code>运算的结果只有两个比特位的数据都是<code>1</code>时，运算结果才等于<code>1</code>，其余的情况都为0，因此<code>3 &amp; 7 = 3</code>。</p>
 <p>通过<code>put</code>函数放入<code>HashMap</code>当中的数据首先需要将<code>key</code>的哈希值与数组的长度进行取余运算得到对应的下标，再将数据放入到数组对应的下标当中。但是在实际的操作当中我们将底层数组的长度设置为<code>2</code>的整数次幂，并且使用位运算<code>&amp;</code>去进行取余数操作，而这样操作主要有一下三点原因：</p>
 <ul>
@@ -133,14 +133,14 @@
 <li>任何一个数<code>a</code>对<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>取余数得到的结果与<code>a</code>跟<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作结果是相等的，即：</li>
 </ul>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>a</mi><mi>&#x00025;</mi><msup><mn>2</mn><mi>n</mi></msup><mo>&#x0003D;</mo><mi>a</mi><mi>&#x00026;</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></div><p>我们现在先来解释一下第三点，令<code>a = 127</code>，<code>n = 4</code>，那么：<code>127%16 = 15</code>，<code>127 &amp; 15 = 15</code>。</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap12.webp" alt="" loading="lazy" />首先我们需要明白求余数的意义是什么？<code>127</code>对<code>16</code>取余，就是用<code>127</code>一直减去<code>16</code>，直到某个结果小于<code>16</code>为止，得到的值为求余数结果。</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap07.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap12.svg" alt="" loading="lazy" />首先我们需要明白求余数的意义是什么？<code>127</code>对<code>16</code>取余，就是用<code>127</code>一直减去<code>16</code>，直到某个结果小于<code>16</code>为止，得到的值为求余数结果。</p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap07.svg" alt="" loading="lazy" /></p>
 <p>上图当中红框当中包括的位置就是小于<code>16</code>的部分</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap11.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap11.svg" alt="" loading="lazy" /></p>
 <p>上图当中红框框住的部分是<code>16</code>的倍数，因此在求余数的时候上图当中红框框住的部分就没有了，都为0，只会剩下小于<code>16</code>的部分，这跟<code>15</code>进行<code>&amp;</code>操作得到的结果是一致的。这也就解释了上面提到的第三条。</p>
 <p>在第二条中我们提到了使用数组长度为<code>2</code>的整数次幂可以在一定程度上减少哈希冲突，因为进行下标运算的时候是与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作，而<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>的二进制表示最后一部分位置上的数都是<code>1</code>。</p>
 <p>比如下图中的数据都是<code>2</code>的整数次幂减一之后的结果：</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap13.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap13.svg" alt="" loading="lazy" /></p>
 <h2 id="roundup函数">RoundUp函数</h2>
 <p>因为我们需要数组的长度是<code>2</code>的整数次幂，而我们之后在初始化函数当中会允许用户输入一个数组长度的大小，但是用户输入的数字可能不是<code>2</code>的整数次幂，因此我们需要将用户输入的数据变成<code>2</code>的整数次幂，我们可以将用户输入的数据变成大于等于这个数的最小的<code>2</code>的整数次幂。</p>
 <p>比如说如果用户输入的是<code>12</code>我们需要将其变成<code>16</code>，如果输入的是<code>28</code>我们需要将其变成<code>32</code>。我们可以通过下面这个函数做到这一点：</p>
@@ -163,12 +163,12 @@
 <span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><p>上面的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap17.webp" alt="" loading="lazy" /></p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap21.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap17.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap21.svg" alt="" loading="lazy" /></p>
 <p>从上图当中我们会发现，我们咋一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap23.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap23.svg" alt="" loading="lazy" /></p>
 <p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，如果最终的容量没有大于我们设置的最大容量<code>MAXIMUM_CAPACITY</code>，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
-<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap24.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap24.svg" alt="" loading="lazy" /></p>
 <p>在<code>roundUp</code>函数当中，给初始容量减了个<code>1</code>，这样做的原因是让这个函数的返回值大于等于传入的参数<code>capacity</code>：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-c1">// 就是当传入的数据已经是 2 的整数次幂的时候也返回传入的值</span>
 <span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span>
