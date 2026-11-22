@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>彻底掌握Makefile（二）</h1>
       <p class="post-meta">
-        <time datetime="2022-10-09">2022-10-09</time>
+        <time datetime="2022-09-23">2022-09-23</time>
         <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/工具/">工具</a>      </p>
     </header>
 
@@ -158,9 +158,9 @@
 <p>可以看出是定义了foo的虽然foo的真实的值也为空，从这里也可以看出<code>ifdef</code>和<code>ifndef</code>在进行判断的时候并不会将变量直接展开，而是直接判断成不为空。</p>
 <h2 id="makfile中的函数">Makfile中的函数</h2>
 <p>在makefile当中除了能够使用条件表达式之外我们还可以使用函数，在makefile当中函数的使用规则如下：</p>
-<div class="code-block" data-lang="makefiel"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(&lt;函数名&gt; &lt;函数参数&gt;)
-或者
-将()替换为{}
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span>&lt;<span class="tok-nv">函数名</span>&gt; &lt;<span class="tok-nv">函数参数</span>&gt;<span class="tok-k">)</span>
+<span class="tok-err">或者</span>
+<span class="tok-err">将()替换为{}</span>
 </code></pre></div><p>函数的调用规则如上图所示，函数参数用,隔开。</p>
 <h3 id="字符串函数">字符串函数</h3>
 <h4 id="subst">subst</h4>
@@ -224,7 +224,7 @@
 <li>这个函数的作用是从字符串<text>当中寻找字符串<find>，如果找到了字符串<find>就返回字符串<find>，否则返回空。</li>
 </ul>
 <p>filter</p>
-<div class="code-block" data-lang="makeifle"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(filter &lt;pattern...&gt;,&lt;text&gt;)
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">filter</span> &lt;<span class="tok-nv">pattern...</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
 </code></pre></div><p>这是一个过滤函数，这个函数执行时，首先会根据空格或者tab键或者回车换行符进行分割，然后一一的进行filter函数的操作。然后遍历每一个被分割出来的字符，如果不满足pattern的规则的话对应的字符就会被过滤掉。</p>
 <div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>abo.c<span class="tok-w"> </span>s.o<span class="tok-w"> </span>s.y<span class="tok-w"> </span>x.o<span class="tok-w"> </span>x.y
 <span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>filter<span class="tok-w"> </span>%.c<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
@@ -296,7 +296,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-linux-03mkls/"><span>较新</span>自己动手写ls命令——Java版</a><a class="next" href="/posts/cscore-tools-03/"><span>较旧</span>彻底掌握Makefile（三）</a>    </nav>
+<a class="prev" href="/posts/cscore-tools-03/"><span>较新</span>彻底掌握Makefile（三）</a><a class="next" href="/posts/cscore-des-des/"><span>较旧</span>DES算法——从小白到登堂入室</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

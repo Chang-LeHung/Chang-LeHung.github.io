@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>通过组合问题看透回溯法</h1>
       <p class="post-meta">
-        <time datetime="2022-11-05">2022-11-05</time>
+        <time datetime="2022-11-25">2022-11-25</time>
         <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
     </header>
 
@@ -84,7 +84,7 @@
 </code></pre></div><h2 id="解法">解法</h2>
 <h3 id="解法一">解法一</h3>
 <p>乍一看这道题好像是一个很直接的问题，我们只需要从[1, n]当中选出k个数据出来，比如说题目当中给出的，我们需要从[1, 4]这个区间取出两个数，那么我们只需要使用两层for循环即可，像下面这样：</p>
-<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">  	</span><span class="tok-c1">// 在这里选择 i </span>
 <span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-c1">// 每一次循环选择 j </span>
@@ -919,7 +919,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h3 id="c实现">C++实现</h3>
 <h4 id="实现方式1">实现方式1</h4>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-k">public</span><span class="tok-o">:</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">combine</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -941,7 +941,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">};</span>
 </code></pre></div><h4 id="实现方式2">实现方式2</h4>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;vector&gt;</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;vector&gt;</span>
 
 <span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
 <span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -979,7 +979,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-da-01/"><span>较新</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a><a class="next" href="/posts/cscore-da-02-01/"><span>较旧</span>你真的懂01背包问题吗？01背包的这几问你能答出来吗？</a>    </nav>
+<a class="prev" href="/posts/cscore-da-02combinations/"><span>较新</span>组合总和</a><a class="next" href="/posts/cscore-da-14/"><span>较旧</span>完全背包转化为多重背包</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

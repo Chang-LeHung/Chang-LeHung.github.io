@@ -13,19 +13,7 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-new-314/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-08bytes/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-04mro/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</loc>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -33,75 +21,7 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-01list/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-02tuple/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-03float/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-04long/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-05complex/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-06set/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-07dict/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-objects-09dict/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-01class/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-02application/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-06magicmethod02/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-obsy-07super/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-03bytecode/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-04bytecode-tutorial/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-05bytecode-tutorial/</loc>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-07frameobject/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -109,11 +29,91 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-07frameobject/</loc>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-05bytecode-tutorial/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</loc>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-04bytecode-tutorial/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-03bytecode/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-07super/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-06magicmethod02/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-04mro/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-02application/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-01class/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-09dict/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-08bytes/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-07dict/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-06set/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-05complex/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-04long/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-03float/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-02tuple/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-01list/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-new-314/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -145,7 +145,7 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-05environment/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-07atomic/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -153,7 +153,7 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-07atomic/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-05environment/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -169,15 +169,59 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-linux-02jobcontrol/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
     <loc>https://chang-lehung.github.io/posts/cscore-linux-03jobcontrol/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-linux-02jobcontrol/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-04combinations/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
     <loc>https://chang-lehung.github.io/posts/cscore-linux-01jobcontrol/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-03combinations/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-02combinations/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-01combinations/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-14/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-13/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-12/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-11-03/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-10-02/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-09/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-0801-2/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -189,59 +233,7 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-02pthread/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-02openmp/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-05-hashmap/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-06-hashmap/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-01/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-01combinations/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-02-01/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-02combinations/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-03/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-03combinations/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-04-v1/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-04-v2/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-04combinations/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-05/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-07/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -249,39 +241,59 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-07/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-05/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-0801-2/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-04-v2/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-09/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-04-v1/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-10-02/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-03/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-11-03/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-02pthread/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-12/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-02-01/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-13/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-da-01/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-da-14/</loc>
+    <loc>https://chang-lehung.github.io/posts/dynamic-programming/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-06-hashmap/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/hashmap-part-2/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-05-hashmap/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/hashmap-part-1/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
     <loc>https://chang-lehung.github.io/posts/cscore-concurrency-01pthread/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-02openmp/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -317,11 +329,11 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-17threadpoolimplementation/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-linux-01exit/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-linux-01exit/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-17threadpoolimplementation/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -333,19 +345,11 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-tools-02/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-tools-03/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-linux-02ls/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
     <loc>https://chang-lehung.github.io/posts/cscore-linux-01staticloader/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-linux-02ls/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -354,6 +358,14 @@
   </url>
   <url>
     <loc>https://chang-lehung.github.io/posts/cscore-tools-04/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-tools-03/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-tools-02/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -369,11 +381,11 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-14threadpool/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-15threadpoolv2/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-15threadpoolv2/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-14threadpool/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -405,11 +417,11 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-05falsesharing/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-06futuretask/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-06futuretask/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-05falsesharing/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -429,39 +441,11 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-01-java/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
     <loc>https://chang-lehung.github.io/posts/cscore-container-09-arrayqueue/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-08-arraydeque/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-07-hashmap/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/hashmap-part-2/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/hashmap-part-1/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-01/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-02-linkedlist/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/posts/cscore-container-03-array/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-concurrency-01-java/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -469,15 +453,15 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/dynamic-programming/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
     <loc>https://chang-lehung.github.io/posts/arraylist-source/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/linked-list-design/</loc>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-03-array/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-08-arraydeque/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -485,7 +469,23 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-02-linkedlist/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-07-hashmap/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
     <loc>https://chang-lehung.github.io/posts/linkedlist-source/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cscore-container-01/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/linked-list-design/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>

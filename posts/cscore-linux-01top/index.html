@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识</h1>
       <p class="post-meta">
-        <time datetime="2022-10-05">2022-10-05</time>
+        <time datetime="2022-10-04">2022-10-04</time>
         <span class="sep">·</span>8 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
     </header>
 
@@ -236,7 +236,7 @@
 </li>
 <li>%CPU，上次一刷新之前对应的进程对CPU的占有率，这个值是可以突破100%的，因为一个进程可以有多个进程，比如下面这样，我们开启10个线程进行死循环：</li>
 </ul>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
 
 
 <span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -286,7 +286,7 @@
 <p>再输入想要发送的信号：</p>
 <p><img src="/content/zh/images/cscore/images/linux/command/11.webp" alt="04" loading="lazy" /></p>
 <p>这里可以输入代表信号的数字，也可以输入代表信号的名字，不同的信号的名字和代表输入如下：</p>
-<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGHUP</span><span class="tok-w">	 </span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGINT</span><span class="tok-w">	 </span><span class="tok-mi">3</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGQUIT</span><span class="tok-w">	 </span><span class="tok-mi">4</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGILL</span><span class="tok-w">	 </span><span class="tok-mi">5</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGTRAP</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGHUP</span><span class="tok-w">	 </span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGINT</span><span class="tok-w">	 </span><span class="tok-mi">3</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGQUIT</span><span class="tok-w">	 </span><span class="tok-mi">4</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGILL</span><span class="tok-w">	 </span><span class="tok-mi">5</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGTRAP</span>
 <span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGABRT</span><span class="tok-w">	 </span><span class="tok-mi">7</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGBUS</span><span class="tok-w">	 </span><span class="tok-mi">8</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGFPE</span><span class="tok-w">	 </span><span class="tok-mi">9</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGKILL</span><span class="tok-w">	</span><span class="tok-mi">10</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGUSR1</span>
 <span class="tok-mi">11</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGSEGV</span><span class="tok-w">	</span><span class="tok-mi">12</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGUSR2</span><span class="tok-w">	</span><span class="tok-mi">13</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGPIPE</span><span class="tok-w">	</span><span class="tok-mi">14</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGALRM</span><span class="tok-w">	</span><span class="tok-mi">15</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGTERM</span>
 <span class="tok-mi">16</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGSTKFLT</span><span class="tok-w">	</span><span class="tok-mi">17</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGCHLD</span><span class="tok-w">	</span><span class="tok-mi">18</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGCONT</span><span class="tok-w">	</span><span class="tok-mi">19</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGSTOP</span><span class="tok-w">	</span><span class="tok-mi">20</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">SIGTSTP</span>
@@ -320,7 +320,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-linux-02ls/"><span>较新</span>Linux命令系列之ls——原来最简单的ls这么复杂</a><a class="next" href="/posts/cscore-tools-04/"><span>较旧</span>Makfile总结</a>    </nav>
+<a class="prev" href="/posts/cscore-linux-01staticloader/"><span>较新</span>静态加载器</a><a class="next" href="/posts/cscore-tools-04/"><span>较旧</span>Makfile总结</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

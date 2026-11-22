@@ -5,147 +5,147 @@
     <link>https://chang-lehung.github.io/</link>
     <description>Chang-LeHung（牧牛的铃铛）的个人站点：编程语言、虚拟机与编译器，以及 LLM agent 运行时与本地优先知识工具。</description>
     <language>zh</language>
-    <lastBuildDate>Sun, 22 Nov 2026 13:25:57 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 22 Nov 2026 13:55:10 +0000</lastBuildDate>
     <atom:link href="https://chang-lehung.github.io/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
-      <title>Python 3.14 新特性</title>
-      <link>https://chang-lehung.github.io/posts/cpython-new-314/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-new-314/</guid>
-      <pubDate>Mon, 10 Nov 2025 00:00:00 +0000</pubDate>
-      <description>10 月 7 日 Python 3.14 正式发布，该版本又是一个有着巨大提升的版本，可以说是继 Python 3.12 和 Python 3.13 之后的又一个史诗级版本，话不多说，此次更新最主要内容如下： Python 开始彻底多线程特性，移除了 GIL 的限制，在一个 Python 进程中可以</description>
-<category>Python</category>    </item>
-    <item>
-      <title>深入理解 Python 虚拟机：字节（bytes）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-08bytes/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-08bytes/</guid>
-      <pubDate>Sat, 14 Oct 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 cpython 内部，bytes 的实现原理、内存布局以及与 bytes 相关的一个比较重要的优化点—— bytes 的拼接。 数据结构 复制 typedef struct { PyObject_VAR_HEAD Py_hash_t ob_shash ; char o</description>
-<category>Python</category><category>对象模型</category>    </item>
-    <item>
-      <title>深入理解 python 虚拟机：多继承与 mro</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-04mro/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-04mro/</guid>
-      <pubDate>Sat, 14 Oct 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中将主要给大家介绍 python 当中的多继承和 mro，通过介绍在多继承当中存在的问题就能够理解在 cpython 当中引入 c3 算法的原因了，从而能够帮助大家更好的了理解 mro 。 python 继承的问题 继承是一种面向对象编程的概念，它可以让一个类（子类）继承另一个类（父类）</description>
-<category>Python</category><category>面向对象</category>    </item>
-    <item>
-      <title>深入理解 python 虚拟机：字节码灵魂——Code object</title>
-      <link>https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</guid>
-      <pubDate>Sat, 14 Oct 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家深入介绍在 cpython 当中非常重要的一个数据结构 code object! 在上一篇文章 深入理解 python 虚拟机：pyc 文件结构 ，我们简单介绍了一下在 code object 当中有哪些字段以及这些字段的简单含义，在本篇文章当中将会举一些例子以便更加深入理解</description>
+      <title>深入理解 python 虚拟机：破解核心魔法——反序列化 pyc 文件</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</guid>
+      <pubDate>Sat, 19 Jul 2025 00:00:00 +0000</pubDate>
+      <description>在前面的文章当中我们详细的对于 pyc 文件的结构进行了分析，pyc 文件主要有下面的四个部分组成：魔术、 Bite Filed 、修改日期和 Code Object 组成。在前面的文章当中我们已经对前面三个部分进行了字节角度的分析，直接从 pyc 文件当中读取对应的数据并且打印出来了。而在本篇文章</description>
 <category>Python</category><category>虚拟机</category>    </item>
     <item>
       <title>深入理解python虚拟机：调试器实现原理与源码分析</title>
       <link>https://chang-lehung.github.io/posts/cpython-pvm-08debugger/</link>
       <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-08debugger/</guid>
-      <pubDate>Sat, 14 Oct 2023 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 28 Jun 2025 00:00:00 +0000</pubDate>
       <description>调试器是一个编程语言非常重要的部分，调试器是一种用于诊断和修复代码错误（或称为 bug）的工具，它允许开发者在程序执行时逐步查看和分析代码的状态和行为，它可以帮助开发者诊断和修复代码错误，理解程序的行为，优化性能。无论在哪种编程语言中，调试器都是一个强大的工具，对于提高开发效率和代码质量都起着积极的</description>
 <category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：列表（list）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-01list/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-01list/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍 cpython 虚拟机当中针对列表的实现，在 Python 中，List 是一种非常常用的数据类型，可以存储任何类型的数据，并且支持各种操作，如添加、删除、查找、切片等，在本篇文章当中将深入去分析这一点是如何实现的。 列表的结构 在 cpython 实现的 python</description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解python虚拟机：程序执行的载体——栈帧</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-07frameobject/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-07frameobject/</guid>
+      <pubDate>Sat, 07 Jun 2025 00:00:00 +0000</pubDate>
+      <description>栈帧（Stack Frame）是 Python 虚拟机中程序执行的载体之一，也是 Python 中的一种执行上下文。每当 Python 执行一个函数或方法时，都会创建一个栈帧来表示当前的函数调用，并将其压入一个称为调用栈（Call Stack）的数据结构中。调用栈是一个后进先出（LIFO）的数据结构</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：元组（tuple）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-02tuple/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-02tuple/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍 cpython 虚拟机当中针对列表的实现，在 Python 中，tuple 是一种非常常用的数据类型，在本篇文章当中将深入去分析这一点是如何实现的。 元组的结构 在这一小节当中主要介绍在 python 当中元组的数据结构： 复制 typedef struct { PyO</description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：字节码教程(3)——深入剖析循环实现原理</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-06bytecode-tutorial/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-06bytecode-tutorial/</guid>
+      <pubDate>Sat, 17 May 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍 cpython 当中跟循环相关的字节码，这部分字节码相比起其他字节码来说相对复杂一点，通过分析这部分字节码我们对程序的执行过程将会有更加深刻的理解。 循环 普通 for 循环实现原理 我们使用各种例子来理解和循环相关的字节码： 复制 def test_loop (): </description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：浮点数（float）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-03float/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-03float/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要分析在 cpython 虚拟机当中 float 类型的实现原理以及与他相关的一些源代码。 Float 数据结构 在 cpython 虚拟机当中浮点数类型的数据结构定义如下所示： 复制 typedef struct { PyObject_HEAD double ob_fval ; }</description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：字节码教程(2)——控制流是如何实现的？</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-05bytecode-tutorial/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-05bytecode-tutorial/</guid>
+      <pubDate>Sat, 26 Apr 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家分析 python 当中与控制流有关的字节码，通过对这部分字节码的了解，我们可以更加深入了解 python 字节码的执行过程和控制流实现原理。 控制流实现 控制流这部分代码主要涉及下面几条字节码指令，下面的所有字节码指令都会有一个参数： JUMP_FORWARD ，指令完整条</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：整型（int）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-04long/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-04long/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 cpython 内部是如何实现整型数据 int 的，主要是分析 int 类型的表示方式，分析 int 类型的巧妙设计。 数据结构 在 cpython 内部的 int 类型的实现数据结构如下所示： 复制 typedef struct _longobject PyLong</description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：字节码教程(1)——原来装饰器是这样实现的</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-04bytecode-tutorial/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-04bytecode-tutorial/</guid>
+      <pubDate>Sat, 05 Apr 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍在 cpython 当中一些比较常见的字节码，从根本上理解 python 程序的执行。在本文当中主要介绍一些 python 基本操作的字节码，并且将从字节码的角度分析函数装饰器的原理！ Python 常见字节码 LOAD_CONST 这个指令用于将一个常量加载到栈中。常量</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：复数（complex）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-05complex/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-05complex/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 cpython 虚拟机当中是如何实现 复数 complex 这个数据类型的，这个数据类型在 cpython 当中一应该是一个算比较简单的数据类型了，非常容易理解。 复数数据结构 在 cpython 当中对于复数的数据结构实现如下所示： 复制 typedef struc</description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：令人拍案叫绝的字节码设计</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-03bytecode/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-03bytecode/</guid>
+      <pubDate>Sat, 15 Mar 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍 cpython 虚拟机对于字节码的设计以及在调试过程当中一个比较重要的字段 co_lnotab 的设计原理！ python 字节码设计 一条 python 字节码主要有两部分组成，一部分是操作码，一部分是这个操作码的参数，在 cpython 当中只有部分字节码有参数，如</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：集合（set）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-06set/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-06set/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 cpython 虚拟机当中的集合 set 的实现原理以及对应的源代码分析。 数据结构介绍 复制 typedef struct { PyObject_HEAD Py_ssize_t fill ; /* Number active and dummy entries*/ </description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：字节码灵魂——Code object</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</guid>
+      <pubDate>Sat, 22 Feb 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家深入介绍在 cpython 当中非常重要的一个数据结构 code object! 在上一篇文章 深入理解 python 虚拟机：pyc 文件结构 ，我们简单介绍了一下在 code object 当中有哪些字段以及这些字段的简单含义，在本篇文章当中将会举一些例子以便更加深入理解</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：字典（dict）的实现原理及源码剖析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-07dict/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-07dict/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家深入介绍一下在 cpython 当中字典的实现原理，在本篇文章当中主要介绍在早期 python3 当中的版本字典的实现，现在的字典做了部分优化，我们在后面的文章当中再介绍。 字典数据结构分析 复制 /* The ma_values pointer is NULL for a </description>
-<category>Python</category><category>对象模型</category>    </item>
+      <title>深入理解 python 虚拟机：pyc 文件结构</title>
+      <link>https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</guid>
+      <pubDate>Sat, 01 Feb 2025 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍一下 .py 文件在被编译之后对应的 pyc 文件结构，pyc 文件当中的一个核心内容就是 python 字节码。 pyc 文件 pyc 文件是 Python 在解释执行源代码时生成的一种字节码文件，它包含了源代码的编译结果和相关的元数据信息，以便于 Python 可以更</description>
+<category>Python</category><category>虚拟机</category>    </item>
     <item>
-      <title>深入理解 Python 虚拟机：字典（dict）的优化</title>
-      <link>https://chang-lehung.github.io/posts/cpython-objects-09dict/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-09dict/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在前面的文章当中我们讨论的是 python3 当中早期的内嵌数据结构字典的实现，在本篇文章当中主要介绍在后续对于字典的内存优化。 字典优化 在前面的文章当中我们介绍的字典的数据结构主要如下所示： 复制 typedef struct { PyObject_HEAD Py_ssize_t ma_used</description>
-<category>Python</category><category>对象模型</category>    </item>
-    <item>
-      <title>深入理解python虚拟机：黑科技的幕后英雄——描述器</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-01class/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-01class/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍一个我们在使用类的时候经常使用但是却很少在意的黑科技——描述器，在本篇文章当中主要分析描述器的原理，以及介绍使用描述器实现属性访问控制和 orm 映射等等功能！在后面的文章当中我们将继续去分析描述器的实现原理。 描述器的基本用法 描述器是一个实现了 __get__ 、 _</description>
-<category>Python</category><category>面向对象</category>    </item>
-    <item>
-      <title>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-02application/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-02application/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍描述器在 python 语言当中有哪些应用，主要介绍如何使用 python 语言实现 python 内置的 proterty 、staticmethod 和 class method 。 property 当你在编写Python代码时，你可能会遇到一些需要通过方法来访问或</description>
-<category>Python</category><category>面向对象</category>    </item>
-    <item>
-      <title>深入理解 python 虚拟机：描述器实现原理与源码分析</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍描述器背后的实现原理，通过分析 cpython 对应的源代码了解与描述器相关的字节码的指令，我们就可以真正了解到描述器背后的原理！ 从字节码角度看描述器 在前面的内容当中我们已经详细分析了描述器的使用和其相关的应用，我们通常使用描述器都是将其作为类的一个类属性使用，而使用</description>
-<category>Python</category><category>面向对象</category>    </item>
-    <item>
-      <title>魔术方法之数学计算</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍在 python 当中一些常见的魔术方法，本篇文章主要是关于与数学计算相关的一些魔术方法，在很多科学计算的包当中都使用到了这些魔术方法。 大小比较 当我们在Python中定义自己的类时，可以通过重写一些特殊方法来改变对象的比较行为。这些特殊方法包括 __lt__ 、 __</description>
+      <title>深入理解Python虚拟机：super的超级魔法</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-07super/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-07super/</guid>
+      <pubDate>Sat, 11 Jan 2025 00:00:00 +0000</pubDate>
+      <description>介绍 在本篇文章中，我们将深入探讨Python中的 super 函数的使用和原理。 super 函数作为Python虚拟机中强大的功能之一，可以帮助我们更灵活地使用继承和多重继承。 super函数的使用 在Python中，我们经常使用继承来构建类的层次结构。当子类继承了父类的属性和方法时，有时我们需</description>
 <category>Python</category><category>面向对象</category>    </item>
     <item>
       <title>深入理解 python 虚拟机：花里胡哨的魔术方法</title>
       <link>https://chang-lehung.github.io/posts/cpython-obsy-06magicmethod02/</link>
       <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-06magicmethod02/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
+      <pubDate>Sat, 21 Dec 2024 00:00:00 +0000</pubDate>
       <description>在本篇文章当中主要给大家介绍在 cpython 当中一些比较花里胡哨的魔术方法，以帮助我们自己实现比较花哨的功能，当然这其中也包含一些也非常实用的魔术方法。 深入分析 hash 方法 在 Python 中， __hash__() 方法是一种特殊方法（也称为魔术方法或双下划线方法），用于返回对象的哈希</description>
 <category>Python</category><category>面向对象</category>    </item>
     <item>
-      <title>深入理解Python虚拟机：super的超级魔法</title>
-      <link>https://chang-lehung.github.io/posts/cpython-obsy-07super/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-07super/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>介绍 在本篇文章中，我们将深入探讨Python中的 super 函数的使用和原理。 super 函数作为Python虚拟机中强大的功能之一，可以帮助我们更灵活地使用继承和多重继承。 super函数的使用 在Python中，我们经常使用继承来构建类的层次结构。当子类继承了父类的属性和方法时，有时我们需</description>
+      <title>魔术方法之数学计算</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</guid>
+      <pubDate>Sat, 30 Nov 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍在 python 当中一些常见的魔术方法，本篇文章主要是关于与数学计算相关的一些魔术方法，在很多科学计算的包当中都使用到了这些魔术方法。 大小比较 当我们在Python中定义自己的类时，可以通过重写一些特殊方法来改变对象的比较行为。这些特殊方法包括 __lt__ 、 __</description>
 <category>Python</category><category>面向对象</category>    </item>
     <item>
-      <title>深入理解 python 虚拟机：pyc 文件结构</title>
-      <link>https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</link>
-      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</guid>
-      <pubDate>Thu, 21 Sep 2023 00:00:00 +0000</pubDate>
-      <description>在本篇文章当中主要给大家介绍一下 .py 文件在被编译之后对应的 pyc 文件结构，pyc 文件当中的一个核心内容就是 python 字节码。 pyc 文件 pyc 文件是 Python 在解释执行源代码时生成的一种字节码文件，它包含了源代码的编译结果和相关的元数据信息，以便于 Python 可以更</description>
-<category>Python</category><category>虚拟机</category>    </item>
+      <title>深入理解 python 虚拟机：多继承与 mro</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-04mro/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-04mro/</guid>
+      <pubDate>Sat, 09 Nov 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中将主要给大家介绍 python 当中的多继承和 mro，通过介绍在多继承当中存在的问题就能够理解在 cpython 当中引入 c3 算法的原因了，从而能够帮助大家更好的了理解 mro 。 python 继承的问题 继承是一种面向对象编程的概念，它可以让一个类（子类）继承另一个类（父类）</description>
+<category>Python</category><category>面向对象</category>    </item>
+    <item>
+      <title>深入理解 python 虚拟机：描述器实现原理与源码分析</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</guid>
+      <pubDate>Sat, 19 Oct 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍描述器背后的实现原理，通过分析 cpython 对应的源代码了解与描述器相关的字节码的指令，我们就可以真正了解到描述器背后的原理！ 从字节码角度看描述器 在前面的内容当中我们已经详细分析了描述器的使用和其相关的应用，我们通常使用描述器都是将其作为类的一个类属性使用，而使用</description>
+<category>Python</category><category>面向对象</category>    </item>
+    <item>
+      <title>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-02application/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-02application/</guid>
+      <pubDate>Sat, 28 Sep 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍描述器在 python 语言当中有哪些应用，主要介绍如何使用 python 语言实现 python 内置的 proterty 、staticmethod 和 class method 。 property 当你在编写Python代码时，你可能会遇到一些需要通过方法来访问或</description>
+<category>Python</category><category>面向对象</category>    </item>
+    <item>
+      <title>深入理解python虚拟机：黑科技的幕后英雄——描述器</title>
+      <link>https://chang-lehung.github.io/posts/cpython-obsy-01class/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-obsy-01class/</guid>
+      <pubDate>Sat, 07 Sep 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍一个我们在使用类的时候经常使用但是却很少在意的黑科技——描述器，在本篇文章当中主要分析描述器的原理，以及介绍使用描述器实现属性访问控制和 orm 映射等等功能！在后面的文章当中我们将继续去分析描述器的实现原理。 描述器的基本用法 描述器是一个实现了 __get__ 、 _</description>
+<category>Python</category><category>面向对象</category>    </item>
+    <item>
+      <title>深入理解 Python 虚拟机：字典（dict）的优化</title>
+      <link>https://chang-lehung.github.io/posts/cpython-objects-09dict/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-09dict/</guid>
+      <pubDate>Sat, 17 Aug 2024 00:00:00 +0000</pubDate>
+      <description>在前面的文章当中我们讨论的是 python3 当中早期的内嵌数据结构字典的实现，在本篇文章当中主要介绍在后续对于字典的内存优化。 字典优化 在前面的文章当中我们介绍的字典的数据结构主要如下所示： 复制 typedef struct { PyObject_HEAD Py_ssize_t ma_used</description>
+<category>Python</category><category>对象模型</category>    </item>
+    <item>
+      <title>深入理解 Python 虚拟机：字节（bytes）的实现原理及源码剖析</title>
+      <link>https://chang-lehung.github.io/posts/cpython-objects-08bytes/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-08bytes/</guid>
+      <pubDate>Sat, 27 Jul 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍在 cpython 内部，bytes 的实现原理、内存布局以及与 bytes 相关的一个比较重要的优化点—— bytes 的拼接。 数据结构 复制 typedef struct { PyObject_VAR_HEAD Py_hash_t ob_shash ; char o</description>
+<category>Python</category><category>对象模型</category>    </item>
+    <item>
+      <title>深入理解 Python 虚拟机：字典（dict）的实现原理及源码剖析</title>
+      <link>https://chang-lehung.github.io/posts/cpython-objects-07dict/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-07dict/</guid>
+      <pubDate>Sat, 06 Jul 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家深入介绍一下在 cpython 当中字典的实现原理，在本篇文章当中主要介绍在早期 python3 当中的版本字典的实现，现在的字典做了部分优化，我们在后面的文章当中再介绍。 字典数据结构分析 复制 /* The ma_values pointer is NULL for a </description>
+<category>Python</category><category>对象模型</category>    </item>
+    <item>
+      <title>深入理解 Python 虚拟机：集合（set）的实现原理及源码剖析</title>
+      <link>https://chang-lehung.github.io/posts/cpython-objects-06set/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/cpython-objects-06set/</guid>
+      <pubDate>Sat, 15 Jun 2024 00:00:00 +0000</pubDate>
+      <description>在本篇文章当中主要给大家介绍在 cpython 虚拟机当中的集合 set 的实现原理以及对应的源代码分析。 数据结构介绍 复制 typedef struct { PyObject_HEAD Py_ssize_t fill ; /* Number active and dummy entries*/ </description>
+<category>Python</category><category>对象模型</category>    </item>
   </channel>
 </rss>

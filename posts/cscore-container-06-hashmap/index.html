@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</h1>
       <p class="post-meta">
-        <time datetime="2022-11-05">2022-11-05</time>
+        <time datetime="2022-11-08">2022-11-08</time>
         <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
     </header>
 
@@ -298,11 +298,8 @@
     <text x="962" y="318">0000</text>
     <text x="1071.5" y="318">1111</text>
   </g>
-</svg>
-```首先我们需要明白求余数的意义是什么？`127`对`16`取余，就是用`127`一直减去`16`，直到某个结果小于`16`为止，得到的值为求余数结果。
-
-```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列" style="display:block; margin:1.2em auto; max-width:580px">
+</svg></figure><p>首先我们需要明白求余数的意义是什么？<code>127</code>对<code>16</code>取余，就是用<code>127</code>一直减去<code>16</code>，直到某个结果小于<code>16</code>为止，得到的值为求余数结果。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 第一行：16 -->
   <text x="19" y="69" font-size="26" fill="#000">16的二进制数</text>
   <g fill="#fff" stroke="#444" stroke-width="1.5">
@@ -352,7 +349,7 @@
   <!-- 红框标出最后一列 -->
   <rect x="993.5" y="35" width="108.5" height="120" fill="none" stroke="#fb3838" stroke-width="3"/>
 </svg></figure><p>上图当中红框当中包括的位置就是小于<code>16</code>的部分</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1174 356" role="img" aria-label="127、16、32、64 的二进制数，红框标出倒数第二列" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1174 356" role="img" aria-label="127、16、32、64 的二进制数，红框标出倒数第二列" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 第一行：127 -->
   <text x="36" y="69" font-size="26" fill="#000">127的二进制数</text>
   <g fill="#fff" stroke="#444" stroke-width="1.5">
@@ -454,7 +451,7 @@
 </svg></figure><p>上图当中红框框住的部分是<code>16</code>的倍数，因此在求余数的时候上图当中红框框住的部分就没有了，都为0，只会剩下小于<code>16</code>的部分，这跟<code>15</code>进行<code>&amp;</code>操作得到的结果是一致的。这也就解释了上面提到的第三条。</p>
 <p>在第二条中我们提到了使用数组长度为<code>2</code>的整数次幂可以在一定程度上减少哈希冲突，因为进行下标运算的时候是与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作，而<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>的二进制表示最后一部分位置上的数都是<code>1</code>。</p>
 <p>比如下图中的数据都是<code>2</code>的整数次幂减一之后的结果：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 448" role="img" aria-label="1 到 127 之间的 2 的幂减一的二进制表示，蓝色格为有效位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 448" role="img" aria-label="1 到 127 之间的 2 的幂减一的二进制表示，蓝色格为有效位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 1 -->
   <text x="61" y="54" font-size="22" fill="#000" text-anchor="middle">1</text>
   <g fill="#fff" stroke="#444" stroke-width="1.5">
@@ -637,7 +634,7 @@
 <span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><p>上面的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap17" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -833,7 +830,7 @@
     <path d="M152 267 H177"/>
     <path d="M152 414.5 H177"/>
   </g>
-</svg></figure><figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+</svg></figure><figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap21" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -981,7 +978,7 @@
     <path d="M136 142 H164"/>
   </g>
 </svg></figure><p>从上图当中我们会发现，我们咋一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <defs>
     <marker id="arrow-hashmap23" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -1053,7 +1050,7 @@
   <!-- 说明 -->
   <text x="25" y="199" font-size="22" letter-spacing="0.45" fill="#000">因为一个int类型只有32位，虚线位置没有数据，画虚线只是为了表示清楚，经过移位操作之后，会有32位比特数为1</text>
 </svg></figure><p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，如果最终的容量没有大于我们设置的最大容量<code>MAXIMUM_CAPACITY</code>，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
-<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" style="display:block; margin:1.2em auto; max-width:580px" class="inline-svg">
   <!-- 第一行 -->
   <g fill="#fff" stroke="#000" stroke-width="1.5">
     <rect x="62" y="23" width="91" height="34"/>
@@ -1529,7 +1526,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-container-05-hashmap/"><span>较新</span>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</a><a class="next" href="/posts/cscore-da-01/"><span>较旧</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a>    </nav>
+<a class="prev" href="/posts/dynamic-programming/"><span>较新</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a><a class="next" href="/posts/hashmap-part-2/"><span>较旧</span>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

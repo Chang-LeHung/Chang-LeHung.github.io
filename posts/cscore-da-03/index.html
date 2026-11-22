@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>面试官：完全背包都不会，是你自己走还是我送你？</h1>
       <p class="post-meta">
-        <time datetime="2022-11-05">2022-11-05</time>
+        <time datetime="2022-11-12">2022-11-12</time>
         <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
     </header>
 
@@ -195,7 +195,7 @@
 <span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>根据动态转移方程，我们有下面的代码：</p>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
@@ -206,7 +206,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p><code>C++</code>完整代码如下：</p>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
 <span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
 <span class="tok-cp">#define MAX_LEN 10000</span>
 
@@ -357,7 +357,7 @@
   </g>
 </svg></figure><p>这个单行数组与多行数组的区别是多行数组每一行有每一行的状态，而且他保存了所有行的状态，单行数组只存在一行的状态，但是他会经历所有行的状态，也就是在外层<code>for</code>循环下单行数组的状态不断更新。（如果你不理解这段话和上面谈到的单行数组优化，可以结合代码和文字进行理解）</p>
 <p><code>C++</code>代码：</p>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
 <span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
 <span class="tok-cp">#define MAX_LEN 10000</span>
 
@@ -403,7 +403,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-da-02combinations/"><span>较新</span>组合总和</a><a class="next" href="/posts/cscore-da-03combinations/"><span>较旧</span>[组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)</a>    </nav>
+<a class="prev" href="/posts/cscore-da-04-v1/"><span>较新</span>深入剖析多重背包问题（上篇）</a><a class="next" href="/posts/cscore-concurrency-02pthread/"><span>较旧</span>Pthread 并发编程（二）——自底向上深入理解线程</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

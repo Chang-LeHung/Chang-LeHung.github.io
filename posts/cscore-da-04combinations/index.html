@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>[数组总和III](https://leetcode.cn/problems/combination-sum-iii/)</h1>
       <p class="post-meta">
-        <time datetime="2022-11-05">2022-11-05</time>
+        <time datetime="2022-11-28">2022-11-28</time>
         <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
     </header>
 
@@ -332,7 +332,7 @@
 <p>从第一层到第二层变化的时候，第一个分支表示所有包含1的组合，第二个分支表示所有包含2的组合，第三个表示所有包含3的分支。但是这种说法是不够准确的，准确的来说第一个分支也有包含2的组合，包含3的组合，第2个分支也有包含3的组合，更准确的来说是前<code>n</code>个分支有数据<code>n</code>的所有组合。因此上面的树结构和递归方式能够组合出所有的数据。</p>
 <p>现在我们的任务就是需要用代码将上面的这颗树生成出来，具体代码如下：</p>
 <h4 id="c代码">C++代码</h4>
-<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
 <span class="tok-k">public</span><span class="tok-o">:</span>
@@ -372,7 +372,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-da-04-v2/"><span>较新</span>深入剖析多重背包问题（下篇）</a><a class="next" href="/posts/cscore-da-05/"><span>较旧</span>深入剖析斐波拉契数列</a>    </nav>
+<a class="prev" href="/posts/cscore-linux-02jobcontrol/"><span>较新</span>你在终端启动的进程，最后都是什么下场？（下）</a><a class="next" href="/posts/cscore-linux-01jobcontrol/"><span>较旧</span>你在终端启动的进程，最后都是什么下场？（上）</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

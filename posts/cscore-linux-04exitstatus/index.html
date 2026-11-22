@@ -191,7 +191,7 @@
 <span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>在上面的代码当中父进程执行的 wait 函数就是等待子进程的状态变化，当子进程退出的时候 wait 函数会返回，同时将子进程一些状态信息保存在 status 当中，然后我们就可以子进程传递给父进程最后的信息啦。其中 WEXITSTATUS 这个宏就是获取子进程退出时候的退出码！对应的 python 实现如下图所示：</p>
-<div class="code-block" data-lang="py"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">os</span>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">os</span>
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">sys</span>
 
 <span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>

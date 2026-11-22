@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>[组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)</h1>
       <p class="post-meta">
-        <time datetime="2022-11-05">2022-11-05</time>
+        <time datetime="2022-11-27">2022-11-27</time>
         <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
     </header>
 
@@ -292,7 +292,7 @@
 <p>根据上面的例子我们可以总结出来，在同一层当中，如果后面的值等于他前面一个值的话，我们就可以不去生成“选择”这个分支的子树，因为在他的前面已经生成了一颗一模一样的子树了。</p>
 <p>现在我们的问题是如何确定和上一个遍历的节点是在同一层上面。我们可以使用一个<code>used</code>数组进行确定，当我们使用一个数据之后我们将对应下标的<code>used</code>数组的值设置为<code>true</code>，当递归完成进行回溯的时候在将对应位置的<code>used</code>值设置为<code>false</code>，因此当我们遍历一个数据的时候如果他前面的一个数据的<code>used</code>值是<code>false</code>的话，那么这个节点就和前面的一个节点在同一层上面。</p>
 <p>根据上面的分析我们可以写出如下的代码：</p>
-<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
 <span class="tok-k">public</span><span class="tok-o">:</span>
@@ -601,7 +601,7 @@
 
 <span class="tok-p">}</span>
 </code></pre></div><h4 id="c代码">C++代码</h4>
-<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<div class="code-block" data-lang="cpp"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
 <span class="tok-k">public</span><span class="tok-o">:</span>
@@ -637,7 +637,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cscore-da-03/"><span>较新</span>面试官：完全背包都不会，是你自己走还是我送你？</a><a class="next" href="/posts/cscore-da-04-v1/"><span>较旧</span>深入剖析多重背包问题（上篇）</a>    </nav>
+<a class="prev" href="/posts/cscore-linux-01jobcontrol/"><span>较新</span>你在终端启动的进程，最后都是什么下场？（上）</a><a class="next" href="/posts/cscore-da-02combinations/"><span>较旧</span>组合总和</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>

@@ -59,7 +59,7 @@
     <header class="post-head">
       <h1>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</h1>
       <p class="post-meta">
-        <time datetime="2023-09-21">2023-09-21</time>
+        <time datetime="2024-09-28">2024-09-28</time>
         <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/面向对象/">面向对象</a>      </p>
     </header>
 
@@ -117,9 +117,9 @@
 <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">rect</span><span class="tok-o">.</span><span class="tok-n">height</span><span class="tok-p">)</span>
 <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">rect</span><span class="tok-o">.</span><span class="tok-n">area</span><span class="tok-p">)</span>
 </code></pre></div><p>输出结果如下所示：</p>
-<div class="code-block" data-lang="basj"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>5
-10
-50
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-m">5</span>
+<span class="tok-m">10</span>
+<span class="tok-m">50</span>
 </code></pre></div><p>在设置 width 或 height 属性的值时，会执行对应的 setter 方法进行类型检查和范围检查。如果值不符合要求，将会抛出一个 ValueError 异常。这使得你的代码更加健壮和可靠。</p>
 <p>除了在属性的 getter 和 setter 方法中执行额外的操作外，你还可以使用 property 装饰器计算属性。计算属性是指，当你访问属性时，它不是从类的实例中获取数据，而是基于类的其他数据成员进行计算。例如，如果你有一个表示温度的类，你可以定义一个计算属性，用于将摄氏度转换为华氏度，如下所示：</p>
 <div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Temperature</span><span class="tok-p">:</span>
@@ -388,7 +388,7 @@
     </div>
 
     <nav class="post-nav">
-<a class="prev" href="/posts/cpython-obsy-01class/"><span>较新</span>深入理解python虚拟机：黑科技的幕后英雄——描述器</a><a class="next" href="/posts/cpython-obsy-03decriptor/"><span>较旧</span>深入理解 python 虚拟机：描述器实现原理与源码分析</a>    </nav>
+<a class="prev" href="/posts/cpython-obsy-03decriptor/"><span>较新</span>深入理解 python 虚拟机：描述器实现原理与源码分析</a><a class="next" href="/posts/cpython-obsy-01class/"><span>较旧</span>深入理解python虚拟机：黑科技的幕后英雄——描述器</a>    </nav>
 
     <section class="comments" id="comments" aria-labelledby="comments-title">
       <h2 class="comments-title" id="comments-title">评论</h2>
