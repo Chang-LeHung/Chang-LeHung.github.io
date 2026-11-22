@@ -5,7 +5,7 @@
     <link>https://chang-lehung.github.io/</link>
     <description>Chang-LeHung（牧牛的铃铛）的个人站点：编程语言、虚拟机与编译器，以及 LLM agent 运行时与本地优先知识工具。</description>
     <language>zh</language>
-    <lastBuildDate>Sun, 22 Nov 2026 04:19:48 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 22 Nov 2026 06:17:24 +0000</lastBuildDate>
     <atom:link href="https://chang-lehung.github.io/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>欢迎</title>
@@ -14,5 +14,54 @@
       <pubDate>Sat, 21 Nov 2026 00:00:00 +0000</pubDate>
       <description>第一篇文章。</description>
     </item>
+    <item>
+      <title>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</title>
+      <link>https://chang-lehung.github.io/posts/hashmap-part-2/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/hashmap-part-2/</guid>
+      <pubDate>Tue, 12 Jul 2022 00:00:00 +0000</pubDate>
+      <description>我们在上篇文章 哈希表的设计原理 当中已经大体说明了哈希表的实现原理，在这篇文章当中我们将自己动手实现我们自己的 HashMap ，完整的代码在文章末尾。 在本篇文章当中主要通过线性探测法，从最基本的数组再到 HashMap 当中节点的设计，一步一步的实现一个能够实现 Key 、 Value 映射的</description>
+<category>容器</category><category>Java</category>    </item>
+    <item>
+      <title>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</title>
+      <link>https://chang-lehung.github.io/posts/hashmap-part-1/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/hashmap-part-1/</guid>
+      <pubDate>Sun, 10 Jul 2022 00:00:00 +0000</pubDate>
+      <description>在此前的 四篇长文 当中我们已经实现了我们自己的 ArrayList 和 LinkedList ，并且分析了 ArrayList 和 LinkedList 的 JDK 源代码。 本篇文章主要跟大家介绍我们非常常用的一种数据结构 HashMap ，在本篇文章当中主要介绍他的实现原理，下篇我们自己动手实</description>
+<category>容器</category><category>Java</category>    </item>
+    <item>
+      <title>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</title>
+      <link>https://chang-lehung.github.io/posts/dynamic-programming/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/dynamic-programming/</guid>
+      <pubDate>Sat, 09 Jul 2022 00:00:00 +0000</pubDate>
+      <description>动态规划作为一种非常经典的一类算法，不仅在解决实际问题当中有很多实际的应用，同时通常也是面试的一个重点。本篇文章一步步剖析动态规划的基本原理，通过 斐波拉契数列问题 （优化时间复杂度从 O ( 2 n ) 到 O(n) 再到 O(log(n)) ）和经典的 01背包问题 一步一步带你从最基本的原理弄</description>
+<category>算法</category><category>动态规划</category>    </item>
+    <item>
+      <title>ArrayList源码深度剖析</title>
+      <link>https://chang-lehung.github.io/posts/arraylist-source/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/arraylist-source/</guid>
+      <pubDate>Thu, 07 Jul 2022 00:00:00 +0000</pubDate>
+      <description>本篇文章主要跟大家分析一下 ArrayList 的源代码。阅读本文你首先得对 ArrayList 有一些基本的了解，至少使用过它。如果你对 ArrayList 的一些基本使用还不太熟悉或者在阅读本文的时候感觉有点困难，你可以先阅读这篇文章 ArrayList设计与实现，自己动手写ArrayList </description>
+<category>容器</category><category>Java</category>    </item>
+    <item>
+      <title>链表设计与实现</title>
+      <link>https://chang-lehung.github.io/posts/linked-list-design/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/linked-list-design/</guid>
+      <pubDate>Thu, 07 Jul 2022 00:00:00 +0000</pubDate>
+      <description>在谈链表之前，我们先谈谈我们平常编程会遇到的很常见的一个问题。如果在编程的时候，某个变量在后续编程中仍需使用，我们可以用一个局部变量来保存该值，除此之外一个更加常用的方法就是使用容器了。 那什么是 容器 呢？从字面上来说就是用来装某个东西的，比如我们的杯子，就是容器。在程序设计当中我们最常见的容器就</description>
+<category>容器</category><category>Java</category>    </item>
+    <item>
+      <title>数组容器(ArrayList)设计与Java实现</title>
+      <link>https://chang-lehung.github.io/posts/arraylist-design/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/arraylist-design/</guid>
+      <pubDate>Wed, 06 Jul 2022 00:00:00 +0000</pubDate>
+      <description>本篇文章主要跟大家介绍我们最常使用的一种容器 ArrayList 、 Vector 的原理，并且自己使用 Java 实现自己的数组容器 MyArrayList ，让自己写的容器能像 ArrayList 那样工作。在本篇文章当中首先介绍 ArrayList 的一些基本功能，然后去分析我们自己的容器 M</description>
+<category>容器</category><category>Java</category>    </item>
+    <item>
+      <title>LinkedList源码深度剖析</title>
+      <link>https://chang-lehung.github.io/posts/linkedlist-source/</link>
+      <guid isPermaLink="true">https://chang-lehung.github.io/posts/linkedlist-source/</guid>
+      <pubDate>Tue, 05 Jul 2022 00:00:00 +0000</pubDate>
+      <description>LinkedList继承体系 首先先直观的看一下 LinedList 的继承体系和实现的接口 复制 public class LinkedList &lt; E &gt; extends AbstractSequentialList &lt; E &gt; implements List &lt; E &gt; , Deque &lt; E</description>
+<category>容器</category><category>Java</category>    </item>
   </channel>
 </rss>

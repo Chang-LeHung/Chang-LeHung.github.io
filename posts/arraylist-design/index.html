@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数组容器(ArrayList)设计与Java实现 · Chang-LeHung</title>
+<meta name="description" content="本篇文章主要跟大家介绍我们最常使用的一种容器 ArrayList 、 Vector 的原理，并且自己使用 Java 实现自己的数组容器 MyArrayList ，让自己写的容器能像 ArrayList 那样工作。在本篇文章当中首先介绍 ArrayList 的一些基本功能，然后去分析我们自己的容器 M">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=219a1ccd">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>数组容器(ArrayList)设计与Java实现</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-06">2022-07-06</time>
+        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>        <span class="sep">·</span><a class="taglink" href="/tags/java/">Java</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>本篇文章主要跟大家介绍我们最常使用的一种容器<code>ArrayList</code>、<code>Vector</code>的原理，并且自己使用<code>Java</code>实现自己的数组容器<code>MyArrayList</code>，让自己写的容器能像<code>ArrayList</code>那样工作。在本篇文章当中首先介绍<code>ArrayList</code>的一些基本功能，然后去分析我们自己的容器<code>MyArrayList</code>应该如何进行设计，同时分析我们自己的具体实现方法，最后进行代码介绍！！！</p>
+<h2 id="arraylist为我们提供了哪些功能">ArrayList为我们提供了哪些功能？</h2>
+<p>我们来看一个简单的代码，随机生成100个随机数，查看生成随机数当中是否存在50这个数。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyArrayList</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">5000</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">50</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"包含数据 50"</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">set</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1000</span><span class="tok-p">);</span><span class="tok-c1">// 设置下标为5的数据为100</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span><span class="tok-c1">// 删除下标为5的数据</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-p">(</span><span class="tok-mi">888</span><span class="tok-p">));</span><span class="tok-c1">// 删除容器当中的第一个值为5的数据</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上述代码包含了<code>ArrayList</code>最基本的一个功能，一个是<code>add</code>方法，向数组容器当中加入数据，另外一个方法是<code>get</code>从容器当中拿出数据，<code>set</code>方法改变容器里的数据，<code>remove</code>方法删除容器当中的数据。<code>ArrayList</code>的很多其他的方法都是围绕这四个最基本的方法展开的，因此我们在这里不仔细介绍其他的方法了，后面我们自己实现的时候遇到问题的时候自然会需要设计相应的方法，然后我们进行解决即可。</p>
+<p>现在我们就需要去设计一个数组容器实现“增删改查”这四个基本功能。</p>
+<h2 id="设计原理分析">设计原理分析</h2>
+<p>首先明白一点我们需要使用什么工具去实现这样一个容器。我们手里有的工具就是<code>Java</code>提供给我们的最基本的功能——数组（这个好像是废话，我们的标题就是<strong>数组容器</strong>🤣）。</p>
+<p>当我们在<code>Java</code>当中使用数组去存储数据时，数据在<code>Java</code>当中的内存布局大致如下图所示。</p>
+<p><img src="/content/zh/images/vector/03-array-02.png" alt="" loading="lazy" /></p>
+<p>我们在设计数组容器这样一个数据结构的时候主要会遇到两个问题：</p>
+<ul>
+<li>我们申请数组的长度是多少。</li>
+<li>当数组满了之后怎么办，也就是我们的扩容机制。</li>
+</ul>
+<p>对于这两个问题，首先我们数组的初始大小可以有默认值，在我们自己实现的<code>MyArrayList</code>当中设置为10，我们在使用类时也可以传递一个参数指定初始大小。第二个问题当我们的数组满的时候我们需要对数组进行扩容，在我们实现的<code>MyArrayList</code>当中我们采取的方式是，新数组的长度是原数组的两倍（这个跟<code>JDK</code>的<code>ArrayList</code>方式不一样，<code>ArrayList</code>扩容为原来的1.5倍）。</p>
+<p><img src="/content/zh/images/vector/03-array-03.png" alt="" loading="lazy" /></p>
+<h2 id="代码实现">代码实现</h2>
+<p>为了让我们的类实现的更加简单我们在代码当中就不做很多非必要的逻辑判断并且抛出异常，我们的代码只要能表现出我们的思想即可。</p>
+<ul>
+<li>首先定义一个接口<code>MyCollection</code>，表示我们要实现哪些方法！</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">interface</span> <span class="tok-nc">MyCollection</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 往链表尾部加入一个数据</span>
+<span class="tok-cm">   * @param o 加入到链表当中的数据</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 表示在第 index 位置插入数据 o</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 从链表当中删除数据 o</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 从链表当中删除第 index 个数据</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 往链表尾部加入一个数据，功能和 add 一样</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">append</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 返回链表当中数据的个数</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">size</span><span class="tok-p">();</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 表示链表是否为空</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">isEmpty</span><span class="tok-p">();</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 表示链表当中是否包含数据 o</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">contain</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 设置下标为 index 的数据为 o</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>我们的构造函数，初始化过程。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyArrayList</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-c1">// 增长数组的空间为 initialCapacity，即申请一个数组</span>
+<span class="tok-w">    </span><span class="tok-c1">// 且数组的长度为 initialCapacity</span>
+<span class="tok-w">    </span><span class="tok-n">grow</span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-p">);</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyArrayList</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 容器当中的数据个数在开始时为 0</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">elementData</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">EMPTY_INSTANCE</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 将数组设置为空数组</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>我们需要实现的最复杂的方法就是<code>add</code>了，这个方法是四个方法当中最复杂的，其余的方法都相对比较简单。
+<ul>
+<li>进入<code>add</code>方法之后，我们需要找到符合要求的最小数组长度，这个值通常是容器当中元素的个数<code>size + 1</code> ，也就是图中的<code>minCapacity</code>首先先比较这个值和现在数组的长度，如果长度不够的话则需要进行扩容，将数组的长度扩大到原来的两倍。</li>
+<li>如果不需要扩容，则直接讲元素放入到数组当中即可。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/content/zh/images/vector/03-array-05.png" alt="" loading="lazy" /></p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个函数的主要作用就是确保数组的长度至少为 size + 1</span>
+<span class="tok-w">    </span><span class="tok-n">ensureCapacity</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 新增加了一个数据，容器的大小需要 + 1</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[++</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个函数的主要作用就是确保数组的长度至少为 capacity</span>
+<span class="tok-cm">   * @param capacity</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">ensureCapacity</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">candidateCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">findCapacity</span><span class="tok-p">(</span><span class="tok-n">capacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidateCapacity</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">grow</span><span class="tok-p">(</span><span class="tok-n">candidateCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个函数的主要目的就是找到最终数组长度需求的容量</span>
+<span class="tok-cm">   * @param minCapacity</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">findCapacity</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * 如果 if 条件为 true 即 elementData 还是初始化时设置的空数组</span>
+<span class="tok-cm">     * 那么返回默认大小和需要大小的最大值 </span>
+<span class="tok-cm">     * 否则直接返回 minCapacity</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">EMPTY_INSTANCE</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>我们为什么需要将<code>ensureCapacity</code>的访问限制权限设置为<code>public</code>？因为我们想让用户尽量去使用这个函数，因为如果我们如果写出下面这样的代码我们会一直申请内存空间，然后也需要将前面的数组释放掉，会给垃圾回收器造成更大的压力。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">1000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>下面我们对<code>ArrayList</code>的方法进行测试：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.ArrayList</span><span class="tok-p">;</span>
+
+<span class="tok-kd">class</span> <span class="tok-nc">Person</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setName</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">name</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-s">"Person{"</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">        </span><span class="tok-s">"name='"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-sc">'\''</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">        </span><span class="tok-sc">'}'</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">ArrayListTest</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Person</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">o1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">o1</span><span class="tok-p">.</span><span class="tok-na">ensureCapacity</span><span class="tok-p">(</span><span class="tok-mi">10000000</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">o1</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Person</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"end - start: "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Person</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">o2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">o2</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Person</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"end - start: "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-mi">1345</span>
+<span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-mi">4730</span>
+</code></pre></div><p>从上面的测试结果我们可以看出提前使用<code>ensureCapacity</code>方法之后，程序执行的时间更加短。</p>
+<ul>
+<li>插入数据的<code>add</code>方法。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个函数的主要作用就是确保数组的长度至少为 size + 1</span>
+<span class="tok-w">    </span><span class="tok-n">ensureCapacity</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 新增加了一个数据，容器的大小需要 + 1</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>add</code>在指定下标插入数据。
+<ul>
+<li>首先将插入下标后的数据往后移动一个位置</li>
+<li>然后在将数据放在指定下标的位置。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/content/zh/images/vector/03-array-06.png" alt="" loading="lazy" /></p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 在下标 index 位置插入数据 o</span>
+<span class="tok-cm">   * 首先先将 index 位置之后的数据往后移动一个位置</span>
+<span class="tok-cm">   * 然后将 index 赋值为 o</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 确保容器当中的数组长度至少为 size + 1</span>
+<span class="tok-w">    </span><span class="tok-n">ensureCapacity</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将 elementData index位置之后的数据往后移动一个位置</span>
+<span class="tok-w">    </span><span class="tok-c1">// 做一个原地拷贝</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 移动的数据个数为 size - index</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>删除数据的方法<code>remove</code>。
+<ul>
+<li>首先先删除指定下标的数据。</li>
+<li>然后将指定下标后的数据往前移动一个位置</li>
+<li>在实际的操作过程中我们可以不删除，直接移动，这样也覆盖被插入位置的数据了。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/content/zh/images/vector/03-array-07.png" alt="" loading="lazy" /></p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 移除下标为 index 的数据</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 需要被移动的数据个数</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numMoved</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">numMoved</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span>
+<span class="tok-w">          </span><span class="tok-n">numMoved</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[--</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>移除容器当中具体的某个对象。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个方法主要是用于溢出容器当中具体的某个数据</span>
+<span class="tok-cm">   * 首先先通过 for 循环遍历容器当中的每个数据，</span>
+<span class="tok-cm">   * 比较找到相同的数据对应的下标，然后通过下标移除方法</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">remove</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">remove</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>set</code>方法，这个方法就很简单了。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>重写<code>toString</code>方法。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-s">"[]"</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">StringBuilder</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">StringBuilder</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"["</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">", "</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">delete</span><span class="tok-p">(</span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"]"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>测试代码</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">contain</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">6</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">elementData</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 容器会扩容两倍，而默认容器长度为10，因此这里是 20 </span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">99999</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">contain</span><span class="tok-p">(</span><span class="tok-mi">99999</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-c1">// 代码输出</span>
+<span class="tok-kc">false</span>
+<span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">4</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">6</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">7</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">8</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">9</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">11</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">12</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">13</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">14</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">4</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">7</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">8</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">9</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">11</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">12</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">13</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">14</span><span class="tok-o">]</span>
+<span class="tok-mi">20</span>
+<span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">4</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">99999</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">7</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">8</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">9</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">11</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">12</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">13</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">14</span><span class="tok-o">]</span>
+<span class="tok-kc">true</span>
+</code></pre></div><h2 id="完整代码">完整代码</h2>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.ArrayList</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Arrays</span><span class="tok-p">;</span>
+
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">MyCollection</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 容器当中存储数据的个数</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 容器中数组的默认长度</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 存放具体数据的数组，也就是我们容器当中真正存储数据的地方</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 当容器当中没有数据将 elementData 设置为这个值，这个值是所有实例一起共享的</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">EMPTY_INSTANCE</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">{};</span>
+
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyArrayList</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-c1">// 增长数组的空间为 initialCapacity，即申请一个数组</span>
+<span class="tok-w">    </span><span class="tok-c1">// 且数组的长度为 initialCapacity</span>
+<span class="tok-w">    </span><span class="tok-n">grow</span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyArrayList</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 容器当中的数据个数在开始时为 0</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">elementData</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">EMPTY_INSTANCE</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 将数组设置为空数组</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个函数的主要作用就是确保数组的长度至少为 capacity</span>
+<span class="tok-cm">   * @param capacity</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">ensureCapacity</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">candidateCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">findCapacity</span><span class="tok-p">(</span><span class="tok-n">capacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidateCapacity</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">grow</span><span class="tok-p">(</span><span class="tok-n">candidateCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个函数的主要目的就是找到最终数组长度需求的容量</span>
+<span class="tok-cm">   * @param minCapacity</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">findCapacity</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * 如果 if 条件为 true 即 elementData 还是初始化时设置的空数组</span>
+<span class="tok-cm">     * 那么返回默认大小和需要大小的最大值</span>
+<span class="tok-cm">     * 否则直接返回 minCapacity</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">EMPTY_INSTANCE</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 该函数主要保证 elementData 的长度至少为 minCapacity</span>
+<span class="tok-cm">   * 如果数组的长度小于 minCapacity 则需要进行扩容，反之</span>
+<span class="tok-cm">   * @param minCapacity 数组的最短长度</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">grow</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">oldCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 新的数组长度为原来数组长度的两倍</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">newCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldCapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-c1">// 如果数组新数组的长度 newCapacity 小于所需要的长度 minCapacity</span>
+<span class="tok-w">    </span><span class="tok-c1">// 新申请的长度应该为 minCapacity</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newCapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">newCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">minCapacity</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 申请一个长度为 newCapacity 的数组，在将原来数组</span>
+<span class="tok-w">    </span><span class="tok-c1">// elementData 的数据拷贝到新数组当中</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">copyOf</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">newCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个函数的主要作用就是确保数组的长度至少为 size + 1</span>
+<span class="tok-w">    </span><span class="tok-n">ensureCapacity</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 新增加了一个数据，容器的大小需要 + 1</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 在下标 index 位置插入数据 o</span>
+<span class="tok-cm">   * 首先先将 index 位置之后的数据往后移动一个位置</span>
+<span class="tok-cm">   * 然后将 index 赋值为 o</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 确保容器当中的数组长度至少为 size + 1</span>
+<span class="tok-w">    </span><span class="tok-n">ensureCapacity</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将 elementData index位置之后的数据往后移动一个位置</span>
+<span class="tok-w">    </span><span class="tok-c1">// 做一个原地拷贝</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 移动的数据个数为 size - index</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个方法主要是用于溢出容器当中具体的某个数据</span>
+<span class="tok-cm">   * 首先先通过 for 循环遍历容器当中的每个数据，</span>
+<span class="tok-cm">   * 比较找到相同的数据对应的下标，然后通过下标移除方法</span>
+<span class="tok-cm">   * @param o</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">remove</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">remove</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 移除下标为 index 的数据</span>
+<span class="tok-cm">   * @param index</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 需要被移动的数据个数</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numMoved</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">numMoved</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">elementData</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span>
+<span class="tok-w">          </span><span class="tok-n">numMoved</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[--</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">append</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">add</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">size</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">isEmpty</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">contain</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-s">"[]"</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">StringBuilder</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">StringBuilder</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"["</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">", "</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">delete</span><span class="tok-p">(</span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"]"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">    </span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">contain</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">6</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">elementData</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">99999</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">contain</span><span class="tok-p">(</span><span class="tok-mi">99999</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>本篇文章我们介绍了<code>ArrayList</code>的内部原理，并且我们实现了一个自己的简单数组容器<code>MyArrayList</code>，但是我们还有一些内容没有涉及，比如<code>clone</code>、<code>equals</code>和迭代器，这些内容我们下期分析<code>ArrayList</code>源码再进行分析，我是LeHung，我们下期再见！！！</p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机知识。</p>
+<p><img src="/content/zh/images/cnblogs/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/linked-list-design/"><span>较新</span>链表设计与实现</a><a class="next" href="/posts/linkedlist-source/"><span>较旧</span>LinkedList源码深度剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#arraylist为我们提供了哪些功能">ArrayList为我们提供了哪些功能？</a></li>
+      <li class="toc-l2"><a href="#设计原理分析">设计原理分析</a></li>
+      <li class="toc-l2"><a href="#代码实现">代码实现</a></li>
+      <li class="toc-l2"><a href="#完整代码">完整代码</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>
