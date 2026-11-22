@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1411 169" role="img" aria-label="数组下标与元素对应：左侧六个槽位的数组在下标 3 处插入一个新元素，右侧变成五个槽位" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1411" height="169">
+  <!-- 左：数组与下标，六列，插入位置在下标 3 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="107" y="44" width="94" height="40"/>
+    <rect x="201" y="44" width="94" height="40"/>
+    <rect x="295" y="44" width="94" height="40"/>
+    <rect x="483" y="44" width="94" height="40"/>
+    <rect x="577" y="44" width="94" height="40"/>
+  </g>
+  <rect x="389" y="44" width="94" height="40" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+
+  <g stroke="#444" stroke-width="1.5" fill="#ffffff">
+    <rect x="107" y="84" width="94" height="40"/>
+    <rect x="201" y="84" width="94" height="40"/>
+    <rect x="295" y="84" width="94" height="40"/>
+    <rect x="389" y="84" width="94" height="40"/>
+    <rect x="483" y="84" width="94" height="40"/>
+    <rect x="577" y="84" width="94" height="40"/>
+  </g>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="154" y="70">PyObject*</text>
+    <text x="248" y="70">PyObject*</text>
+    <text x="342" y="70">PyObject*</text>
+    <text x="436" y="70">PyObject*</text>
+    <text x="530" y="70">PyObject*</text>
+    <text x="624" y="70">PyObject*</text>
+    <text x="154" y="110">0</text>
+    <text x="248" y="110">1</text>
+    <text x="342" y="110">2</text>
+    <text x="436" y="110">3</text>
+    <text x="530" y="110">4</text>
+    <text x="624" y="110">5</text>
+  </g>
+  <text x="20" y="112" font-size="18">数组下标</text>
+
+  <!-- 右：插入后的数组，五列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="806" y="41" width="94" height="40"/>
+    <rect x="900" y="41" width="94" height="40"/>
+    <rect x="994" y="41" width="94" height="40"/>
+    <rect x="1182" y="41" width="94" height="40"/>
+  </g>
+  <rect x="1088" y="41" width="94" height="40" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+
+  <g stroke="#444" stroke-width="1.5" fill="#ffffff">
+    <rect x="806" y="81" width="94" height="40"/>
+    <rect x="900" y="81" width="94" height="40"/>
+    <rect x="994" y="81" width="94" height="40"/>
+    <rect x="1088" y="81" width="94" height="40"/>
+    <rect x="1182" y="81" width="94" height="40"/>
+  </g>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="853" y="67">PyObject*</text>
+    <text x="947" y="67">PyObject*</text>
+    <text x="1041" y="67">PyObject*</text>
+    <text x="1135" y="67">PyObject*</text>
+    <text x="1229" y="67">PyObject*</text>
+    <text x="853" y="107">0</text>
+    <text x="947" y="107">1</text>
+    <text x="1041" y="107">2</text>
+    <text x="1135" y="107">3</text>
+    <text x="1229" y="107">4</text>
+  </g>
+  <text x="717" y="109" font-size="18">数组下标</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 864 522" role="img" aria-label="菱形继承示意图：B 与 C 都继承 A，D 同时继承 B 与 C" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="864" height="522">
+  <defs>
+    <marker id="arrow-78" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="11.5" markerHeight="10"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <rect x="296" y="47" width="205" height="83" rx="7"/>
+    <rect x="53" y="213" width="205" height="83" rx="7"/>
+    <rect x="562" y="213" width="205" height="83" rx="7"/>
+    <rect x="310" y="391" width="205" height="83" rx="7"/>
+  </g>
+
+  <g fill="#1a1a1a" font-size="36" text-anchor="middle">
+    <text x="398" y="101">A</text>
+    <text x="156" y="267">B</text>
+    <text x="664" y="268">C</text>
+    <text x="412" y="445">D</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M156 213 L391 131" marker-end="url(#arrow-78)"/>
+    <path d="M664 213 L406 131" marker-end="url(#arrow-78)"/>
+    <path d="M411 391 L159 296" marker-end="url(#arrow-78)"/>
+    <path d="M414 391 L663 296" marker-end="url(#arrow-78)"/>
+  </g>
+</svg>

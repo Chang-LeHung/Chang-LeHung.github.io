@@ -177,12 +177,12 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>上面的最难理解的就是函数<code>calculateSize</code>了，他的主要作用是如果用户输入的长度小于<code>MIN_INITIAL_CAPACITY</code>时，返回<code>MIN_INITIAL_CAPACITY</code>。否则返回比<code>initialCapacity</code>大的第一个是<code>2</code>的整数幂的整数，比如说如果输入的是<code>9</code>返回的<code>16</code>，输入<code>4</code>返回<code>8</code>。</p>
 <p><code>calculateSize</code>的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
-<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap17.svg" alt="" loading="lazy" /></p>
-<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap21.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap17.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap21.svg" alt="" loading="lazy" /></p>
 <p>从上图当中我们会发现，我们在一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
-<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap23.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap23.svg" alt="" loading="lazy" /></p>
 <p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
-<p><img src="/content/zh/images/content/zh/images/hashmap/01-hashmap24.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap24.svg" alt="" loading="lazy" /></p>
 <p>经过上述过程分析，我们就可以立即函数<code>calculateSize</code>了。</p>
 <h2 id="arraydeque关键函数分析">ArrayDeque关键函数分析</h2>
 <h3 id="addlast函数分析">addLast函数分析</h3>

@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2049 738" role="img"
-     aria-label="回溯选择二叉树：每个节点用蓝格记录层号、彩色格记录已选集合，绿色为答案节点"
-     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2049 738" role="img" aria-label="回溯选择二叉树：每个节点用蓝格记录层号、彩色格记录已选集合，绿色为答案节点" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="2049" height="738">
   <defs>
     <marker id="arrow-backtrace02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

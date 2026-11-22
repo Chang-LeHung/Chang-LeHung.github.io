@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 525 332" role="img" aria-label="UML 类图：Class B 与 Class C 继承 Class A，Class D 同时继承 Class B 与 Class C" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="525" height="332">
+  <defs>
+    <marker id="arrow-79" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 四个类框 -->
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <rect x="190" y="28" width="141" height="50"/>
+    <line x1="190" y1="52" x2="331" y2="52"/>
+    <rect x="28" y="123" width="141" height="50"/>
+    <line x1="28" y1="148" x2="169" y2="148"/>
+    <rect x="348" y="123" width="141" height="50"/>
+    <line x1="348" y1="148" x2="489" y2="148"/>
+    <rect x="186" y="232" width="141" height="48"/>
+    <line x1="186" y1="256" x2="327" y2="256"/>
+  </g>
+
+  <g fill="#1a1a1a" font-size="13" font-weight="bold" text-anchor="middle">
+    <text x="260.5" y="42">Class A</text>
+    <text x="98.5" y="139">Class B</text>
+    <text x="418.5" y="139">Class C</text>
+    <text x="256.5" y="247">Class D</text>
+  </g>
+  <g fill="#1a1a1a" font-size="12">
+    <text x="192" y="70">def method()</text>
+    <text x="350" y="166">def method()</text>
+  </g>
+
+  <!-- 继承连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M99 123 V101 H418 V123"/>
+    <path d="M260 101 V79" marker-end="url(#arrow-79)"/>
+    <path d="M99 202 H418"/>
+    <path d="M256 202 V232"/>
+    <path d="M99 202 V174" marker-end="url(#arrow-79)"/>
+    <path d="M418 202 V174" marker-end="url(#arrow-79)"/>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 324 180" role="img" aria-label="pyc 文件里的两个字节目：Number 存放在前两字节，回车换行存放在后两字节" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="324" height="180">
+  <!-- 两列各占 2 字节，上面是列宽标注的刻度线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M55 54 V143"/>
+    <path d="M155 54 V143"/>
+    <path d="M256 54 V143"/>
+    <path d="M55 69 H256"/>
+    <path d="M55 84 H256"/>
+    <path d="M55 143 H256"/>
+  </g>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="105" y="44">2 字节</text>
+    <text x="206" y="44">2 字节</text>
+    <text x="105" y="121">Number</text>
+    <text x="206" y="120" font-size="16.5">&quot;\r\n&quot;</text>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 302 642" role="img" aria-label="调用栈示意：栈里自下而上依次是 decorator 函数与 fib 函数，上方还留有空位" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="302" height="642">
+  <rect x="51" y="28" width="179" height="577" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <path d="M51 427 H230 M51 515 H230" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <g font-size="26" text-anchor="middle">
+    <text x="140" y="481">fib 函数</text>
+    <text x="140" y="569">decorator 函数</text>
+  </g>
+</svg>

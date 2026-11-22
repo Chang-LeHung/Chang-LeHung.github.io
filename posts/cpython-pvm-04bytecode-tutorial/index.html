@@ -278,7 +278,7 @@ Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<sp
 <ul>
 <li>执行完第二条指令 LOAD_CONST 之后，会将字符串 decorator 加载进入栈空间当中。</li>
 </ul>
-<p><img src="/content/zh/images/cpython/48-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/48-bytecode.svg" alt="47-bytecode" loading="lazy" /></p>
 <ul>
 <li>执行第三条指令 MAKE_FUNCTION，这条字节码的作用是在虚拟机内部创建一个函数，函数的名称为 decorator，函数对应的字节码则是在先前压入栈空间当中的 code object 对象，这条指令还会将创建好的函数对象压入栈中。</li>
 </ul>
@@ -294,11 +294,11 @@ Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<sp
 <ul>
 <li>接下来的三条字节码 LOAD_CONST，LOAD_CONST 和 MAKE_FUNCTION，在执行这三条字节码之后，栈空间如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cpython/52-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/52-bytecode.svg" alt="47-bytecode" loading="lazy" /></p>
 <ul>
 <li>接下来的一条指令非常重要，这条指令便是装饰器的核心原理，CALL_FUNCTION 这条指令有一个参数 i，在上面的字节码当中为 1，也就是说从栈顶开始的前 i 个元素都是函数参数，调用的函数在栈空间的位置为 i + 1 （从栈顶往下数），那么在上面的情况下就是说调用 decorator 函数，并且将 fib 函数作为 decorator 函数的参数，decorator 函数的返回值再压入栈顶。在上面的代码当中 decorator 函数返回值也是一个函数，也就是 decorator 函数的参数，即 fib 函数。</li>
 </ul>
-<p><img src="/content/zh/images/cpython/54-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/54-bytecode.svg" alt="47-bytecode" loading="lazy" /></p>
 <ul>
 <li>接下来便是 STORE_NAME 字节码，这条字节码的含义我们在前面已经说过了，就是将栈顶元素弹出，保存到 co_names[oparg] 指向的对象当中，在上面的代码当中也就是将栈顶的对象保存到 fib 当中。栈顶元素 fib 函数是调用函数 decorator 的返回值。</li>
 </ul>

@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 938 587" role="img" aria-label="两行数组对比出队前后：第一行 8 号格子标黄、tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 9 号格子开始有数据、tail=4 与 head=9 指向 4 号与 9 号格子，右侧黄框里是被出队的 8"
-     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 938 587" role="img" aria-label="两行数组对比出队前后：第一行 8 号格子标黄、tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 9 号格子开始有数据、tail=4 与 head=9 指向 4 号与 9 号格子，右侧黄框里是被出队的 8" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="938" height="587">
   <defs>
     <marker id="arrow-12" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

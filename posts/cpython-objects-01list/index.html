@@ -287,7 +287,7 @@
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>n</mi><mi>e</mi><mi>w</mi><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x02248;</mo><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x000B7;</mo><mo stretchy="false">&#x00028;</mo><mi>s</mi><mi>i</mi><mi>z</mi><mi>e</mi><mo>&#x0002B;</mo><mn>1</mn><msup><mo stretchy="false">&#x00029;</mo><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>8</mn></mrow></mfrac></mrow></msup></mrow></math></div><p><img src="/content/zh/images/cpython/03-list.webp" alt="" loading="lazy" /></p>
 <h3 id="列表的插入函数-insert">列表的插入函数 insert</h3>
 <p>在列表当中插入一个数据比较简单，只需要将插入位置和其后面的元素往后移动一个位置即可，整个过程如下所示：</p>
-<p><img src="/content/zh/images/cpython/04-list.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/04-list.svg" alt="" loading="lazy" /></p>
 <p>在 cpython 当中列表的插入函数的实现如下所示：</p>
 <ul>
 <li>参数 op 表示往哪个链表当中插入元素。</li>
@@ -344,7 +344,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h3 id="列表的删除函数-remove">列表的删除函数 remove</h3>
 <p>对于数组 ob_item 来说，删除一个元素就需要将这个元素后面的元素往前移动，因此整个过程如下所示：</p>
-<p><img src="/content/zh/images/cpython/05-list.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/05-list.svg" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
 <span class="tok-nf">listremove</span><span class="tok-p">(</span><span class="tok-n">PyListObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">self</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">v</span><span class="tok-p">)</span>
 <span class="tok-p">{</span>

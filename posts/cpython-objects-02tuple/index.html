@@ -274,7 +274,7 @@
 <li>将元组指向的所有对象的引用计数减一。</li>
 <li>判断元组是否满足保存到 free_list 当中的条件，如果满足就将他加入到 free_list 当中去，否则回收这块内存。加入到 free_list 当中整个元组当中 ob_item 指向变化如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cpython/11-tuple.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/11-tuple.svg" alt="" loading="lazy" /></p>
 <ul>
 <li>如果不能够将释放的元组对象加入到 free_list 当中，否则将内存释放回收。</li>
 </ul>

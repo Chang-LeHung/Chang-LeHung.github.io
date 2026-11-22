@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2448 218" role="img" aria-label="atexit 手册页的 DESCRIPTION 段：atexit() 函数登记在程序正常终止时被调用的函数，通过 exit(3) 或从 main() 返回；登记的函数按逆序调用，且不传参数。图中用红框圈出 reverse order 两个词" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2448 218" role="img" aria-label="atexit 手册页的 DESCRIPTION 段：atexit() 函数登记在程序正常终止时被调用的函数，通过 exit(3) 或从 main() 返回；登记的函数按逆序调用，且不传参数。图中用红框圈出 reverse order 两个词" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="2448" height="218">
   <rect width="2448" height="218" fill="#f5f5f5"/>
 
   <!-- 小节标题 -->

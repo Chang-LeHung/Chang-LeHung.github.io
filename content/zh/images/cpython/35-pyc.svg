@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1183 568" role="img" aria-label="Python 程序的执行流程：py 文件经编译器变成字节码，字节码由虚拟机执行，同时编译产生的 pyc 文件保存到磁盘中" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1183" height="568">
+  <!-- 执行流程的大方框 -->
+  <rect x="238" y="22" width="757" height="357" rx="57" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 三个处理步骤 -->
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <rect x="276" y="169" width="114" height="71" rx="10"/>
+    <rect x="552" y="169" width="114" height="71" rx="10"/>
+    <rect x="858" y="169" width="114" height="71" rx="10"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="333" y="211">编译器</text>
+    <text x="609" y="211">字节码</text>
+    <text x="915" y="211">虚拟机</text>
+  </g>
+
+  <!-- 空心箭头 -->
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <path d="M122 192 H190 V180 L213 200 L190 220 V208 H122 Z"/>
+    <path d="M418 196 H486 V184 L504 204 L486 224 V212 H418 Z"/>
+    <path d="M727 192 H795 V180 L818 200 L795 220 V208 H727 Z"/>
+    <path d="M982 192 H1050 V180 L1073 200 L1050 220 V208 H982 Z"/>
+    <path d="M598 282 H615 V346 H631 L606.5 369 L582 346 H598 Z"/>
+  </g>
+
+  <text x="27" y="207" font-size="20">py文件</text>
+  <text x="1102" y="206" font-size="20">执行</text>
+
+  <!-- 生成 pyc 文件 -->
+  <rect x="478" y="403" width="268" height="127" rx="12" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <text x="611" y="474" font-size="19" text-anchor="middle">生成pyc 文件保存到磁盘中</text>
+</svg>

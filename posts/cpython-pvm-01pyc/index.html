@@ -70,7 +70,7 @@
 <p>当 Python 解释器首次执行一个 .py 文件时，它会在同一目录下生成一个对应的 .pyc 文件，以便于下次加载该文件时可以更快地执行。如果源文件在修改之后被重新加载，解释器会重新生成 .pyc 文件以更新缓存的字节码。</p>
 <h2 id="生成-pyc-文件">生成 pyc 文件</h2>
 <p>正常的 python 文件需要通过编译器变成字节码，然后将字节码交给 python 虚拟机，然后 python 虚拟机会执行字节码。整体流程如下所示：</p>
-<p><img src="/content/zh/images/cpython/35-pyc.webp" alt="35-pyc" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/35-pyc.svg" alt="35-pyc" loading="lazy" /></p>
 <p>我们可以直接使用 compile all 模块生成对应文件的 pyc 文件。</p>
 <div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>pvm<span class="tok-w"> </span>ls
 demo.py<span class="tok-w">  </span>hello.py
@@ -88,7 +88,7 @@ demo.cpython-310.pyc<span class="tok-w">  </span>hello.cpython-310.pyc
 <h2 id="pyc-文件布局">pyc 文件布局</h2>
 <p><img src="/content/zh/images/cpython/38-pyc.webp" alt="36-pyc" loading="lazy" /></p>
 <p>第一部分魔数由两部分组成：</p>
-<p><img src="/content/zh/images/cpython/37-pyc.webp" alt="37-pyc" loading="lazy" /></p>
+<p><img src="/content/zh/images/cpython/37-pyc.svg" alt="37-pyc" loading="lazy" /></p>
 <p>第一部分 魔术是由一个 2 字节的整数和另外两个字符回车换行组成的， &quot;\r\n&quot; 也占用两个字节，一共是四个字节。这个两个字节的整数在不同的 python 版本还不一样，比如说在 python3.5 当中这个值为 3351 等值，在 python3.9 当中这个值为 3420，3421，3422，3423，3424等值（在 python 3.9 的小版本）。</p>
 <p>第二部分 Bit Field 这个字段的主要作用是为了将来能够实现复现编译结果，但是在 python3.9a2 时，这个字段的值还全部是 0 。详细内容可以参考 <a href="https://peps.python.org/pep-0552/">PEP552-Deterministic pycs</a> 。这个字段在 python2 和 python3 早期版本并没有（python3.5 还没有），在 python3 的后期版本这个字段才出现的。</p>
 <p>第三部分 就是整个 py  源文件的大小了。</p>

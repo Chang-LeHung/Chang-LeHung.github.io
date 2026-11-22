@@ -65,7 +65,7 @@
     <div class="prose">
       <h2 id="linkedlist继承体系">LinkedList继承体系</h2>
 <p>首先先直观的看一下<code>LinedList</code>的继承体系和实现的接口</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist01.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist01.svg" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
 <span class="tok-w">    </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">AbstractSequentialList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
 <span class="tok-w">    </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Deque</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Cloneable</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">java</span><span class="tok-p">.</span><span class="tok-na">io</span><span class="tok-p">.</span><span class="tok-na">Serializable</span>
@@ -110,7 +110,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>根据上面的字段分析，<code>LinkedList</code>内部结构主要如下：</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist03.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist03.svg" alt="" loading="lazy" /></p>
 <p>链表当中有<code>first</code>和<code>last</code>字段主要指向链表当中第一个节点和最后一个节点，如果链表当中没有节点，那么他们都是<code>null</code>，如果链表当中有一个节点他们指向同一个节点，如果链表中节点个数大于2，他们分别指向第一个节点和最后一个节点。</p>
 <h2 id="linkedlist重要方法">LinkedList重要方法</h2>
 <ul>
@@ -338,9 +338,9 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>整个过程如下图所示：</p>
 <p>进行插入之前：</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist06.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist06.svg" alt="" loading="lazy" /></p>
 <p>插入之后：</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist09.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist09.svg" alt="" loading="lazy" /></p>
 <ul>
 <li><code>set</code>方法，更新某个下标的数据<code>item</code></li>
 </ul>
@@ -389,7 +389,7 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们可以看到如果对象不为 <code>null</code> 最终是调用对象的<code>toString</code>方法得到的字符串。<strong>因此当打印一个对象的时候，最终会打印这个对象的<code>toString</code>方法返回的字符串</strong>。</p>
 <p>我们在<code>LinkedList</code>类中搜索<code>toString</code>方法，发现这个方法是存在于<code>AbstractCollection</code>类当中，也就是下面这个类，<code>LinkedList</code>继承于它：</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist10.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist10.svg" alt="" loading="lazy" /></p>
 <p><code>toString</code>方法的源代码如下所示：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-c1">// 得到链表的迭代器</span>
@@ -424,7 +424,7 @@
 <span class="tok-c1">// false</span>
 <span class="tok-c1">// true</span>
 </code></pre></div><p>其中 <code>==</code> 比较的是两个对象的内存地址（也就是<code>s1</code>和<code>s2</code>指向的两个对象）是否相同，也就是<code>s1</code>和<code>s2</code>是否是同一个对象，<code>equals</code>比较的是两个字符串对象的内容是否相同（不同的类实现方式不一样可能有差异，字符串<code>String</code>实现方式是只要内容相同<code>equlas</code>方法就返回<code>true</code>，否则返回<code>false</code>），上述代码在内存当中的布局大致如下：</p>
-<p><img src="/content/zh/images/content/zh/images/linkedlist/02-linkedlist11.svg" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/linkedlist/02-linkedlist11.svg" alt="" loading="lazy" /></p>
 <p><code>==</code>比较的是两个箭头指向的内容的内存地址是否一致，<code>equlas</code>根据具体的类的实现有所差异。</p>
 <p>现在我们来看一下<code>LinkedList</code>类是如何实现<code>equlas</code>方法的，和<code>toString</code>方法一样，<code>equlas</code>方法也是在类<code>AbstractCollection</code>当中实现的。</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">equals</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>

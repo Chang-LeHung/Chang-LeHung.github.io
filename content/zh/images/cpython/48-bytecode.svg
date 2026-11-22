@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 668" role="img" aria-label="调用栈示意：栈顶在上、栈底在下，栈中依次压入 decorator 与 code 对象" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="480" height="668">
+  <defs>
+    <marker id="arrow-48bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="18" markerHeight="16" markerUnits="userSpaceOnUse"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <rect x="191" y="38" width="178" height="577" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <path d="M191 438 H369 M191 526 H369" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <g font-size="27" text-anchor="middle">
+    <text x="280" y="491">&quot;decorator&quot;</text>
+    <text x="280" y="579">code obejct</text>
+  </g>
+
+  <path d="M118 570 V72" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-48bytecode)"/>
+  <g font-size="25" text-anchor="middle">
+    <text x="118" y="51">栈顶</text>
+    <text x="118" y="606">栈底</text>
+  </g>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1241 295" role="img" aria-label="向数组中插入元素：左侧五个槽位的数组在下标 3 处插入新元素，右侧为插入后变成六个槽位的数组" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1241" height="295">
+  <defs>
+    <marker id="arrow-04list" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左：插入前的数组，五个槽位 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="26" y="52" width="94" height="40"/>
+    <rect x="120" y="52" width="94" height="40"/>
+    <rect x="214" y="52" width="94" height="40"/>
+    <rect x="308" y="52" width="94" height="40"/>
+    <rect x="402" y="52" width="94" height="40"/>
+  </g>
+
+  <!-- 右：插入后的数组，六个槽位 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="653" y="52" width="94" height="40"/>
+    <rect x="747" y="52" width="94" height="40"/>
+    <rect x="841" y="52" width="94" height="40"/>
+    <rect x="1029" y="52" width="94" height="40"/>
+    <rect x="1123" y="52" width="94" height="40"/>
+  </g>
+  <rect x="935" y="52" width="94" height="40" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="73" y="78">PyObject*</text>
+    <text x="167" y="78">PyObject*</text>
+    <text x="261" y="78">PyObject*</text>
+    <text x="355" y="78">PyObject*</text>
+    <text x="449" y="78">PyObject*</text>
+    <text x="700" y="78">PyObject*</text>
+    <text x="794" y="78">PyObject*</text>
+    <text x="888" y="78">PyObject*</text>
+    <text x="982" y="78">PyObject*</text>
+    <text x="1076" y="78">PyObject*</text>
+    <text x="1170" y="78">PyObject*</text>
+  </g>
+
+  <!-- 待插入的元素 -->
+  <rect x="32" y="222" width="94" height="40" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="79" y="248" font-size="19" text-anchor="middle">PyObject*</text>
+
+  <!-- 插入位置：从元素指向下标 3 之前的槽位间隙 -->
+  <path d="M126 242 H308 V92" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-04list)"/>
+  <rect x="226" y="170" width="168" height="25" fill="#ffffff"/>
+  <text x="310" y="189" font-size="18" text-anchor="middle">在这个位置进行插入</text>
+</svg>

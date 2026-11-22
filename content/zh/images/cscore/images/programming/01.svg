@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 254" role="img" aria-label="IDE 的调用栈面板：标题栏为 CALL STACK 与 Paused on breakpoint，下面四行依次是 init1（exit3.c 第 17 行第 3 列）、__libc_csu_init（第 26 行）、__libc_start_main（第 41 行）和 _start（第 15 行）" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 254" role="img" aria-label="IDE 的调用栈面板：标题栏为 CALL STACK 与 Paused on breakpoint，下面四行依次是 init1（exit3.c 第 17 行第 3 列）、__libc_csu_init（第 26 行）、__libc_start_main（第 41 行）和 _start（第 15 行）" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="644" height="254">
   <!-- 背景与标题栏 -->
   <rect width="644" height="254" fill="#f2f2f2"/>
   <rect width="644" height="40" fill="#ece8ee"/>
