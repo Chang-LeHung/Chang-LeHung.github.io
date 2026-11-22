@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 470" role="img"
+     aria-label="PyFloatObject 的内存布局：ob_refcnt 与 ob_type 组成 PyObject，ob_fval 存放浮点数值"
+     width="860" height="470"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <text x="300" y="52" text-anchor="middle" font-size="30">PyFloatObject</text>
+
+  <!-- 结构体：三格 -->
+  <g stroke="#32731e" stroke-width="1.5">
+    <rect x="92" y="96" width="408" height="86" fill="#3c8825"/>
+    <rect x="92" y="182" width="408" height="92" fill="#3c8825"/>
+    <rect x="92" y="274" width="408" height="92" fill="#d9e7d6"/>
+  </g>
+  <line x1="92" y1="182" x2="500" y2="182" stroke="#245c12" stroke-width="1.5"/>
+
+  <g fill="#ffffff" font-size="27">
+    <text x="126" y="151">Py_ssize_t ob_refcnt</text>
+    <text x="126" y="241">_typeobject *ob_type</text>
+  </g>
+  <text x="126" y="332" font-size="27">double ob_fval</text>
+
+  <!-- 花括号：包住前两格 -->
+  <path d="M552 118 q 22 0 22 24 v 34 q 0 20 16 22 q -16 2 -16 22 v 34 q 0 24 -22 24"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="640" y="262" font-size="29">PyObject</text>
+</svg>
