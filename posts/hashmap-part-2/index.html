@@ -187,9 +187,8 @@
 </code></pre></div><p>上面的函数之所以要将对象的哈希值右移<code>16</code>，是因为我们的数组的长度一般不会超过<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mn>16</mn></mrow></msup></mrow></math>，因为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mn>16</mn></mrow></msup></mrow></math>已经是一个比较大的值了，因此当哈希值与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作的时候，高位通常没有使用到，这样做的原理是可以充分利用数据哈希值当中的信息。</p>
 <h2 id="扩容机制">扩容机制</h2>
 <p>当我们一直往<code>HashMap</code>加入数据的话，数组迟早会被用完，当数组用完之后我们就需要进行扩容，我们要记住一点扩容之后的数组长度也需要满足<code>2</code>的整数次幂，因为上面我们已经提到数组的长度需要是<code>2</code>的整数次幂，因此扩容之后的长度也需要保持是<code>2</code>的整数次幂。</p>
-<p>但是在实际情况当中我们并不是当数组完全被使用完之后才进行扩容，因为如果数组快被使用完之后，再加入数据产生哈希冲突的可能性就会很大，因此我们通常会设置一个负载因子<code>(load factor)</code>，当数组的使用率超过这个值的时候就进行扩容，即当(数组长度为<code>L</code>，数组当中数据个数为<code>S</code>，负载因子为<code>F</code>)：
-<div class="math inline">S \ge L \times F</div></p>
-<h2 id="java代码实现hashmap">Java代码实现HashMap</h2>
+<p>但是在实际情况当中我们并不是当数组完全被使用完之后才进行扩容，因为如果数组快被使用完之后，再加入数据产生哈希冲突的可能性就会很大，因此我们通常会设置一个负载因子<code>(load factor)</code>，当数组的使用率超过这个值的时候就进行扩容，即当(数组长度为<code>L</code>，数组当中数据个数为<code>S</code>，负载因子为<code>F</code>)：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>S</mi><mo>&#x02265;</mo><mi>L</mi><mo>&#x000D7;</mo><mi>F</mi></mrow></math></div><h2 id="java代码实现hashmap">Java代码实现HashMap</h2>
 <h3 id="先看一下我们需要的字段">先看一下我们需要的字段</h3>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyHashMap</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
