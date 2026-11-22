@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 571" role="img" aria-label="OpenMP 的任务模型：GOMP_parallel_start 开启 parallel region，区内调用 GOMP_task 提交任务但不一定立即执行，GOMP_parallel_end 返回前由 gomp_team_barrier_wait_end 保证所有任务执行完成" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-openmp17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#28785a"/>
+    </marker>
+    <marker id="arrow-openmp17b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#1b5b9d"/>
+    </marker>
+  </defs>
+
+  <!-- GOMP_parallel_start -->
+  <rect x="25" y="22" width="280" height="74" rx="18" fill="#ffffff" stroke="#4d4d4d" stroke-width="2.5"/>
+  <text x="89" y="74" font-size="22" fill="#111">GOMP_parallel_start</text>
+
+  <!-- parallel region -->
+  <rect x="54" y="116" width="279" height="310" rx="28" fill="#ffffff" stroke="#d1673d" stroke-width="2.5"/>
+  <text x="94" y="159" font-size="20" fill="#d1673d">parallel region function</text>
+
+  <!-- GOMP_task -->
+  <rect x="96" y="297" width="203" height="70" rx="20" fill="#ffffff" stroke="#28785a" stroke-width="2.5"/>
+  <text x="138" y="338" font-size="21" fill="#28785a">GOMP_task</text>
+
+  <!-- 提交任务箭头 -->
+  <path d="M432 322 H303" fill="none" stroke="#28785a" stroke-width="2" marker-end="url(#arrow-openmp17)"/>
+  <text x="449" y="331" font-size="20" fill="#28785a">提交任务，不一定去执行任务</text>
+
+  <!-- GOMP_parallel_end -->
+  <rect x="30" y="446" width="330" height="88" rx="22" fill="#ffffff" stroke="#4d4d4d" stroke-width="2.5"/>
+  <text x="84" y="504" font-size="22" fill="#111">GOMP_parallel_end</text>
+
+  <!-- 调用箭头 -->
+  <path d="M364 497 H466" fill="none" stroke="#1b5b9d" stroke-width="2" marker-end="url(#arrow-openmp17b)"/>
+  <text x="365" y="471" font-size="20" fill="#1b5b9d">调用</text>
+  <text x="502" y="471" font-size="20" fill="#1b5b9d">保证所有的任务都执行完成</text>
+  <text x="482" y="502" font-size="20" font-style="italic" fill="#1b5b9d">gomp_team_barrier_wait_end</text>
+</svg>

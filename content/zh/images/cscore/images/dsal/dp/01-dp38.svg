@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1468 590" role="img" aria-label="状态转移：dp[i-1][0] 加 prices[i] 得到 dp[i][0]，dp[i-1][1] 与减去 prices[i] 得到 dp[i][1]" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1468" height="590">
+  <defs>
+    <marker id="arrow-dp38" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="1468" height="590" fill="#fff"/>
+
+  <!-- 左侧行说明 -->
+  <g font-size="34" fill="#111">
+    <text x="52" y="144">第i-1行的状态</text>
+    <text x="72" y="452">第i行的状态</text>
+  </g>
+
+  <!-- 上一行 -->
+  <rect x="418" y="59" width="241" height="121" fill="#dde8fa" stroke="#738dbb" stroke-width="2"/>
+  <text x="538" y="132" font-size="34" fill="#111" text-anchor="middle">dp[i-1][0]</text>
+  <rect x="1110" y="59" width="241" height="121" fill="#dde8fa" stroke="#738dbb" stroke-width="2"/>
+  <text x="1230" y="132" font-size="34" fill="#111" text-anchor="middle">dp[i-1][1]</text>
+
+  <!-- 本行 -->
+  <rect x="418" y="381" width="241" height="121" fill="#f1d0cd" stroke="#ac5a54" stroke-width="2"/>
+  <text x="538" y="453" font-size="34" fill="#111" text-anchor="middle">dp[i][0]</text>
+  <rect x="764" y="381" width="241" height="121" fill="#f4d8b1" stroke="#a96925" stroke-width="2"/>
+  <text x="884" y="453" font-size="34" fill="#111" text-anchor="middle">-prices[i]</text>
+  <rect x="1110" y="381" width="241" height="121" fill="#f1d0cd" stroke="#ac5a54" stroke-width="2"/>
+  <text x="1230" y="453" font-size="34" fill="#111" text-anchor="middle">dp[i][1]</text>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#111" stroke-width="1.8">
+    <path d="M538 182 V378" marker-end="url(#arrow-dp38)"/>
+    <path d="M1206 184 C980 250 700 250 658 272 C628 288 592 330 582 376" marker-end="url(#arrow-dp38)"/>
+    <path d="M1230 182 V378" marker-end="url(#arrow-dp38)"/>
+    <path d="M884 504 C890 556 1030 556 1084 476 C1094 458 1098 428 1100 408" marker-end="url(#arrow-dp38)"/>
+  </g>
+  <text x="660" y="316" font-size="34" fill="#111">+prices[i]</text>
+</svg>

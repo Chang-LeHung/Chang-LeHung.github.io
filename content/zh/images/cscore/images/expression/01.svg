@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 631 198" role="img" aria-label="表达式 A + B * ( C - D ) - E / F 的逐个标记，粉色标出正在计算的部分，即括号里的 ( C - D )" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 图例 -->
+  <rect x="85" y="31" width="37" height="37" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="139" y="58" font-size="22" fill="#000">正在计算的部分</text>
+
+  <!-- 表达式：普通格子 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.2">
+    <rect x="84" y="99" width="37.5" height="38"/>
+    <rect x="121.5" y="99" width="37.5" height="38"/>
+    <rect x="159" y="99" width="37.5" height="38"/>
+    <rect x="196.5" y="99" width="37.5" height="38"/>
+    <rect x="421.5" y="99" width="37.5" height="38"/>
+    <rect x="459" y="99" width="37.5" height="38"/>
+    <rect x="496.5" y="99" width="37.5" height="38"/>
+    <rect x="534" y="99" width="37.5" height="38"/>
+  </g>
+
+  <!-- 正在计算的部分 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="234" y="99" width="37.5" height="38"/>
+    <rect x="271.5" y="99" width="37.5" height="38"/>
+    <rect x="309" y="99" width="37.5" height="38"/>
+    <rect x="346.5" y="99" width="37.5" height="38"/>
+    <rect x="384" y="99" width="37.5" height="38"/>
+  </g>
+
+  <!-- 记号 -->
+  <g font-size="23" fill="#000" text-anchor="middle">
+    <text x="102.7" y="125">A</text>
+    <text x="140.2" y="125">+</text>
+    <text x="177.7" y="125">B</text>
+    <text x="215.2" y="125">*</text>
+    <text x="252.7" y="125">(</text>
+    <text x="290.2" y="125">C</text>
+    <text x="327.7" y="125">-</text>
+    <text x="365.2" y="125">D</text>
+    <text x="402.7" y="125">)</text>
+    <text x="440.2" y="125">-</text>
+    <text x="477.7" y="125">E</text>
+    <text x="515.2" y="125">/</text>
+    <text x="552.7" y="125">F</text>
+  </g>
+</svg>

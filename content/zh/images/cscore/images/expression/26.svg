@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 648 378" role="img" aria-label="后缀表达式 A B C D - * + E F / - 的求值示意：已经读到加号，栈里只剩变量 P，下面一行是 P 对应的 Q + A = P" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 栈 -->
+  <text x="69" y="34" font-size="22" fill="#000">栈顶</text>
+  <rect x="67" y="60" width="47" height="245" fill="#fad7ac" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="72" y="259" width="37" height="38" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="90.5" y="285" font-size="22" text-anchor="middle" fill="#000">P</text>
+  <text x="59" y="354" font-size="22" fill="#000">栈底</text>
+
+  <!-- 图例 -->
+  <rect x="177" y="60" width="38" height="38" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="177" y="113" width="38" height="38" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="242" y="90" font-size="22" fill="#000">表示正在遍历的位置</text>
+  <text x="248" y="139" font-size="22" fill="#000">已经遍历过的位置</text>
+
+  <!-- 第一行：后缀表达式 -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.2">
+    <rect x="177" y="177" width="37.5" height="38"/>
+    <rect x="214.5" y="177" width="37.5" height="38"/>
+    <rect x="252" y="177" width="37.5" height="38"/>
+    <rect x="289.5" y="177" width="37.5" height="38"/>
+    <rect x="327" y="177" width="37.5" height="38"/>
+    <rect x="364.5" y="177" width="37.5" height="38"/>
+  </g>
+  <rect x="402" y="177" width="37.5" height="38" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <g fill="#fff" stroke="#000" stroke-width="1.2">
+    <rect x="439.5" y="177" width="37.5" height="38"/>
+    <rect x="477" y="177" width="37.5" height="38"/>
+    <rect x="514.5" y="177" width="37.5" height="38"/>
+    <rect x="552" y="177" width="37.5" height="38"/>
+  </g>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="195.7" y="203">A</text>
+    <text x="233.2" y="203">B</text>
+    <text x="270.7" y="203">C</text>
+    <text x="308.2" y="203">D</text>
+    <text x="345.7" y="203">-</text>
+    <text x="383.2" y="203">*</text>
+    <text x="420.7" y="203">+</text>
+    <text x="458.2" y="203">E</text>
+    <text x="495.7" y="203">F</text>
+    <text x="533.2" y="203">/</text>
+    <text x="570.7" y="203">-</text>
+  </g>
+
+  <!-- 第二行：变量 P 的赋值 -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.2">
+    <rect x="177" y="241" width="37.5" height="38"/>
+    <rect x="252" y="241" width="37.5" height="38"/>
+    <rect x="327" y="241" width="37.5" height="38"/>
+  </g>
+  <rect x="214.5" y="241" width="37.5" height="38" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="289.5" y="241" width="37.5" height="38" fill="#fff" stroke="#000" stroke-width="1.2"/>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="195.7" y="267">Q</text>
+    <text x="233.2" y="267">+</text>
+    <text x="270.7" y="267">A</text>
+    <text x="308.2" y="267">=</text>
+    <text x="345.7" y="267">P</text>
+  </g>
+</svg>

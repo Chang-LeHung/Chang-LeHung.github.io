@@ -8,11 +8,16 @@
     </marker>
   </defs>
 
-  <!-- 三个并行区域的带状轮廓 -->
-  <g fill="#e8e8f6" stroke="#b6b6d8" stroke-width="1.2">
-    <path d="M150 88 L170 34 H230 L240 88 Z"/>
-    <path d="M370 88 L388 26 H450 L465 88 Z"/>
-    <path d="M610 88 L628 34 H688 L705 88 Z"/>
+  <!-- 并行区域的分叉带状回路 -->
+  <g fill="none" stroke="#dcdcf0" stroke-width="9" stroke-linejoin="round">
+    <path d="M150 88 L162 26 H236 L240 88"/>
+    <path d="M370 88 L380 16 H456 L465 88"/>
+    <path d="M610 88 L620 26 H700 L705 88"/>
+  </g>
+  <g fill="none" stroke="#b9b9c9" stroke-width="1" stroke-dasharray="3 3">
+    <rect x="156" y="22" width="84" height="144"/>
+    <rect x="374" y="12" width="88" height="128"/>
+    <rect x="614" y="22" width="88" height="120"/>
   </g>
 
   <!-- master thread 主干 -->
@@ -33,41 +38,41 @@
 
   <!-- 区域 1：三个线程 -->
   <g stroke-width="1.5" font-size="18" text-anchor="middle">
-    <rect x="168" y="38" width="64" height="22" fill="#22a03a" stroke="#1a7a2c"/>
-    <rect x="168" y="76" width="64" height="22" fill="#1e3fa8" stroke="#16307d"/>
-    <rect x="168" y="128" width="64" height="22" fill="#a01b1b" stroke="#7d1414"/>
+    <rect x="168" y="34" width="64" height="22" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="168" y="70" width="64" height="22" fill="#1e3fa8" stroke="#16307d"/>
+    <rect x="168" y="118" width="64" height="22" fill="#a01b1b" stroke="#7d1414"/>
     <g fill="#fff" font-weight="bold">
-      <text x="200" y="55">1</text>
-      <text x="200" y="93">2</text>
-      <text x="200" y="145">3</text>
+      <text x="200" y="51">1</text>
+      <text x="200" y="87">2</text>
+      <text x="200" y="135">3</text>
     </g>
-    <text x="200" y="120" font-size="18" font-style="italic" fill="#222">threads</text>
+    <text x="200" y="112" font-size="18" font-style="italic" fill="#222">threads</text>
   </g>
 
   <!-- 区域 2：四个线程 -->
   <g stroke-width="1.5" font-size="18" text-anchor="middle">
-    <rect x="386" y="26" width="66" height="20" fill="#22a03a" stroke="#1a7a2c"/>
-    <rect x="386" y="52" width="66" height="20" fill="#d9c22b" stroke="#a8931c"/>
-    <rect x="386" y="88" width="66" height="20" fill="#1e3fa8" stroke="#16307d"/>
-    <rect x="386" y="126" width="66" height="20" fill="#a01b1b" stroke="#7d1414"/>
+    <rect x="382" y="20" width="70" height="19" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="382" y="44" width="70" height="19" fill="#d9c22b" stroke="#a8931c"/>
+    <rect x="382" y="84" width="70" height="19" fill="#1e3fa8" stroke="#16307d"/>
+    <rect x="382" y="112" width="70" height="19" fill="#a01b1b" stroke="#7d1414"/>
     <g fill="#fff" font-weight="bold">
-      <text x="419" y="42">1</text>
-      <text x="419" y="68">2</text>
-      <text x="419" y="104">3</text>
-      <text x="419" y="141">4</text>
+      <text x="417" y="35">1</text>
+      <text x="417" y="59">2</text>
+      <text x="417" y="99">3</text>
+      <text x="417" y="127">4</text>
     </g>
-    <text x="419" y="82" font-size="17" font-style="italic" fill="#222">threads</text>
+    <text x="417" y="79" font-size="17" font-style="italic" fill="#222">threads</text>
   </g>
 
   <!-- 区域 3：两个线程 -->
   <g stroke-width="1.5" font-size="18" text-anchor="middle">
-    <rect x="628" y="38" width="66" height="22" fill="#22a03a" stroke="#1a7a2c"/>
-    <rect x="628" y="82" width="66" height="22" fill="#d9c22b" stroke="#a8931c"/>
+    <rect x="622" y="34" width="70" height="22" fill="#22a03a" stroke="#1a7a2c"/>
+    <rect x="622" y="82" width="70" height="22" fill="#d9c22b" stroke="#a8931c"/>
     <g fill="#fff" font-weight="bold">
-      <text x="661" y="55">1</text>
-      <text x="661" y="99">2</text>
+      <text x="657" y="51">1</text>
+      <text x="657" y="99">2</text>
     </g>
-    <text x="661" y="126" font-size="18" font-style="italic" fill="#222">threads</text>
+    <text x="657" y="74" font-size="18" font-style="italic" fill="#222">threads</text>
   </g>
 
   <!-- 标注 -->
@@ -87,6 +92,6 @@
     <path d="M470 262 L607 104" marker-end="url(#arrow-o01)"/>
   </g>
 
-  <text x="600" y="272" font-size="22" font-style="italic">Join threads: Synchronization point</text>
-  <path d="M690 256 L703 104" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow-o01)"/>
+  <text x="596" y="272" font-size="21" font-style="italic">Join threads: Synchronization point</text>
+  <path d="M688 256 L703 104" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow-o01)"/>
 </svg>

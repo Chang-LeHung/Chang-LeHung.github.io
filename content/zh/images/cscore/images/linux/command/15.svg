@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 682 375" role="img" aria-label="Linux 文件权限的 rwx 三组：作者的权限、所属组的权限、其他人的权限，以及 r、w、x 在每组中分别表示读、写、执行权限" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 第一行：三组 rwx -->
+  <g stroke-width="1.5">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="143" y="21" width="49.5" height="34"/>
+      <rect x="192.5" y="21" width="49.5" height="34"/>
+      <rect x="242" y="21" width="49.5" height="34"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="293" y="21" width="49.5" height="34"/>
+      <rect x="342.5" y="21" width="49.5" height="34"/>
+      <rect x="392" y="21" width="49.5" height="34"/>
+    </g>
+    <g fill="#dae8fc" stroke="#6c8ebf">
+      <rect x="443" y="21" width="49.5" height="34"/>
+      <rect x="492.5" y="21" width="49.5" height="34"/>
+      <rect x="542" y="21" width="49.5" height="34"/>
+    </g>
+  </g>
+
+  <!-- 标题 -->
+  <g font-size="19" fill="#111">
+    <text x="18" y="121">表示文件的作者的权限</text>
+    <text x="247" y="121">表示文件的所属组的权限</text>
+    <text x="503" y="119">表示其他人的权限</text>
+  </g>
+
+  <!-- 第二行：三组各自的 rwx -->
+  <g stroke-width="1.5">
+    <g fill="#d5e8d4" stroke="#82b366">
+      <rect x="33" y="135" width="49.3" height="34"/>
+      <rect x="82.3" y="135" width="49.3" height="34"/>
+      <rect x="131.6" y="135" width="49.4" height="34"/>
+    </g>
+    <g fill="#f8cecc" stroke="#b85450">
+      <rect x="269" y="135" width="49.3" height="34"/>
+      <rect x="318.3" y="135" width="49.3" height="34"/>
+      <rect x="367.6" y="135" width="49.4" height="34"/>
+    </g>
+    <g fill="#dae8fc" stroke="#6c8ebf">
+      <rect x="507" y="135" width="49.3" height="34"/>
+      <rect x="556.3" y="135" width="49.3" height="34"/>
+      <rect x="605.6" y="135" width="49.4" height="34"/>
+    </g>
+  </g>
+
+  <!-- 读、写、执行三行 -->
+  <g stroke-width="1.5">
+    <rect x="33" y="193" width="48" height="34" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="83" y="193" width="48" height="34" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="133" y="193" width="48" height="34" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="33" y="250" width="48" height="34" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="83" y="250" width="48" height="34" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="133" y="250" width="48" height="34" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="33" y="312" width="48" height="34" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="83" y="312" width="48" height="34" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="133" y="312" width="48" height="34" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="167.8" y="45">r</text>
+    <text x="217.3" y="45">w</text>
+    <text x="266.8" y="45">x</text>
+    <text x="317.8" y="45">r</text>
+    <text x="367.3" y="45">w</text>
+    <text x="416.8" y="45">x</text>
+    <text x="467.8" y="45">r</text>
+    <text x="517.3" y="45">w</text>
+    <text x="566.8" y="45">x</text>
+
+    <text x="57.7" y="159">r</text>
+    <text x="107" y="159">w</text>
+    <text x="156.3" y="159">x</text>
+    <text x="293.7" y="159">r</text>
+    <text x="343" y="159">w</text>
+    <text x="392.3" y="159">x</text>
+    <text x="531.7" y="159">r</text>
+    <text x="581" y="159">w</text>
+    <text x="630.3" y="159">x</text>
+
+    <text x="57" y="217">r</text>
+    <text x="107" y="217">r</text>
+    <text x="157" y="217">r</text>
+    <text x="57" y="274">w</text>
+    <text x="107" y="274">w</text>
+    <text x="157" y="274">w</text>
+    <text x="57" y="336">x</text>
+    <text x="107" y="336">x</text>
+    <text x="157" y="336">x</text>
+  </g>
+
+  <g font-size="19" fill="#111">
+    <text x="210" y="222">表示读权限</text>
+    <text x="210" y="279">表示写权限</text>
+    <text x="210" y="336">表示执行权限</text>
+  </g>
+</svg>

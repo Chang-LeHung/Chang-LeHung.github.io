@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1188 448" role="img"
+     aria-label="栈上的四个 8 字节格子：0x64、0xffffffff9c、0xffffffff9c、0x64，rbp 指向栈顶，rsp 与 rsi 指向栈底，左侧标出 16B 与 4B"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-o14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6c8ebf"/>
+    </marker>
+    <marker id="arrow-o14-dark" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4a6b4a"/>
+    </marker>
+  </defs>
+
+  <!-- 4B 的方框 -->
+  <rect x="20" y="105" width="280" height="80" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text x="160" y="160" text-anchor="middle" font-size="34" fill="#4a6b4a">4B</text>
+
+  <!-- 栈上四个格子 -->
+  <line x1="355" y1="65" x2="790" y2="65" stroke="#6c8ebf" stroke-width="2"/>
+  <line x1="355" y1="390" x2="790" y2="390" stroke="#6c8ebf" stroke-width="2"/>
+  <g stroke="#4a6b4a" stroke-width="2" fill="#ffffff">
+    <rect x="515" y="65" width="275" height="325"/>
+  </g>
+  <g stroke="#4a6b4a" stroke-width="2">
+    <line x1="515" y1="146" x2="790" y2="146"/>
+    <line x1="515" y1="227" x2="790" y2="227"/>
+    <line x1="515" y1="308" x2="790" y2="308"/>
+  </g>
+
+  <g font-family="monospace" font-size="26" text-anchor="middle">
+    <text x="652" y="115" fill="#7a2b3a">0x64</text>
+    <text x="652" y="196" fill="#7a2b3a">0xffffffff9c</text>
+    <text x="652" y="277" fill="#c06a1e">0xffffffff9c</text>
+    <text x="652" y="358" fill="#c06a1e">0x64</text>
+  </g>
+
+  <!-- 16B 的双向标注 -->
+  <g fill="none" stroke="#6c8ebf" stroke-width="2.5" marker-end="url(#arrow-o14)">
+    <path d="M430 95 V175"/>
+    <path d="M430 355 V240"/>
+  </g>
+  <text x="405" y="238" font-size="34" fill="#6c8ebf">16B</text>
+
+  <!-- rbp / rsp, rsi -->
+  <g fill="none" stroke="#4a6b4a" stroke-width="2" marker-end="url(#arrow-o14-dark)">
+    <path d="M960 65 H795"/>
+    <path d="M960 390 H795"/>
+  </g>
+  <text x="1030" y="85" font-size="34" fill="#7b4a8c">rbp</text>
+  <text x="1025" y="395" font-size="34" fill="#7b4a8c">rsp, rsi</text>
+</svg>
