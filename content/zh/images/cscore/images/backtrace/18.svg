@@ -40,11 +40,14 @@
 
     <text x="308" y="732">从[2]当中选择数据</text>
     <text x="308" y="763">当前选中的数据[1,1]</text>
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#ffffff">
     <text x="713" y="732">从[]当中选择数据</text>
     <text x="713" y="763">当前选中的数据[1, 2]</text>
     <text x="1102" y="727">从[]当中选择数据</text>
     <text x="1102" y="758">当前选中的数据[1, 2]</text>
-
+  </g>
+  <g font-size="22" text-anchor="middle" fill="#1d3541">
     <text x="308" y="980">从[2]当中选择数据</text>
     <text x="308" y="1011">当前选中的数据[1,1,2]</text>
   </g>

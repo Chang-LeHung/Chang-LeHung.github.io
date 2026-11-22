@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 548 600" role="img"
+     aria-label="栈内存布局：中间是堆空间，绿色一段是 stack 指针指向的位置，上面一段是自己申请的栈空间"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-pthread11" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- 栈的整体 -->
+  <rect x="45" y="30" width="146" height="528" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+  <rect x="45" y="266" width="146" height="89" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+  <rect x="45" y="355" width="146" height="46" fill="#d9e7d6" stroke="#9fbf88" stroke-width="1.5"/>
+  <rect x="45" y="401" width="146" height="31" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+
+  <text x="118" y="318" font-size="20" text-anchor="middle">堆空间</text>
+
+  <!-- 引线 -->
+  <path d="M340 275 H267 V358 H204" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-pthread11)"/>
+  <path d="M320 468 V372 H204" fill="none" stroke="#1a1a1a" stroke-width="1.5"
+        marker-end="url(#arrow-pthread11)"/>
+
+  <text x="347" y="284" font-size="21">自己申请的栈空间</text>
+  <text x="195" y="510" font-size="21">stack 指针指向的位置</text>
+</svg>

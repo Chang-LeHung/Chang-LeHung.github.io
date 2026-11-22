@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708 631" role="img" aria-label="扩容之前的哈希冲突示意：数组长度 8，哈希值前四位为 0100 的元素都落到下标 4，于是以链表形式依次挂在 0 之后，下标由 0100 &amp; 0111 得到" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-hashmap30" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#36393d"/>
+    </marker>
+  </defs>
+
+  <!-- 标题 -->
+  <rect x="239" y="18" width="186" height="93" rx="20" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <text x="332" y="80" font-size="34" text-anchor="middle" fill="#000">扩容之前</text>
+
+  <!-- 数组说明 -->
+  <text x="39" y="130" font-size="21" fill="#000">数组长度 = 8</text>
+  <text x="288" y="130" font-size="21" fill="#000">哈希值前四位 = 0100</text>
+
+  <!-- 数组 -->
+  <g stroke="#36393d" stroke-width="1.5">
+    <rect x="29" y="147" width="78.75" height="35" fill="#cdeb8b"/>
+    <rect x="107.75" y="147" width="78.75" height="35" fill="#ffffff"/>
+    <rect x="186.5" y="147" width="78.75" height="35" fill="#cdeb8b"/>
+    <rect x="265.25" y="147" width="78.75" height="35" fill="#ffffff"/>
+    <rect x="344" y="147" width="78.75" height="35" fill="#ffcccc"/>
+    <rect x="422.75" y="147" width="78.75" height="35" fill="#cdeb8b"/>
+    <rect x="501.5" y="147" width="78.75" height="35" fill="#cdeb8b"/>
+    <rect x="580.25" y="147" width="78.75" height="35" fill="#cdeb8b"/>
+  </g>
+  <text x="383.4" y="171" font-size="20" text-anchor="middle" fill="#000">0</text>
+
+  <!-- 冲突链 -->
+  <g fill="#ffcccc" stroke="#36393d" stroke-width="1.5">
+    <rect x="346" y="212" width="79" height="35"/>
+    <rect x="346" y="288" width="79" height="35"/>
+    <rect x="346" y="355" width="79" height="35"/>
+    <rect x="346" y="423" width="79" height="35"/>
+    <rect x="346" y="490" width="79" height="35"/>
+    <rect x="346" y="558" width="79" height="35"/>
+  </g>
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="385.5" y="237">1</text>
+    <text x="385.5" y="313">2</text>
+    <text x="385.5" y="380">3</text>
+    <text x="385.5" y="448">4</text>
+    <text x="385.5" y="515">5</text>
+    <text x="385.5" y="583">6</text>
+  </g>
+
+  <!-- 链表指针 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5" marker-end="url(#arrow-hashmap30)">
+    <path d="M 385.5 182 V 208"/>
+    <path d="M 385.5 247 V 284"/>
+    <path d="M 385.5 323 V 351"/>
+    <path d="M 385.5 390 V 419"/>
+    <path d="M 385.5 458 V 486"/>
+    <path d="M 385.5 525 V 554"/>
+  </g>
+
+  <!-- 每行的哈希值 -->
+  <g font-size="21" text-anchor="middle" fill="#000">
+    <text x="226" y="237">哈希值前四位 = 0100</text>
+    <text x="226" y="313">哈希值前四位 = 1100</text>
+    <text x="226" y="380">哈希值前四位 = 0100</text>
+    <text x="226" y="448">哈希值前四位 = 1100</text>
+    <text x="226" y="515">哈希值前四位 = 0100</text>
+    <text x="226" y="583">哈希值前四位 = 1100</text>
+
+    <text x="527" y="235">0100 &amp; 0111 = 4</text>
+    <text x="527" y="311">1100 &amp; 0111 = 4</text>
+    <text x="527" y="378">0100 &amp; 0111 = 4</text>
+    <text x="527" y="446">1100 &amp; 0111 = 4</text>
+    <text x="527" y="513">0100 &amp; 0111 = 4</text>
+    <text x="527" y="581">1100 &amp; 0111 = 4</text>
+  </g>
+</svg>

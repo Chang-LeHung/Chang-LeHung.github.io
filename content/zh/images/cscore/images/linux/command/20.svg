@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 761 242" role="img" aria-label="Linux 文件权限的位表示：作者权限 rwx 记为 7，所属组权限 rw- 记为 4，其他人权限 rw- 记为 6，每一位分别对应读、写、执行" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 表头 -->
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="157" y="39">表示文件的作者的权限</text>
+    <text x="395" y="39">表示文件的所属组的权限</text>
+    <text x="624" y="39">表示其他人的权限</text>
+  </g>
+
+  <!-- 作者：rwx = 7 -->
+  <g fill="#d1e3cf" stroke="#7da762" stroke-width="1.2">
+    <rect x="83" y="53" width="49" height="35"/>
+    <rect x="133" y="53" width="49" height="35"/>
+    <rect x="183" y="53" width="49" height="35"/>
+    <rect x="83" y="115" width="49" height="35"/>
+    <rect x="133" y="115" width="49" height="35"/>
+    <rect x="183" y="115" width="49" height="35"/>
+    <rect x="83" y="179" width="49" height="35"/>
+    <rect x="133" y="179" width="49" height="35"/>
+    <rect x="183" y="179" width="49" height="35"/>
+  </g>
+
+  <!-- 所属组：rw- = 4 -->
+  <g fill="#f4c9c5" stroke="#aa4f48" stroke-width="1.2">
+    <rect x="319" y="53" width="49" height="35"/>
+    <rect x="369" y="53" width="49" height="35"/>
+    <rect x="419" y="53" width="49" height="35"/>
+    <rect x="319" y="118" width="49" height="35"/>
+    <rect x="369" y="118" width="49" height="35"/>
+    <rect x="419" y="118" width="49" height="35"/>
+    <rect x="319" y="179" width="49" height="35"/>
+    <rect x="369" y="179" width="49" height="35"/>
+    <rect x="419" y="179" width="49" height="35"/>
+  </g>
+
+  <!-- 其他人：rw- = 6（原图中间一行沿用粉色） -->
+  <g fill="#d5e5fa" stroke="#6284b4" stroke-width="1.2">
+    <rect x="557" y="53" width="49" height="35"/>
+    <rect x="607" y="53" width="49" height="35"/>
+    <rect x="657" y="53" width="49" height="35"/>
+    <rect x="557" y="179" width="49" height="35"/>
+    <rect x="607" y="179" width="49" height="35"/>
+    <rect x="657" y="179" width="49" height="35"/>
+  </g>
+  <g fill="#f4c9c5" stroke="#aa4f48" stroke-width="1.2">
+    <rect x="557" y="122" width="49" height="35"/>
+    <rect x="607" y="122" width="49" height="35"/>
+    <rect x="657" y="122" width="49" height="35"/>
+  </g>
+
+  <!-- 八进制数值 -->
+  <g font-size="18" fill="#000" text-anchor="end">
+    <text x="60" y="139">7=</text>
+    <text x="296" y="142">4=</text>
+    <text x="539" y="146">6=</text>
+  </g>
+
+  <!-- 单元格内容 -->
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="107.5" y="77">r</text>
+    <text x="157.5" y="77">w</text>
+    <text x="207.5" y="77">x</text>
+    <text x="107.5" y="139">1</text>
+    <text x="157.5" y="139">1</text>
+    <text x="207.5" y="139">1</text>
+    <text x="107.5" y="203">r</text>
+    <text x="157.5" y="203">w</text>
+    <text x="207.5" y="203">x</text>
+
+    <text x="343.5" y="77">r</text>
+    <text x="393.5" y="77">w</text>
+    <text x="443.5" y="77">x</text>
+    <text x="343.5" y="142">1</text>
+    <text x="393.5" y="142">0</text>
+    <text x="443.5" y="142">0</text>
+    <text x="343.5" y="203">r</text>
+    <text x="393.5" y="203">-</text>
+    <text x="443.5" y="203">-</text>
+
+    <text x="581.5" y="77">r</text>
+    <text x="631.5" y="77">w</text>
+    <text x="681.5" y="77">x</text>
+    <text x="581.5" y="146">1</text>
+    <text x="631.5" y="146">1</text>
+    <text x="681.5" y="146">0</text>
+    <text x="581.5" y="203">r</text>
+    <text x="631.5" y="203">w</text>
+    <text x="681.5" y="203">-</text>
+  </g>
+</svg>

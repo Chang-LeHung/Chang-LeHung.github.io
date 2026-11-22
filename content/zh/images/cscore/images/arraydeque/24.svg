@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 865 268" role="img" aria-label="循环数组中的 head 与 tail 指针：head 指向数组第一个格子，tail 指向末尾的空位" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="865" height="268">
+  <defs>
+    <marker id="arrow-arraydeque24" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#111"/>
+    </marker>
+  </defs>
+
+  <rect width="865" height="268" fill="#fff"/>
+
+  <!-- 数组 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1">
+    <rect x="155" y="42" width="54" height="24"/>
+    <rect x="210" y="42" width="54" height="24"/>
+    <rect x="265" y="42" width="54" height="24"/>
+    <rect x="320" y="42" width="54" height="24"/>
+    <rect x="375" y="42" width="54" height="24"/>
+    <rect x="430" y="42" width="54" height="24"/>
+    <rect x="485" y="42" width="54" height="24"/>
+    <rect x="540" y="42" width="54" height="24"/>
+    <rect x="595" y="42" width="54" height="24"/>
+    <rect x="650" y="42" width="54" height="24"/>
+    <rect x="705" y="42" width="54" height="24"/>
+    <rect x="760" y="42" width="54" height="24"/>
+  </g>
+
+  <!-- 指针 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <circle cx="59" cy="151" r="31.5"/>
+    <circle cx="182" cy="204" r="31.5"/>
+  </g>
+  <g font-size="24" fill="#111" text-anchor="middle">
+    <text x="59" y="160">head</text>
+    <text x="182" y="213">tail</text>
+  </g>
+
+  <!-- 指向数组的箭头 -->
+  <g fill="none" stroke="#111" stroke-width="1.6">
+    <path d="M90 151 C145 150 168 120 168 68" marker-end="url(#arrow-arraydeque24)"/>
+    <path d="M182 173 V68" marker-end="url(#arrow-arraydeque24)"/>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 598 488" role="img" aria-label="线程的 clean-up handler 栈：栈底是 handler1，上面是 handler2，顶部绿色是尚未使用但仍保留的栈空间" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g stroke-width="1.5">
+    <rect x="110" y="38" width="113" height="198" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="110" y="237" width="113" height="100" fill="#f8cecc" stroke="#ac5a54"/>
+    <rect x="110" y="339" width="113" height="100" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="22" fill="#111">
+    <text x="121" y="297">handler2</text>
+    <text x="121" y="398">handler1</text>
+  </g>
+  <text x="261" y="423" font-size="25" fill="#111">clean-up handler stack</text>
+</svg>
