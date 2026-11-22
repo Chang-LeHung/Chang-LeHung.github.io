@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="836" height="225">
+  <!-- 第一行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="23" width="91" height="34"/>
+    <rect x="153" y="23" width="91.5" height="34"/>
+    <rect x="244.5" y="23" width="91" height="34"/>
+  </g>
+  <g fill="#60a917" stroke="#2d7600" stroke-width="1.5">
+    <rect x="335.5" y="23" width="91.5" height="34"/>
+    <rect x="427" y="23" width="91" height="34"/>
+    <rect x="518" y="23" width="91.5" height="34"/>
+    <rect x="609.5" y="23" width="91" height="34"/>
+    <rect x="700.5" y="23" width="91.5" height="34"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="49">0000</text>
+    <text x="198.75" y="49">0000</text>
+    <text x="290" y="49">0000</text>
+  </g>
+  <g font-size="22" fill="#fff" text-anchor="middle">
+    <text x="381.25" y="49">1111</text>
+    <text x="472.5" y="49">1111</text>
+    <text x="563.75" y="49">1111</text>
+    <text x="655" y="49">1111</text>
+    <text x="746.25" y="49">1111</text>
+  </g>
+
+  <text x="45" y="78" font-size="20" fill="#000" text-anchor="middle">+</text>
+
+  <!-- 第二行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="93" width="91" height="34"/>
+    <rect x="153" y="93" width="91.5" height="34"/>
+    <rect x="244.5" y="93" width="91" height="34"/>
+    <rect x="335.5" y="93" width="91.5" height="34"/>
+    <rect x="427" y="93" width="91" height="34"/>
+    <rect x="518" y="93" width="91.5" height="34"/>
+    <rect x="609.5" y="93" width="91" height="34"/>
+  </g>
+  <rect x="700.5" y="93" width="91.5" height="34" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="119">0000</text>
+    <text x="198.75" y="119">0000</text>
+    <text x="290" y="119">0000</text>
+    <text x="381.25" y="119">0000</text>
+    <text x="472.5" y="119">0000</text>
+    <text x="563.75" y="119">0000</text>
+    <text x="655" y="119">0000</text>
+  </g>
+  <text x="746.25" y="119" font-size="22" fill="#fff" text-anchor="middle">0001</text>
+
+  <text x="45" y="161" font-size="20" fill="#000" text-anchor="middle">=</text>
+
+  <!-- 第三行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="148" width="91" height="34"/>
+    <rect x="153" y="148" width="91.5" height="34"/>
+    <rect x="335.5" y="148" width="91.5" height="34"/>
+    <rect x="427" y="148" width="91" height="34"/>
+    <rect x="518" y="148" width="91.5" height="34"/>
+    <rect x="609.5" y="148" width="91" height="34"/>
+    <rect x="700.5" y="148" width="91.5" height="34"/>
+  </g>
+  <rect x="244.5" y="148" width="91" height="34" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="174">0000</text>
+    <text x="198.75" y="174">0000</text>
+    <text x="381.25" y="174">0000</text>
+    <text x="472.5" y="174">0000</text>
+    <text x="563.75" y="174">0000</text>
+    <text x="655" y="174">0000</text>
+    <text x="746.25" y="174">0000</text>
+  </g>
+  <text x="290" y="174" font-size="22" fill="#fff" text-anchor="middle">0001</text>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="649" height="596">
+  <defs>
+    <marker id="arrow-array05" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- add -->
+  <rect x="144" y="77" width="110" height="33" rx="5" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="199" y="101" font-size="18" fill="#000" text-anchor="middle">add</text>
+
+  <!-- 找到最小长度 -->
+  <rect x="96" y="153" width="204" height="72" rx="12" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="198" y="184" font-size="18" fill="#000" text-anchor="middle">找到数组需要的最小长度</text>
+  <text x="198" y="206" font-size="18" fill="#000" text-anchor="middle">minCapacity</text>
+
+  <!-- 比较 minCapacity 与原数组长度 -->
+  <path d="M385 145 H597 L569 233 H357 Z" fill="#ffff88" stroke="#36393d" stroke-width="1.5"/>
+  <text x="482" y="186" font-size="18" fill="#000" text-anchor="middle">比较minCapacity</text>
+  <text x="477" y="207" font-size="18" fill="#000" text-anchor="middle">和原数组长度</text>
+
+  <!-- 是否需要扩容 -->
+  <path d="M171 297 L237 357 L171 417 L105 357 Z" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <text x="172" y="364" font-size="18" fill="#000" text-anchor="middle">是否需要扩容</text>
+
+  <!-- 进行数据扩容 -->
+  <rect x="327" y="314" width="177" height="87" rx="10" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="416" y="364" font-size="18" fill="#000" text-anchor="middle">进行数据扩容</text>
+
+  <!-- 将数据存放到数组当中 -->
+  <rect x="68" y="509" width="207" height="34" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <text x="171" y="533" font-size="18" fill="#000" text-anchor="middle">将数据存放到数组当中</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M199 19 V76" marker-end="url(#arrow-array05)"/>
+    <path d="M199 111 V152" marker-end="url(#arrow-array05)"/>
+    <path d="M300 189 H369" marker-end="url(#arrow-array05)"/>
+    <path d="M477 233 C474.5 235.7 469.8 244.8 462 249
+             C454.2 253.2 442 255.8 430 258 C418 260.2 405 261 390 262
+             C375 263 358.3 263.5 340 264 C321.7 264.5 298.3 264.5 280 265
+             C261.7 265.5 243.3 266 230 267 C216.7 268 208.3 269.3 200 271
+             C191.7 272.7 184.7 274.7 180 277 C175.3 279.3 173.5 281.8 172 285
+             C170.5 288.2 171.2 294.2 171 296" marker-end="url(#arrow-array05)"/>
+    <path d="M237 357 H325" marker-end="url(#arrow-array05)"/>
+    <path d="M171 419 V508" marker-end="url(#arrow-array05)"/>
+    <path d="M415 401 V471 H171"/>
+  </g>
+
+  <text x="273" y="339" font-size="18" fill="#000" text-anchor="middle">是</text>
+  <text x="182" y="452" font-size="18" fill="#000" text-anchor="middle">否</text>
+</svg>

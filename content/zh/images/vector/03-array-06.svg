@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 945 547" role="img" aria-label="数组插入元素的过程：先把下标 4 及其后的数据往后移一格，空出位置再把数据放进去" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="945" height="547">
+  <defs>
+    <marker id="arrow-array06" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 数组一：下标 0-10 有数据 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="103" y="25" width="774" height="54"/>
+    <path d="M103 52 H877"/>
+    <path d="M167.5 25 V79 M232 25 V79 M296.5 25 V79 M361 25 V79 M425.5 25 V79 M490 25 V79
+             M554.5 25 V79 M619 25 V79 M683.5 25 V79 M748 25 V79 M812.5 25 V79"/>
+  </g>
+  <rect x="104" y="26" width="708" height="26" fill="#ffcccc"/>
+
+  <text x="37" y="46" font-size="18" fill="#000">数据</text>
+  <text x="36" y="73" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="135" y="73">0</text>
+    <text x="199.75" y="73">1</text>
+    <text x="264.25" y="73">2</text>
+    <text x="328.75" y="73">3</text>
+    <text x="393.25" y="73">4</text>
+    <text x="457.75" y="73">5</text>
+    <text x="522.25" y="73">6</text>
+    <text x="586.75" y="73">7</text>
+    <text x="651.25" y="73">8</text>
+    <text x="715.75" y="73">9</text>
+    <text x="780.25" y="73">10</text>
+    <text x="844.75" y="73">11</text>
+  </g>
+
+  <!-- 待插入的数据 -->
+  <rect x="390" y="141" width="61" height="24" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M420 141 C420 139.5 420.5 135 420 132 C419.5 129 418.5 125.7 417 123
+           C415.5 120.3 413.5 118 411 116 C408.5 114 406.3 112.3 402 111
+           C397.7 109.7 390.3 109.2 385 108 C379.7 106.8 373.8 105.7 370 104
+           C366.2 102.3 363.5 100.7 362 98 C360.5 95.3 361.2 90.8 361 88
+           C360.8 85.2 361 82.2 361 81"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-array06)"/>
+  <text x="467" y="160" font-size="21" fill="#000">待插入的数据</text>
+
+  <!-- 往后移动数据 -->
+  <path d="M364 175 H379 V235 H392 L371.5 261 L351 235 H364 Z"
+        fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="402" y="212" font-size="21" fill="#000">往后移动数据</text>
+
+  <!-- 图例 -->
+  <rect x="684" y="111" width="64" height="27" fill="#f8cecc" stroke="#36393d" stroke-width="1.5"/>
+  <text x="764" y="133" font-size="18" fill="#000">有数据</text>
+  <rect x="684" y="156" width="64" height="27" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="764" y="176" font-size="18" fill="#000">无数据</text>
+
+  <!-- 数组二：下标 4 空出来 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="122" y="285" width="774" height="54"/>
+    <path d="M122 312 H896"/>
+    <path d="M186.5 285 V339 M251 285 V339 M315.5 285 V339 M380 285 V339 M444.5 285 V339
+             M509 285 V339 M573.5 285 V339 M638 285 V339 M702.5 285 V339 M767 285 V339 M831.5 285 V339"/>
+  </g>
+  <g fill="#ffcccc">
+    <rect x="123" y="286" width="257" height="26"/>
+    <rect x="445" y="286" width="450" height="26"/>
+  </g>
+
+  <text x="56" y="305" font-size="18" fill="#000">数据</text>
+  <text x="56" y="332" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="154.25" y="332">0</text>
+    <text x="218.75" y="332">1</text>
+    <text x="283.25" y="332">2</text>
+    <text x="347.75" y="332">3</text>
+    <text x="412.25" y="332">4</text>
+    <text x="476.75" y="332">5</text>
+    <text x="541.25" y="332">6</text>
+    <text x="605.75" y="332">7</text>
+    <text x="670.25" y="332">8</text>
+    <text x="734.75" y="332">9</text>
+    <text x="799.25" y="332">10</text>
+    <text x="863.75" y="332">11</text>
+  </g>
+
+  <rect x="397" y="399" width="61" height="23" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M427 397 C427 395.7 427.3 391.8 427 389 C426.7 386.2 426 382.7 425 380
+           C424 377.3 423.2 374.8 421 373 C418.8 371.2 415.8 370.2 412 369
+           C408.2 367.8 402.3 367.2 398 366 C393.7 364.8 388.8 363.7 386 362
+           C383.2 360.3 382 358.7 381 356 C380 353.3 380.2 348.5 380 346
+           C379.8 343.5 380 341.8 380 341"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-array06)"/>
+  <text x="489" y="418" font-size="21" fill="#000">待插入的数据</text>
+
+  <!-- 数组三：数据放进下标 4 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="122" y="453" width="774" height="54"/>
+    <path d="M122 480 H896"/>
+    <path d="M186.5 453 V507 M251 453 V507 M315.5 453 V507 M380 453 V507 M444.5 453 V507
+             M509 453 V507 M573.5 453 V507 M638 453 V507 M702.5 453 V507 M767 453 V507 M831.5 453 V507"/>
+  </g>
+  <g fill="#ffcccc">
+    <rect x="123" y="454" width="257" height="26"/>
+    <rect x="445" y="454" width="450" height="26"/>
+  </g>
+  <rect x="381" y="454" width="63" height="26" fill="#cdeb8b"/>
+
+  <text x="56" y="473" font-size="18" fill="#000">数据</text>
+  <text x="56" y="500" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="154.25" y="500">0</text>
+    <text x="218.75" y="500">1</text>
+    <text x="283.25" y="500">2</text>
+    <text x="347.75" y="500">3</text>
+    <text x="412.25" y="500">4</text>
+    <text x="476.75" y="500">5</text>
+    <text x="541.25" y="500">6</text>
+    <text x="605.75" y="500">7</text>
+    <text x="670.25" y="500">8</text>
+    <text x="734.75" y="500">9</text>
+    <text x="799.25" y="500">10</text>
+    <text x="863.75" y="500">11</text>
+  </g>
+</svg>

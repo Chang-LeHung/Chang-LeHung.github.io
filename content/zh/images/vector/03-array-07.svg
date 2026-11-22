@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 951 477" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="951" height="477">
+  <defs>
+    <marker id="arrow-array07" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 数组一：待删除下标 3 的数据 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="108.5" y="26" width="774" height="54"/>
+    <path d="M108.5 53 H882.5"/>
+    <path d="M173 26 V80 M237.5 26 V80 M302 26 V80 M366.5 26 V80 M431 26 V80 M495.5 26 V80
+             M560 26 V80 M624.5 26 V80 M689 26 V80 M753.5 26 V80 M818 26 V80"/>
+  </g>
+  <g>
+    <rect x="109" y="27" width="257" height="25" fill="#ffcccc"/>
+    <rect x="367" y="27" width="515" height="25" fill="#cdeb8b"/>
+  </g>
+
+  <text x="42" y="46" font-size="18" fill="#000">数据</text>
+  <text x="42" y="73" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="140.75" y="73">0</text>
+    <text x="205.25" y="73">1</text>
+    <text x="269.75" y="73">2</text>
+    <text x="334.25" y="73">3</text>
+    <text x="398.75" y="73">4</text>
+    <text x="463.25" y="73">5</text>
+    <text x="527.75" y="73">6</text>
+    <text x="592.25" y="73">7</text>
+    <text x="656.75" y="73">8</text>
+    <text x="721.25" y="73">9</text>
+    <text x="785.75" y="73">10</text>
+    <text x="850.25" y="73">11</text>
+  </g>
+
+  <!-- 标注：待删除的数据 -->
+  <path d="M478 159 C473.2 158.2 460.8 155.5 449 154 C437.2 152.5 417.2 151.3 407 150
+           C396.8 148.7 393.8 147.5 388 146 C382.2 144.5 377.3 143.2 372 141
+           C366.7 138.8 360.3 135.8 356 133 C351.7 130.2 348.7 127.2 346 124
+           C343.3 120.8 341.7 117.2 340 114 C338.3 110.8 337 108.2 336 105
+           C335 101.8 334.3 99 334 95 C333.7 91 334 83.3 334 81"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-array07)"/>
+  <text x="472" y="161" font-size="21" fill="#000">待删除的数据</text>
+
+  <!-- 图例 -->
+  <rect x="660" y="111" width="64" height="26" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="742" y="111" width="64" height="26" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="822" y="132" font-size="18" fill="#000">有数据</text>
+  <rect x="742" y="153" width="65" height="27" fill="#fff" stroke="#36393d" stroke-width="1.5"/>
+  <text x="825" y="174" font-size="18" fill="#000">无数据</text>
+
+  <text x="359" y="210" font-size="21" fill="#000">先删除下标为3的数据</text>
+
+  <!-- 数组二：下标 3 空出来 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="108.5" y="230" width="774" height="54"/>
+    <path d="M108.5 257 H882.5"/>
+    <path d="M173 230 V284 M237.5 230 V284 M302 230 V284 M366.5 230 V284 M431 230 V284
+             M495.5 230 V284 M560 230 V284 M624.5 230 V284 M689 230 V284 M753.5 230 V284 M818 230 V284"/>
+  </g>
+  <g>
+    <rect x="109" y="231" width="193" height="25" fill="#ffcccc"/>
+    <rect x="367" y="231" width="515" height="25" fill="#cdeb8b"/>
+  </g>
+
+  <text x="45" y="250" font-size="18" fill="#000">数据</text>
+  <text x="45" y="277" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="140.75" y="277">0</text>
+    <text x="205.25" y="277">1</text>
+    <text x="269.75" y="277">2</text>
+    <text x="334.25" y="277">3</text>
+    <text x="398.75" y="277">4</text>
+    <text x="463.25" y="277">5</text>
+    <text x="527.75" y="277">6</text>
+    <text x="592.25" y="277">7</text>
+    <text x="656.75" y="277">8</text>
+    <text x="721.25" y="277">9</text>
+    <text x="785.75" y="277">10</text>
+    <text x="850.25" y="277">11</text>
+  </g>
+
+  <!-- 往前移动 -->
+  <path d="M585 321 H350 V309 L320 324 L350 339 V328 H585 Z" fill="#000"/>
+  <text x="327" y="366" font-size="21" fill="#000">将下标为3后面的数据往前移动</text>
+
+  <!-- 数组三：数据前移 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="108.5" y="386" width="774" height="54"/>
+    <path d="M108.5 413 H882.5"/>
+    <path d="M173 386 V440 M237.5 386 V440 M302 386 V440 M366.5 386 V440 M431 386 V440
+             M495.5 386 V440 M560 386 V440 M624.5 386 V440 M689 386 V440 M753.5 386 V440 M818 386 V440"/>
+  </g>
+  <g>
+    <rect x="109" y="387" width="193" height="25" fill="#ffcccc"/>
+    <rect x="302" y="387" width="516" height="25" fill="#cdeb8b"/>
+  </g>
+
+  <text x="42" y="406" font-size="18" fill="#000">数据</text>
+  <text x="42" y="433" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="140.75" y="433">0</text>
+    <text x="205.25" y="433">1</text>
+    <text x="269.75" y="433">2</text>
+    <text x="334.25" y="433">3</text>
+    <text x="398.75" y="433">4</text>
+    <text x="463.25" y="433">5</text>
+    <text x="527.75" y="433">6</text>
+    <text x="592.25" y="433">7</text>
+    <text x="656.75" y="433">8</text>
+    <text x="721.25" y="433">9</text>
+    <text x="785.75" y="433">10</text>
+    <text x="850.25" y="433">11</text>
+  </g>
+</svg>

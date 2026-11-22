@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1140" height="204">
+  <!-- 第一行：16 -->
+  <text x="19" y="69" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="227" y="36" width="109.5" height="41"/>
+    <rect x="336.5" y="36" width="109.5" height="41"/>
+    <rect x="446" y="36" width="109.5" height="41"/>
+    <rect x="555.5" y="36" width="110" height="41"/>
+    <rect x="665.5" y="36" width="109" height="41"/>
+    <rect x="774.5" y="36" width="109.5" height="41"/>
+  </g>
+  <rect x="884" y="36" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="993.5" y="36" width="108.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="281.75" y="66">0000</text>
+    <text x="391.25" y="66">0000</text>
+    <text x="500.75" y="66">0000</text>
+    <text x="610.5" y="66">0000</text>
+    <text x="720" y="66">0000</text>
+    <text x="829.25" y="66">0000</text>
+    <text x="938.75" y="66">0001</text>
+    <text x="1047.75" y="66">0000</text>
+  </g>
+
+  <!-- 第二行：127 -->
+  <text x="12" y="147" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="227" y="113" width="109.5" height="41"/>
+    <rect x="336.5" y="113" width="109.5" height="41"/>
+    <rect x="446" y="113" width="109.5" height="41"/>
+    <rect x="555.5" y="113" width="110" height="41"/>
+    <rect x="665.5" y="113" width="109" height="41"/>
+    <rect x="774.5" y="113" width="109.5" height="41"/>
+  </g>
+  <rect x="884" y="113" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="993.5" y="113" width="108.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="281.75" y="144">0000</text>
+    <text x="391.25" y="144">0000</text>
+    <text x="500.75" y="144">0000</text>
+    <text x="610.5" y="144">0000</text>
+    <text x="720" y="144">0000</text>
+    <text x="829.25" y="144">0000</text>
+    <text x="938.75" y="144">0111</text>
+    <text x="1047.75" y="144">1111</text>
+  </g>
+
+  <!-- 红框标出最后一列 -->
+  <rect x="993.5" y="35" width="108.5" height="120" fill="none" stroke="#fb3838" stroke-width="3"/>
+</svg>

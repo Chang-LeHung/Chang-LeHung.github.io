@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="636" height="239">
+  <rect x="0" y="0" width="636" height="239" fill="#ffffff"/>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="55" y="48.5" width="65.25" height="27"/>
+    <rect x="120.25" y="48.5" width="65.25" height="27"/>
+    <rect x="185.5" y="48.5" width="65.25" height="27"/>
+    <rect x="250.75" y="48.5" width="65.25" height="27"/>
+  </g>
+  <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">
+    <rect x="316" y="48.5" width="65.25" height="27"/>
+    <rect x="381.25" y="48.5" width="65.25" height="27"/>
+    <rect x="446.5" y="48.5" width="65.25" height="27"/>
+    <rect x="511.75" y="48.5" width="65.25" height="27"/>
+  </g>
+
+  <rect x="54.5" y="110.5" width="65" height="26.5" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="149" y="134" font-size="21" fill="#000000">表示第i - 1行的状态</text>
+
+  <rect x="54.5" y="175.5" width="65" height="26.5" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="146" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
+</svg>

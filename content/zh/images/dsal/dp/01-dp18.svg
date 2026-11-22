@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1259" height="509">
+  <defs>
+    <marker id="arrow-dp18" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1259" height="509" fill="#ffffff"/>
+
+  <!-- 根节点 -->
+  <circle cx="636" cy="64" r="30" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="636" y="71" font-size="21.5" fill="#000000" text-anchor="middle">物品</text>
+
+  <!-- 两条分支箭头 -->
+  <path d="M 636 95 L 518 169" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp18)"/>
+  <path d="M 636 95 L 767 166" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp18)"/>
+
+  <text x="499" y="200" font-size="21.5" fill="#000000" text-anchor="middle">选</text>
+  <text x="764" y="200" font-size="21.5" fill="#000000" text-anchor="middle">不选</text>
+
+  <!-- 选择分支说明 -->
+  <text x="254.5" y="125.5" font-size="21.5" fill="#000000" text-anchor="middle">因为选择第i个物品，而且每个物品只能选择一次</text>
+  <text x="254.5" y="152.5" font-size="21.5" fill="#000000" text-anchor="middle">因此我们只能选择前i - 1个物品</text>
+  <text x="254.5" y="179.5" font-size="21.5" fill="#000000" text-anchor="middle">但是我们能够承受的容量需要减去第i</text>
+  <text x="254.5" y="205" font-size="21.5" fill="#000000" text-anchor="middle">个物品的质量w并且加上他的价值v</text>
+
+  <!-- 不选择分支说明 -->
+  <text x="1035.5" y="135" font-size="21.5" fill="#000000" text-anchor="middle">因为没有选择第i个物品，我们只能选</text>
+  <text x="1035.5" y="161" font-size="21.5" fill="#000000" text-anchor="middle">择前i - 1个物品</text>
+  <text x="1035.5" y="187" font-size="21.5" fill="#000000" text-anchor="middle">但是我们能够承受的容量没有发生变化</text>
+
+  <!-- 两个价值框 -->
+  <rect x="234" y="222" width="343" height="39" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="405.5" y="250" font-size="21.5" fill="#000000" text-anchor="middle">价值为： dp[i - 1][j - w] + v</text>
+
+  <rect x="636" y="222" width="343" height="39" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="807.5" y="250" font-size="21.5" fill="#000000" text-anchor="middle">价值为： dp[i - 1][j]</text>
+
+  <!-- 汇合与 max -->
+  <path d="M 405.5 262 V 336.5 H 807.5 V 262" fill="none" stroke="#000000" stroke-width="1.5"/>
+  <path d="M 612 336.5 V 409" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow-dp18)"/>
+  <text x="634" y="373" font-size="21" fill="#000000">max</text>
+
+  <rect x="440" y="412" width="343" height="40" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="611.5" y="442.5" font-size="21.5" fill="#000000" text-anchor="middle">dp[i][j]</text>
+</svg>

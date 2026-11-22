@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1024" height="118">
+  <defs>
+    <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="97" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="97" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="138" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="138" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="271" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="271" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="312" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="312" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="445" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="445" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="486" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="486" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="619" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="619" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="660" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="660" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 5 -->
+  <rect x="793" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="793" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="834" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="834" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- next 指针 -->
+  <path d="M179,85.5 L271,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M353,85.5 L445,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M527,85.5 L619,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M701,85.5 L793,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+</svg>

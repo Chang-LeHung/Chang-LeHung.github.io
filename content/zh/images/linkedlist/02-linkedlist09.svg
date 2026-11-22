@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="953" height="606">
+  <defs>
+    <marker id="arrow-linkedlist09" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-linkedlist09-m" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff3f9f"/>
+    </marker>
+  </defs>
+
+  <!-- 链表中已有的五个节点 -->
+  <g stroke-width="1.5">
+    <g>
+      <rect x="74" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="74" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="74" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="248" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="248" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="248" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="424" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="424" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="424" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="598" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="598" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="598" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="772" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="772" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="772" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="115" y="107">item</text>
+    <text x="115" y="145">prev</text>
+    <text x="115" y="183">next</text>
+    <text x="289" y="107">item</text>
+    <text x="289" y="145">prev</text>
+    <text x="289" y="183">next</text>
+    <text x="465" y="107">item</text>
+    <text x="465" y="145">prev</text>
+    <text x="465" y="183">next</text>
+    <text x="639" y="107">item</text>
+    <text x="639" y="145">prev</text>
+    <text x="639" y="183">next</text>
+    <text x="813" y="107">item</text>
+    <text x="813" y="145">prev</text>
+    <text x="813" y="183">next</text>
+  </g>
+
+  <!-- first / last -->
+  <g stroke-width="1.5">
+    <rect x="67" y="270" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+    <rect x="765" y="270" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="115" y="305">first</text>
+    <text x="813" y="305">last</text>
+  </g>
+
+  <!-- 原有指针 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M247 137 H161" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M423 137 H336" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M597 137 H511" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M771 137 H686" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M73 137 H33" marker-end="url(#arrow-linkedlist09)"/>
+
+    <path d="M157 175 H244" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M331 175 H420" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M507 175 H594" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M681 175 H768" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M855 175 H908" marker-end="url(#arrow-linkedlist09)"/>
+
+    <path d="M115 270 V199" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M813 270 V199" marker-end="url(#arrow-linkedlist09)"/>
+  </g>
+
+  <!-- index 指示 -->
+  <text x="475" y="41" font-size="23" fill="#000" text-anchor="middle">这里是index对应的节点</text>
+  <path d="M460 50 V77" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-linkedlist09)"/>
+
+  <!-- 集合数据 -->
+  <rect x="164" y="375" width="501" height="146" rx="15" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <g stroke-width="1.5">
+    <g>
+      <rect x="283" y="392" width="81" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="283" y="431" width="81" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="283" y="468" width="81" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="457" y="392" width="81" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="457" y="431" width="81" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="457" y="468" width="81" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="323" y="419">item</text>
+    <text x="323" y="455">prev</text>
+    <text x="323" y="493">next</text>
+    <text x="497" y="419">item</text>
+    <text x="497" y="455">prev</text>
+    <text x="497" y="493">next</text>
+  </g>
+
+  <!-- 新节点的 prev / next 重新指向（品红虚线） -->
+  <g fill="none" stroke="#ff3f9f" stroke-width="1.5" stroke-dasharray="6 4">
+    <path d="M289 194 V487 H280" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M281 449 H253 V295 H357 V137 H334" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M540 449 H567 V293 H397 V137 H421" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M539 487 H681 V331 H465 V199" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M456 449 H367" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M364 487 H454" marker-end="url(#arrow-linkedlist09-m)"/>
+  </g>
+
+  <text x="402" y="567" font-size="23" fill="#000" text-anchor="middle">将集合中的数据变成节点，再进行连接</text>
+</svg>

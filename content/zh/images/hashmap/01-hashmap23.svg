@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1178" height="237">
+  <defs>
+    <marker id="arrow-hashmap23" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="125" y="24" width="91" height="35"/>
+    <rect x="216" y="24" width="91" height="35"/>
+    <rect x="307" y="24" width="91.5" height="35"/>
+    <rect x="398.5" y="24" width="91.5" height="35"/>
+    <rect x="490" y="24" width="91" height="35"/>
+    <rect x="581" y="24" width="91" height="35"/>
+    <rect x="672" y="24" width="91.5" height="35"/>
+    <rect x="763.5" y="24" width="91.5" height="35"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="170.5" y="51">0000</text>
+    <text x="261.5" y="51">0000</text>
+    <text x="352.75" y="51">0000</text>
+    <text x="444.25" y="51">1000</text>
+    <text x="535.5" y="51">0000</text>
+    <text x="626.5" y="51">0000</text>
+    <text x="717.75" y="51">0000</text>
+    <text x="809.25" y="51">0000</text>
+  </g>
+
+  <text x="100" y="96" font-size="20" fill="#000">经过函数当中的移位变化之后</text>
+
+  <!-- 第二行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="125" y="114" width="91" height="35"/>
+    <rect x="216" y="114" width="91" height="35"/>
+    <rect x="307" y="114" width="91.5" height="35"/>
+    <rect x="398.5" y="114" width="91.5" height="35"/>
+    <rect x="490" y="114" width="91" height="35"/>
+    <rect x="581" y="114" width="91" height="35"/>
+    <rect x="672" y="114" width="91.5" height="35"/>
+    <rect x="763.5" y="114" width="91.5" height="35"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="170.5" y="141">0000</text>
+    <text x="261.5" y="141">0000</text>
+    <text x="352.75" y="141">0000</text>
+    <text x="444.25" y="141">1111</text>
+    <text x="535.5" y="141">1111</text>
+    <text x="626.5" y="141">1111</text>
+    <text x="717.75" y="141">1111</text>
+    <text x="809.25" y="141">1111</text>
+  </g>
+
+  <!-- 虚线格 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" stroke-dasharray="4 4">
+    <rect x="855" y="114" width="273" height="35"/>
+    <path d="M946 114 V149 M1037 114 V149"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="900.5" y="141">1111</text>
+    <text x="991.5" y="141">1111</text>
+    <text x="1082.5" y="141">1111</text>
+  </g>
+
+  <!-- 箭头 -->
+  <path d="M125 41.5 H48 V131.5 H121" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-hashmap23)"/>
+
+  <!-- 说明 -->
+  <text x="25" y="199" font-size="22" letter-spacing="0.45" fill="#000">因为一个int类型只有32位，虚线位置没有数据，画虚线只是为了表示清楚，经过移位操作之后，会有32位比特数为1</text>
+</svg>

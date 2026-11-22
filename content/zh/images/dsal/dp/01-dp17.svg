@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 784 356" role="img" aria-label="背包问题状态转移示意：物品节点分出选与不选两条分支，各自给出总价值与剩余承重量的变化" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="784" height="356">
+  <defs>
+    <marker id="arrow-dp17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="784" height="356" fill="#ffffff"/>
+
+  <text x="391" y="43" font-size="22" fill="#000000" text-anchor="middle">假设在当前的状态下，我们背包的还能够承受的重量为W</text>
+  <text x="392" y="67" font-size="22" fill="#000000" text-anchor="middle">目前装入的东西的价值综合为V</text>
+
+  <circle cx="385" cy="117.5" r="30.75" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="384.5" y="124" font-size="22" fill="#000000" text-anchor="middle">物品</text>
+  <text x="435" y="124" font-size="22" fill="#000000">重量为w，价值为 w</text>
+
+  <path d="M 385 149 L 267 222" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp17)"/>
+  <path d="M 385 149 L 512 218" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp17)"/>
+
+  <text x="247.5" y="253" font-size="22" fill="#000000" text-anchor="middle">选</text>
+  <text x="512" y="253" font-size="22" fill="#000000" text-anchor="middle">不选</text>
+
+  <text x="180.5" y="282.5" font-size="22" fill="#000000" text-anchor="middle">背包中物品总价值为V + v</text>
+  <text x="181" y="308" font-size="22" fill="#000000" text-anchor="middle">背包还能够承受的重量为 W - w</text>
+  <text x="554" y="286" font-size="22" fill="#000000" text-anchor="middle">背包中物品总价值为V</text>
+  <text x="554.5" y="310.5" font-size="22" fill="#000000" text-anchor="middle">背包还能够承受的重量为 W</text>
+</svg>

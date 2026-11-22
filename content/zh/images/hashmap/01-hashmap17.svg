@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="857" height="537">
+  <defs>
+    <marker id="arrow-hashmap17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 行 A：1000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="23" width="77.5" height="29"/>
+    <rect x="336.5" y="23" width="77.5" height="29"/>
+    <rect x="414" y="23" width="78" height="29"/>
+    <rect x="492" y="23" width="77" height="29"/>
+    <rect x="569" y="23" width="77.5" height="29"/>
+    <rect x="646.5" y="23" width="77.5" height="29"/>
+    <rect x="724" y="23" width="78" height="29"/>
+  </g>
+  <rect x="182" y="23" width="77" height="29" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="44">1000</text>
+    <text x="297.75" y="44">0000</text>
+    <text x="375.25" y="44">0000</text>
+    <text x="453" y="44">0000</text>
+    <text x="530.5" y="44">0000</text>
+    <text x="607.75" y="44">0000</text>
+    <text x="685.25" y="44">0000</text>
+    <text x="763" y="44">0000</text>
+  </g>
+
+  <text x="186" y="93" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 B：0100 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="111" width="77.5" height="29"/>
+    <rect x="336.5" y="111" width="77.5" height="29"/>
+    <rect x="414" y="111" width="78" height="29"/>
+    <rect x="492" y="111" width="77" height="29"/>
+    <rect x="569" y="111" width="77.5" height="29"/>
+    <rect x="646.5" y="111" width="77.5" height="29"/>
+    <rect x="724" y="111" width="78" height="29"/>
+  </g>
+  <rect x="182" y="111" width="77" height="29" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="132">0100</text>
+    <text x="297.75" y="132">0000</text>
+    <text x="375.25" y="132">0000</text>
+    <text x="453" y="132">0000</text>
+    <text x="530.5" y="132">0000</text>
+    <text x="607.75" y="132">0000</text>
+    <text x="685.25" y="132">0000</text>
+    <text x="763" y="132">0000</text>
+  </g>
+
+  <!-- 行 C：1100 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="164" width="77.5" height="29"/>
+    <rect x="336.5" y="164" width="77.5" height="29"/>
+    <rect x="414" y="164" width="78" height="29"/>
+    <rect x="492" y="164" width="77" height="29"/>
+    <rect x="569" y="164" width="77.5" height="29"/>
+    <rect x="646.5" y="164" width="77.5" height="29"/>
+    <rect x="724" y="164" width="78" height="29"/>
+  </g>
+  <rect x="182" y="164" width="77" height="29" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="185">1100</text>
+    <text x="297.75" y="185">0000</text>
+    <text x="375.25" y="185">0000</text>
+    <text x="453" y="185">0000</text>
+    <text x="530.5" y="185">0000</text>
+    <text x="607.75" y="185">0000</text>
+    <text x="685.25" y="185">0000</text>
+    <text x="763" y="185">0000</text>
+  </g>
+
+  <text x="186" y="234" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 D：0011 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="253" width="77.5" height="29"/>
+    <rect x="336.5" y="253" width="77.5" height="29"/>
+    <rect x="414" y="253" width="78" height="29"/>
+    <rect x="492" y="253" width="77" height="29"/>
+    <rect x="569" y="253" width="77.5" height="29"/>
+    <rect x="646.5" y="253" width="77.5" height="29"/>
+    <rect x="724" y="253" width="78" height="29"/>
+  </g>
+  <rect x="182" y="253" width="77" height="29" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="274">0011</text>
+    <text x="297.75" y="274">0000</text>
+    <text x="375.25" y="274">0000</text>
+    <text x="453" y="274">0000</text>
+    <text x="530.5" y="274">0000</text>
+    <text x="607.75" y="274">0000</text>
+    <text x="685.25" y="274">0000</text>
+    <text x="763" y="274">0000</text>
+  </g>
+
+  <!-- 行 E：1111 0000 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="313" width="77.5" height="29"/>
+    <rect x="414" y="313" width="78" height="29"/>
+    <rect x="492" y="313" width="77" height="29"/>
+    <rect x="569" y="313" width="77.5" height="29"/>
+    <rect x="646.5" y="313" width="77.5" height="29"/>
+    <rect x="724" y="313" width="78" height="29"/>
+  </g>
+  <rect x="182" y="313" width="77" height="29" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="259" y="313" width="77.5" height="29" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="334">1111</text>
+    <text x="297.75" y="334">0000</text>
+    <text x="375.25" y="334">0000</text>
+    <text x="453" y="334">0000</text>
+    <text x="530.5" y="334">0000</text>
+    <text x="607.75" y="334">0000</text>
+    <text x="685.25" y="334">0000</text>
+    <text x="763" y="334">0000</text>
+  </g>
+
+  <text x="193" y="380" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 F：0000 1111 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="401" width="77.5" height="28"/>
+    <rect x="414" y="401" width="78" height="28"/>
+    <rect x="492" y="401" width="77" height="28"/>
+    <rect x="569" y="401" width="77.5" height="28"/>
+    <rect x="646.5" y="401" width="77.5" height="28"/>
+    <rect x="724" y="401" width="78" height="28"/>
+  </g>
+  <rect x="182" y="401" width="77" height="28" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="259" y="401" width="77.5" height="28" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="422">0000</text>
+    <text x="297.75" y="422">1111</text>
+    <text x="375.25" y="422">0000</text>
+    <text x="453" y="422">0000</text>
+    <text x="530.5" y="422">0000</text>
+    <text x="607.75" y="422">0000</text>
+    <text x="685.25" y="422">0000</text>
+    <text x="763" y="422">0000</text>
+  </g>
+
+  <!-- 行 G：1111 1111 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="462" width="77.5" height="29"/>
+    <rect x="414" y="462" width="78" height="29"/>
+    <rect x="492" y="462" width="77" height="29"/>
+    <rect x="569" y="462" width="77.5" height="29"/>
+    <rect x="646.5" y="462" width="77.5" height="29"/>
+    <rect x="724" y="462" width="78" height="29"/>
+  </g>
+  <rect x="182" y="462" width="77" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="259" y="462" width="77.5" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="483">1111</text>
+    <text x="297.75" y="483">1111</text>
+    <text x="375.25" y="483">0000</text>
+    <text x="453" y="483">0000</text>
+    <text x="530.5" y="483">0000</text>
+    <text x="607.75" y="483">0000</text>
+    <text x="685.25" y="483">0000</text>
+    <text x="763" y="483">0000</text>
+  </g>
+
+  <!-- 等号 -->
+  <g stroke="#000" stroke-width="1.5">
+    <path d="M156 176 H181 M156 180.5 H181"/>
+    <path d="M156 324 H181 M156 328.5 H181"/>
+    <path d="M156 475 H181 M156 479.5 H181"/>
+  </g>
+
+  <!-- 移位框 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="34" y="111" width="121" height="29"/>
+    <rect x="30" y="252" width="122" height="29"/>
+    <rect x="30" y="400" width="122" height="29"/>
+  </g>
+  <g font-size="19" fill="#000" text-anchor="middle">
+    <text x="94.5" y="134">右移一位</text>
+    <text x="91" y="276">右移两位</text>
+    <text x="91" y="424">右移四位</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap17)">
+    <path d="M182 37 H94 V107"/>
+    <path d="M182 186 H91 V249"/>
+    <path d="M182 334 H91 V397"/>
+    <path d="M155 125.5 H177"/>
+    <path d="M152 267 H177"/>
+    <path d="M152 414.5 H177"/>
+  </g>
+</svg>

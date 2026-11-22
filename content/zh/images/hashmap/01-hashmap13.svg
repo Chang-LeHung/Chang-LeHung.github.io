@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 448" role="img" aria-label="1 到 127 之间的 2 的幂减一的二进制表示，蓝色格为有效位" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="878" height="448">
+  <!-- 1 -->
+  <text x="61" y="54" font-size="22" fill="#000" text-anchor="middle">1</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="28" width="91" height="33.5"/>
+    <rect x="191.5" y="28" width="91.5" height="33.5"/>
+    <rect x="283" y="28" width="91.5" height="33.5"/>
+    <rect x="374.5" y="28" width="91" height="33.5"/>
+    <rect x="465.5" y="28" width="91" height="33.5"/>
+    <rect x="556.5" y="28" width="91.5" height="33.5"/>
+    <rect x="648" y="28" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="28" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="54">0000</text>
+    <text x="237.25" y="54">0000</text>
+    <text x="328.75" y="54">0000</text>
+    <text x="420" y="54">0000</text>
+    <text x="511" y="54">0000</text>
+    <text x="602.25" y="54">0000</text>
+    <text x="693.5" y="54">0000</text>
+    <text x="785" y="54">0001</text>
+  </g>
+
+  <!-- 3 -->
+  <text x="61" y="109" font-size="22" fill="#000" text-anchor="middle">3</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="83" width="91" height="33.5"/>
+    <rect x="191.5" y="83" width="91.5" height="33.5"/>
+    <rect x="283" y="83" width="91.5" height="33.5"/>
+    <rect x="374.5" y="83" width="91" height="33.5"/>
+    <rect x="465.5" y="83" width="91" height="33.5"/>
+    <rect x="556.5" y="83" width="91.5" height="33.5"/>
+    <rect x="648" y="83" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="83" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="109">0000</text>
+    <text x="237.25" y="109">0000</text>
+    <text x="328.75" y="109">0000</text>
+    <text x="420" y="109">0000</text>
+    <text x="511" y="109">0000</text>
+    <text x="602.25" y="109">0000</text>
+    <text x="693.5" y="109">0000</text>
+    <text x="785" y="109">0011</text>
+  </g>
+
+  <!-- 7 -->
+  <text x="61" y="163" font-size="22" fill="#000" text-anchor="middle">7</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="136.5" width="91" height="33.5"/>
+    <rect x="191.5" y="136.5" width="91.5" height="33.5"/>
+    <rect x="283" y="136.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="136.5" width="91" height="33.5"/>
+    <rect x="465.5" y="136.5" width="91" height="33.5"/>
+    <rect x="556.5" y="136.5" width="91.5" height="33.5"/>
+    <rect x="648" y="136.5" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="136.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="163">0000</text>
+    <text x="237.25" y="163">0000</text>
+    <text x="328.75" y="163">0000</text>
+    <text x="420" y="163">0000</text>
+    <text x="511" y="163">0000</text>
+    <text x="602.25" y="163">0000</text>
+    <text x="693.5" y="163">0000</text>
+    <text x="785" y="163">0111</text>
+  </g>
+
+  <!-- 15 -->
+  <text x="61" y="218" font-size="22" fill="#000" text-anchor="middle">15</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="192" width="91" height="33.5"/>
+    <rect x="191.5" y="192" width="91.5" height="33.5"/>
+    <rect x="283" y="192" width="91.5" height="33.5"/>
+    <rect x="374.5" y="192" width="91" height="33.5"/>
+    <rect x="465.5" y="192" width="91" height="33.5"/>
+    <rect x="556.5" y="192" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="192" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="192" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="218">0000</text>
+    <text x="237.25" y="218">0000</text>
+    <text x="328.75" y="218">0000</text>
+    <text x="420" y="218">0000</text>
+    <text x="511" y="218">0000</text>
+    <text x="602.25" y="218">0000</text>
+    <text x="693.5" y="218">0001</text>
+    <text x="785" y="218">1111</text>
+  </g>
+
+  <!-- 31 -->
+  <text x="61" y="276" font-size="22" fill="#000" text-anchor="middle">31</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="250.5" width="91" height="33.5"/>
+    <rect x="191.5" y="250.5" width="91.5" height="33.5"/>
+    <rect x="283" y="250.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="250.5" width="91" height="33.5"/>
+    <rect x="465.5" y="250.5" width="91" height="33.5"/>
+    <rect x="556.5" y="250.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="250.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="250.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="276">0000</text>
+    <text x="237.25" y="276">0000</text>
+    <text x="328.75" y="276">0000</text>
+    <text x="420" y="276">0000</text>
+    <text x="511" y="276">0000</text>
+    <text x="602.25" y="276">0000</text>
+    <text x="693.5" y="276">0011</text>
+    <text x="785" y="276">1111</text>
+  </g>
+
+  <!-- 63 -->
+  <text x="61" y="331" font-size="22" fill="#000" text-anchor="middle">63</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="305.5" width="91" height="33.5"/>
+    <rect x="191.5" y="305.5" width="91.5" height="33.5"/>
+    <rect x="283" y="305.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="305.5" width="91" height="33.5"/>
+    <rect x="465.5" y="305.5" width="91" height="33.5"/>
+    <rect x="556.5" y="305.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="305.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="305.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="331">0000</text>
+    <text x="237.25" y="331">0000</text>
+    <text x="328.75" y="331">0000</text>
+    <text x="420" y="331">0000</text>
+    <text x="511" y="331">0000</text>
+    <text x="602.25" y="331">0000</text>
+    <text x="693.5" y="331">0111</text>
+    <text x="785" y="331">1111</text>
+  </g>
+
+  <!-- 127 -->
+  <text x="61" y="385" font-size="22" fill="#000" text-anchor="middle">127</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="359.5" width="91" height="33.5"/>
+    <rect x="191.5" y="359.5" width="91.5" height="33.5"/>
+    <rect x="283" y="359.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="359.5" width="91" height="33.5"/>
+    <rect x="465.5" y="359.5" width="91" height="33.5"/>
+    <rect x="556.5" y="359.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="359.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="359.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="385">0000</text>
+    <text x="237.25" y="385">0000</text>
+    <text x="328.75" y="385">0000</text>
+    <text x="420" y="385">0000</text>
+    <text x="511" y="385">0000</text>
+    <text x="602.25" y="385">0000</text>
+    <text x="693.5" y="385">1111</text>
+    <text x="785" y="385">1111</text>
+  </g>
+</svg>

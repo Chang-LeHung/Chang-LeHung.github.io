@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="788" height="372">
+  <defs>
+    <marker id="arrow-linkedlist11" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 堆区 -->
+  <rect x="375" y="77" width="336" height="260" rx="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="536" y="59" font-size="19" fill="#000" text-anchor="middle">Java虚拟机的堆区</text>
+
+  <!-- 栈区 -->
+  <text x="27" y="95" font-size="19" fill="#000">Java虚拟机的栈区</text>
+  <g stroke-width="1.5">
+    <rect x="65" y="124" width="81" height="33" fill="#ffffff" stroke="#000000"/>
+    <rect x="65" y="157" width="81" height="34" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="65" y="191" width="81" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="65" y="223" width="81" height="33" fill="#ffffff" stroke="#000000"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="105" y="182">S2</text>
+    <text x="105" y="215">S1</text>
+  </g>
+
+  <!-- 堆中的两个对象 -->
+  <rect x="419" y="132" width="249" height="33" rx="6" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="431" y="205" width="238" height="33" rx="6" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="543" y="159">一无是处的研究僧</text>
+    <text x="550" y="232">一无是处的研究僧</text>
+  </g>
+
+  <!-- 引用 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M146 174 C 250 172, 300 148, 412 148" marker-end="url(#arrow-linkedlist11)"/>
+    <path d="M146 207 C 250 209, 320 221, 424 221" marker-end="url(#arrow-linkedlist11)"/>
+  </g>
+</svg>

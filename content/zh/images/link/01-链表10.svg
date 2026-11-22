@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="916" height="255">
+  <defs>
+    <marker id="arrow-01-10" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="183" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="183" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="183" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="224" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="224" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="224" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="357" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="357" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="357" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="398" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="398" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="398" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="531" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="531" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="531" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="572" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="572" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="572" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="705" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="705" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="705" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="746" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="746" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="746" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- prev 指针：向左 -->
+  <path d="M357,113.5 L264,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M531,113.5 L438,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M705,113.5 L612,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- next 指针：向右 -->
+  <path d="M264,151.5 L357,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M438,151.5 L531,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M612,151.5 L705,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- 上部绕行：第一个结点的 prev 指向最后一个结点 -->
+  <path d="M183,113.5 H153.5 V33.5 H816.5 V113.5 H786"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- 下部绕行：最后一个结点的 next 指向第一个结点 -->
+  <path d="M786,151.5 H816.5 V222.5 H153.5 V151.5 H183"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+</svg>

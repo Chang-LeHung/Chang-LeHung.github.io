@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1052" height="412">
+
+  <!-- 顶部说明文字 -->
+  <text x="465" y="26" font-size="18" fill="#1a1a1a" text-anchor="middle">删除下标为3的位置的数据，其后面的数据都需要往前移动一个位置</text>
+
+  <!-- 浅蓝色左向箭头 -->
+  <polygon points="585,54 585,69 462,69 462,85 433,60.5 462,36 462,54"
+           fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5"/>
+
+  <!-- 第一行数组：下标 0-9，其中下标 3 已被删除 -->
+  <rect x="108" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="189.3" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="270.6" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="351.9" y="109" width="81.3" height="40" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+  <rect x="433.2" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="514.5" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="595.8" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="677.1" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="758.4" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="839.7" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+
+  <text x="149" y="136" font-size="20" fill="#ffffff" text-anchor="middle">0</text>
+  <text x="230" y="136" font-size="20" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="311" y="136" font-size="20" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="393" y="136" font-size="20" fill="#000000" text-anchor="middle">3</text>
+  <text x="474" y="136" font-size="20" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="555" y="136" font-size="20" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="636" y="136" font-size="20" fill="#ffffff" text-anchor="middle">6</text>
+  <text x="718" y="136" font-size="20" fill="#ffffff" text-anchor="middle">7</text>
+  <text x="799" y="136" font-size="20" fill="#ffffff" text-anchor="middle">8</text>
+  <text x="880" y="136" font-size="20" fill="#ffffff" text-anchor="middle">9</text>
+
+  <!-- 向下的空心箭头 -->
+  <path d="M452,188 H469 V277 H484 L460.5,309 L437,277 H452 Z"
+        fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+
+  <!-- 右侧说明文字 -->
+  <text x="871" y="342" font-size="18" fill="#1a1a1a" text-anchor="middle">移动之后下标为9的位置就空了</text>
+
+  <!-- 第二行数组：移动之后 -->
+  <rect x="108" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="189.3" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="270.6" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="351.9" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="433.2" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="514.5" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="595.8" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="677.1" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="758.4" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <rect x="839.7" y="353" width="81.3" height="40" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+
+  <text x="149" y="380" font-size="20" fill="#ffffff" text-anchor="middle">0</text>
+  <text x="230" y="380" font-size="20" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="311" y="380" font-size="20" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="393" y="380" font-size="20" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="474" y="380" font-size="20" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="555" y="380" font-size="20" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="636" y="380" font-size="20" fill="#ffffff" text-anchor="middle">6</text>
+  <text x="718" y="380" font-size="20" fill="#ffffff" text-anchor="middle">7</text>
+  <text x="799" y="380" font-size="20" fill="#ffffff" text-anchor="middle">8</text>
+  <text x="880" y="380" font-size="20" fill="#000000" text-anchor="middle">9</text>
+</svg>

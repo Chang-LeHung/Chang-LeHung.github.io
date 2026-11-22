@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 863 211" role="img" aria-label="一个下标 0 到 9 的数组，红色箭头从黄色 data 方框指向下标 3 的位置" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="863" height="211">
+  <defs>
+    <marker id="arrow-01-02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <!-- 数组 -->
+  <rect x="28" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="109" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="190" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="271" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="352" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="433" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="514" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="595" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="676" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="757" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <text x="68" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">0</text>
+  <text x="149" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">1</text>
+  <text x="230" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">2</text>
+  <text x="311" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">3</text>
+  <text x="392" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">4</text>
+  <text x="473" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">5</text>
+  <text x="554" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">6</text>
+  <text x="635" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">7</text>
+  <text x="716" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">8</text>
+  <text x="797" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">9</text>
+
+  <!-- 指向下标 3 的红色箭头 -->
+  <path d="M311,157 C311,130 300,107 277,107 C272,107 271,92 271,69"
+        fill="none" stroke="#ff0000" stroke-width="1.6" marker-end="url(#arrow-01-02)"/>
+
+  <!-- data 方框 -->
+  <rect x="271" y="157" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="311" y="183" font-size="16" fill="#1a1a1a" text-anchor="middle">data</text>
+</svg>

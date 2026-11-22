@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 782 402" role="img" aria-label="姓名经哈希函数计算后得到成绩数组的下标" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="782" height="402">
+  <defs>
+    <marker id="arrow-hashmap01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <circle cx="356" cy="66" r="27" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="356" y="74" font-size="20" fill="#000" text-anchor="middle">姓名</text>
+
+  <path d="M356 93 V144" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap01)"/>
+  <text x="368" y="123" font-size="20" fill="#000">将姓名输入到哈希函数当中</text>
+
+  <rect x="283" y="148" width="147" height="44" rx="6" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="356" y="178" font-size="20" fill="#000" text-anchor="middle">哈希函数</text>
+
+  <path d="M356 192 V232 H311 V312" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap01)"/>
+  <text x="343" y="288" font-size="20" fill="#000">哈希函数根据输入的姓名计算出对应的下标</text>
+
+  <text x="41" y="338" font-size="20" fill="#000">成绩</text>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="115" y="316" width="563" height="27"/>
+    <path d="M178 316 V343 M240 316 V343 M303 316 V343 M365 316 V343 M428 316 V343 M490 316 V343 M553 316 V343 M615 316 V343"/>
+  </g>
+</svg>

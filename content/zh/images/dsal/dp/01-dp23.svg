@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="914" height="358">
+  <rect x="0" y="0" width="914" height="358" fill="#ffffff"/>
+
+  <text x="434.5" y="53" font-size="21.5" fill="#000000" text-anchor="middle">一维数组优化</text>
+  <text x="39" y="124" font-size="21.5" fill="#000000">初始化的数组</text>
+
+  <!-- 初始化的数组：6 个黄色格 + 2 个绿色格 -->
+  <g stroke="#b09500" stroke-width="1.5" fill="#e3c800">
+    <rect x="201" y="101" width="65.25" height="29"/>
+    <rect x="266.25" y="101" width="65.25" height="29"/>
+    <rect x="331.5" y="101" width="65.25" height="29"/>
+    <rect x="396.75" y="101" width="65.25" height="29"/>
+    <rect x="462" y="101" width="65.25" height="29"/>
+    <rect x="527.25" y="101" width="65.25" height="29"/>
+  </g>
+  <g stroke="#005700" stroke-width="1.5" fill="#008a00">
+    <rect x="592.5" y="101" width="65.25" height="29"/>
+    <rect x="657.75" y="101" width="65.25" height="29"/>
+  </g>
+
+  <!-- 待计算的虚线数组 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5" stroke-dasharray="4 6">
+    <rect x="201" y="171" width="65.25" height="27"/>
+    <rect x="266.25" y="171" width="65.25" height="27"/>
+    <rect x="331.5" y="171" width="65.25" height="27"/>
+    <rect x="396.75" y="171" width="65.25" height="27"/>
+    <rect x="462" y="171" width="65.25" height="27"/>
+    <rect x="592.5" y="171" width="65.25" height="27"/>
+    <rect x="657.75" y="171" width="65.25" height="27"/>
+  </g>
+  <rect x="527.25" y="171" width="65.25" height="27" fill="#fa6800"
+        stroke="#c73500" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <text x="561.5" y="194" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 省略的部分 -->
+  <rect x="201" y="234" width="67" height="28" fill="#fa6800"
+        stroke="#c73500" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <text x="103" y="306" font-size="21.5" fill="#000000">计算虚线橙色框的结果的时候，他只依赖黄色框的数据，不依赖绿色框的数据</text>
+</svg>

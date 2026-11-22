@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 357" role="img" aria-label="静态链表的结构表格，下标、数据域、next域三列共五行，四条不同颜色的虚线分别把 next 域的值指向对应下标的数据" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="794" height="357">
+  <defs>
+    <marker id="arrow-01-12k" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+    <marker id="arrow-01-12m" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0080"/>
+    </marker>
+    <marker id="arrow-01-12g" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00ff00"/>
+    </marker>
+    <marker id="arrow-01-12b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3333ff"/>
+    </marker>
+  </defs>
+
+  <!-- 表头 -->
+  <rect x="134" y="31" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="31" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="31" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">下标</text>
+  <text x="280.5" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">数据域</text>
+  <text x="378" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">next域</text>
+
+  <!-- 第 0 行 -->
+  <rect x="134" y="76" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="76" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="76" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">0</text>
+  <text x="280.5" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">4</text>
+
+  <!-- 第 1 行 -->
+  <rect x="134" y="121" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="121" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="121" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">1</text>
+  <text x="280.5" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">3</text>
+
+  <!-- 第 2 行 -->
+  <rect x="134" y="166" width="97.7" height="46" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="166" width="97.6" height="46" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="166" width="97.7" height="46" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">2</text>
+  <text x="280.5" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">-1</text>
+
+  <!-- 第 3 行 -->
+  <rect x="134" y="212" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="212" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="212" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">3</text>
+  <text x="280.5" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">2</text>
+
+  <!-- 第 4 行 -->
+  <rect x="134" y="257" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="257" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="257" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">4</text>
+  <text x="280.5" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">1</text>
+
+  <!-- 表头 next 域指向右上角的说明 -->
+  <path d="M427,53.5 L568,53.5" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow-01-12k)"/>
+  <text x="684" y="52" font-size="21" fill="#1a1a1a" text-anchor="middle">表示对应数据指向的</text>
+  <text x="686" y="78" font-size="21" fill="#1a1a1a" text-anchor="middle">下一条数据的下标</text>
+
+  <!-- 虚线：下标 0 的 next = 4 -->
+  <path d="M427,99 H454 Q464,99 464,109 V271 Q464,281 454,281 H429"
+        fill="none" stroke="#ff0080" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12m)"/>
+
+  <!-- 虚线：下标 1 的 next = 3 -->
+  <path d="M427,145 H483 Q493,145 493,155 V225 Q493,235.5 483,235.5 H429"
+        fill="none" stroke="#00ff00" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12g)"/>
+
+  <!-- 虚线：下标 3 的 next = 2 -->
+  <path d="M427,235.5 H662 Q672,235.5 672,225.5 V200.5 Q672,190.5 662,190.5 H429"
+        fill="none" stroke="#000000" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12k)"/>
+
+  <!-- 虚线：下标 4 的 next = 1 -->
+  <path d="M378,302 V325 Q378,335 388,335 H550 Q560,335 560,325 V155 Q560,145 550,145 H429"
+        fill="none" stroke="#3333ff" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12b)"/>
+</svg>

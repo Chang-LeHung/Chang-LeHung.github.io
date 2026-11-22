@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1114 314" role="img" aria-label="7 和 3 的二进制数按位与运算，得到结果 0011" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1114" height="314">
+  <!-- 第一行：7 -->
+  <text x="19" y="71" font-size="26" fill="#000">7的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="40" width="109.5" height="41"/>
+    <rect x="304.5" y="40" width="109.5" height="41"/>
+    <rect x="414" y="40" width="109.5" height="41"/>
+    <rect x="523.5" y="40" width="110" height="41"/>
+    <rect x="633.5" y="40" width="109" height="41"/>
+    <rect x="742.5" y="40" width="109.5" height="41"/>
+    <rect x="852" y="40" width="109.5" height="41"/>
+  </g>
+  <rect x="961.5" y="40" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="71">0000</text>
+    <text x="359.25" y="71">0000</text>
+    <text x="468.75" y="71">0000</text>
+    <text x="578.25" y="71">0000</text>
+    <text x="687.75" y="71">0000</text>
+    <text x="797.25" y="71">0000</text>
+    <text x="906.75" y="71">0000</text>
+    <text x="1016" y="71">0111</text>
+  </g>
+
+  <!-- 与运算 -->
+  <text x="983" y="121" font-size="26" fill="#000">&amp;运算</text>
+
+  <!-- 第二行：3 -->
+  <text x="19" y="175" font-size="26" fill="#000">3的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="145" width="109.5" height="42"/>
+    <rect x="304.5" y="145" width="109.5" height="42"/>
+    <rect x="414" y="145" width="109.5" height="42"/>
+    <rect x="523.5" y="145" width="110" height="42"/>
+    <rect x="633.5" y="145" width="109" height="42"/>
+    <rect x="742.5" y="145" width="109.5" height="42"/>
+    <rect x="852" y="145" width="109.5" height="42"/>
+  </g>
+  <rect x="961.5" y="145" width="109.5" height="42" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="175">0000</text>
+    <text x="359.25" y="175">0000</text>
+    <text x="468.75" y="175">0000</text>
+    <text x="578.25" y="175">0000</text>
+    <text x="687.75" y="175">0000</text>
+    <text x="797.25" y="175">0000</text>
+    <text x="906.75" y="175">0000</text>
+    <text x="1016" y="175">0011</text>
+  </g>
+
+  <!-- 第三行：结果 -->
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="212" width="109.5" height="41"/>
+    <rect x="304.5" y="212" width="109.5" height="41"/>
+    <rect x="414" y="212" width="109.5" height="41"/>
+    <rect x="523.5" y="212" width="110" height="41"/>
+    <rect x="633.5" y="212" width="109" height="41"/>
+    <rect x="742.5" y="212" width="109.5" height="41"/>
+    <rect x="852" y="212" width="109.5" height="41"/>
+  </g>
+  <rect x="961.5" y="212" width="109.5" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="243">0000</text>
+    <text x="359.25" y="243">0000</text>
+    <text x="468.75" y="243">0000</text>
+    <text x="578.25" y="243">0000</text>
+    <text x="687.75" y="243">0000</text>
+    <text x="797.25" y="243">0000</text>
+    <text x="906.75" y="243">0000</text>
+    <text x="1016" y="243">0011</text>
+  </g>
+</svg>

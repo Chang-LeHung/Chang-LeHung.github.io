@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 939 684" role="img" aria-label="ArrayList 添加元素的调用流程：add 依次调用 ensureCapacityInternal、calculateCapicity、ensureExplicitCapacity，需要扩容时调用 grow" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="939" height="684">
+  <defs>
+    <marker id="arrow-array13" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 三层容器 -->
+  <rect x="40" y="27" width="856" height="628" rx="95" fill="#cce5ff" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="64" y="105" width="805" height="523" rx="78" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="89" y="190" width="769" height="426" rx="62" fill="#ffcccc" stroke="#36393d" stroke-width="1.5"/>
+
+  <!-- 流程框 -->
+  <g fill="#ffcc99" stroke="#36393d" stroke-width="1.5">
+    <rect x="170" y="48" width="156" height="35" rx="8"/>
+    <rect x="104" y="136" width="288" height="36" rx="8"/>
+    <rect x="104" y="220" width="288" height="35" rx="8"/>
+    <rect x="104" y="311" width="288" height="35" rx="8"/>
+    <path d="M248 373 L322 416 L248 459 L174 416 Z" fill="#ffff88"/>
+    <rect x="407" y="501" width="155" height="35" rx="8"/>
+  </g>
+
+  <g font-size="21" fill="#000" text-anchor="middle">
+    <text x="248" y="73">add</text>
+    <text x="248" y="162">ensureCapacityInternal</text>
+    <text x="248" y="245">calculateCapicity</text>
+    <text x="248" y="336">ensureExplicitCapacity</text>
+    <text x="248" y="425">是否扩容</text>
+    <text x="485" y="526">grow</text>
+  </g>
+
+  <!-- 说明文字 -->
+  <g font-size="22" fill="#000">
+    <text x="362" y="70">往容器当中增加数据</text>
+    <text x="402" y="162">确保容器长度符合条件</text>
+    <text x="411" y="245">计算容器中数组的最小长度</text>
+    <text x="420" y="331">根据上个函数计算出的最小长度</text>
+    <text x="486" y="357">判断是否需要扩容</text>
+    <text x="499" y="461">是，则进行扩容，扩容之后进行返回</text>
+    <text x="261" y="498">否，直接返回</text>
+    <text x="322" y="579">扩容函数，将数组扩大为原数组的1.5倍</text>
+    <text x="322" y="605">并且将原数组的数据拷贝到新数组当中</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M248 83 V136" marker-end="url(#arrow-array13)"/>
+    <path d="M248 172 V220" marker-end="url(#arrow-array13)"/>
+    <path d="M248 255 V311" marker-end="url(#arrow-array13)"/>
+    <path d="M248 346 V374" marker-end="url(#arrow-array13)"/>
+    <path d="M248 460 V532" marker-end="url(#arrow-array13)"/>
+    <path d="M322 416 H484 V501" marker-end="url(#arrow-array13)"/>
+  </g>
+</svg>

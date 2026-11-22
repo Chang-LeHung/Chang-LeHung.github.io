@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="991" height="628">
+  <defs>
+    <marker id="arrow-array10-green" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#609350"/>
+    </marker>
+    <marker id="arrow-array10-blue" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#589df6"/>
+    </marker>
+  </defs>
+
+  <rect width="991" height="628" fill="#282a36"/>
+
+  <!-- 连线：绿实线=继承，绿虚线=实现，蓝线=当前高亮路径 -->
+  <g fill="none" stroke="#609350" stroke-width="1.5">
+    <path d="M800 165 V116" marker-end="url(#arrow-array10-green)"/>
+    <path d="M903 281 V256 H844 V232" marker-end="url(#arrow-array10-green)"/>
+  </g>
+  <g fill="none" stroke="#609350" stroke-width="1.5" stroke-dasharray="5 3">
+    <path d="M694 281 V256 H756 V232" marker-end="url(#arrow-array10-green)"/>
+    <path d="M795 397 V372 H878 V350" marker-end="url(#arrow-array10-green)"/>
+    <path d="M607 513 V493 H928 V350" marker-end="url(#arrow-array10-green)"/>
+    <path d="M541 513 V466" marker-end="url(#arrow-array10-green)"/>
+    <path d="M508 513 V483 H338 V466" marker-end="url(#arrow-array10-green)"/>
+    <path d="M475 513 V493 H116 V466" marker-end="url(#arrow-array10-green)"/>
+  </g>
+  <g fill="none" stroke="#589df6" stroke-width="1.5">
+    <path d="M694 397 V350" marker-end="url(#arrow-array10-blue)"/>
+    <path d="M574 513 V483 H744 V466" marker-end="url(#arrow-array10-blue)"/>
+  </g>
+
+  <!-- Iterable -->
+  <rect x="726" y="49" width="149" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="726.5" y="49.5" width="148" height="38" fill="#3c3c3c"/>
+  <g transform="translate(736,68.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="768" y="77" font-size="21" fill="#f8f8f2" font-family="monospace">Iterable</text>
+
+  <!-- Collection -->
+  <rect x="713" y="165" width="175" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="713.5" y="165.5" width="174" height="38" fill="#3c3c3c"/>
+  <g transform="translate(723,184.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="755" y="193" font-size="21" fill="#f8f8f2" font-family="monospace">Collection</text>
+
+  <!-- AbstractCollection -->
+  <rect x="555" y="281" width="277" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="555.5" y="281.5" width="276" height="38" fill="#3c3c3c"/>
+  <g transform="translate(568,300.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="597" y="309" font-size="21" fill="#f8f8f2" font-family="monospace">AbstractCollection</text>
+
+  <!-- List -->
+  <rect x="854" y="281" width="98" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="854.5" y="281.5" width="97" height="38" fill="#3c3c3c"/>
+  <g transform="translate(864,300.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="898" y="309" font-size="21" fill="#f8f8f2" font-family="monospace">List</text>
+
+  <!-- RandomAccess -->
+  <rect x="16" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="16.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(26,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="59" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">RandomAccess</text>
+
+  <!-- Serializable -->
+  <rect x="238" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="238.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(248,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="281" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">Serializable</text>
+
+  <!-- Cloneable -->
+  <rect x="460" y="397" width="162" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="460.5" y="397.5" width="161" height="38" fill="#3c3c3c"/>
+  <g transform="translate(470,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="503" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">Cloneable</text>
+
+  <!-- AbstractList -->
+  <rect x="644" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="644.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(657,416.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="686" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">AbstractList</text>
+
+  <!-- ArrayList -->
+  <rect x="460" y="513" width="162" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="460.5" y="513.5" width="161" height="38" fill="#3c3c3c"/>
+  <g transform="translate(470,532.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="502" y="540" font-size="21" fill="#f8f8f2" font-family="monospace">ArrayList</text>
+</svg>

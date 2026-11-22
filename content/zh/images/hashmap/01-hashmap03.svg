@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 315" role="img" aria-label="哈希表下标 0 到 11 的数组，首次计算下标为 5，其余下标用箭头指向下一个位置" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1000" height="315">
+  <defs>
+    <marker id="arrow-hashmap03" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 表格：表头行 + 下标行 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <rect x="53" y="48" width="900" height="63"/>
+    <path d="M53 80.5 H953"/>
+    <path d="M128.5 48 V111 M203.5 48 V111 M278.5 48 V111 M353.5 48 V111 M428.5 48 V111
+             M503.5 48 V111 M578.5 48 V111 M653.5 48 V111 M728.5 48 V111 M803.5 48 V111
+             M878.5 48 V111"/>
+  </g>
+
+  <!-- 下标 -->
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="90.5" y="104">0</text>
+    <text x="165.5" y="104">1</text>
+    <text x="240.5" y="104">2</text>
+    <text x="315.5" y="104">3</text>
+    <text x="390.5" y="104">4</text>
+    <text x="465.5" y="104">5</text>
+    <text x="540.5" y="104">6</text>
+    <text x="615.5" y="104">7</text>
+    <text x="690.5" y="104">8</text>
+    <text x="765.5" y="104">9</text>
+    <text x="840.5" y="104">10</text>
+    <text x="915.5" y="104">11</text>
+  </g>
+
+  <!-- 相邻下标之间的探测箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap03)">
+    <path d="M90.5 111 V141.5 H165.5 V111"/>
+    <path d="M184.5 111 V140.5 H240.5 V111"/>
+    <path d="M259.5 111 V138.5 H315.5 V111"/>
+    <path d="M465.5 111 V141.5 H540.5 V111"/>
+    <path d="M559.5 111 V143.5 H615.5 V111"/>
+    <path d="M634.5 111 V144.5 H690.5 V111"/>
+    <path d="M709.5 111 V144.5 H765.5 V111"/>
+    <path d="M784.5 111 V144.5 H840.5 V111"/>
+    <path d="M859.5 111 V146.5 H915.5 V111"/>
+  </g>
+
+  <!-- 从末尾绕回下标 0 -->
+  <path d="M953 111 V180 H72 V111" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-hashmap03)"/>
+
+  <!-- 首次计算下标为 5 -->
+  <path d="M406 242 L447 113" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-hashmap03)"/>
+  <text x="322" y="279" font-size="20" fill="#000">首次计算下标为5</text>
+</svg>

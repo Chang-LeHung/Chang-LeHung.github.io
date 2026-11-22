@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1198 375" role="img" aria-label="127 与 15 按位与运算的二进制过程，结果与原值相同" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1198" height="375">
+  <!-- 第一行：16 -->
+  <text x="42" y="75" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="41" width="109.5" height="41"/>
+    <rect x="359.5" y="41" width="109.5" height="41"/>
+    <rect x="469" y="41" width="109.5" height="41"/>
+    <rect x="578.5" y="41" width="110" height="41"/>
+    <rect x="688.5" y="41" width="109" height="41"/>
+    <rect x="797.5" y="41" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="41" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="41" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="72">0000</text>
+    <text x="414.25" y="72">0000</text>
+    <text x="523.75" y="72">0000</text>
+    <text x="633.5" y="72">0000</text>
+    <text x="743" y="72">0000</text>
+    <text x="852.25" y="72">0000</text>
+    <text x="962" y="72">0001</text>
+    <text x="1071.5" y="72">0000</text>
+  </g>
+
+  <!-- 第二行：127 -->
+  <text x="35" y="153" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="119" width="109.5" height="41"/>
+    <rect x="359.5" y="119" width="109.5" height="41"/>
+    <rect x="469" y="119" width="109.5" height="41"/>
+    <rect x="578.5" y="119" width="110" height="41"/>
+    <rect x="688.5" y="119" width="109" height="41"/>
+    <rect x="797.5" y="119" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="119" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="119" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="150">0000</text>
+    <text x="414.25" y="150">0000</text>
+    <text x="523.75" y="150">0000</text>
+    <text x="633.5" y="150">0000</text>
+    <text x="743" y="150">0000</text>
+    <text x="852.25" y="150">0000</text>
+    <text x="962" y="150">0111</text>
+    <text x="1071.5" y="150">1111</text>
+  </g>
+
+  <!-- 与运算 -->
+  <text x="1038" y="200" font-size="26" fill="#000">&amp;运算</text>
+
+  <!-- 第三行：15 -->
+  <text x="35" y="255" font-size="26" fill="#000">15的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="221" width="109.5" height="41"/>
+    <rect x="359.5" y="221" width="109.5" height="41"/>
+    <rect x="469" y="221" width="109.5" height="41"/>
+    <rect x="578.5" y="221" width="110" height="41"/>
+    <rect x="688.5" y="221" width="109" height="41"/>
+    <rect x="797.5" y="221" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="221" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="221" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="250">0000</text>
+    <text x="414.25" y="250">0000</text>
+    <text x="523.75" y="250">0000</text>
+    <text x="633.5" y="250">0000</text>
+    <text x="743" y="250">0000</text>
+    <text x="852.25" y="250">0000</text>
+    <text x="962" y="250">0000</text>
+    <text x="1071.5" y="250">1111</text>
+  </g>
+
+  <!-- 结果行 -->
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="287" width="109.5" height="41"/>
+    <rect x="359.5" y="287" width="109.5" height="41"/>
+    <rect x="469" y="287" width="109.5" height="41"/>
+    <rect x="578.5" y="287" width="110" height="41"/>
+    <rect x="688.5" y="287" width="109" height="41"/>
+    <rect x="797.5" y="287" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="287" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="287" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="318">0000</text>
+    <text x="414.25" y="318">0000</text>
+    <text x="523.75" y="318">0000</text>
+    <text x="633.5" y="318">0000</text>
+    <text x="743" y="318">0000</text>
+    <text x="852.25" y="318">0000</text>
+    <text x="962" y="318">0000</text>
+    <text x="1071.5" y="318">1111</text>
+  </g>
+</svg>

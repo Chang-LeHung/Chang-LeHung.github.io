@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 933 633" role="img" aria-label="clone 方法里 elementData 数组的拷贝过程：上面的数组元素指向堆中的对象，下面的数组逐格复制这些引用" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="933" height="633">
+  <defs>
+    <marker id="arrow-array14" viewBox="0 0 10 10" refX="9.5" refY="5"
+             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-array14-blue" viewBox="0 0 10 10" refX="9.5" refY="5"
+             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00f"/>
+    </marker>
+  </defs>
+
+  <!-- Java 堆区 -->
+  <text x="694" y="52" font-size="21" fill="#000" text-anchor="middle">Java堆区</text>
+  <rect x="518" y="76" width="352" height="242" rx="32" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <g fill="#008a00" stroke="#005700" stroke-width="1.5">
+    <circle cx="583.5" cy="116.5" r="20"/>
+    <circle cx="583.5" cy="176.5" r="20"/>
+    <circle cx="676.5" cy="174.5" r="20"/>
+    <circle cx="771.5" cy="209.5" r="20"/>
+  </g>
+
+  <!-- 图例 -->
+  <circle cx="84" cy="116.5" r="20" fill="#008a00" stroke="#005700" stroke-width="1.5"/>
+  <text x="136" y="128" font-size="21" fill="#000">Java堆中的对象</text>
+  <rect x="55" y="158" width="65" height="27" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="136" y="180" font-size="18" fill="#000">有数据</text>
+  <rect x="55" y="203" width="65" height="28" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="136" y="223" font-size="18" fill="#000">无数据</text>
+
+  <!-- 数组一 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="117" y="357" width="774" height="54"/>
+    <path d="M117 384.5 H891"/>
+    <path d="M181.5 357 V411 M246 357 V411 M310.5 357 V411 M375 357 V411 M439.5 357 V411
+             M504 357 V411 M568.5 357 V411 M633 357 V411 M697.5 357 V411 M762 357 V411 M826.5 357 V411"/>
+  </g>
+  <rect x="118" y="358" width="256" height="26" fill="#f8cecc"/>
+
+  <text x="51" y="378" font-size="18" fill="#000">数据</text>
+  <text x="50" y="405" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="149.25" y="404">0</text>
+    <text x="213.75" y="404">1</text>
+    <text x="278.25" y="404">2</text>
+    <text x="342.75" y="404">3</text>
+    <text x="407.25" y="404">4</text>
+    <text x="471.75" y="404">5</text>
+    <text x="536.25" y="404">6</text>
+    <text x="600.75" y="404">7</text>
+    <text x="665.25" y="404">8</text>
+    <text x="729.75" y="404">9</text>
+    <text x="794.25" y="404">10</text>
+    <text x="858.75" y="404">11</text>
+  </g>
+
+  <!-- 数组元素指向堆中对象 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M149 357 C149.7 350 150.2 329.5 153 315 C155.8 300.5 157 287.5 166 270
+             C175 252.5 191 226.7 207 210 C223 193.3 232.5 183.3 262 170
+             C291.5 156.7 344.3 138.7 384 130 C423.7 121.3 470.7 120.3 500 118
+             C529.3 115.7 550 116.3 560 116" marker-end="url(#arrow-array14)"/>
+    <path d="M214 357 C214.7 350.8 213.5 334.5 218 320 C222.5 305.5 230 285 241 270
+             C252 255 258.8 243.3 284 230 C309.2 216.7 356 198.7 392 190
+             C428 181.3 472 180.3 500 178 C528 175.7 550 176.3 560 176"
+          marker-end="url(#arrow-array14)"/>
+    <path d="M279 357 C280.2 352.5 278.8 339.5 286 330 C293.2 320.5 301.8 308.3 322 300
+             C342.2 291.7 367.3 285.2 407 280 C446.7 274.8 524.2 272.3 560 269
+             C595.8 265.7 605.3 264.8 622 260 C638.7 255.2 651 250.7 660 240
+             C669 229.3 673.3 203.3 676 196" marker-end="url(#arrow-array14)"/>
+    <path d="M343 357 C345.3 352.5 348 337.8 357 330 C366 322.2 363.2 316.2 397 310
+             C430.8 303.8 517.8 296.3 560 293 C602.2 289.7 623.3 292.2 650 290
+             C676.7 287.8 701.3 285 720 280 C738.7 275 753.5 268 762 260
+             C770.5 252 769.5 236.7 771 232" marker-end="url(#arrow-array14)"/>
+  </g>
+
+  <!-- 往下复制 -->
+  <path d="M251 428 V498" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arrow-array14)"/>
+  <text x="269" y="462" font-size="21" fill="#ff3333">clone</text>
+  <text x="325" y="462" font-size="21" fill="#000">方法当中</text>
+  <text x="415" y="462" font-size="21" fill="#000">存放数据的</text>
+  <text x="525" y="462" font-size="21" fill="#000">elementData</text>
+  <text x="651" y="462" font-size="21" fill="#000">数组的拷贝过程</text>
+
+  <!-- 数组二 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="116" y="515" width="258" height="54"/>
+    <path d="M116 542 H374"/>
+    <path d="M180.5 515 V569 M245 515 V569 M309.5 515 V569"/>
+  </g>
+  <rect x="117" y="516" width="256" height="26" fill="#f8cecc"/>
+
+  <text x="49" y="536" font-size="18" fill="#000">数据</text>
+  <text x="49" y="562" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="148.25" y="562">0</text>
+    <text x="212.75" y="562">1</text>
+    <text x="277.25" y="562">2</text>
+    <text x="341.75" y="562">3</text>
+  </g>
+
+  <!-- 蓝色虚线：把引用复制过去 -->
+  <g fill="none" stroke="#00f" stroke-width="1.5" stroke-dasharray="4 4">
+    <path d="M148 512 C148.7 500 148 468 152 440 C156 412 163.8 371 172 344
+             C180.2 317 186.8 300.7 201 278 C215.2 255.3 233.8 228.5 257 208
+             C280.2 187.5 304.5 169.7 340 155 C375.5 140.3 433.3 126.5 470 120
+             C506.7 113.5 545 116.7 560 116" marker-end="url(#arrow-array14-blue)"/>
+    <path d="M212 512 C213.3 497.3 213.2 455.8 220 424 C226.8 392.2 240.3 347.8 253 321
+             C265.7 294.2 275.5 281.8 296 263 C316.5 244.2 343.7 221.8 376 208
+             C408.3 194.2 459.3 185.3 490 180 C520.7 174.7 548.3 176.7 560 176"
+          marker-end="url(#arrow-array14-blue)"/>
+    <path d="M277 512 C278.2 503.3 278.5 476.7 284 460 C289.5 443.3 298.7 425.3 310 412
+             C321.3 398.7 327.7 389.3 352 380 C376.3 370.7 423.7 361 456 356
+             C488.3 351 518.3 355.7 546 350 C573.7 344.3 602 336 622 322
+             C642 308 657 287 666 266 C675 245 674.3 207.7 676 196"
+          marker-end="url(#arrow-array14-blue)"/>
+    <path d="M341 512 C342.7 503.3 344 475.7 351 460 C358 444.3 368.5 430 383 418
+             C397.5 406 409.5 395.5 438 388 C466.5 380.5 519.7 376.7 554 373
+             C588.3 369.3 616.3 371.8 644 366 C671.7 360.2 700.5 350.3 720 338
+             C739.5 325.7 752.5 309.7 761 292 C769.5 274.3 769.3 242 771 232"
+          marker-end="url(#arrow-array14-blue)"/>
+  </g>
+</svg>

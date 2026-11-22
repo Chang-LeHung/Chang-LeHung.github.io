@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1105 379" role="img" aria-label="数组满了以后扩容：六格的数组前六格有数据，向下扩成十二格" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1105" height="379">
+
+  <!-- 上：容量为 6 的数组 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="129" y="29" width="468" height="65"/>
+    <path d="M129 62 H597"/>
+    <path d="M207 29 V94 M285 29 V94 M363 29 V94 M441 29 V94 M519 29 V94"/>
+  </g>
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="130" y="30" width="466" height="31"/>
+    <path d="M207 30 V61 M285 30 V61 M363 30 V61 M441 30 V61 M519 30 V61"/>
+  </g>
+
+  <text x="49" y="53" font-size="22" fill="#000">数据</text>
+  <text x="49" y="87" font-size="22" fill="#000">下标</text>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="168" y="87">0</text>
+    <text x="246" y="87">1</text>
+    <text x="324" y="87">2</text>
+    <text x="402" y="87">3</text>
+    <text x="480" y="87">4</text>
+    <text x="558" y="87">5</text>
+  </g>
+
+  <!-- 中间：扩容箭头与说明 -->
+  <path d="M315 117 H333 V199 H350 L324 231 L298 199 H315 Z"
+        fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="348" y="170" font-size="25" fill="#000">数组满了，数组进行扩容</text>
+
+  <!-- 下：扩容后的数组 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="129" y="266" width="936" height="65"/>
+    <path d="M129 299 H1065"/>
+    <path d="M207 266 V331 M285 266 V331 M363 266 V331 M441 266 V331 M519 266 V331
+             M597 266 V331 M675 266 V331 M753 266 V331 M831 266 V331 M909 266 V331 M987 266 V331"/>
+  </g>
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="130" y="267" width="466" height="31"/>
+    <path d="M207 267 V298 M285 267 V298 M363 267 V298 M441 267 V298 M519 267 V298"/>
+  </g>
+
+  <text x="49" y="291" font-size="22" fill="#000">数据</text>
+  <text x="49" y="323" font-size="22" fill="#000">下标</text>
+
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="168" y="323">0</text>
+    <text x="246" y="323">1</text>
+    <text x="324" y="323">2</text>
+    <text x="402" y="323">3</text>
+    <text x="480" y="323">4</text>
+    <text x="558" y="323">5</text>
+    <text x="636" y="323">6</text>
+    <text x="714" y="323">7</text>
+    <text x="792" y="323">8</text>
+    <text x="870" y="323">9</text>
+    <text x="948" y="323">10</text>
+    <text x="1026" y="323">11</text>
+  </g>
+</svg>

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1085 293" role="img" aria-label="链表中第 3 个结点的 next 指向下方一个游离结点，该结点的 next 又指回第 4 个结点，用洋红色曲线表示" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1085" height="293">
+  <defs>
+    <marker id="arrow-01-04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-01-04m" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0080"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="109" y="37" width="82" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="109" y="78" width="82" height="41" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="150" y="65" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="150" y="106" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="283" y="37" width="82" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="283" y="78" width="82" height="41" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="324" y="65" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="324" y="106" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="457" y="37" width="82" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="457" y="78" width="82" height="41" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="498" y="65" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="498" y="106" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="631" y="37" width="82" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="631" y="78" width="82" height="41" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="672" y="65" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="672" y="106" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 5 -->
+  <rect x="805" y="37" width="82" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="805" y="78" width="82" height="41" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="846" y="65" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="846" y="106" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- next 指针 -->
+  <path d="M191,97.5 L283,97.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-04)"/>
+  <path d="M365,97.5 L457,97.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-04)"/>
+  <path d="M713,97.5 L805,97.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-04)"/>
+  <path d="M887,97.5 L945,97.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-04)"/>
+
+  <!-- 下方游离结点 -->
+  <rect x="583" y="184" width="83" height="37" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="583" y="221" width="83" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="624" y="211" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="624" y="249" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 洋红色指针：第 3 个结点 -> 游离结点 -->
+  <path d="M539,97 C556,97 568,110 569,130 C569,158 553,172 553,196 C553,224 560,238 580,240"
+        fill="none" stroke="#ff0080" stroke-width="1.6" marker-end="url(#arrow-01-04m)"/>
+
+  <!-- 洋红色指针：游离结点 -> 第 4 个结点 -->
+  <path d="M666,240 C684,240 694,225 694,205 C694,182 690,168 678,158 C674,150 672,140 672,122"
+        fill="none" stroke="#ff0080" stroke-width="1.6" marker-end="url(#arrow-01-04m)"/>
+</svg>

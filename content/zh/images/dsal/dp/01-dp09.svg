@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 531 141" role="img" aria-label="斐波那契矩阵递推公式：fib[n+1] 与 fib[n] 组成的向量，等于矩阵 1 1 与 1 0 乘以 fib[n] 与 fib[n-1] 组成的向量" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" fill="#34495e" font-size="22" width="531" height="141">
+  <g text-anchor="middle">
+    <text x="97.5" y="59" font-style="italic">fib</text>
+    <text x="116.5" y="59">[</text>
+    <text x="126" y="59" font-style="italic">n</text>
+    <text x="147" y="59">+</text>
+    <text x="167" y="59">1</text>
+    <text x="175" y="59">]</text>
+
+    <text x="118" y="91" font-style="italic">fib</text>
+    <text x="136.5" y="91">[</text>
+    <text x="146" y="91" font-style="italic">n</text>
+    <text x="155" y="91">]</text>
+  </g>
+
+  <path d="M 80 42 C 67 55 67 84 80 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 181 42 C 194 55 194 84 181 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+  <line x1="205" y1="67.5" x2="219" y2="67.5" stroke="#34495e" stroke-width="2"/>
+  <line x1="205" y1="72.5" x2="219" y2="72.5" stroke="#34495e" stroke-width="2"/>
+
+  <g text-anchor="middle">
+    <text x="250.5" y="59">1</text>
+    <text x="285.5" y="59">1</text>
+    <text x="250.5" y="91">1</text>
+    <text x="285" y="91">0</text>
+  </g>
+
+  <path d="M 243 42 C 230 55 230 84 243 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 292 42 C 305 55 305 84 292 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+  <circle cx="316" cy="69.5" r="1.5" fill="#34495e"/>
+
+  <path d="M 340 42 C 327 55 327 84 340 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 441 42 C 454 55 454 84 441 97" fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+  <g text-anchor="middle">
+    <text x="377.5" y="59" font-style="italic">fib</text>
+    <text x="397" y="59">[</text>
+    <text x="406" y="59" font-style="italic">n</text>
+    <text x="415" y="59">]</text>
+
+    <text x="358" y="91" font-style="italic">fib</text>
+    <text x="377" y="91">[</text>
+    <text x="386" y="91" font-style="italic">n</text>
+    <text x="407.5" y="91">-</text>
+    <text x="427.5" y="91">1</text>
+    <text x="435" y="91">]</text>
+  </g>
+</svg>

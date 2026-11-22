@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 533" role="img" aria-label="扩容倍数对比折线图：1.5 倍与 2 倍增长随元素个数增加后的容量差距" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="848" height="533">
+  <rect width="848" height="533" fill="#fff"/>
+
+  <!-- 绘图区 -->
+  <rect x="106" y="22" width="694" height="450" fill="#eaeaf2"/>
+
+  <!-- 网格线 -->
+  <g stroke="#fff" stroke-width="1.5">
+    <path d="M136.5 22 V472 M277 22 V472 M418 22 V472 M558.5 22 V472 M699 22 V472"/>
+    <path d="M106 51 H800 M106 131.5 H800 M106 212 H800 M106 292.5 H800 M106 373 H800 M106 453.5 H800"/>
+  </g>
+
+  <!-- 两条折线 -->
+  <g fill="none" stroke-width="3">
+    <path d="M136.5 452.5 L207 452 L277 453 L347 451.5 L418 450.5 L488 449.5 L558 447
+             L628 443 L698 438 L769 430.5" stroke="#4c72b0"/>
+    <path d="M136.5 453.5 L207 452 L277 450.5 L347 447 L418 440.5 L488 427.5 L558 402
+             L628 351 L698 249 L769 45" stroke="#dd8452"/>
+  </g>
+
+  <!-- 纵轴刻度 -->
+  <g font-size="24" fill="#262626" text-anchor="end">
+    <text x="85" y="60">10000</text>
+    <text x="85" y="140.5">8000</text>
+    <text x="85" y="221">6000</text>
+    <text x="85" y="301.5">4000</text>
+    <text x="85" y="382">2000</text>
+    <text x="85" y="462.5">0</text>
+  </g>
+
+  <!-- 横轴刻度 -->
+  <g font-size="24" fill="#262626" text-anchor="middle">
+    <text x="136.5" y="511">0</text>
+    <text x="277" y="511">2</text>
+    <text x="418" y="511">4</text>
+    <text x="558.5" y="511">6</text>
+    <text x="699" y="511">8</text>
+  </g>
+
+  <!-- 图例 -->
+  <rect x="115" y="31" width="120" height="76" rx="5" fill="#eaeaf2" stroke="#d2d2d4" stroke-width="1.5"/>
+  <g stroke-width="3">
+    <path d="M124 50 H171" stroke="#4c72b0"/>
+    <path d="M124 85 H171" stroke="#dd8452"/>
+  </g>
+  <text x="191" y="59" font-size="24" fill="#262626">1.5</text>
+  <text x="191" y="92" font-size="24" fill="#262626">2</text>
+</svg>

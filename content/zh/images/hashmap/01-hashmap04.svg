@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 476" role="img" aria-label="哈希表数组：绿色格表示没有数据，粉色格表示有数据，两个粉色格向下挂出链表" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="760" height="476">
+  <defs>
+    <marker id="arrow-hashmap04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="34" y="30" width="76" height="32" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="135" y="56" font-size="20" fill="#000">表示没有数据</text>
+  <rect x="34" y="76" width="76" height="33" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="135" y="102" font-size="20" fill="#000">表示有数据</text>
+
+  <!-- 数组 -->
+  <g stroke-width="1.5">
+    <rect x="34" y="151" width="75" height="33" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="109" y="151" width="75" height="33" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="184" y="151" width="75" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="259" y="151" width="75" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="334" y="151" width="75" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="409" y="151" width="75" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="484" y="151" width="75" height="33" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="559" y="151" width="75" height="33" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="634" y="151" width="75" height="33" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+
+  <!-- 两条链 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="334" y="240" width="76" height="32"/>
+    <rect x="334" y="319" width="76" height="33"/>
+    <rect x="334" y="394" width="76" height="33"/>
+    <rect x="484" y="240" width="76" height="32"/>
+    <rect x="484" y="319" width="76" height="33"/>
+    <rect x="484" y="394" width="76" height="33"/>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap04)">
+    <path d="M372 184 V238"/>
+    <path d="M372 272 V317"/>
+    <path d="M372 352 V392"/>
+    <path d="M522 184 V238"/>
+    <path d="M522 272 V317"/>
+    <path d="M522 352 V392"/>
+  </g>
+</svg>

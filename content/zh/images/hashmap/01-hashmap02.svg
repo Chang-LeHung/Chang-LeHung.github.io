@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 492" role="img" aria-label="插入过程与查询过程的对比：姓名经哈希函数算出下标，再存入或取出成绩" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="950" height="492">
+  <defs>
+    <marker id="arrow-hashmap02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左：插入过程 -->
+  <text x="331" y="79" font-size="22" fill="#e01b1b" text-anchor="middle">插入过程</text>
+
+  <circle cx="326" cy="124" r="27.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="326" y="135" font-size="20" fill="#000" text-anchor="middle">姓名</text>
+
+  <path d="M326 152 V205" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap02)"/>
+  <text x="289" y="181" font-size="20" fill="#000" text-anchor="end">将姓名输入到哈希函数当中</text>
+
+  <rect x="253" y="206" width="146" height="44" rx="6" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="326" y="238" font-size="20" fill="#000" text-anchor="middle">哈希函数</text>
+
+  <path d="M326 250 V307 H311 V363" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap02)"/>
+  <text x="188" y="291" font-size="20" fill="#000" text-anchor="middle">哈希函数根据输入的姓</text>
+  <text x="188" y="315" font-size="20" fill="#000" text-anchor="middle">名计算出对应的下标</text>
+
+  <text x="143" y="388" font-size="20" fill="#000">成绩</text>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="217" y="365" width="249" height="26"/>
+    <path d="M279 365 V391 M341 365 V391 M404 365 V391"/>
+  </g>
+  <text x="225" y="423" font-size="20" fill="#000">将成绩存储在这个位置</text>
+
+  <!-- 右：查询过程 -->
+  <text x="617" y="79" font-size="22" fill="#e01b1b" text-anchor="middle">查询过程</text>
+
+  <circle cx="613" cy="124" r="27.5" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="613" y="135" font-size="20" fill="#000" text-anchor="middle">姓名</text>
+
+  <path d="M613 152 V205" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap02)"/>
+  <text x="625" y="183" font-size="20" fill="#000">将姓名输入到哈希函数当中</text>
+
+  <rect x="539" y="206" width="147" height="44" rx="6" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="612" y="238" font-size="20" fill="#000" text-anchor="middle">哈希函数</text>
+
+  <path d="M613 250 V307 H597 V363" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap02)"/>
+  <text x="743" y="301" font-size="20" fill="#000" text-anchor="middle">哈希函数根据输入的姓</text>
+  <text x="743" y="325" font-size="20" fill="#000" text-anchor="middle">名计算出对应的下标</text>
+
+  <text x="776" y="388" font-size="20" fill="#000">成绩</text>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="503" y="365" width="250" height="26"/>
+    <path d="M565 365 V391 M628 365 V391 M690 365 V391"/>
+  </g>
+  <text x="501" y="423" font-size="20" fill="#000">将这个下标的数据拿出来</text>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" font-size="25" fill="#000" width="807" height="296">
+  <defs>
+    <marker id="arrow-dp06" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <text x="43" y="55">fib 数组</text>
+
+  <g stroke="#000" stroke-width="1.2">
+    <rect x="141.5" y="32" width="65" height="28" fill="#fff"/>
+    <rect x="206.5" y="32" width="65.5" height="28" fill="#fff"/>
+    <rect x="272" y="32" width="65.5" height="28" fill="#ffcc99"/>
+    <rect x="337.5" y="32" width="65" height="28" fill="#ffcc99"/>
+    <rect x="402.5" y="32" width="65" height="28" fill="#cce5ff"/>
+    <rect x="467.5" y="32" width="66" height="28" fill="#fff"/>
+    <rect x="533.5" y="32" width="65" height="28" fill="#fff"/>
+    <rect x="598.5" y="32" width="65" height="28" fill="#fff"/>
+  </g>
+
+  <path d="M 505 130.5 H 435.5 V 61" fill="none" stroke="#000" stroke-width="1.5"
+        marker-end="url(#arrow-dp06)"/>
+
+  <text x="529" y="142">当前需要计算的数据 n</text>
+
+  <g stroke="#000" stroke-width="1.2">
+    <rect x="141" y="176" width="66" height="28" fill="#cce5ff"/>
+    <rect x="141" y="241" width="66" height="28" fill="#ffcc99"/>
+  </g>
+
+  <text x="234" y="199">表示待计算的数据</text>
+  <text x="234" y="264">表示蓝色框依赖的数据</text>
+</svg>

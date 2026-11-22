@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="858" height="491">
+  <defs>
+    <marker id="arrow-dp05" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <g fill="#f9f7ed" stroke="#36393d" stroke-width="1.5">
+    <rect x="42" y="152" width="286" height="295" rx="40"/>
+    <rect x="484" y="98" width="279" height="293" rx="40"/>
+  </g>
+
+  <g stroke="#000" stroke-width="1.8" marker-end="url(#arrow-dp05)">
+    <line x1="444.3" y1="59.3" x2="336.6" y2="116.2"/>
+    <line x1="480.2" y1="58.3" x2="608.9" y2="117.3"/>
+    <line x1="300.3" y1="135.3" x2="226.6" y2="174.2"/>
+    <line x1="335.7" y1="135.3" x2="409.4" y2="174.2"/>
+    <line x1="613.4" y1="139.7" x2="581.3" y2="169.7"/>
+    <line x1="641.9" y1="140.4" x2="669.4" y2="168.9"/>
+    <line x1="194.5" y1="198.8" x2="160.1" y2="236.5"/>
+    <line x1="220.7" y1="199.4" x2="250.7" y2="235.8"/>
+    <line x1="420.6" y1="202.6" x2="403.8" y2="244.5"/>
+    <line x1="434.6" y1="202.9" x2="449.1" y2="244.2"/>
+    <line x1="558.6" y1="202.6" x2="541.8" y2="244.5"/>
+    <line x1="573.0" y1="202.7" x2="588.6" y2="244.3"/>
+    <line x1="675.8" y1="202.2" x2="656.6" y2="244.8"/>
+    <line x1="692.2" y1="202.2" x2="711.4" y2="244.8"/>
+    <line x1="138.7" y1="270.6" x2="121.6" y2="314.4"/>
+    <line x1="152.9" y1="270.8" x2="168.8" y2="314.3"/>
+    <line x1="256.0" y1="270.3" x2="236.4" y2="314.8"/>
+    <line x1="272.0" y1="270.3" x2="291.6" y2="314.8"/>
+    <line x1="386.9" y1="281.8" x2="369.6" y2="315.3"/>
+    <line x1="404.3" y1="282.2" x2="419.3" y2="314.9"/>
+    <line x1="527.2" y1="282.8" x2="517.2" y2="310.3"/>
+    <line x1="541.8" y1="282.4" x2="553.8" y2="310.7"/>
+    <line x1="104.6" y1="351.7" x2="87.8" y2="383.4"/>
+    <line x1="122.5" y1="352.1" x2="137.1" y2="383.0"/>
+  </g>
+
+  <g stroke-width="1.6">
+    <circle cx="462" cy="50" r="19" fill="#ffcc99" stroke="#36393d"/>
+    <circle cx="318" cy="126" r="19" fill="#ffff88" stroke="#36393d"/>
+    <circle cx="628" cy="126" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="208" cy="184" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="428" cy="184" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="566" cy="184" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="146" cy="252" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="684" cy="184" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="264" cy="252" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="396" cy="264" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="534" cy="264" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="114" cy="334" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="456" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="596" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="648" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="176" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="228" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="360" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="510" cy="330" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="78" cy="402" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="720" cy="264" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="300" cy="334" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="428" cy="334" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="562" cy="330" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="146" cy="402" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#000">
+    <text x="462" y="57.5">6</text>
+    <text x="318" y="133.5">5</text>
+    <text x="628" y="133.5">4</text>
+    <text x="208" y="191.5">4</text>
+    <text x="428" y="191.5">3</text>
+    <text x="566" y="191.5">3</text>
+    <text x="146" y="259.5">3</text>
+    <text x="684" y="191.5">2</text>
+    <text x="264" y="259.5">2</text>
+    <text x="396" y="271.5">2</text>
+    <text x="534" y="271.5">2</text>
+    <text x="114" y="341.5">2</text>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#fff">
+    <text x="456" y="271.5">1</text>
+    <text x="596" y="271.5">1</text>
+    <text x="648" y="271.5">1</text>
+    <text x="176" y="341.5">1</text>
+    <text x="228" y="341.5">1</text>
+    <text x="360" y="341.5">1</text>
+    <text x="510" y="337.5">1</text>
+    <text x="78" y="409.5">1</text>
+    <text x="720" y="271.5">0</text>
+    <text x="300" y="341.5">0</text>
+    <text x="428" y="341.5">0</text>
+    <text x="562" y="337.5">0</text>
+    <text x="146" y="409.5">0</text>
+  </g>
+</svg>

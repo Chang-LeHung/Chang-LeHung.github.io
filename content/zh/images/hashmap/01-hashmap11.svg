@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1174 356" role="img" aria-label="127、16、32、64 的二进制数，红框标出倒数第二列" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1174" height="356">
+  <!-- 第一行：127 -->
+  <text x="36" y="69" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="35" width="109.5" height="41"/>
+    <rect x="360.5" y="35" width="109.5" height="41"/>
+    <rect x="470" y="35" width="109.5" height="41"/>
+    <rect x="579.5" y="35" width="110" height="41"/>
+    <rect x="689.5" y="35" width="109" height="41"/>
+    <rect x="798.5" y="35" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="35" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="35" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="66">0000</text>
+    <text x="415.25" y="66">0000</text>
+    <text x="524.75" y="66">0000</text>
+    <text x="634.5" y="66">0000</text>
+    <text x="744" y="66">0000</text>
+    <text x="853.25" y="66">0000</text>
+  </g>
+  <text x="923" y="66" font-size="26" fill="#000">011</text>
+  <text x="990" y="66" font-size="26" fill="#000">1</text>
+  <text x="1072.5" y="66" font-size="26" fill="#000" text-anchor="middle">1111</text>
+
+  <!-- 第二行：16 -->
+  <text x="43" y="139" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="106" width="109.5" height="41"/>
+    <rect x="360.5" y="106" width="109.5" height="41"/>
+    <rect x="470" y="106" width="109.5" height="41"/>
+    <rect x="579.5" y="106" width="110" height="41"/>
+    <rect x="689.5" y="106" width="109" height="41"/>
+    <rect x="798.5" y="106" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="106" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="106" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="136">0000</text>
+    <text x="415.25" y="136">0000</text>
+    <text x="524.75" y="136">0000</text>
+    <text x="634.5" y="136">0000</text>
+    <text x="744" y="136">0000</text>
+    <text x="853.25" y="136">0000</text>
+    <text x="1072.5" y="136">0000</text>
+  </g>
+  <text x="923" y="136" font-size="26" fill="#000">000</text>
+  <text x="990" y="136" font-size="26" fill="#000">1</text>
+
+  <!-- 第三行：32 -->
+  <text x="42" y="216" font-size="26" fill="#000">32的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="183" width="109.5" height="41"/>
+    <rect x="360.5" y="183" width="109.5" height="41"/>
+    <rect x="470" y="183" width="109.5" height="41"/>
+    <rect x="579.5" y="183" width="110" height="41"/>
+    <rect x="689.5" y="183" width="109" height="41"/>
+    <rect x="798.5" y="183" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="183" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="183" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="213">0000</text>
+    <text x="415.25" y="213">0000</text>
+    <text x="524.75" y="213">0000</text>
+    <text x="634.5" y="213">0000</text>
+    <text x="744" y="213">0000</text>
+    <text x="853.25" y="213">0000</text>
+    <text x="1072.5" y="213">0000</text>
+  </g>
+  <text x="923" y="213" font-size="26" fill="#000">001</text>
+  <text x="990" y="213" font-size="26" fill="#000">0</text>
+
+  <!-- 第四行：64 -->
+  <text x="41" y="293" font-size="26" fill="#000">64的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="259" width="109.5" height="41"/>
+    <rect x="360.5" y="259" width="109.5" height="41"/>
+    <rect x="470" y="259" width="109.5" height="41"/>
+    <rect x="579.5" y="259" width="110" height="41"/>
+    <rect x="689.5" y="259" width="109" height="41"/>
+    <rect x="798.5" y="259" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="259" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="259" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="290">0000</text>
+    <text x="415.25" y="290">0000</text>
+    <text x="524.75" y="290">0000</text>
+    <text x="634.5" y="290">0000</text>
+    <text x="744" y="290">0000</text>
+    <text x="853.25" y="290">0000</text>
+    <text x="1072.5" y="290">0000</text>
+  </g>
+  <text x="923" y="290" font-size="26" fill="#000">010</text>
+  <text x="990" y="290" font-size="26" fill="#000">0</text>
+
+  <!-- 红框 -->
+  <rect x="906" y="104" width="113" height="198" fill="none" stroke="#fb3838" stroke-width="2.5"/>
+</svg>

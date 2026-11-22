@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 587" role="img" aria-label="LinkedList 的继承体系：Collection 继承 Iterable，AbstractCollection、List、Queue 实现 Collection，LinkedList 位于最底部" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="768" height="587">
+  <defs>
+    <marker id="arrow-linkedlist01-g" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#56804c"/>
+    </marker>
+    <marker id="arrow-linkedlist01-b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4f89d4"/>
+    </marker>
+    <g id="impl-linkedlist01">
+      <rect x="0" y="0" width="11" height="11" rx="2" fill="none" stroke="#579141" stroke-width="1"/>
+      <path d="M5.5 9 V3.5 M5.5 3.5 L3 6 M5.5 3.5 L8 6" fill="none" stroke="#579141" stroke-width="1.4"/>
+    </g>
+  </defs>
+
+  <rect x="0" y="0" width="768" height="587" fill="#282a36"/>
+
+  <!-- 类与接口 -->
+  <g stroke="#5a5b5f" stroke-width="1.5" fill="#3c3c3c">
+    <rect x="380" y="35" width="123" height="54" rx="2"/>
+    <rect x="370" y="126" width="146" height="54" rx="2"/>
+    <rect x="158" y="218" width="224" height="54" rx="2"/>
+    <rect x="399" y="218" width="82" height="54" rx="2"/>
+    <rect x="497" y="218" width="91" height="54" rx="2"/>
+    <rect x="227" y="317" width="165" height="54" rx="2"/>
+    <rect x="497" y="317" width="91" height="54" rx="2"/>
+    <rect x="20" y="405" width="138" height="58" rx="2"/>
+    <rect x="175" y="405" width="269" height="58" rx="2"/>
+    <rect x="543" y="405" width="173" height="58" rx="2"/>
+    <rect x="388" y="501" width="144" height="52" rx="2"/>
+  </g>
+
+  <!-- 类名分隔线 -->
+  <path stroke="#5a5b5f" stroke-width="1"
+        d="M380 63 H503 M370 154 H516 M158 246 H382 M399 246 H481 M497 246 H588
+           M227 345 H392 M497 345 H588 M20 433 H158 M175 433 H444 M543 433 H716
+           M388 529 H532"/>
+
+  <!-- 接口图标 I -->
+  <g fill="#579141" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="392" cy="49" r="7"/><text x="392" y="52" fill="#282a36">I</text>
+    <circle cx="382" cy="140" r="7"/><text x="382" y="143" fill="#282a36">I</text>
+    <circle cx="411" cy="232" r="7"/><text x="411" y="235" fill="#282a36">I</text>
+    <circle cx="509" cy="232" r="7"/><text x="509" y="235" fill="#282a36">I</text>
+    <circle cx="32" cy="419" r="7"/><text x="32" y="422" fill="#282a36">I</text>
+    <circle cx="555" cy="419" r="7"/><text x="555" y="422" fill="#282a36">I</text>
+  </g>
+  <!-- 类图标 C -->
+  <g fill="#3e859e" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="239" cy="331" r="7"/><text x="239" y="334" fill="#282a36">C</text>
+    <circle cx="170" cy="232" r="7"/><text x="170" y="235" fill="#282a36">C</text>
+    <circle cx="509" cy="331" r="7"/><text x="509" y="334" fill="#282a36">C</text>
+    <circle cx="187" cy="419" r="7"/><text x="187" y="422" fill="#282a36">C</text>
+    <circle cx="400" cy="515" r="7"/><text x="400" y="518" fill="#282a36">C</text>
+  </g>
+
+  <!-- 已实现标记 -->
+  <use href="#impl-linkedlist01" x="402" y="43"/>
+  <use href="#impl-linkedlist01" x="392" y="134"/>
+  <use href="#impl-linkedlist01" x="180" y="226"/>
+  <use href="#impl-linkedlist01" x="421" y="226"/>
+  <use href="#impl-linkedlist01" x="519" y="226"/>
+  <use href="#impl-linkedlist01" x="249" y="325"/>
+  <use href="#impl-linkedlist01" x="519" y="325"/>
+  <use href="#impl-linkedlist01" x="42" y="413"/>
+  <use href="#impl-linkedlist01" x="197" y="413"/>
+  <use href="#impl-linkedlist01" x="565" y="413"/>
+  <use href="#impl-linkedlist01" x="410" y="509"/>
+
+  <g font-size="16" fill="#f0f0f0">
+    <text x="416" y="55">Iterable</text>
+    <text x="406" y="146">Collection</text>
+    <text x="194" y="238">AbstractCollection</text>
+    <text x="435" y="238">List</text>
+    <text x="533" y="238">Queue</text>
+    <text x="263" y="337">AbstractList</text>
+    <text x="533" y="337">Deque</text>
+    <text x="56" y="425">Cloneable</text>
+    <text x="207" y="425">AbstractSequentialList</text>
+    <text x="579" y="425">Serializable</text>
+    <text x="424" y="521">LinkedList</text>
+  </g>
+
+  <!-- 绿色实线：extends -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5">
+    <path d="M442 126 V91" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M442 218 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M543 218 V198 H490 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M543 317 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+  </g>
+  <!-- 绿色虚线：implements -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5" stroke-dasharray="5 4">
+    <path d="M268 218 V198 H393 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M354 317 V294 H419 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M460 501 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M400 501 V477 H88 V465" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M489 501 V477 H542 V371" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M520 501 V486 H634 V465" marker-end="url(#arrow-linkedlist01-g)"/>
+  </g>
+  <!-- 蓝色实线 -->
+  <g fill="none" stroke="#4f89d4" stroke-width="1.5">
+    <path d="M271 317 V274" marker-end="url(#arrow-linkedlist01-b)"/>
+    <path d="M310 405 V373" marker-end="url(#arrow-linkedlist01-b)"/>
+    <path d="M431 501 V477 H310 V465" marker-end="url(#arrow-linkedlist01-b)"/>
+  </g>
+</svg>

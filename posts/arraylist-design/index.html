@@ -89,14 +89,14 @@
 <h2 id="设计原理分析">设计原理分析</h2>
 <p>首先明白一点我们需要使用什么工具去实现这样一个容器。我们手里有的工具就是<code>Java</code>提供给我们的最基本的功能——数组（这个好像是废话，我们的标题就是<strong>数组容器</strong>🤣）。</p>
 <p>当我们在<code>Java</code>当中使用数组去存储数据时，数据在<code>Java</code>当中的内存布局大致如下图所示。</p>
-<p><img src="/content/zh/images/vector/03-array-02.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/vector/03-array-02.svg" alt="" loading="lazy" /></p>
 <p>我们在设计数组容器这样一个数据结构的时候主要会遇到两个问题：</p>
 <ul>
 <li>我们申请数组的长度是多少。</li>
 <li>当数组满了之后怎么办，也就是我们的扩容机制。</li>
 </ul>
 <p>对于这两个问题，首先我们数组的初始大小可以有默认值，在我们自己实现的<code>MyArrayList</code>当中设置为10，我们在使用类时也可以传递一个参数指定初始大小。第二个问题当我们的数组满的时候我们需要对数组进行扩容，在我们实现的<code>MyArrayList</code>当中我们采取的方式是，新数组的长度是原数组的两倍（这个跟<code>JDK</code>的<code>ArrayList</code>方式不一样，<code>ArrayList</code>扩容为原来的1.5倍）。</p>
-<p><img src="/content/zh/images/vector/03-array-03.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/vector/03-array-03.svg" alt="" loading="lazy" /></p>
 <h2 id="代码实现">代码实现</h2>
 <p>为了让我们的类实现的更加简单我们在代码当中就不做很多非必要的逻辑判断并且抛出异常，我们的代码只要能表现出我们的思想即可。</p>
 <ul>
@@ -189,7 +189,7 @@
 </ul>
 </li>
 </ul>
-<p><img src="/content/zh/images/vector/03-array-05.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/vector/03-array-05.svg" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-nd">@Override</span>
 <span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-c1">// 这个函数的主要作用就是确保数组的长度至少为 size + 1</span>
@@ -300,7 +300,7 @@
 </ul>
 </li>
 </ul>
-<p><img src="/content/zh/images/vector/03-array-06.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/vector/03-array-06.svg" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 在下标 index 位置插入数据 o</span>
 <span class="tok-cm">   * 首先先将 index 位置之后的数据往后移动一个位置</span>
@@ -330,7 +330,7 @@
 </ul>
 </li>
 </ul>
-<p><img src="/content/zh/images/vector/03-array-07.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/vector/03-array-07.svg" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 移除下标为 index 的数据</span>
 <span class="tok-cm">   * @param index</span>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1065" height="426">
+  <defs>
+    <marker id="arrow-dp21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1065" height="426" fill="#ffffff"/>
+
+  <!-- 着色单元格 -->
+  <rect x="61.5" y="204.5" width="261" height="27.5" fill="#fad7ac"/>
+  <rect x="322.5" y="204.5" width="65" height="27.5" fill="#cdeb8b"/>
+  <rect x="322.5" y="232" width="65" height="27.5" fill="#b1ddf0"/>
+  <text x="354.5" y="254" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 表格线 -->
+  <g fill="none" stroke="#000000" stroke-width="1">
+    <path d="M 61.5 123.5 H 583.5 M 61.5 150.5 H 583.5 M 61.5 177.5 H 583.5
+             M 61.5 204.5 H 583.5 M 61.5 232 H 583.5 M 61.5 259.5 H 583.5
+             M 61.5 286.5 H 583.5 M 61.5 313.5 H 583.5 M 61.5 341 H 583.5
+             M 61.5 368 H 583.5"/>
+    <path d="M 61.5 123.5 V 368 M 126.5 123.5 V 368 M 192 123.5 V 368
+             M 257 123.5 V 368 M 322.5 123.5 V 368 M 387.5 123.5 V 368
+             M 453 123.5 V 368 M 518 123.5 V 368 M 583.5 123.5 V 368"/>
+  </g>
+
+  <!-- 依赖箭头（红色） -->
+  <g fill="none" stroke="#ff0000" stroke-width="1.5" stroke-dasharray="4 7">
+    <path d="M 198.5 82 V 160 H 224.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 94 130.5 H 290"/>
+    <path d="M 94 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 159.5 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 290 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+  </g>
+  <path d="M 408.5 80 V 130.5 H 355.5 V 205" fill="none" stroke="#ff0000"
+        stroke-width="1.5" marker-end="url(#arrow-dp21)"/>
+
+  <!-- 两个来源标注框 -->
+  <rect x="125" y="49" width="147" height="33" rx="8" fill="#ffcc99" stroke="#333333" stroke-width="1.5"/>
+  <text x="198.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j - w]</text>
+  <rect x="344" y="49" width="129" height="31" rx="8" fill="#cdeb8b" stroke="#333333" stroke-width="1.5"/>
+  <text x="408.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 图例 -->
+  <rect x="620" y="129" width="61" height="23" fill="#cce5ff" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="194" width="61" height="24" fill="#ffcc99" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="256" width="61" height="23" fill="#cdeb8b" stroke="#333333" stroke-width="1"/>
+
+  <text x="711" y="151" font-size="25" fill="#000000">表示待计算的数据</text>
+  <text x="715" y="213" font-size="25" fill="#000000">表示绿色框可能依赖的数据</text>
+  <text x="720" y="277" font-size="25" fill="#000000">表示蓝色框依赖的数据</text>
+  <text x="724" y="325" font-size="25" fill="#000000">表示被依赖的数据</text>
+  <text x="725" y="370" font-size="25" fill="#000000">表示可能被依赖的数据</text>
+
+  <path d="M 619 315.5 H 685" fill="none" stroke="#ff0000" stroke-width="2" marker-end="url(#arrow-dp21)"/>
+  <path d="M 619 359 H 686" fill="none" stroke="#ff0000" stroke-width="2"
+        stroke-dasharray="4 7" marker-end="url(#arrow-dp21)"/>
+</svg>
