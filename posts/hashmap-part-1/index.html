@@ -84,9 +84,9 @@
 <h2 id="hashmap整体设计">HashMap整体设计</h2>
 <p>我们实现的<code>HashMap</code>需要满足的最重要的功能是根据<code>键(key)</code>查询到对应的<code>值(value)</code>，比如上面提到的根据学生姓名查询成绩。</p>
 <p>因此我们可以有一个这样的设计，我们可以根据数据的<code>键值</code>计算出一个数字（像这种可以将一个数据转化成一个数字的叫做<code>哈希函数</code>，计算出来的值叫做<code>哈希值</code>我们后续将会仔细说明），将这个哈希值作为数组的下标，这样的话<code>键值</code>和下标就有了对应关系了，我们可以在数组对应的哈希值为下标的位置存储具体的数据，比如上面谈到的<code>成绩</code>，整个流程如下图所示：</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap01.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap01.webp" alt="" loading="lazy" /></p>
 <p>但是像这种哈希函数计算出来的数值一般是没有范围的，因此我们通常通过哈希函数计算出来的数值通常会经过一个求余数操作(<code>%</code>)，对数组的长度进行求余数，否则求出来的数值将超过数组的长度。比如数组的长度是16，计算出来的哈希值为186，那么求余数之后的结果为<code>186%16=10</code>，那么我们可以将数据存储在数组当中下标为10的位置，下次我们来取的时候就取出下标为10位置的数据即可。</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap02.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap02.webp" alt="" loading="lazy" /></p>
 <h2 id="如何设计一个哈希函数">如何设计一个哈希函数？</h2>
 <p>首先我们需要了解一个知识，那就是在计算机世界当中我们所含有的两种最基本的数据类型就是，整型(<code>short</code>, <code>int</code>, <code>long</code>)和字符串(<code>String</code>)，其他的数据类型可以由这些数据类型组合起来，下面我们来分析一下常见的数据类型的哈希函数设计。</p>
 <h3 id="整型的哈希函数">整型的哈希函数</h3>
@@ -197,7 +197,7 @@
 当我们有哈希冲突的时候，我们计算下标的方法变为：
 <div class="math inline">h_i = (H(key) + d_i) \% m, d_i = i</div>
 当我们第一次冲突的时候<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math>，如果重新进行计算仍然冲突那么<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>2</mn></mrow></math> ......</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap03.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap03.webp" alt="" loading="lazy" /></p>
 <p>比如在上图当中我们首次计算的哈希值<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>5</mn></mrow></math>的结果等于5，如果有哈希冲突，那么下次计算出来的哈希值为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mn>12</mn><mo>&#x0003D;</mo><mn>6</mn></mrow></math>，如果还是冲突那么计算出来的哈希值为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mn>12</mn><mo>&#x0003D;</mo><mn>7</mn></mrow></math> ......，直到找到一个空位置。谈到这里你可能会问，万一都满了呢？我们在下一小节再谈这个问题。</p>
 <h4 id="二次探测再散列">二次探测再散列</h4>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi><mo>&#x0002C;</mo><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x02212;</mo><mn>1</mn><msup><mo stretchy="false">&#x00029;</mo><mrow><mi>i</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msup><mi>i</mi><mn>2</mn></msup></mrow></math></div><p>这个散列方法和线性探测散列差不多，只不过<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow></math>的值变化情况不一样而已，大家可以参考线性探测进行分析，这个方法可以往数组的两个方法走，因为前面有一个而线性探测只能往数组的一个方向走。此外这个方法走的距离比线性探测更大，因此可能可以在更小的冲突次数当中找到一个<code>空位置</code>。</p>
@@ -207,7 +207,7 @@
 <p>我们可以准备多个哈希函数，当使用一个哈希函数产生冲突的时候，我们可以换一个哈希函数，希望通过不同的哈希函数得到不同的哈希值，以解决哈希冲突的问题。</p>
 <h3 id="链地址法">链地址法</h3>
 <p>这个方法是目前使用比较多的方法，当产生哈希冲突的时候，数据用一个链表将冲突的数据链接起来，比如像下面这样：</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap04.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/hashmap/01-hashmap04.webp" alt="" loading="lazy" /></p>
 <p>以上就是一些常见的解决哈希冲突的方法，因为都是文字说明没有代码，你可能稍微有些难以理解，比如说我通过上面的方法存储数据，那么我之后怎么拿到我存进去的数据呢？好像放进去就拿不出来了呀🤣🤣🤣！没事儿，这些疑问我们在<code>下篇</code>自己实现哈希表的时候会一一解开，到时候你就发现原来这些算法的设计如此巧妙。</p>
 <h2 id="扩容">扩容</h2>
 <p>在上面的文章当中我们并没有谈到当数组满了之后怎么办。很简单嘛，我可以使用一个变量记录数组当中已经使用了的空间，如果全部使用过了，我们就进行扩容，扩大我们的数组就可以了嘛！然后将原数组当中的数据重新进行哈希存放到新数组当中即可！因为我们在计算存储下标的时候需要对数组长度进行取余，而当我们申请新数组的时候数组长度已经发生变化了，因此需要重新对数据进行哈希操作。这里面仍然有很多需要考虑的细节问题，这些问题我们在<code>下篇</code>当中进行代码实现的时候会仔细讨论。</p>

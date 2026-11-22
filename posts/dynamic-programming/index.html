@@ -65,7 +65,7 @@
     <div class="prose">
       <p>动态规划作为一种非常经典的一类算法，不仅在解决实际问题当中有很多实际的应用，同时通常也是面试的一个重点。本篇文章一步步剖析动态规划的基本原理，通过<code>斐波拉契数列问题</code>（优化时间复杂度从<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>到<code>O(n)</code>再到<code>O(log(n))</code>）和经典的<code>01背包问题</code>一步一步带你从最基本的原理弄懂动态规划。我们首先分析斐波拉契数列问题，然后在分析问题的时候慢慢的深入动态规划。</p>
 <p>本篇文章的篇章结构：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp15.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp15.webp" alt="" loading="lazy" /></p>
 <h2 id="斐波拉契数列">斐波拉契数列</h2>
 <p>斐波拉契数列的定义如下：
 <div class="math inline">F_0 = 0</div></p>
@@ -90,20 +90,20 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>当我们求第<code>6</code>个斐波拉契数的时候，函数<code>fibonacci</code>的调用过程如下所示：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp04.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp04.webp" alt="" loading="lazy" /></p>
 <p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
 <p>我们容易发现我们在函数调用的过程当中存在重复，比如下图两个相同的部分表示对<code>fibonacci(4)</code>重新计算，因为他们的调用树都是一样的：</p>
 <p>这种使用递归的方式计算斐波拉契数列的时间和空间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp05.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp05.webp" alt="" loading="lazy" /></p>
 <h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
 <p>既然是重复计算那么我们是否可用避免<code>重复计算</code>呢？在计算机一种常见的做法就是<code>空间换时间</code>，我们可以将之前计算的数据存下来，比如我们用数组<code>fib[]</code>存储我们计算得到的结果，<code>fib[i] = fibonacci(i) </code>，那么根据斐波拉契数列的公式我们可以知道：
 <div class="math inline">fib[i] = fib[i - 1] + fib[i - 2], i \ge 2</div>
 当我们通过数组存储中间计算的数据的时候，我们应该使用什么样的算法进行计算呢？</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp06.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp06.webp" alt="" loading="lazy" /></p>
 <p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：
 <div class="math inline">fib[i] = fib[i - 1] + fib[i - 2], i \ge 2</div>
 我们知道<code>绿色框</code>依赖它前面的两个数据，因此我们在计算<code>fib[i]</code>的时候，需要提前将前面两个它依赖的数据计算好，因此我们可以从左至右计算<code>fib</code>数组，这样的话我们在计算第<code>n</code>个<code>fib</code>数的时候前面<code>n - 1</code>个<code>fib</code>数已经计算好了。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp11.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp11.webp" alt="" loading="lazy" /></p>
 <p>因此我们的代码可以像下面这样：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">fibonacci</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span>
@@ -143,11 +143,11 @@
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>n</mi><mo>&#x0002B;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mrow></math></div><p>又因为：
 <div class="math inline">fib[n + 1] = fib[n + 1]</div>
 根据上面的公式，我们根据矩阵乘法原理可以得到：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp08.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp08.webp" alt="" loading="lazy" /></p>
 <p>我们将<code>n - 1</code>得到：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp09.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp09.webp" alt="" loading="lazy" /></p>
 <p>我们不停的对上式最右侧公式进行展开可以得到</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp010.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp010.webp" alt="" loading="lazy" /></p>
 <p>从上式看，我们如果想求<code>fib[n]</code>的值，需要计算矩阵的幂，如果我们直接计算的话，时间复杂度为达到<code>O(n)</code>，但是我们希望能够将时间复杂度降低到<code>O(log(n))</code>。在正式求解矩阵幂之前，我们先思考一个问题，如何在计算<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>a</mi><mi>n</mi></msup></mrow></math>时将时间复杂度降低到<code>O(log(n))</code>。</p>
 <h3 id="快速计算整数幂">快速计算整数幂</h3>
 <p>首先我们先明确我们的目标：在计算<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>a</mi><mi>n</mi></msup></mrow></math>时将时间复杂度降低到<code>O(log(n))</code>。这个问题我们可以直接使用一个循环就可以解决，但是时间复杂度为<code>O(n)</code>：</p>
@@ -164,9 +164,9 @@
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们知道计算机在进行运算的时候都是采用<code>2进制</code>进行运算，所有的正整数如果是2的整数次幂的话，数据的二进制当中只有一个为为<code>1</code>，其余位置为<code>0</code>。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp12.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp12.webp" alt="" loading="lazy" /></p>
 <p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp14.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp14.webp" alt="" loading="lazy" /></p>
 <p>同样的我们需要求解的<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>上的<code>n</code>也是可以通过加法得到，比如说<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mn>7</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>4</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn><mo>&#x0002B;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></msup></mrow></math>，因此我们可以使用下面的代码进行快速幂的求解：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 这个函数的目的是求解 base 的 n 次方</span>
@@ -191,7 +191,7 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><h3 id="斐波拉契数据列矩阵乘法的快速幂">斐波拉契数据列矩阵乘法的快速幂</h3>
 <p>首先在我们计算当中需要进行一个<code>2x2</code>的矩阵乘法运算，首先我们先定义一个简单的<code>2x2</code>矩阵乘法运算。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp010.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp010.webp" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 这里为了简单期间，因为我们的矩阵乘法是 2x2 的</span>
 <span class="tok-cm">   * 所以可以直接做这样的简单的乘法</span>
@@ -215,7 +215,7 @@
 <span class="tok-w">    </span><span class="tok-c1">// 根据下图当中的公式容易知道我们最终返回的结果就是 mm[1][0] 因为 fib[1] = 1 fib[0] = 0</span>
 <span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">mm</span><span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
-</code></pre></div><p><img src="/content/zh/images/dsal/dp/01-dp010.png" alt="" loading="lazy" /></p>
+</code></pre></div><p><img src="/content/zh/images/dsal/dp/01-dp010.webp" alt="" loading="lazy" /></p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-nf">fibMatrixPower</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-c1">// 这个矩阵是根据上图我们的公式得到的</span>
 <span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">baseMatrix</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">{{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">}};</span>
@@ -355,7 +355,7 @@
 <span class="tok-p">}</span>
 </code></pre></div><h2 id="我们从斐波拉契数列得到了什么">我们从斐波拉契数列得到了什么</h2>
 <p>我们现在来重新捋一下我们在上面学习斐波拉契数列的思路：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp16.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp16.webp" alt="" loading="lazy" /></p>
 <p>首先我们用于解决斐波拉契数列的方法是<code>递归法</code>但是这个方法有一个很大的问题，就是计算某个斐波拉契数的时候它依赖于它前面的斐波拉契数（这个过程相当于将一个大问题划分成若干个小问题），这个依赖会导致我们进行很多重复的运算，为了解决这个问题我们用到了<code>数组法</code>，这其实就是一个用空间换时间的方法，用数组将前面计算你的结果存储下来，避免重复计算。</p>
 <p>通过分析我们公式，我们发现我们的数据依赖关系，我们在计算某个斐波拉契数的时候只需要依赖它前面的两个斐波拉契数，因此我们不用存储我们计算的每一个斐波拉契数，只需要保存两个值即可，这就是我们<code>优化数组法</code>的原理。</p>
 <p>最后我们通过<code>快速矩阵幂</code>的方法将我们的时间复杂度从<code>O(n)</code>降低到了<code>O(long(n))</code>，这个方法其实带有一定的技巧性，在大多数动态规划的算法当中我们用不到它，也就是说它的普适性并不强。</p>
@@ -401,16 +401,16 @@
 </table>
 <p>这个问题还是比较简单，我们直接看就知道选择物品B和物品C得到的价值最大。那么我们如何设计一个算法去实现这个问题呢？首先对于每一个物品都有两种情况，选择和不选择，我们需要选择两种情况当中能够获取最大价值的那种情况。</p>
 <h3 id="选择或者不选择">选择或者不选择</h3>
-<p><img src="/content/zh/images/dsal/dp/01-dp17.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp17.webp" alt="" loading="lazy" /></p>
 <p>在动态规划当中我们通常通过数组进行求解，在01背包问题当中，我们设置一个数组<code>dp[i][j]</code>，表示当我们只使用前<code>i</code>个物品（物品编号从0开始，第一个物品的下标为0）且当前剩余能够承受的重量为<code>j</code>时，能够获取的最大的价值，那么我们要求解的值为<code>dp[N - 1][V]</code>，物品下标从<code>0</code>开始。</p>
 <p>比如说：<code>dp[2][3]</code>表示在本题当中的四个物品<code>A,B,C,D</code>当中只选择前面两个物品<code>A,B</code>，且背包还能够承受<code>3</code>de 重量。</p>
 <p>根据上面的分析我们可以得到下面一个动态规划公式：</p>
 <p><code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，其中<code>w</code>和<code>v</code>分别表示第<code>i</code>个物品的重量和价值。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp18.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp18.webp" alt="" loading="lazy" /></p>
 <h3 id="你真的理解了背包问题for循环的顺序吗">你真的理解了背包问题for循环的顺序吗</h3>
 <p>我们已经得到了我们的动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，我们现在了来好好分析这个公式：</p>
 <p>我们可以很清楚的看到要想求解<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - w]</code>和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系可以用下图来表示。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp21.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp21.webp" alt="" loading="lazy" /></p>
 <p>我们在求解<code>dp[i][j]</code>的值的时候，首先的需要求出它依赖的数据，当我们在求解第动态规划数组<code>dp</code>的第<code>i</code>行时，我们首先需要求出第<code>i - 1</code>行的值。但是我们在求第<code>0</code>行的时候并没有<code>-1</code>行，因此我们首先需要进行初始化。<code>dp[i][j]</code>的含义是只使用前<code>i</code>个物品且承受重量只有<code>j</code>时，我们能过获取的最大的价值！！！</p>
 <p>那么初始化<code>dp[0][j]</code>的含义就是当我们只有第<code>1</code>个物品可选择而且背包能够承受的重量为<code>j</code>时能够获取的最大的价值，那么我们很容易进行初始化（当<code>j</code>大于等于物品的重量的时候可以获取第一个物品的价值，否则获取价值为0，因为只有一个物品，但是背包承受不了它的重量）：</p>
 <p><code>Java代码实现动态规划</code>：</p>
@@ -499,7 +499,7 @@
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>我们在上述两份代码当中的<code>for</code>循环顺序是遍历所有的物品，然后背包容量从<code>0</code>变化到<code>V</code>，那么我们背包容量变化能不能从<code>V</code>变化到<code>0</code>呢？答案是可以的：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp22.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp22.webp" alt="" loading="lazy" /></p>
 <p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
 <p>下面的代码同样可以是正确的：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -577,13 +577,13 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>我们知道，第<code>i</code>行的数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破话动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp23.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp23.webp" alt="" loading="lazy" /></p>
 <ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp24.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp24.webp" alt="" loading="lazy" /></p>
 <p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp25.png" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/dsal/dp/01-dp25.webp" alt="" loading="lazy" /></p>
 <h2 id="动态规划总结">动态规划总结</h2>
 <h3 id="动态规划的套路">动态规划的套路</h3>
 <p>通过仔细分析上面两个算法题，我们可以得到下面的一些心得：</p>
