@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入学习Synchronized各种使用方法 · Chang-LeHung</title>
+<meta name="description" content="在Java当中synchronized通常是用来标记一个方法或者代码块。在Java当中被synchronized标记的代码或者方法在同一个时刻只能够有一个线程执行被synchronized修饰的方法或者代码块。因此被synchronized修饰的方法或者代码块不会出现 数据竞争 的情况，也就是说被s">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入学习Synchronized各种使用方法</h1>
+      <p class="post-meta">
+        <time datetime="2022-08-08">2022-08-08</time>
+        <span class="sep">·</span>8 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在Java当中synchronized通常是用来标记一个方法或者代码块。在Java当中被synchronized标记的代码或者方法在同一个时刻只能够有一个线程执行被synchronized修饰的方法或者代码块。因此被synchronized修饰的方法或者代码块不会出现<strong>数据竞争</strong>的情况，也就是说被synchronized修饰的代码块是并发安全的。</p>
+<h2 id="synchronized关键字">Synchronized关键字</h2>
+<p>synchronized关键字通常使用在下面四个地方：</p>
+<ul>
+<li>synchronized修饰实例方法。</li>
+<li>synchronized修饰静态方法。</li>
+<li>synchronized修饰实例方法的代码块。</li>
+<li>synchronized修饰静态方法的代码块。</li>
+</ul>
+<p>在实际情况当中我们需要仔细分析我们的需求选择合适的使用synchronized方法，在保证程序正确的情况下提升程序执行的效率。</p>
+<h2 id="synchronized修饰实例方法">Synchronized修饰实例方法</h2>
+<p>下面是一个用Synchronized修饰实例方法的代码示例：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">SyncDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">count</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">SyncDemo</span><span class="tok-w"> </span><span class="tok-n">syncDemo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">SyncDemo</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">syncDemo</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">syncDemo</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 阻塞住线程等待线程 t1 执行完成</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 阻塞住线程等待线程 t2 执行完成</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">syncDemo</span><span class="tok-p">.</span><span class="tok-na">count</span><span class="tok-p">);</span><span class="tok-c1">// 输出结果为 20000</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中的<code>add</code>方法只有一个简单的<code>count++</code>操作，因为这个方法是使用<code>synchronized</code>修饰的因此每一个时刻只能有一个线程执行<code>add</code>方法，因此上面打印的结果是20000。如果<code>add</code>方法没有使用<code>synchronized</code>修饰的话，那么线程t1和线程t2就可以同时执行<code>add</code>方法，这可能会导致最终<code>count</code>的结果小于20000，因为<code>count++</code>操作不具备原子性。</p>
+<p>上面的分析还是比较明确的，但是我们还需要知道的是<code>synchronized</code>修饰的<code>add</code>方法一个时刻只能有一个线程执行的意思是对于一个<code>SyncDemo</code>类的对象来说一个时刻只能有一个线程进入。比如现在有两个<code>SyncDemo</code>的对象<code>s1</code>和<code>s2</code>，一个时刻只能有一个线程进行<code>s1</code>的<code>add</code>方法，一个时刻只能有一个线程进入<code>s2</code>的<code>add</code>方法，但是同一个时刻可以有两个不同的线程执行<code>s1</code>和<code>s2</code>的<code>add</code>方法，也就说<code>s1</code>的<code>add</code>方法和<code>s2</code>的<code>add</code>是没有关系的，一个线程进入<code>s1</code>的<code>add</code>方法并不会阻止另外的线程进入<code>s2</code>的<code>add</code>方法，也就是说<code>synchronized</code>在修饰一个非静态方法的时候“锁”住的只是一个实例对象，并不会“锁”住其它的对象。其实这也很容易理解，一个实例对象是一个独立的个体别的对象不会影响他，他也不会影响别的对象。</p>
+<h2 id="synchronized修饰静态方法">Synchronized修饰静态方法</h2>
+<p>Synchronized修饰静态方法：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">SyncDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">count</span><span class="tok-o">++</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 注意 count 也要用 static 修饰 否则编译通过不了</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">SyncDemo</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">SyncDemo</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">SyncDemo</span><span class="tok-p">.</span><span class="tok-na">count</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为 20000</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码最终输出的结果也是20000，但是与前一个程序不同的是。这里的<code>add</code>方法用<code>static</code>修饰的，在这种情况下真正的只能有一个线程进入到<code>add</code>代码块，因为用<code>static</code>修饰的话是所有对象公共的，因此和前面的那种情况不同，不存在两个不同的线程同一时刻执行<code>add</code>方法。</p>
+<p>你仔细想想如果能够让两个不同的线程执行<code>add</code>代码块，那么<code>count++</code>的执行就不是原子的了。那为什么没有用<code>static</code>修饰的代码为什么可以呢？因为当没有用<code>static</code>修饰时，每一个对象的<code>count</code>都是不同的，内存地址不一样，因此在这种情况下<code>count++</code>这个操作仍然是原子的！</p>
+<h2 id="sychronized修饰多个方法">Sychronized修饰多个方法</h2>
+<p>synchronized修饰多个方法示例：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">AddMinus</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ans</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">minus</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ans</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">AddMinus</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">AddMinus</span><span class="tok-p">.</span><span class="tok-na">minus</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">AddMinus</span><span class="tok-p">.</span><span class="tok-na">ans</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为 0</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中我们用<code>synchronized</code>修饰了两个方法，<code>add</code>和<code>minus</code>。这意味着在同一个时刻这两个函数只能够有一个被一个线程执行，也正是因为<code>add</code>和<code>minus</code>函数在同一个时刻只能有一个函数被一个线程执行，这才会导致<code>ans</code>最终输出的结果等于0。</p>
+<p>对于一个实例对象来说：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">AddMinus</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ans</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">minus</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ans</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">AddMinus</span><span class="tok-w"> </span><span class="tok-n">addMinus</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">AddMinus</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">addMinus</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">addMinus</span><span class="tok-p">.</span><span class="tok-na">minus</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">addMinus</span><span class="tok-p">.</span><span class="tok-na">ans</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码没有使用<code>static</code>关键字，因此我们需要<code>new</code>出一个实例对象才能够调用<code>add</code>和<code>minus</code>方法，但是同样对于<code>AddMinus</code>的实例对象来说同一个时刻只能有一个线程在执行<code>add</code>或者<code>minus</code>方法，因此上面代码的输出同样是0。</p>
+<h2 id="synchronized修饰实例方法代码块">Synchronized修饰实例方法代码块</h2>
+<p>Synchronized修饰实例方法代码块</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">CodeBlock</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"进入了 add 方法"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-k">this</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">count</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">minus</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"进入了 minus 方法"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-k">this</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">count</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">CodeBlock</span><span class="tok-w"> </span><span class="tok-n">codeBlock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">CodeBlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">codeBlock</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">codeBlock</span><span class="tok-p">.</span><span class="tok-na">minus</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">codeBlock</span><span class="tok-p">.</span><span class="tok-na">count</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为 0</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>有时候我们并不需要用<code>synchronized</code>去修饰代码块，因为这样并发度就比较低了，一个方法一个时刻只能有一个线程在执行。因此我们可以选择用<code>synchronized</code>去修饰代码块，只让某个代码块一个时刻只能有一个线程执行，除了这个代码块之外的代码还是可以并行的。</p>
+<p>比如上面的代码当中<code>add</code>和<code>minus</code>方法没有使用<code>synchronized</code>进行修饰，因此一个时刻可以有多个线程执行这个两个方法。在上面的<code>synchronized</code>代码块当中我们使用了<code>this</code>对象作为锁对象，只有拿到这个锁对象的线程才能够进入代码块执行，而在同一个时刻只能有一个线程能够获得锁对象。也就是说<code>add</code>函数和<code>minus</code>函数用<code>synchronized</code>修饰的两个代码块同一个时刻只能有一个代码块的代码能够被一个线程执行，因此上面的结果同样是0。</p>
+<p>这里说的锁对象是<code>this</code>也就<code>CodeBlock</code>类的一个实例对象，因为它锁住的是一个实例对象，因此当实例对象不一样的时候他们之间是没有关系的，也就是说不同实例用<code>synchronized</code>修饰的代码块是没有关系的，他们之间是可以并发的。</p>
+<h2 id="synchronized修饰静态代码块">Synchronized修饰静态代码块</h2>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">CodeBlock</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"进入了 add 方法"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">CodeBlock</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">count</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">minus</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"进入了 minus 方法"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">CodeBlock</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">count</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">CodeBlock</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">CodeBlock</span><span class="tok-p">.</span><span class="tok-na">minus</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">CodeBlock</span><span class="tok-p">.</span><span class="tok-na">count</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码是使用<code>synchronized</code>修饰静态代码块，上面代码的锁对象是<code>CodeBlock.class</code>，这个时候他不再是锁住一个对象了，而是一个类了，这个时候的并发度就变小了，上一份代码当锁对象是<code>CodeBlock</code>的实例对象时并发度更大一些，因为当锁对象是实例对象的时候，只有实例对象内部是不能够并发的，实例之间是可以并发的。但是当锁对象是<code>CodeBlock.class</code>的时候，实例对象之间时不能够并发的，因为这个时候的锁对象是一个类。</p>
+<h2 id="应该用什么对象作为锁对象">应该用什么对象作为锁对象</h2>
+<p>在前面的代码当中我们分别使用了实例对象和类的class对象作为锁对象，事实上你可以使用任何对象作为锁对象，但是不推荐使用字符串和基本类型的包装类作为锁对象，这是因为字符串对象和基本类型的包装对象会有缓存的问题。字符串有字符串常量池，整数有小整数池。因此在使用这些对象的时候他们可能最终都指向同一个对象，因为指向的都是同一个对象，线程获得锁对象的难度就会增加，程序的并发度就会降低。</p>
+<p>比如在下面的示例代码当中就是由于锁对象是同一个对象而导致并发度下降：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Test</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">testFunction</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-s">"HELLO WORLD"</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"\tI am in synchronized code block"</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Test</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Test</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Test</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Test</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">testFunction</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">testFunction</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">thread1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">thread2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中我们使用两个不同的线程执行两个不同的对象内部的<code>testFunction</code>函数，按道理来说这两个线程是可以同时执行的，因为执行的是两个不同的实例对象的同步代码块。但是上面代码的执行首先一个线程会进入同步代码块然后打印输出，等待5秒之后，这个线程退出同步代码块另外一个线程才会再进入同步代码块，这就说明了两个线程不是同时执行的，其中一个线程需要等待另外一个线程执行完成才执行。这正是因为两个<code>Test</code>对象当中使用的<code>&quot;HELLO WORLD&quot;</code>字符串在内存当中是同一个对象，是存储在字符串常量池中的对象，这才导致了锁对象的竞争。</p>
+<p>下面的代码执行的结果也是一样的，一个线程需要等待另外一个线程执行完成才能够继续执行，这是因为在Java当中如果整数数据在<code>[-128, 127]</code>之间的话使用的是小整数池当中的对象，使用的也是同一个对象，这样可以减少频繁的内存申请和回收，对内存更加友好。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Test</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">testFunction</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Integer</span><span class="tok-p">.</span><span class="tok-na">valueOf</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"\tI am in synchronized code block"</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Test</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Test</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Test</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Test</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">t1</span><span class="tok-p">.</span><span class="tok-na">testFunction</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">t2</span><span class="tok-p">.</span><span class="tok-na">testFunction</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">thread1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">thread2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="synchronized与可见性和重排序">Synchronized与可见性和重排序</h2>
+<h3 id="可见性">可见性</h3>
+<ul>
+<li>
+<p>当一个线程进入到<code>synchronized</code>同步代码块的时候，将会刷新所有对该线程的可见的变量，也就是说如果其他线程修改了某个变量，而且线程需要在<code>Synchronized</code>代码块当中使用，那就会重新刷新这个变量到内存当中，保证这个变量对于执行同步代码块的线程是可见的。</p>
+</li>
+<li>
+<p>当一个线程从同步代码块退出的时候，也会将线程的工作内存同步到内存当中，保证在同步代码块当中修改的变量对其他线程可见。</p>
+</li>
+</ul>
+<h3 id="重排序">重排序</h3>
+<p>Java编译器和JVM当发现能够让程序执行的更快的时候是可能对程序的指令进行重排序处理的，也就是通过调换程序指令执行的顺序让程序执行的更快。</p>
+<p>但是重排序很可能让并发程序产生问题，比如说当一个在<code>synchronized</code>代码块当中的写操作被重排序到<code>synchronized</code>同步代码块外部了这显然是有问题的。</p>
+<p>在JVM的实现当中是不允许<code>synchronized</code>代码块内部的指令和他前面和后面的指令进行重排序的，但是在<code>synchronized</code>内部的指令是可能与<code>synchronized</code>内部的指令进行重排序的，比较著名的就是<code>DCL单例模式</code>，他就是在<code>synchronized</code>代码块当中存在重排序的，如果你对<code>DCL单例模式</code>还不是很熟悉，你可以阅读<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486127&amp;idx=1&amp;sn=29d6079f6f26bd82633ec611feb3da85&amp;chksm=cf0c96a6f87b1fb006e2f108879a0066aeb14e4bf5a4a9e2a83057a084dd2dfa2c257a813399&amp;token=302443384&amp;lang=zh_CN#rd">这篇文章</a>的<code>DCL单例</code>模式部分。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了各种<code>synchronized</code>的使用方法，总结如下：</p>
+<ul>
+<li>Synchronized修饰实例方法，这种情况不同的对象之间是可以并发的。</li>
+<li>Synchronized修饰实例方法，这种情况下不同的对象是不能并发的，但是不同的类之间可以进行并发。</li>
+<li>Sychronized修饰多个方法，这多个方法在统一时刻只能有一个方法被执行，而且只能有一个线程能够执行。</li>
+<li>Synchronized修饰实例方法代码块，同一个时刻只能有一个线程执行代码块。</li>
+<li>Synchronized修饰静态代码块，同一个时刻只能有一个线程执行这个代码块，而且不同的对象之间不能够进行并发。</li>
+<li>应该用什么对象作为锁对象，建议不要使用字符串和基本类型的包装类作为锁对象，因为Java对这些进行优化，很可能多个对象使用的是同一个锁对象，这会大大降低程序的并发度。</li>
+<li>程序在进入和离开Synchronized代码块的时候都会将线程的工作内存刷新到内存当中，以保证数据的可见性，这一点和<code>volatile</code>关键字很像，同时Synchronized代码块中的指令不会和Synchronized代码块之间和之后的指令进行重排序，但是Synchronized代码块内部可能进行重排序。</li>
+</ul>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-09synchronized/"><span>较新</span>Synchronized锁升级原理与过程深入剖析</a><a class="next" href="/posts/cscore-concurrency-07futuretasksrc/"><span>较旧</span>FutureTask源码深度剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#synchronized关键字">Synchronized关键字</a></li>
+      <li class="toc-l2"><a href="#synchronized修饰实例方法">Synchronized修饰实例方法</a></li>
+      <li class="toc-l2"><a href="#synchronized修饰静态方法">Synchronized修饰静态方法</a></li>
+      <li class="toc-l2"><a href="#sychronized修饰多个方法">Sychronized修饰多个方法</a></li>
+      <li class="toc-l2"><a href="#synchronized修饰实例方法代码块">Synchronized修饰实例方法代码块</a></li>
+      <li class="toc-l2"><a href="#synchronized修饰静态代码块">Synchronized修饰静态代码块</a></li>
+      <li class="toc-l2"><a href="#应该用什么对象作为锁对象">应该用什么对象作为锁对象</a></li>
+      <li class="toc-l2"><a href="#synchronized与可见性和重排序">Synchronized与可见性和重排序</a></li>
+      <li class="toc-l3"><a href="#可见性">可见性</a></li>
+      <li class="toc-l3"><a href="#重排序">重排序</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

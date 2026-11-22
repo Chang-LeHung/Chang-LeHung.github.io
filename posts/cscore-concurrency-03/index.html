@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>30行自己写并发工具类(Semaphore, CyclicBarrier, CountDownLatch)是什么体验？ · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中首先给大家介绍三个工具 Semaphore, CyclicBarrier, CountDownLatch 该如何使用，然后仔细剖析这三个工具内部实现的原理，最后会跟大家一起用 ReentrantLock 实现这三个工具。 并发工具类的使用 CountDownLatch Count">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>30行自己写并发工具类(Semaphore, CyclicBarrier, CountDownLatch)是什么体验？</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-22">2022-07-22</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中首先给大家介绍三个工具<code>Semaphore, CyclicBarrier, CountDownLatch</code>该如何使用，然后仔细剖析这三个工具内部实现的原理，最后会跟大家一起用<code>ReentrantLock</code>实现这三个工具。</p>
+<h2 id="并发工具类的使用">并发工具类的使用</h2>
+<h3 id="countdownlatch">CountDownLatch</h3>
+<blockquote>
+<p><code>CountDownLatch</code>最主要的作用是允许一个或多个线程等待其他线程完成操作。比如我们现在有一个任务，有<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math>个线程会往数组<code>data[N]</code>当中对应的位置根据不同的任务放入数据，在各个线程将数据放入之后，主线程需要将这个数组当中所有的数据进行求和计算，也就是说主线程在各个线程放入之前需要阻塞住！在这样的场景下，我们就可以使用<code>CountDownLatch</code>。</p>
+</blockquote>
+<p>上面问题的代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Arrays</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Random</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.CountDownLatch</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">CountDownLatchDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">10</span><span class="tok-o">]</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">CountDownLatch</span><span class="tok-w"> </span><span class="tok-n">latch</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">CountDownLatch</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">temp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-n">temp</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">100001</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">latch</span><span class="tok-p">.</span><span class="tok-na">countDown</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+
+<span class="tok-w">        </span><span class="tok-c1">// 只有函数 latch.countDown() 至少被调用10次</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主线程才不会被阻塞</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这个10是在CountDownLatch初始化传递的10</span>
+<span class="tok-w">        </span><span class="tok-n">latch</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"求和结果为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">stream</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">).</span><span class="tok-na">sum</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中，主线程通过调用<code>latch.await();</code>将自己阻塞住，然后需要等他其他线程调用方法<code>latch.countDown()</code>只有这个方法被调用的次数等于在初始化时给<code>CountDownLatch</code>传递的参数时，主线程才会被释放。</p>
+<h3 id="cyclicbarrier">CyclicBarrier</h3>
+<blockquote>
+<p><code>CyclicBarrier</code>它要做的事情是，让一 组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续运行。我们通常也将<code>CyclicBarrier</code>称作<strong>路障</strong>。</p>
+</blockquote>
+<p>示例代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">CycleBarrierDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">CyclicBarrier</span><span class="tok-w"> </span><span class="tok-n">barrier</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">CyclicBarrier</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"开始等待"</span><span class="tok-p">);</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 所有线程都会调用这行代码</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 在这行代码调用的线程个数不足5</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 个的时候所有的线程都会阻塞在这里</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 只有到5的时候，这5个线程才会被放行</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 所以这行代码叫做同步点 </span>
+<span class="tok-w">                    </span><span class="tok-n">barrier</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 如果有第六个线程执行这行代码时</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 第六个线程也会被阻塞 知道第10</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 线程执行这行代码 6-10 这5个线程</span>
+<span class="tok-w">                    </span><span class="tok-c1">// 才会被放行</span>
+<span class="tok-w">                </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">BrokenBarrierException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"等待完成"</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们在初始化<code>CyclicBarrier</code>对象时，传递的数字为<code>5</code>，这个数字表示只有5个线程到达同步点的时候，那5个线程才会同时被放行，而如果到了6个线程的话，第一次没有被放行的线程必须等到下一次有<code>5</code>个线程到达同步点<code>barrier.await()</code>时，才会放行5个线程。</p>
+<ul>
+<li>比如刚开始的时候5个线程的状态如下，<strong>同步点</strong>还没有5个线程到达，因此不会放行。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/concurrency/20.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>当有5个线程或者更多的线程到达<strong>同步点</strong><code>barrier.await()</code>的时候，才会放行<code>5</code>个线程，注意是5个线程，如果有多的线程必须等到下一次集合5个线程才会进行又一次放行，也就是说每次只放行5个线程，这也是它叫做<code>CyclicBarrier</code>（循环路障）的原因（因为每次放行5个线程，放行完之后重新计数，直到又有5个新的线程到来，才再次放行）。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/concurrency/21.webp" alt="" loading="lazy" /></p>
+<h3 id="semaphore">Semaphore</h3>
+<blockquote>
+<p><code>Semaphore</code>（<strong>信号量</strong>）通俗一点的来说就是控制能执行某一段代码的线程数量，他可以控制程序的并发量！</p>
+<p><code>semaphore.acquire</code></p>
+<p><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0211B;</mi></mrow></math></p>
+<p><code>semaphore.release</code></p>
+<p>比如在上面的<code>acquire</code>和<code>release</code>之间的代码<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0211B;</mi></mrow></math>就是我们需要控制的代码，我们可以通过<strong>信号量</strong>控制在某一个时刻能有多少个线程执行代码<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0211B;</mi></mrow></math>。在信号量内部有一个计数器，在我们初始化的时候设置为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math>，当有线程调用<code>acquire</code>函数时，计数器需要减一，调用<code>release</code>函数时计数器需要加一，只有当计数器大于0时，线程调用<code>acquire</code>时才能够进入代码块<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0211B;</mi></mrow></math>，否则会被阻塞，只有线程调用<code>release</code>函数时，被阻塞的线程才能被唤醒，被唤醒的时候计数器会减一。</p>
+</blockquote>
+<p>示例代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Semaphore</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">SemaphoreDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Semaphore</span><span class="tok-w"> </span><span class="tok-n">mySemaphore</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Semaphore</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"准备进入临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">mySemaphore</span><span class="tok-p">.</span><span class="tok-na">acquire</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"已经进入临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"准备离开临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">mySemaphore</span><span class="tok-p">.</span><span class="tok-na">release</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"已经离开临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="自己动手写并发工具类">自己动手写并发工具类</h2>
+<blockquote>
+<p>在这一小节当中主要使用<code>ReentrantLock</code>实现上面我们提到的三个并发工具类，因此你首先需要了解<code>ReentrantLock</code>这个工具。<code>ReentrantLock</code>中有两个主要的函数<code>lock</code>和<code>unlock</code>，主要用于临界区的保护，在同一个时刻只能有一个线程进入被<code>lock</code>和<code>unlock</code>包围的代码块。除此之外你还需要了解<code>ReentrantLock.newCondition</code>函数，这个函数会返回一个条件变量<code>Condition</code>，这个条件变量有三个主要的函数<code>await</code>、<code>signal</code>和<code>signalAll</code>，这三个函数的作用和效果跟<code>Object</code>类的<code>wait</code>、<code>notify</code>和<code>notifyAll</code>一样，在阅读下文之前，大家首先需要了解他们的用法。</p>
+<ul>
+<li>哪个线程调用函数<code>condition.await</code>，那个线程就会被挂起。</li>
+<li>如果线程调用函数<code>conditon.signal</code>，则会唤醒一个被<code>condition.await</code>函数阻塞的线程。</li>
+<li>如果线程调用函数<code>conditon.signalAll</code>，则会唤醒所有被<code>condition.await</code>函数阻塞的线程。</li>
+</ul>
+</blockquote>
+<h3 id="countdownlatch-1">CountDownLatch</h3>
+<p>我们在使用<code>CountDownLatch</code>时，会有线程调用<code>CountDownLatch</code>的<code>await</code>函数，其他线程会调用<code>CountDownLatch</code>的<code>countDown</code>函数。在<code>CountDownLatch</code>内部会有一个计数器，计数器的值我们在初始化的时候可以进行设置，线程每调用一次<code>countDown</code>函数计数器的值就会减一。</p>
+<ul>
+<li>如果在线程在调用<code>await</code>函数之前，计数器的值已经小于或等于0时，调用<code>await</code>函数的线程就不会阻塞，直接放行。</li>
+<li>如果在线程在调用<code>await</code>函数之前，计数器的值大于0时，调用<code>await</code>函数的线程就会被阻塞，当有其他线程将计数器的值降低为0时，那么这个将计数器降低为0线程就需要使用<code>condition.signalAll()</code>函数将其他所有被<code>await</code>阻塞的函数唤醒。</li>
+<li>线程如果想阻塞自己的话可以使用函数<code>condition.await()</code>，如果某个线程在进入临界区之后达到了唤醒其他线程的条件，我们则可以使用函数<code>condition.signalAll()</code>唤醒所有被函数<code>await</code>阻塞的线程。</li>
+</ul>
+<p>上面的规则已经将<code>CountDownLatch</code>的整体功能描述清楚了，为了能够将代码解释清楚，我将对应的文字解释放在了代码当中：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.Condition</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.ReentrantLock</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyCountDownLatch</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Condition</span><span class="tok-w"> </span><span class="tok-n">condition</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">newCondition</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curValue</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyCountDownLatch</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">targetValue</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 我们需要有一个变量去保存计数器的值</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">curValue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">targetValue</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">countDown</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// curValue 是一个共享变量</span>
+<span class="tok-w">        </span><span class="tok-c1">// 我们需要用锁保护起来</span>
+<span class="tok-w">        </span><span class="tok-c1">// 因此每次只有一个线程进入 lock 保护</span>
+<span class="tok-w">        </span><span class="tok-c1">// 的代码区域</span>
+<span class="tok-w">        </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 每次执行 countDown 计数器都需要减一</span>
+<span class="tok-w">            </span><span class="tok-c1">// 而且如果计数器等于0我们需要唤醒哪些被</span>
+<span class="tok-w">            </span><span class="tok-c1">// await 函数阻塞的线程</span>
+<span class="tok-w">            </span><span class="tok-n">curValue</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curValue</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">signalAll</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">ignored</span><span class="tok-p">){}</span>
+<span class="tok-w">        </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">await</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果 curValue 的值大于0</span>
+<span class="tok-w">            </span><span class="tok-c1">// 则说明 countDown 调用次数还不够</span>
+<span class="tok-w">            </span><span class="tok-c1">// 需要将线程挂起 否则直接放行</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curValue</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-c1">// 使用条件变量 condition 将线程挂起</span>
+<span class="tok-w">                </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">ignored</span><span class="tok-p">){}</span>
+<span class="tok-w">        </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>可以使用下面的代码测试我们自己写的<code>CountDownLatch</code>：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyCountDownLatch</span><span class="tok-w"> </span><span class="tok-n">latch</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyCountDownLatch</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">latch</span><span class="tok-p">.</span><span class="tok-na">countDown</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"countDown执行完成"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">latch</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w">  </span><span class="tok-s">"latch执行完成"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="cyclicbarrier-1">CyclicBarrier</h3>
+<blockquote>
+<p><code>CyclicBarrier</code>有一个路障（同步点），所有的线程到达路障之后都会被阻塞，当被阻塞的线程个数达到指定的数目的时候，就需要对指定数目的线程进行放行。</p>
+</blockquote>
+<ul>
+<li>在<code>CyclicBarrier</code>当中会有一个数据<code>threadCount</code>，表示在路障需要达到这个<code>threadCount</code>个线程的时候才进行放行，而且需要放行<code>threadCount</code>个线程，这里我们可以循环使用函数<code>condition.signal()</code>去唤醒指定个数的线程，从而将他们放行。如果线程需要将自己阻塞住，可以使用函数<code>condition.await()</code>。</li>
+<li>在<code>CyclicBarrier</code>当中需要有一个变量<code>currentThreadNumber</code>，用于记录当前被阻塞的线程的个数。</li>
+<li>用户还可以给<code>CyclicBarrier</code>传入一个<code>Runnable</code>对象，当放行的时候需要执行这个<code>Runnable</code>对象，你可以新开一个线程去执行这个<code>Runnable</code>对象，或者让唤醒其他线程的这个线程执行<code>Runnable</code>对象。</li>
+</ul>
+<p>根据上面的<code>CyclicBarrier</code>要求，写出的代码如下（分析和解释在注释当中）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.Condition</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.ReentrantLock</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyCyclicBarrier</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Condition</span><span class="tok-w"> </span><span class="tok-n">condition</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">newCondition</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">threadCount</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">currentThreadNumber</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyBarrier</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">threadCount</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * 允许传入一个 runnable 对象</span>
+<span class="tok-cm">     * 当放行一批线程的时候就执行这个 runnable 函数</span>
+<span class="tok-cm">     * @param count</span>
+<span class="tok-cm">     * @param runnable</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyBarrier</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">(</span><span class="tok-n">count</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">runnable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">await</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">currentThreadNumber</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果阻塞的线程数量不到 threadCount 需要进行阻塞</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果到了需要由这个线程唤醒其他线程</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">currentThreadNumber</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">threadCount</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-c1">// 放行之后需要重新进行计数</span>
+<span class="tok-w">                </span><span class="tok-c1">// 因为放行之后 condition.await();</span>
+<span class="tok-w">                </span><span class="tok-c1">// 阻塞的线程个数为 0</span>
+<span class="tok-w">                </span><span class="tok-n">currentThreadNumber</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">runnable</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">runnable</span><span class="tok-p">).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">                </span><span class="tok-c1">// 唤醒 threadCount - 1 个线程 因为当前这个线程</span>
+<span class="tok-w">                </span><span class="tok-c1">// 已经是在运行的状态 所以只需要唤醒 threadCount - 1</span>
+<span class="tok-w">                </span><span class="tok-c1">// 个被阻塞的线程</span>
+<span class="tok-w">                </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">threadCount</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">                    </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">signal</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-c1">// 如果数目还没有达到则需要阻塞线程</span>
+<span class="tok-w">                </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">ignored</span><span class="tok-p">){}</span>
+<span class="tok-w">        </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-p">}</span>
+</code></pre></div><p>下面是测试我们自己写的<strong>路障</strong>的代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyCyclicBarrier</span><span class="tok-w"> </span><span class="tok-n">barrier</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyCyclicBarrier</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"开启一个新线程"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"进入阻塞"</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-n">barrier</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"阻塞完成"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="semaphore-1">Semaphore</h3>
+<blockquote>
+<p><code>Semaphore</code>可以控制执行某一段临界区代码的线程数量，在<code>Semaphore</code>当中会有两个计数器<code>semCount</code>和<code>curCount</code>。</p>
+<ul>
+<li><code>semCount</code>表示可以执行临界区代码的线程的个数。</li>
+<li><code>curCount</code>表示正在执行临界区代码的线程的个数。</li>
+</ul>
+</blockquote>
+<p>这个工具实现起来也并不复杂，具体分析都在注释当中：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.Condition</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.ReentrantLock</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MySemaphore</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Condition</span><span class="tok-w"> </span><span class="tok-n">condition</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">newCondition</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">semCount</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curCount</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MySemaphore</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">semCount</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">semCount</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">semCount</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">acquire</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 正在执行临界区代码的线程个数加一</span>
+<span class="tok-w">            </span><span class="tok-n">curCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果线程个数大于指定的能够执行的线程个数</span>
+<span class="tok-w">            </span><span class="tok-c1">// 需要将当前这个线程阻塞起来</span>
+<span class="tok-w">            </span><span class="tok-c1">// 否则直接放行</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curCount</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">semCount</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">ignored</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{}</span>
+<span class="tok-w">        </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">release</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 线程执行完临界区的代码</span>
+<span class="tok-w">            </span><span class="tok-c1">// 将要离开临界区 因此 curCount </span>
+<span class="tok-w">            </span><span class="tok-c1">// 需要减一</span>
+<span class="tok-w">            </span><span class="tok-n">curCount</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果有线程阻塞需要唤醒被阻塞的线程</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果没有被阻塞的线程 这个函数执行之后</span>
+<span class="tok-w">            </span><span class="tok-c1">// 对结果也不会产生影响 因此在这里不需要进行</span>
+<span class="tok-w">            </span><span class="tok-c1">// if 判断</span>
+<span class="tok-w">            </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">signal</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-c1">// signal函数只对在调用signal函数之前</span>
+<span class="tok-w">            </span><span class="tok-c1">// 被await函数阻塞的线程产生影响 如果</span>
+<span class="tok-w">            </span><span class="tok-c1">// 某个线程调用 await 函数在 signal 函数</span>
+<span class="tok-w">            </span><span class="tok-c1">// 执行之后，那么前面那次 signal 函数调用</span>
+<span class="tok-w">            </span><span class="tok-c1">// 不会影响后面这次 await 函数</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">ignored</span><span class="tok-p">){}</span>
+<span class="tok-w">        </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>使用下面的代码测试我们自己写的<code>MySemaphore</code>：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MySemaphore</span><span class="tok-w"> </span><span class="tok-n">mySemaphore</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MySemaphore</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">mySemaphore</span><span class="tok-p">.</span><span class="tok-na">acquire</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"已经进入临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-n">mySemaphore</span><span class="tok-p">.</span><span class="tok-na">release</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"已经离开临界区"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本文当中主要给大家介绍了三个在并发当中常用的工具类该如何使用，然后介绍了我们自己实现三个工具类的细节，其实主要是利用<strong>条件变量</strong>实现的，因为它可以实现线程的阻塞和唤醒，其实只要大家了解<strong>条件变量</strong>的使用方法，和三种工具的需求大家也可以自己实现一遍。</p>
+<p>以上就是本文所有的内容了，希望大家有所收获，我是<strong>LeHung</strong>，我们下期再见！！！（记得<strong>点赞收藏</strong>哦！）</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-ml-01/"><span>较新</span>深入剖析线性回归</a><a class="next" href="/posts/cscore-concurrency-02/"><span>较旧</span>并发程序的噩梦——数据竞争</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#并发工具类的使用">并发工具类的使用</a></li>
+      <li class="toc-l3"><a href="#countdownlatch">CountDownLatch</a></li>
+      <li class="toc-l3"><a href="#cyclicbarrier">CyclicBarrier</a></li>
+      <li class="toc-l3"><a href="#semaphore">Semaphore</a></li>
+      <li class="toc-l2"><a href="#自己动手写并发工具类">自己动手写并发工具类</a></li>
+      <li class="toc-l3"><a href="#countdownlatch-1">CountDownLatch</a></li>
+      <li class="toc-l3"><a href="#cyclicbarrier-1">CyclicBarrier</a></li>
+      <li class="toc-l3"><a href="#semaphore-1">Semaphore</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

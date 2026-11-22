@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gcc 好玩的 builtin 函数 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要想给大家介绍一些在 gcc 编译器当中给我们提供的一些好玩的内嵌函数 (builtin function)🤣🤣🤣 。 __builtin_frame_address 使用内嵌函数实现 复制 __builtin_frame_address ( x ) // 其中 x 一个整数 ">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>gcc 好玩的 builtin 函数</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-19">2022-11-19</time>
+        <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/编程语言/">编程语言</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要想给大家介绍一些在 gcc 编译器当中给我们提供的一些好玩的内嵌函数 (builtin function)🤣🤣🤣 。</p>
+<h2 id="__builtin_frame_address">__builtin_frame_address</h2>
+<h3 id="使用内嵌函数实现">使用内嵌函数实现</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 其中 x 一个整数</span>
+</code></pre></div><p>这个函数主要是用于得到函数的栈帧的，更具体的来说是得到函数的 rbp （如果是 x86_64 的机器，在 32 位系统上就是 ebp）的值，也就是栈帧的栈底的值。</p>
+<p><img src="/content/zh/images/cscore/images/programming/03.webp" alt="03" loading="lazy" /></p>
+<p>我们现在使用一个例子来验证测试一下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"fun_a frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>main frame address = 0x7ffcecdd7a00
+fun_a frame address = 0x7ffcecdd79d0
+</code></pre></div><p>上面输出的结果就是每个函数的栈帧中栈底 rbp/ebp 寄存器的值，可能你会有疑问，凭什么说这个值就是 rbp 的值😂😂😂。我们现在来证明一下，我们可以使用代码获取得到 rbp 的值。</p>
+<h3 id="使用内敛汇编实现">使用内敛汇编实现</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-n">u_int64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+
+<span class="tok-cp">#define frame_address                   \</span>
+<span class="tok-cp">        asm volatile(                   \</span>
+<span class="tok-cp">          "movq %%rbp, %0;"             \</span>
+<span class="tok-cp">          :"=m"(rbp)::                  \</span>
+<span class="tok-cp">        );                              \</span>
+<span class="tok-cp">        printf("rbp = %p from inline assembly\n", (void*) rbp);</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">bar</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"rbp = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">frame_address</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">bar</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中，我们使用一段宏可以得到寄存器 rbp 的值（在上面的代码当中，我们使用内敛汇编得到 rbp 的值，并且将这个值存储到变量 rbp 当中），我们将这个值和 builtin 函数的返回值进行对比，我们就可以知道返回的是不是寄存器 rbp 的值了，上面的程序执行结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>rbp = 0x7ffe9676ac00
+rbp = 0x7ffe9676ac00 from inline assembly
+</code></pre></div><p>从上面的结果我们可以知道，内置函数返回的确实是寄存器 rbp 的值。</p>
+<p>事实上我们除了可以获取当前函数的栈帧之外，我们还可以获取调用函数的栈帧，具体根据 x 的值进行确定：</p>
+<ul>
+<li>x = 0 : 获取当前函数的栈帧，也就是栈底的位置。</li>
+<li>x = 1 : 获取调用函数的栈帧。</li>
+<li>x = 2 : 获取调用函数的调用函数的栈帧。</li>
+<li>......</li>
+</ul>
+<p>比如说下面的程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"caller frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>main frame address = 0x7ffda7a4b460
+caller frame address = 0x7ffda7a4b460
+</code></pre></div><p>从上面的输出结果我们可以看到当参数的值等于 1 的时候，返回的是调用函数的栈帧。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In func_a</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"caller frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_b</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In func_b</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"caller frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main frame address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">func_b</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>main frame address = 0x7ffdadbe6ff0
+In func_b
+caller frame address = 0x7ffdadbe6ff0
+In func_a
+caller frame address = 0x7ffdadbe6ff0
+</code></pre></div><p>在上方的程序当中我们在主函数调用函数 func_b ，然后在函数 func_b 当中调用函数 func_a ，我们可以看到根据参数 x 的不同，返回的栈帧的层级也是不同的，根据前面参数 x 的意义我们可以知道，他们得到的都是主函数的栈帧。</p>
+<h2 id="__builtin_return_address">__builtin_return_address</h2>
+<h3 id="使用内嵌函数实现-1">使用内嵌函数实现</h3>
+<p>这个内嵌函数的主要作用就是得到函数的返回地址，首先我们需要知道的是，当我们进行函数调用的时候我们需要知道当这个函数执行完成之后返回到什么地方，因为 cpu 只会一条指令一条指令的执行，我们需要告诉 cpu 下一条指令的位置，因此当我们进行函数调用的时候需要保存调用函数的 call 指令下一条指令的位置，并且将它保存在栈上，当被调用函数执行完成之后继续回到调用函数的下一条指令的位置执行，因为我们已经将这个下一条指令的地址放到栈上了，当调用函数执行完成之后直接从栈当中取出这个值即可。</p>
+<p>__builtin_return_address 的签名如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// x 是一个整数</span>
+</code></pre></div><p>其中 x 和前面的 __builtin_frame_address 含义相似：</p>
+<ul>
+<li>x = 0 : 表示当前函数的返回地址。</li>
+<li>x = 1 : 表示当前函数的调用函数的返回地址，比如说 main 函数调用 func_a 如果在 func_a 里面调用这个内嵌方法，那么返回的就是 main 函数的返回值。</li>
+<li>x = 2 : 表示当前函数的调用函数的调用函数的返回地址。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"fun_a return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In func_a main return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出的结果如下：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>main return address = 0x7fc5c57c90b3
+fun_a return address = 0x400592
+In func_a main return address = 0x7fc5c57c90b3
+</code></pre></div><p>从上面的输出结果我们可以知道</p>
+<h3 id="使用内敛汇编实现-1">使用内敛汇编实现</h3>
+<p>如果我们调用一个函数的时候（在x86里面执行 call 指令）首先会将下一条指令的地址压栈（在 32 位系统上就是将 eip 压栈，在 64 位系统上就是将 rip 压栈），然后形成调用函数的栈帧。然后将 rbp 寄存器的值指向下图当中的位置。</p>
+<p><img src="/content/zh/images/cscore/images/pl/01.webp" alt="01" loading="lazy" /></p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-cp">#define return_address            \</span>
+<span class="tok-cp">    u_int64_t rbp;                \</span>
+<span class="tok-cp">    asm volatile(                 \</span>
+<span class="tok-cp">      "movq %%rbp, %0":"=m"(rbp)::\</span>
+<span class="tok-cp">    );                            \</span>
+<span class="tok-cp">    printf("From inline assembly return address = %p\n", (u_int64_t*)*(u_int64_t*)(rbp + 8));</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In func_a</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"fun_a return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">return_address</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main function</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">return_address</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">In</span><span class="tok-w"> </span><span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-n">function</span>
+<span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7fe6a7b050b3</span>
+<span class="tok-n">From</span><span class="tok-w"> </span><span class="tok-kr">inline</span><span class="tok-w"> </span><span class="tok-n">assembly</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7fe6a7b050b3</span>
+<span class="tok-n">In</span><span class="tok-w"> </span><span class="tok-n">func_a</span>
+<span class="tok-n">fun_a</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x4005d2</span>
+<span class="tok-n">From</span><span class="tok-w"> </span><span class="tok-kr">inline</span><span class="tok-w"> </span><span class="tok-n">assembly</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x4005d2</span>
+</code></pre></div><p>从上面的输出结果我们可以看到，我们自己使用内敛汇编直接得到寄存器 rbp 的和内嵌函数返回的值是一致的，这也从侧面反映出来了内嵌函数的作用。在上面的代码当中定义定义的宏 return_address 的作用就是将寄存器 rbp 的值保存到变量 rbp 当中。</p>
+<p>除了得到当前栈帧的 rbp 的值之外我们还可以，函数的调用函数的 rbp，调用函数的调用函数的 rbp，当然可以直接使用 builtin 函数实现，除此之外我们还可以使用内敛汇编去实现这一点：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-cp">#define return_address            \</span>
+<span class="tok-cp">    u_int64_t rbp;                \</span>
+<span class="tok-cp">    asm volatile(                 \</span>
+<span class="tok-cp">      "movq %%rbp, %%rcx;"        \</span>
+<span class="tok-cp">      "movq (%%rcx), %%rcx;"      \</span>
+<span class="tok-cp">      "movq %%rcx, %0;"           \</span>
+<span class="tok-cp">      :"=m"(rbp)::"rcx"           \</span>
+<span class="tok-cp">    );                            \</span>
+<span class="tok-cp">    printf("From inline assembly main return address = %p\n", (u_int64_t*)*(u_int64_t*)(rbp + 8));</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; In func_a</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">return_address</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; Out func_a</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main function return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">In</span><span class="tok-w"> </span><span class="tok-n">func_a</span>
+<span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7f9aec6c80b3</span>
+<span class="tok-n">From</span><span class="tok-w"> </span><span class="tok-kr">inline</span><span class="tok-w"> </span><span class="tok-n">assembly</span><span class="tok-w"> </span><span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7f9aec6c80b3</span>
+<span class="tok-o">&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">Out</span><span class="tok-w"> </span><span class="tok-n">func_a</span>
+<span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7f9aec6c80b3</span>
+</code></pre></div><p>我们可以看到上面的输出，我们自己用内敛汇编实现的结果和 __builtin_return_address 的返回结果是一样的，这也验证了我们实现的正确性。要想理解上面的代码首先我们需要理解函数调用的时候形成的栈帧，如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/pl/02.webp" alt="01" loading="lazy" /></p>
+<p>根据上图我们可以知道在 func_a 函数当中，rbp 指向的地址存放的是上一个函数的 rbp 寄存器的值，因此我们可以使用间接寻址，找到调用 func_a 的主函数的 rbp 的值，即以在函数 func_a 当中 rbp 寄存器的值为地址，找到这个地址的值就是主函数的 rbp 的值。</p>
+<p>至此我们已经知道了，__builtin_return_address 的返回结果是当前函数的返回地址，也就是当前函数执行完成返回之后执行的下一条指令，我们可以利用这一点做出一个非常好玩的东西，直接跳转到返回地址执行不执行当前函数的后续代码：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w">        </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 得到当前函数的返回地址</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-w">      </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span><span class="tok-w">  </span><span class="tok-c1">// 得到当前函数的栈帧的栈底</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">last_rbp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span><span class="tok-w">	</span><span class="tok-c1">// 得到调用函数的栈帧的栈底</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"leaq 16(%1), %%rsp;"</span><span class="tok-w"> </span><span class="tok-c1">// 恢复 rsp 寄存器的值 ⓷</span>
+<span class="tok-w">    </span><span class="tok-s">"movq %2, %%rbp;"</span><span class="tok-w">     </span><span class="tok-c1">// 恢复 rbp 寄存器的值 ⓸</span>
+<span class="tok-w">    </span><span class="tok-s">"jmp *%0;"</span><span class="tok-w">            </span><span class="tok-c1">// 直接跳转						⓹</span>
+<span class="tok-w">    </span><span class="tok-o">::</span><span class="tok-s">"r"</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-s">"r"</span><span class="tok-p">(</span><span class="tok-n">rbp</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-s">"r"</span><span class="tok-p">(</span><span class="tok-n">last_rbp</span><span class="tok-p">)</span><span class="tok-o">:</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"finished in func_a</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// ①</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__builtin_return_address</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"main return address = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">func_a</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// ②</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"finished in main function </span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 打印九九乘法表</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d x %d = %d</span><span class="tok-se">\t</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">address</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mh">0x7f63e05c60b3</span>
+<span class="tok-n">finished</span><span class="tok-w"> </span><span class="tok-n">in</span><span class="tok-w"> </span><span class="tok-n">main</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span>
+<span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w">       </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span>
+<span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w">       </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w">       </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">9</span>
+<span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w">       </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-w">       </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-w">      </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">16</span>
+<span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w">       </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-w">      </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-w">      </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-w">      </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">25</span>
+<span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w">       </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-w">      </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">18</span><span class="tok-w">      </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">24</span><span class="tok-w">      </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">30</span><span class="tok-w">      </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">36</span>
+<span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w">       </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">14</span><span class="tok-w">      </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">21</span><span class="tok-w">      </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span><span class="tok-w">      </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">35</span><span class="tok-w">      </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">42</span><span class="tok-w">      </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">49</span>
+<span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-w">       </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">24</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">32</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">40</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">48</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">56</span><span class="tok-w">      </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">64</span>
+<span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">9</span><span class="tok-w">       </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">18</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">27</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">36</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">54</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">63</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">72</span><span class="tok-w">      </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">81</span>
+</code></pre></div><p>从上面程序的输出结果来看，上面的程序并没有执行语句 ① ，但是却执行了主函数 ② 之后的程序，并且正确输出字符串和九九乘法表。这就相当于我们提前进行了跳转。要想得到这样的结果，我们只需要在函数 func_a 内部恢复上一个函数的栈帧，并且将 rip 指向函数 func_a 的返回地址即可。</p>
+<p>上方的程序发生转移的代码就是那段内敛汇编代码，在内敛汇编代码当中我们首先恢复 main 函数的栈帧（主要是正确恢复寄存器 rbp 和 rsp ）的值，然后直接跳转到返回地址继续执行，所以才正确执行了主函数后续的代码。</p>
+<p>恢复主函数的 rbp 寄存器的值很好理解，因为我们只需要通过内嵌函数直接得到即可，但是主函数的 rsp 寄存器的值可能有一点复杂，s首先我们需要知道，主函数和 func_a 的两个与栈帧有关的寄存器的指向，他们的指向如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/pl/02.webp" alt="01" loading="lazy" /></p>
+<ul>
+<li>根据上文的分析我们可以直接通过在函数 func_a 当中直接使用 __builtin_frame_address(1) 得到主函数的 rbp 值，然后将其直接赋值给 rbp 寄存器就可以了，我们就恢复了主函数栈底的值，对应的语句位上面代码的 ⓸。</li>
+<li>根据上文的分析我们可以直接通过在函数 func_a 当中直接使用 __builtin_return_address(0) 得到 func_a 的返回地址，我们可以直接 jmp 到这条指令执行，但是在 jmp 之前我们需要先恢复主函数的栈帧，对应的语句位上面的 ⓹。</li>
+<li>根据上图我们可以分析到主函数 rsp 的值就是函数 func_a 中 rbp 寄存器的值加上 16，因为 rip 和 rbp 分别占 8 个字节，因此我们通过 ⓷ 恢复主函数的 rsp 的值。</li>
+</ul>
+<p>根据上面的分析我就大致就可以理解了上述的代码的流程了。</p>
+<h2 id="与二进制相关的内嵌函数">与二进制相关的内嵌函数</h2>
+<h3 id="__builtin_popcount">__builtin_popcount</h3>
+<p>在 gcc 内部给我们提供了很多用于比特操作的内嵌函数，比如说如果我们想统计一下一个数据二进制表示有多少个为 1 的比特位。</p>
+<ul>
+<li>__builtin_popcount :  统计一个数据的二进制表示有多少个为 1 的比特位。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"bits = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_popcount</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"bits = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_popcount</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">bits</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">32</span>
+<span class="tok-n">bits</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span>
+</code></pre></div><p>-1 和 15 的二进制表示如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-mi">-1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1111</span><span class="tok-n">_1111_1111_1111_1111_1111_1111_1111</span>
+<span class="tok-mi">15</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mo">0000</span><span class="tok-n">_0000_0000_0000_0000_0000_0000_1111</span>
+</code></pre></div><p>因此统计一下对应数字的比特位等于 1 的个数可以知道，内嵌函数 __builtin_popcount 的输出结果是没错的。</p>
+<ul>
+<li>__builtin_popcountl 和 __builtin_popcountl，这两个函数的作用和 __builtin_popcount 的作用是一样的，但是这两个函数是用于 long 和 long long 类型的参数。</li>
+</ul>
+<h3 id="__builtin_ctz">__builtin_ctz</h3>
+<ul>
+<li>__builtin_ctz : 从右往左数，统计一个数据尾部比特位等于 0 的个数，具体是在遇到第一个 1 之前，已经遇到了几个 1 。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_ctz</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// ctz = count trailing zeros. </span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_ctz</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_ctz</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_ctz</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>0
+1
+0
+2
+</code></pre></div><p>1，2，3，4 对应的二进制表示如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mo">0000</span><span class="tok-n">_0000_0000_0000_0000_0000_0000_0001</span><span class="tok-w"> </span><span class="tok-c1">// 到第一个 1 之前 有 0 个 0</span>
+<span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mo">0000</span><span class="tok-n">_0000_0000_0000_0000_0000_0000_0010</span><span class="tok-w"> </span><span class="tok-c1">// 到第一个 1 之前 有 0 个 1</span>
+<span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mo">0000</span><span class="tok-n">_0000_0000_0000_0000_0000_0000_0011</span><span class="tok-w"> </span><span class="tok-c1">// 到第一个 1 之前 有 0 个 0</span>
+<span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mo">0000</span><span class="tok-n">_0000_0000_0000_0000_0000_0000_0100</span><span class="tok-w"> </span><span class="tok-c1">// 到第一个 1 之前 有 0 个 2</span>
+</code></pre></div><p>根据上面不同数据的二进制表示以及上方程序的输出结果可以知道 __builtin_ctz 的输出就是尾部等于 0 的个数。</p>
+<ul>
+<li>__builtin_ctzl 和 __builtin_ctzll 与 __builtin_ctz 的作用是一样的，但是这两个函数是用于 long 和 long long 类型的数据。</li>
+</ul>
+<p>上面谈到的 __builtin_ctz 这个内嵌函数我们可以用于求一个数据的 lowbit 的值，我们知道一个数据的 lowbit 就是最低位的比特所表示的数据，他的求解函数如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">lowbit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-n">x</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们也可以使用上面的内嵌函数去实现，看下面的代码，我们使用上面的内嵌函数定义一个宏去实现 lowbit：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-cp">#define lowbit(x) (1 &lt;&lt; (__builtin_ctz(x)))</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">lowbit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-n">x</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"macro = %d function = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">lowbit</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-n">lowbit2</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">4</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span>
+<span class="tok-n">macro</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">function</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span>
+</code></pre></div><p>可以看到我们使用内嵌函数和自己定义的 lowbit 函数实现的结果是一样的。</p>
+<h3 id="__builtin_clz">__builtin_clz</h3>
+<p>这个是用于统计一个数据的二进制表示，从左往右数遇到第一个比特位等于 1 之前已经遇到了多少个 0。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"i = %2d and result = %2d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_clz</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"i = %2d and result = %2d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__builtin_clz</span><span class="tok-p">(</span><span class="tok-mi">-1</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w"> </span><span class="tok-c1">// 高位有 31 个 0</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">30</span><span class="tok-w"> </span><span class="tok-c1">// 高位有 30 个 0</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">30</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">29</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">5</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">29</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">6</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">29</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">29</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">8</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">9</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">11</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">13</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">14</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">28</span>
+<span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-w"> </span><span class="tok-n">and</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-c1">// 高位没有 0</span>
+</code></pre></div><p>我们可以将上面的数据 i 对应他的二进制表示，就可以知道从左往右数遇到第一个等于 1 的比特位之前会有多少个 0 ，我们拿 -1 进行分析，因为在计算机当中数据的都是使用补码进行表示，而 -1 的补码如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-mi">-1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1111</span><span class="tok-n">_1111_1111_1111_1111_1111_1111_1111</span>
+</code></pre></div><p>因此 高位没有 0，所以返回的结果等于 0。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍一些在 gcc 当中比较有意思的内嵌函数，大家可以玩一下～～～～😂</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-01jobcontrol/"><span>较新</span>你在终端启动的进程，最后都是什么下场？（上）</a><a class="next" href="/posts/cscore-concurrency-03pthread/"><span>较旧</span>Pthread 并发编程（三）——深入理解线程取消机制</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#__builtin_frame_address">__builtin_frame_address</a></li>
+      <li class="toc-l3"><a href="#使用内嵌函数实现">使用内嵌函数实现</a></li>
+      <li class="toc-l3"><a href="#使用内敛汇编实现">使用内敛汇编实现</a></li>
+      <li class="toc-l2"><a href="#__builtin_return_address">__builtin_return_address</a></li>
+      <li class="toc-l3"><a href="#使用内嵌函数实现-1">使用内嵌函数实现</a></li>
+      <li class="toc-l3"><a href="#使用内敛汇编实现-1">使用内敛汇编实现</a></li>
+      <li class="toc-l2"><a href="#与二进制相关的内嵌函数">与二进制相关的内嵌函数</a></li>
+      <li class="toc-l3"><a href="#__builtin_popcount">__builtin_popcount</a></li>
+      <li class="toc-l3"><a href="#__builtin_ctz">__builtin_ctz</a></li>
+      <li class="toc-l3"><a href="#__builtin_clz">__builtin_clz</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

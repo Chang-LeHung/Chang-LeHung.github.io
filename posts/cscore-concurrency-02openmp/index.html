@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP 教程（一）——OpenMP 当中的 reduction 子句 · Chang-LeHung</title>
+<meta name="description" content="前言 在前面的教程 OpenMP入门 当中我们简要介绍了 OpenMP 的一些基础的使用方法，在本篇文章当中我们将从一些基础的问题开始，然后仔细介绍在 OpenMP 当中 reduction 子句的各种使用方法。 从并发求和开始 我们的任务是两个线程同时对一个变量 data 进行 ++ 操作，执行 ">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP 教程（一）——OpenMP 当中的 reduction 子句</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-09">2022-11-09</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在前面的教程<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247487188&amp;idx=1&amp;sn=474ac3ef08d47439af963ae4376647a4&amp;chksm=cf0c92ddf87b1bcb969da565e65338829281c7ffc320f0669344dfc7b4fcd4ff7699c55eb1dd&amp;token=1178892963&amp;lang=zh_CN#rd">OpenMP入门</a>当中我们简要介绍了 OpenMP 的一些基础的使用方法，在本篇文章当中我们将从一些基础的问题开始，然后仔细介绍在 OpenMP 当中 reduction 子句的各种使用方法。</p>
+<h2 id="从并发求和开始">从并发求和开始</h2>
+<p>我们的任务是两个线程同时对一个变量 <code>data</code> 进行 <code>++</code>操作，执行 10000 次，我们看下面的代码有什么问题：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) </span><span class="tok-c1">// 使用两个线程同时执行上面的代码块</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">usleep</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// omp_get_thread_num 函数返回线程的 id 号 这个数据从 0 开始，0, 1, 2, 3, 4, ...</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main function data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中，我们开启了两个线程并且同时执行 <code>$pragma</code> 下面的代码块，但是上面的程序有一个问题，就是两个线程可能同时执行 <code>data++</code> 操作，但是同时执行这个操作的话，就存在并发程序的数据竞争问题，在 OpenMP 当中默认的数据使用方式就是🧍‍♂️线程之间是共享的比如下面的执行过程：</p>
+<ul>
+<li>首先线程 1 和线程 2 将 data 加载到 CPU 缓存当中，当前的两个线程得到的 <code>data</code> 的值都是 0 。</li>
+<li>线程 1 和线程 2 对 <code>data</code> 进行 ++ 操作，现在两个线程的 <code>data</code> 的值都是 1。</li>
+<li>线程 1 将 data 的值写回到主存当中，那么主存当中的数据的值就等于 1 。</li>
+<li>线程 2 将 data 的值写回到主存当中，那么主存当中的数据的值也等于 1 。</li>
+</ul>
+<p>但是上面的执行过程是存在问题的，因为我们期望的是主存当中的 data 的值等于 2，因此上面的代码是存在错误的。</p>
+<h2 id="解决求和问题的各种办法">解决求和问题的各种办法</h2>
+<h3 id="使用数组巧妙解决并发程序当中的数据竞争问题">使用数组巧妙解决并发程序当中的数据竞争问题</h3>
+<p>在上面的程序当中我们使用了一个函数 <code>omp_get_thread_num</code> 这个函数可以返回线程的 id 号，我们可以根据这个 id 做一些文章，如下面的程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-mi">2</span><span class="tok-p">];</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-n">tid</span><span class="tok-p">]</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">usleep</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"tarr[%d] = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">tid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-n">tid</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">tid</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main function data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中我们额外的使用了一个数组 <code>tarr</code> 用于保存线程的本地的和，然后在最后在主线程里面讲线程本地得到的和相加起来，这样的话我们得到的结果就是正确的了。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$./lockfree01.out
+tarr<span class="tok-o">[</span><span class="tok-m">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">10000</span><span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+tarr<span class="tok-o">[</span><span class="tok-m">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">10000</span><span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+In<span class="tok-w"> </span>main<span class="tok-w"> </span><span class="tok-k">function</span><span class="tok-w"> </span><span class="tok-nv">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">20000</span>
+</code></pre></div><p>在上面的程序当中我们需要知道的是，只有当并行域当中所有的线程都执行完成之后，主线程才会继续执行并行域后面的代码，因此主线程在执行代码</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">tarr</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main function data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+</code></pre></div><p>之前，OpenMP 中并行域中的代码全部执行完成，因此上面的代码执行的时候数组 <code>tarr</code> 中的结果已经计算出来了，因此上面的代码最终的执行结果是 2000。</p>
+<h3 id="reduction-子句">reduction 子句</h3>
+<p>在上文当中我们使用数组去避免多个线程同时操作同一个数据的情况，除了上面的方法处理求和问题，我们还有很多其他方法去解决这个问题，下面我们使用 reduction 子句去解决这个问题：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(+:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">usleep</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main function data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中我们使用了一个子句 <code>reduction(+:data)</code> 在每个线程里面对变量 data 进行拷贝，然后在线程当中使用这个拷贝的变量，这样的话就不存在数据竞争了，因为每个线程使用的 data 是不一样的，在 reduction 当中还有一个加号➕，这个加号表示如何进行规约操作，所谓规约操作简单说来就是多个数据逐步进行操作最终得到一个不能够在进行规约的数据。</p>
+<p>例如在上面的程序当中我们的规约操作是 + ，因此需要将线程 1 和线程 2 的数据进行 + 操作，即线程 1 的 data 加上 线程 2 的 data 值，然后将得到的结果赋值给全局变量 data，这样的话我们最终得到的结果就是正确的。</p>
+<p>如果有 4 个线程的话，那么就有 4 个线程本地的 data（每个线程一个 data）。那么规约（reduction）操作的结果等于：</p>
+<p>(((data1 + data2) + data3) + data4) 其中 datai 表示第 i 个线程的得到的 data 。</p>
+<p>除了后面的两种方法解决多个线程同时对一个数据进行操作的问题的之外我们还有一些其他的办法去解决这个问题，我们在下一篇文章当中进行仔细分析。</p>
+<h2 id="深入剖析-reduction-子句">深入剖析 reduction 子句</h2>
+<p>我们在写多线程程序的时候可能会存在这种需求，每个线程都会得到一个数据的结果，然后在最后需要将每个线程得到的数据进行求和，相乘，或者逻辑操作等等，在这种情况下我们可以使用 reduction 子句进行操作。redcution 子句的语法格式如下：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>reduction<span class="tok-o">(</span>操作符:变量<span class="tok-o">)</span>
+</code></pre></div><p>当我们使用 reduction 子句的时候线程使用的是与外部变量同名的变量，那么这个同名的变量的初始值应该设置成什么呢？具体的设置规则如下所示：</p>
+<table>
+<thead>
+<tr>
+<th>运算符</th>
+<th>初始值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+/加法</td>
+<td>0</td>
+</tr>
+<tr>
+<td>*/乘法</td>
+<td>1</td>
+</tr>
+<tr>
+<td>&amp;&amp;/逻辑与</td>
+<td>1</td>
+</tr>
+<tr>
+<td>||/逻辑或</td>
+<td>0</td>
+</tr>
+<tr>
+<td>min/最小值</td>
+<td>对应类型的最大值</td>
+</tr>
+<tr>
+<td>max/最大值</td>
+<td>对应类型的最小值</td>
+</tr>
+<tr>
+<td>&amp;/按位与</td>
+<td>所有位都是 1</td>
+</tr>
+<tr>
+<td>|/按位或</td>
+<td>所有位都是 0</td>
+</tr>
+<tr>
+<td>^/按位异或</td>
+<td>所有位都是 0</td>
+</tr>
+</tbody>
+</table>
+<p>下面我们使用各种不同的例子去分析上面的所有的条目：</p>
+<h3 id="加法操作符">加法+操作符</h3>
+<p>我们使用下面的程序去测试使用加法规约的正确性，并且在并行域当中打印进行并行域之前变量的值。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(+:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"初始值 : data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"变化后的值 : data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"规约之后的值 : data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>初始值 : data = 0 tid = 0
+变化后的值 : data = 10 tid = 0
+初始值 : data = 0 tid = 1
+变化后的值 : data = 20 tid = 1
+规约之后的值 : data = 30
+</code></pre></div><p>从上面的输出结果我们可以知道当进入并行域之后我们的变量的初始值等于 0 ，第一个线程的线程 id 号等于 0 ，它将 data 的值赋值成 10 ，第二个线程的线程 id 号 等于 1，它将 data 的值赋值成 20 。在出并行域之前会将两个线程得到的 data 值进行规约操作，在上面的代码当中也就是+操作，并且将这个值赋值给全局变量 data 。</p>
+<h3 id="乘法操作符">乘法*操作符</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(*:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"初始值 : data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"变化后的值 : data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"规约之后的值 : data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>初始值 : data = 1 tid = 0
+变化后的值 : data = 10 tid = 0
+初始值 : data = 1 tid = 1
+变化后的值 : data = 20 tid = 1
+规约之后的值 : data = 400
+</code></pre></div><p>从上面的程序的输出结果来看，当我们使用*操作符的时候，我们可以看到程序当中 data 的初始值确实被初始化成了 1 ，而且最终在主函数当中的输出结果也是符合预期的，因为 400 = 2 * 10 * 20，其中 2 只在全局变量初始化的时候的值。</p>
+<h3 id="逻辑与操作符">逻辑与&amp;&amp;操作符</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(&amp;&amp;:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data =</span><span class="tok-se">\t</span><span class="tok-s"> %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>初始化值 : data = 1 tid = 0
+初始化值 : data = 1 tid = 1
+在主函数当中 : data = 1
+</code></pre></div><p>从上面的输出结果我们可以知道，程序当中数据的初始化的值是没有问题的，你可能会疑惑为什么主函数当中的 data 值等于 1，这其实就是 C 语言当中对 &amp;&amp; 操作服的定义，如果最终的结果为真，那么值就等于 1，即 100 &amp;&amp; 10 &amp;&amp; 20 == 1，你可以写一个程序去验证这一点。</p>
+<h3 id="或操作符">或||操作符</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(||:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"初始化值 : data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"在主函数当中 : data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>初始化值 : data = 1 tid = 0
+初始化值 : data = 1 tid = 1
+在主函数当中 : data = 1
+</code></pre></div><p>从上面的结果看出，数据初始化的值是正确的，主函数当中得到的数据也是正确的，因为 100 || 0 || 0 == 1，这个也是 C 语言的条件或得到的结果。</p>
+<h3 id="min-最小值">MIN 最小值</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1000</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Int 类型的最大值等于 %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__INT32_MAX__</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(min:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data =</span><span class="tok-se">\t\t</span><span class="tok-s">     %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序执行结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Int 类型的最大值等于   2147483647
+data =               2147483647 tid = 0
+data =               2147483647 tid = 1
+data = 10
+</code></pre></div><p>可以看出来初始化的值是正确的，当我们求最小值的时候，数据被正确的初始化成对应数据的最大值了，然后我们需要去比较这几个值的最小值，即 min(1000, 0, 20) == 10 ，因此在主函数当中的到的值等于 10。</p>
+<h3 id="max-最大值">MAX 最大值</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1000</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(max:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>data = -2147483648 tid = 0
+data = -2147483648 tid = 1
+data = 1000
+</code></pre></div><p>可以看出程序被正确的初始化成最小值了，主函数当中输出的数据应该等于 max(1000, 10, 20) 因此也满足条件。</p>
+<h3 id="按位与">&amp; 按位与</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">15</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(&amp;:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>data = -1 tid = 0
+data = -1 tid = 1
+data = 8
+</code></pre></div><p>首先我们需要知道上面几个数据的比特位表示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>-1 = 1111_1111_1111_1111_1111_1111_1111_1111
+8  = 0000_0000_0000_0000_0000_0000_0000_1000
+12 = 0000_0000_0000_0000_0000_0000_0000_1100
+15 = 0000_0000_0000_0000_0000_0000_0000_1111
+</code></pre></div><p>我们知道当我们使用 &amp; 操作符的时候初始值是比特为全部等于 1 的数据，也就是 -1，最终进行按位与操作的数据为 15、8、12，即在主函数当中输出的结果等于  (8 &amp; 12 &amp; 15) == 8，因为只有第四个比特位全部为 1，因此最终的结果等于 8 。</p>
+<h3 id="按位或">|按位或</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(|:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>data = 0 tid = 0
+data = 0 tid = 1
+data = 13
+</code></pre></div><p>我们还是需要了解一下上面的数据的比特位表示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>0  = 0000_0000_0000_0000_0000_0000_0000_0000
+1  = 0000_0000_0000_0000_0000_0000_0000_0001
+8  = 0000_0000_0000_0000_0000_0000_0000_1000
+12 = 0000_0000_0000_0000_0000_0000_0000_1100
+13 = 0000_0000_0000_0000_0000_0000_0000_1101
+</code></pre></div><p>线程初始化的数据等于 0 ，这个和前面谈到的所有的比特位都设置成 0 是一致的，我们对上面的数据进行或操作之后得到的结果和对应的按位或得到的结果是相符的。</p>
+<h3 id="按位异或">^按位异或</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp parallel num_threads(2) reduction(^:data)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">){</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>data = 0 tid = 0
+data = 0 tid = 1
+data = 5
+</code></pre></div><p>各个数据的比特位表示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>0  = 0000_0000_0000_0000_0000_0000_0000_0000
+1  = 0000_0000_0000_0000_0000_0000_0000_0001
+8  = 0000_0000_0000_0000_0000_0000_0000_1000
+12 = 0000_0000_0000_0000_0000_0000_0000_1100
+5  = 0000_0000_0000_0000_0000_0000_0000_0101
+</code></pre></div><p>大家可以自己对照的进行异或操作，得到的结果是正确的。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中我们主要使用一个例子介绍了如何解决并发程序当中的竞争问题，然后也使用了 reduction 子句去解决这个问题，随后介绍了在 OpenMP 当中 reduction 各种规约符号的使用！</p>
+<p>在本篇文章当中主要给大家介绍了 OpenMP 的基本使用和程序执行的基本原理，在后续的文章当中我们将仔细介绍各种 <code>OpenMP</code> 的子句和指令的使用方法，希望大家有所收获！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-02pthread/"><span>较新</span>Pthread 并发编程（二）——自底向上深入理解线程</a><a class="next" href="/posts/cscore-container-05-hashmap/"><span>较旧</span>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#从并发求和开始">从并发求和开始</a></li>
+      <li class="toc-l2"><a href="#解决求和问题的各种办法">解决求和问题的各种办法</a></li>
+      <li class="toc-l3"><a href="#使用数组巧妙解决并发程序当中的数据竞争问题">使用数组巧妙解决并发程序当中的数据竞争问题</a></li>
+      <li class="toc-l3"><a href="#reduction-子句">reduction 子句</a></li>
+      <li class="toc-l2"><a href="#深入剖析-reduction-子句">深入剖析 reduction 子句</a></li>
+      <li class="toc-l3"><a href="#加法操作符">加法+操作符</a></li>
+      <li class="toc-l3"><a href="#乘法操作符">乘法*操作符</a></li>
+      <li class="toc-l3"><a href="#逻辑与操作符">逻辑与&amp;&amp;操作符</a></li>
+      <li class="toc-l3"><a href="#或操作符">或||操作符</a></li>
+      <li class="toc-l3"><a href="#min-最小值">MIN 最小值</a></li>
+      <li class="toc-l3"><a href="#max-最大值">MAX 最大值</a></li>
+      <li class="toc-l3"><a href="#按位与">&amp; 按位与</a></li>
+      <li class="toc-l3"><a href="#按位或">|按位或</a></li>
+      <li class="toc-l3"><a href="#按位异或">^按位异或</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

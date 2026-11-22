@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pthread 并发编程（二）——自底向上深入理解线程 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍线程最基本的组成元素，以及在 pthread 当中给我们提供的一些线程的基本机制，因为很多语言的线程机制就是建立在 pthread 线程之上的，比如说 Python 和 Java，深入理解 pthread 的线程实现机制，可以极大的提升我们对于语言线程的认识。希望能">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>Pthread 并发编程（二）——自底向上深入理解线程</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-14">2022-11-14</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍线程最基本的组成元素，以及在 pthread 当中给我们提供的一些线程的基本机制，因为很多语言的线程机制就是建立在 pthread 线程之上的，比如说 Python 和 Java，深入理解 pthread 的线程实现机制，可以极大的提升我们对于语言线程的认识。希望能够帮助大家深入理解线程。</p>
+<h2 id="线程的基本元素">线程的基本元素</h2>
+<p>首先我们需要了解一些我们在使用线程的时候的常用的基本操作，如果不是很了解没有关系我们在后续的文章当中会仔细谈论这些问题。</p>
+<ul>
+<li>
+<p>线程的常见的基本操作：</p>
+<ul>
+<li>线程的创建。</li>
+<li>线程的终止。</li>
+<li>线程之间的同步。</li>
+<li>线程的调度。</li>
+<li>线程当中的数据管理。</li>
+<li>线程与进程之间的交互。</li>
+</ul>
+</li>
+<li>
+<p>在 linux 当中所有的线程和进程共享一个地址空间。</p>
+</li>
+<li>
+<p>进程与线程之间共享一些内核数据结构：</p>
+<ul>
+<li>打开的文件描述符。</li>
+<li>当前工作目录。</li>
+<li>用户 id 和用户组 id 。</li>
+<li>全局数据段的数据。</li>
+<li>进程的代码。</li>
+<li>信号（signals）和信号处理函数（signal handlers）。</li>
+</ul>
+</li>
+<li>
+<p>线程独有的：</p>
+<ul>
+<li>线程的 ID 。</li>
+<li>寄存器线程和栈空间。</li>
+<li>线程的栈当中的局部变量和返回地址。</li>
+<li>信号掩码。</li>
+<li>线程自己的优先级。</li>
+<li>errno。</li>
+</ul>
+</li>
+</ul>
+<p>在所有的 pthread 的接口当中，只有当函数的返回值是 0 的时候表示调用成功。</p>
+<h2 id="线程等待">线程等待</h2>
+<p>在 pthread 的实现当中，每个线程都两个特性：joinable 和 detached，当我们启动一个线程的时候 (pthread_create) 线程的默认属性是 joinable，所谓 joinable 是表示线程是可以使用 pthread_join 进行同步的。</p>
+<p>当一个线程调用 pthread_join(T, ret)，当这个函数返回的时候就表示线程 T 已经终止了，执行完成。那么就可以释放与线程 T 的相关的系统资源。</p>
+<p>如果一个线程的状态是 detached 状态的话，当线程结束的时候与这个线程相关的资源会被自动释放掉，将资源归还给系统，也就不需要其他的线程调用 pthread_join 来释放线程的资源。</p>
+<p>pthread_join 函数签名如下：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>int pthread_join(pthread_t thread, void **retval);
+</code></pre></div><ul>
+<li>thread 表示等待的线程。</li>
+<li>retval 如果 retval 不等于 NULL 则在 pthread_join 函数内部会将线程 thead 的退出状态拷贝到 retval 指向的地址。如果线程被取消了，那么 PTHREAD_CANCELED 将会被放在 retval 指向的地址。</li>
+<li>函数的返回值
+<ul>
+<li>EDEADLK 表示检测到死锁了，比入两个线程都调用 pthread_join 函数等待对方执行完成。</li>
+<li>EINVAL 线程不是一个 joinable 的线程，一种常见的情况就是 pthread_join 一个 detached 线程。</li>
+<li>EINVAL 当调用 pthrea_join 等待的线程正在被别的线程调用 pthread_join 等待。</li>
+<li>ESRCH 如果参数 thread 是一个无效的线程，比如没有使用 pthread_create 进行创建。</li>
+<li>0 表示函数调用成功。</li>
+</ul>
+</li>
+</ul>
+<p>在下面的程序当中我们使用 pthread_join 函数去等待一个 detached 线程：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;error.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;errno.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-p">;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">thread_1</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pthread_detach</span><span class="tok-p">(</span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">""</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">thread_1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">ESRCH</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"No thread with the ID thread could be found.</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">EINVAL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"thread is not a joinable thread or Another thread is already waiting to join with this thread</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$ ./join.out
+thread is not a joinable thread or Another thread is already waiting to join with this thread
+</code></pre></div><p>在上面的程序当中我们在一个 detached 状态的线程上使用 pthread_join 函数，因此函数的返回值是 EINVAL 表示线程不是一个 joinable 的线程。</p>
+<p>在上面的程序当中 pthread_self() 返回当前正在执行的线程，返回的数据类型是 pthread_t ，函数 pthread_detach(thread) 的主要作用是将传入的线程 thread 的状态变成 detached 状态。</p>
+<p>我们再来看一个错误的例子，我们在一个无效的线程上调用 pthread_join 函数</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;error.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;errno.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-p">;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">thread_1</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pthread_detach</span><span class="tok-p">(</span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">""</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">thread_1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">ESRCH</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"No thread with the ID thread could be found.</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">EINVAL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"thread is not a joinable thread or Another thread is already waiting to join with this thread</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$./oin01.out
+No thread with the ID thread could be found.
+</code></pre></div><p>在上面的程序当中我们并没有使用 t2 创建一个线程但是在主线程执行的代码当中，我们使用 pthread_join 去等待他，因此函数的返回值是一个 EINVAL 。</p>
+<p>我们再来看一个使用 retval 例子：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_exit</span><span class="tok-p">((</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-mi">100</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">ret</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"ret = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">u_int64_t</span><span class="tok-p">)(</span><span class="tok-n">ret</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$./understandthread/join03.out
+ret = 100
+</code></pre></div><p>在上面的程序当中我们使用一个参数 ret 去获取线程的退出码，从上面的结果我们可以知道，我们得到了正确的结果。</p>
+<p>如果我们没有在线程执行的函数当中使用 pthread_exit 函数当中明确的指出线程的退出码，线程的退出码就是函数的返回值。比如下面的的程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-mi">100</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">ret</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"ret = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">u_int64_t</span><span class="tok-p">)(</span><span class="tok-n">ret</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果也是 100 ，这与我们期待的结果是一致的。</p>
+<h2 id="获取线程的栈帧和pc值">获取线程的栈帧和PC值</h2>
+<p>在多线程的程序当中，每个线程拥有自己的栈帧和PC寄存器（执行的代码的位置，在 x86_86 里面就是 rip 寄存器的值）。在下面的程序当中我们可以得到程序在执行时候的三个寄存器 rsp, rbp, rip 的值，我们可以看到，两个线程执行时候的输出是不一致的，这个也从侧面反映出来线程是拥有自己的栈帧和PC值的。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-n">u_int64_t</span><span class="tok-w"> </span><span class="tok-n">rsp</span><span class="tok-p">;</span>
+<span class="tok-n">u_int64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+<span class="tok-n">u_int64_t</span><span class="tok-w"> </span><span class="tok-n">rip</span><span class="tok-p">;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">find_rip</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"movq 8(%%rbp), %0;"</span>
+<span class="tok-w">    </span><span class="tok-o">:</span><span class="tok-s">"=r"</span><span class="tok-p">(</span><span class="tok-n">rip</span><span class="tok-p">)</span><span class="tok-o">::</span>
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In func</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span><span class="tok-w">             </span>\
+<span class="tok-w">    </span><span class="tok-s">"movq %%rsp, %0;"</span><span class="tok-w">       </span>\
+<span class="tok-w">    </span><span class="tok-s">"movq %%rbp, %1;"</span><span class="tok-w">       </span>\
+<span class="tok-w">    </span><span class="tok-o">:</span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rsp</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rbp</span><span class="tok-p">)</span><span class="tok-o">::</span><span class="tok-w"> </span>\
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">find_rip</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"stack frame: rsp = %p rbp = %p rip = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rsp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rbp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">rip</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"================</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span><span class="tok-w">             </span>\
+<span class="tok-w">    </span><span class="tok-s">"movq %%rsp, %0;"</span><span class="tok-w">       </span>\
+<span class="tok-w">    </span><span class="tok-s">"movq %%rbp, %1;"</span><span class="tok-w">       </span>\
+<span class="tok-w">    </span><span class="tok-o">:</span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rsp</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rbp</span><span class="tok-p">)</span><span class="tok-o">::</span><span class="tok-w"> </span>\
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">find_rip</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"stack frame: rsp = %p rbp = %p rip = %p</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rsp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rbp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">rip</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"================</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>================
+In main
+stack frame: rsp = 0x7ffc47096d50 rbp = 0x7ffc47096d80 rip = 0x4006c6
+================
+In func
+stack frame: rsp = 0x7f0a60d43ee0 rbp = 0x7f0a60d43ef0 rip = 0x400634
+</code></pre></div><p>从上面的结果来看主线程和线程 t 执行的是不同的函数，而且两个函数的栈帧差距还是很大的，我们计算一下 0x7ffc47096d80 - 0x7f0a60d43ef0 = 1038949363344 = 968G 的内存，因此很明显这两个线程使用的是不同的栈帧。</p>
+<h2 id="线程的线程号">线程的线程号</h2>
+<p>在 pthread 当中的一个线程对应一个内核的线程，内核和 pthread 都给线程维护了一个线程的 id 号，我们可以使用 gettid 获取操作系统给我们维护的线程号，使用函数 pthread_self 得到 pthread 线程库给我们维护的线程号！</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pthread id = %ld tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)</span><span class="tok-n">gettid</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>pthread id = 140063790135040 tid = 161643
+</code></pre></div><h2 id="线程与信号">线程与信号</h2>
+<p>在 pthread 库当中主要给我们提供了一些函数用于信号处理，我们在 pthread 库当中可以通过函数 pthread_kill 给其他的进程发送信号。</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code> 1) SIGHUP	 2) SIGINT	 3) SIGQUIT	 4) SIGILL	 5) SIGTRAP
+ 6) SIGABRT	 7) SIGBUS	 8) SIGFPE	 9) SIGKILL	10) SIGUSR1
+11) SIGSEGV	12) SIGUSR2	13) SIGPIPE	14) SIGALRM	15) SIGTERM
+16) SIGSTKFLT	17) SIGCHLD	18) SIGCONT	19) SIGSTOP	20) SIGTSTP
+21) SIGTTIN	22) SIGTTOU	23) SIGURG	24) SIGXCPU	25) SIGXFSZ
+26) SIGVTALRM	27) SIGPROF	28) SIGWINCH	29) SIGIO	30) SIGPWR
+31) SIGSYS	34) SIGRTMIN	35) SIGRTMIN+1	36) SIGRTMIN+2	37) SIGRTMIN+3
+38) SIGRTMIN+4	39) SIGRTMIN+5	40) SIGRTMIN+6	41) SIGRTMIN+7	42) SIGRTMIN+8
+43) SIGRTMIN+9	44) SIGRTMIN+10	45) SIGRTMIN+11	46) SIGRTMIN+12	47) SIGRTMIN+13
+48) SIGRTMIN+14	49) SIGRTMIN+15	50) SIGRTMAX-14	51) SIGRTMAX-13	52) SIGRTMAX-12
+53) SIGRTMAX-11	54) SIGRTMAX-10	55) SIGRTMAX-9	56) SIGRTMAX-8	57) SIGRTMAX-7
+58) SIGRTMAX-6	59) SIGRTMAX-5	60) SIGRTMAX-4	61) SIGRTMAX-3	62) SIGRTMAX-2
+63) SIGRTMAX-1	64) SIGRTMAX
+</code></pre></div><p>我们可以在一个线程当中响应其他线程发送过来的信号，并且响应信号处理函数，在使用具体的例子深入了解线程的信号机制之前，首先我们需要了解到的是在 pthread 多线程的程序当中所有线程是共享信号处理函数的，如果在一个线程当中修改了信号处理函数，这个结果是会影响其他线程的。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;signal.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;string.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">sig</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">[</span><span class="tok-mi">1024</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">sprintf</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"signo = %d tid = %d pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gettid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-n">STDOUT_FILENO</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strlen</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(;;);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGHUP</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGTERM</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGSEGV</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_kill</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGHUP</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>pthread tid = 140571386894080
+signo = 1 tid = 7785 pthread tid = 140571386894080
+</code></pre></div><p>在上面的程序当中，我们首先在主函数里面重新定义了几个信号的处理函数，将 SIGHUP、SIGTERM 和 SIGSEGV 信号的处理函数全部声明为函数 sig ，进程当中的线程接受到这个信号的时候就会调用对应的处理函数，在上面的程序当中主线程会给线程 t 发送一个 SIGHUP 信号，根据前面信号和数据对应关系我们可以知道 SIGHUP 对应的信号的数字等于 1 ，我们在信号处理函数当中确实得到了这个信号。</p>
+<p>除此之外我们还可以设置线程自己的信号掩码，在前文当中我们已经提到了，每个线程都拥有线程自己的掩码，因此在下面的程序当中只有线程 2 响应了主线程发送的 SIGTERM 信号。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;signal.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;string.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">sig</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">[</span><span class="tok-mi">1024</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">sprintf</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"signo = %d tid = %d pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gettid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-n">STDOUT_FILENO</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strlen</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">sigset_t</span><span class="tok-w"> </span><span class="tok-n">set</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">sigemptyset</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">set</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sigaddset</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGTERM</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_sigmask</span><span class="tok-p">(</span><span class="tok-n">SIG_BLOCK</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 上面的代码的功能是阻塞 SIGTERM 这个信号 当这个信号传输过来的时候不会立即执行信号处理函数</span>
+<span class="tok-w">  </span><span class="tok-c1">// 而是会等到将这个信号变成非阻塞的时候才会响应</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"func : pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(;;);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func02</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"func02 : pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(;;);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGTERM</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func02</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_kill</span><span class="tok-p">(</span><span class="tok-n">t1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGTERM</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_kill</span><span class="tok-p">(</span><span class="tok-n">t2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGTERM</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中我们创建了两个线程并且定义了 SIGTERM 的信号处理函数，在线程 1 执行的函数当中修改了自己阻塞的信号集，将 SIGTERM 变成了一种阻塞信号，也就是说当线程接受到 SIGTERM 的信号的时候不会立即调用 SIGTERM 的信号处理函数，只有将这个信号变成非阻塞的时候才能够响应这个信号，执行对应的信号处理函数，但是线程 t2 并没有阻塞信号 SIGTERM ，因此线程 t2 会执行对应的信号处理函数，上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>func : pthread tid = 139887896323840
+func02 : pthread tid = 139887887931136
+signo = 15 tid = 10652 pthread tid = 139887887931136
+</code></pre></div><p>根据上面程序的输出结果我们可以知道线程 t2 确实调用了信号处理函数（根据 pthread tid ）可以判断，而线程 t1 没有执行信号处理函数。</p>
+<p>在上文当中我们还提到了在一个进程当中，所有的线程共享同一套信号处理函数，如果在一个线程里面重新定义了一个信号的处理函数，那么他将会影响其他的线程，比如下面的程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;signal.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;string.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">sig</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">[</span><span class="tok-mi">1024</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">sprintf</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"signo = %d tid = %d pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gettid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-n">STDOUT_FILENO</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strlen</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">sig2</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">signo</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s">"thread-defined</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-n">STDOUT_FILENO</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strlen</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGSEGV</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(;;);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func02</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">arg</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pthread tid = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(;;);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">signal</span><span class="tok-p">(</span><span class="tok-n">SIGSEGV</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">t2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">t2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func02</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_kill</span><span class="tok-p">(</span><span class="tok-n">t2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGSEGV</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>pthread tid = 140581246330624
+pthread tid = 140581237937920
+thread-defined
+</code></pre></div><p>从上面程序输出的结果我们可以看到线程 t2 执行的信号处理函数是 sig2 而这个信号处理函数是在线程 t1 执行的函数 func 当中进行修改的，可以看到线程 t1 修改的结果确实得到了响应，从这一点也可以看出，如果一个线程修改信号处理函数是会影响到其他的线程的。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了一些基础了线程自己的特性，并且使用一些例子去验证了这些特性，帮助我们从根本上去理解线程，其实线程涉及的东西实在太多了，在本篇文章里面只是列举其中的部分例子进行使用说明，在后续的文章当中我们会继续深入的去谈这些机制，比如线程的调度，线程的取消，线程之间的同步等等。</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-03pthread/"><span>较新</span>Pthread 并发编程（三）——深入理解线程取消机制</a><a class="next" href="/posts/cscore-concurrency-02openmp/"><span>较旧</span>OpenMP 教程（一）——OpenMP 当中的 reduction 子句</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#线程的基本元素">线程的基本元素</a></li>
+      <li class="toc-l2"><a href="#线程等待">线程等待</a></li>
+      <li class="toc-l2"><a href="#获取线程的栈帧和pc值">获取线程的栈帧和PC值</a></li>
+      <li class="toc-l2"><a href="#线程的线程号">线程的线程号</a></li>
+      <li class="toc-l2"><a href="#线程与信号">线程与信号</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

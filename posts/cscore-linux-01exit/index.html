@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C语言中这么骚的退出程序的方式你知道几个？ · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍C语言当中一些不常用的特性，比如在 main 函数之前和之后设置我们想要执行的函数，以及各种花式退出程序的方式。 main函数是最先执行和最后执行的函数吗？ C语言构造和析构函数 通常我们在写C程序的时候都是从 main 函数开始写，因此我们可能没人有关心过这个问题">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>C语言中这么骚的退出程序的方式你知道几个？</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-18">2022-10-18</time>
+        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍C语言当中一些不常用的特性，比如在<code>main</code>函数之前和之后设置我们想要执行的函数，以及各种花式退出程序的方式。</p>
+<h2 id="main函数是最先执行和最后执行的函数吗">main函数是最先执行和最后执行的函数吗？</h2>
+<h3 id="c语言构造和析构函数">C语言构造和析构函数</h3>
+<p>通常我们在写C程序的时候都是从<code>main</code>函数开始写，因此我们可能没人有关心过这个问题，事实上是main函数不是程序第一个执行的函数，也不是程序最后一个执行的函数。</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"before main funciton</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main funciton</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们编译上面的代码然后执行，输出结果如下图所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>code<span class="tok-w"> </span>git:<span class="tok-o">(</span>main<span class="tok-o">)</span><span class="tok-w"> </span>./init.out<span class="tok-w"> </span>
+before<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main<span class="tok-w"> </span>funciton
+</code></pre></div><p>由此可见main函数并不是第一个被执行的函数，那么程序第一次执行的函数是什么呢？很简单我们看一下程序的调用栈即可。</p>
+<p><img src="/content/zh/images/cscore/images/programming/01.webp" alt="01" loading="lazy" /></p>
+<p>从上面的结果可以知道，程序第一个执行的函数是<code>_start</code>，这是在类Unix操作系统上执行的第一个函数。</p>
+<p>那么main函数是程序执行的最后一个函数吗？我们看下面的代码：</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面程序的输出结果如下：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>code<span class="tok-w"> </span>git:<span class="tok-o">(</span>main<span class="tok-o">)</span><span class="tok-w"> </span>./out.out<span class="tok-w"> </span>
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>init
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main
+this<span class="tok-w"> </span>is<span class="tok-w"> </span><span class="tok-nb">exit</span>
+</code></pre></div><p>由此可见main函数也不是我们最后执行的函数！事实上我们除了上面的方法之外我们也可以在libc当中注册一些函数，让程序在main函数之后，退出执行前执行这些函数。</p>
+<h3 id="on_exit和atexit函数">on_exit和atexit函数</h3>
+<p>我们可以使用上面两个函数进行函数的注册，让程序退出之前执行我们指定的函数</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>this<span class="tok-w"> </span>is<span class="tok-w"> </span>init
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span><span class="tok-nb">exit</span>
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>on<span class="tok-w"> </span><span class="tok-nb">exit</span>
+this<span class="tok-w"> </span>is<span class="tok-w"> </span><span class="tok-nb">exit</span>
+</code></pre></div><p>我们可以仔细分析一下上面程序执行的顺序。首先是执构造函数，然后执行 atexit 注册的函数，再执行 on_exit 注册的函数，最后执行析构函数。从上面程序的输出我们可以知道我们注册的函数生效了，但是需要注意一个问题，先注册的函数后执行，不管是使用 atexit 还是 on_exit 函数。我们现在看下面的代码：</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 调换下面两行的顺序</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码输出如下：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>this<span class="tok-w"> </span>is<span class="tok-w"> </span>init
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>on<span class="tok-w"> </span><span class="tok-nb">exit</span>
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span><span class="tok-nb">exit</span>
+this<span class="tok-w"> </span>is<span class="tok-w"> </span><span class="tok-nb">exit</span>
+</code></pre></div><p>从输出的结果看确实和上面我们提到的规则一样，先注册的函数后执行。这一点再linux程序员开发手册里面也提到了。</p>
+<p><img src="/content/zh/images/cscore/images/programming/02.webp" alt="01" loading="lazy" /></p>
+<p>但是这里有一点需要注意的是我们应该尽可能使用atexit函数，而不是使用on_exit函数，因为atexit函数是标准规定的，而on_exit并不是标准规定的。</p>
+<h3 id="exit和_exit函数">exit和_exit函数</h3>
+<p>其中exit函数是libc给我们提供的函数，我们可以使用这个函数正常的终止程序的执行，而且我们在前面注册的函数还是能够被执行。比如在下面的代码当中：</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// _exit(1);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的函数执行结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>this<span class="tok-w"> </span>is<span class="tok-w"> </span>init1
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>init2
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span>exit2
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>at<span class="tok-w"> </span>exit1
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>on<span class="tok-w"> </span>exit2
+this<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>on<span class="tok-w"> </span>exit1
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>exit2
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>exit1
+</code></pre></div><p>可以看到我们的代码被正常执行啦。</p>
+<p>但是_exit是一个系统调用，当执行这个方法的时候程序会被直接终止，我们看下面的代码：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// _exit(1);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">_exit</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 只改了这个函数 从 exit 变成 _exit</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>this<span class="tok-w"> </span>is<span class="tok-w"> </span>init1
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>init2
+this<span class="tok-w"> </span>is<span class="tok-w"> </span>main
+</code></pre></div><p>可以看到我们注册的函数和最终的析构函数都没有被执行，程序直接退出啦。</p>
+<h3 id="花式退出">花式退出</h3>
+<p>出了上面的<code>_exit</code>函数之外，我们还可以使用其他的方式直接退出程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/syscall.h&gt;</span><span class="tok-w"> </span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// _exit(1);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">syscall</span><span class="tok-p">(</span><span class="tok-n">SYS_exit</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 和 _exit 效果一样</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>出了上面直接调用函数的方法退出函数，我们还可以使用内联汇编退出函数，比如在64位操作系统我们可以使用下面的代码退出程序：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">#include &lt;stdio.h&gt;</span>
+<span class="tok-c1">#include &lt;stdlib.h&gt;</span>
+<span class="tok-c1">#include &lt;unistd.h&gt;</span>
+<span class="tok-c1">#include &lt;sys/syscall.h&gt; </span>
+
+void<span class="tok-w"> </span>__attribute__<span class="tok-o">((</span>destructor<span class="tok-o">))</span><span class="tok-w"> </span>__exit1<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this is exit1\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+void<span class="tok-w"> </span>__attribute__<span class="tok-o">((</span>destructor<span class="tok-o">))</span><span class="tok-w"> </span>__exit2<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this is exit2\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+
+void<span class="tok-w"> </span>__attribute__<span class="tok-o">((</span>constructor<span class="tok-o">))</span><span class="tok-w"> </span>init1<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this is init1\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+
+void<span class="tok-w"> </span>__attribute__<span class="tok-o">((</span>constructor<span class="tok-o">))</span><span class="tok-w"> </span>init2<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this is init2\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+void<span class="tok-w"> </span>on__exit1<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this in on exit1\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+void<span class="tok-w"> </span>at__exit1<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this in at exit1\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+void<span class="tok-w"> </span>on__exit2<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this in on exit2\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+void<span class="tok-w"> </span>at__exit2<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this in at exit2\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+
+
+int<span class="tok-w"> </span>main<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">{</span>
+<span class="tok-w">  </span>//<span class="tok-w"> </span>_exit<span class="tok-o">(</span><span class="tok-m">1</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>on_exit<span class="tok-o">(</span>on__exit1,<span class="tok-w"> </span>NULL<span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>on_exit<span class="tok-o">(</span>on__exit2,<span class="tok-w"> </span>NULL<span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>atexit<span class="tok-o">(</span>at__exit1<span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>atexit<span class="tok-o">(</span>at__exit2<span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>printf<span class="tok-o">(</span><span class="tok-s2">"this is main\n"</span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>asm<span class="tok-o">(</span>
+<span class="tok-w">    </span><span class="tok-s2">"movq </span><span class="tok-nv">$60</span><span class="tok-s2">, %%rax;"</span>
+<span class="tok-w">    </span><span class="tok-s2">"movq </span><span class="tok-nv">$1</span><span class="tok-s2">, %%rdi;"</span>
+<span class="tok-w">    </span><span class="tok-s2">"syscall;"</span>
+<span class="tok-w">    </span>:::<span class="tok-s2">"eax"</span>
+<span class="tok-w">  </span><span class="tok-o">)</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-p">;</span>
+<span class="tok-o">}</span>
+</code></pre></div><p>上面是在64位操作系统退出程序的汇编实现，在64为系统上退出程序的系统调用号为60。下面我们使用32位操作系统上的汇编实现程序退出，在32位系统上退出程序的系统调用号等于1：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/syscall.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">destructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">__attribute__</span><span class="tok-p">((</span><span class="tok-n">constructor</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-n">init2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is init2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit1</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit1</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">on__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in on exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">at__exit2</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this in at exit2</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// _exit(1);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">on_exit</span><span class="tok-p">(</span><span class="tok-n">on__exit2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">atexit</span><span class="tok-p">(</span><span class="tok-n">at__exit2</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"this is main</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"movl $1, %%eax;"</span>
+<span class="tok-w">    </span><span class="tok-s">"movl $1, %%edi;"</span>
+<span class="tok-w">    </span><span class="tok-s">"int $0x80;"</span>
+<span class="tok-w">    </span><span class="tok-o">:::</span><span class="tok-s">"eax"</span>
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍C语言当中一些与程序退出的骚操作，希望大家有所收获！</p>
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-17threadpoolimplementation/"><span>较新</span>自己动手写乞丐版线程池</a><a class="next" href="/posts/cscore-concurrency-16retalkingthreadpool/"><span>较旧</span>再谈线程池——深入剖析线程池的前世今生</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#main函数是最先执行和最后执行的函数吗">main函数是最先执行和最后执行的函数吗？</a></li>
+      <li class="toc-l3"><a href="#c语言构造和析构函数">C语言构造和析构函数</a></li>
+      <li class="toc-l3"><a href="#on_exit和atexit函数">on_exit和atexit函数</a></li>
+      <li class="toc-l3"><a href="#exit和_exit函数">exit和_exit函数</a></li>
+      <li class="toc-l3"><a href="#花式退出">花式退出</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP Parallel Construct 实现原理与源码分析 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中我们将主要分析 OpenMP 当中的 parallel construct 具体时如何实现的，以及这个 construct 调用了哪些运行时库函数，并且详细分析这期间的参数传递！ Parallel 分析——编译器角度 在本小节当中我们将从编译器的角度去分析该如何处理 parall">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP Parallel Construct 实现原理与源码分析</h1>
+      <p class="post-meta">
+        <time datetime="2023-01-25">2023-01-25</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中我们将主要分析 OpenMP 当中的 parallel construct 具体时如何实现的，以及这个 construct 调用了哪些运行时库函数，并且详细分析这期间的参数传递！</p>
+<h2 id="parallel-分析编译器角度">Parallel 分析——编译器角度</h2>
+<p>在本小节当中我们将从编译器的角度去分析该如何处理 parallel construct 。首先从词法分析和语法分析的角度来说这对编译器并不难，只需要加上一些处理规则，关键是编译器将一个 parallel construct 具体编译成了什么？</p>
+<p>下面是一个非常简单的 parallel construct。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#pragma omp parallel</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">body</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>编译器在遇到上面的 parallel construct 之后会将代码编译成下面的样子：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">subfunction</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">use</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">body</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-n">setup</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-n">GOMP_parallel_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">subfunction</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">);</span>
+<span class="tok-n">subfunction</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-n">GOMP_parallel_end</span><span class="tok-w"> </span><span class="tok-p">();</span>
+</code></pre></div><p>首先 parallel construct 中的代码块会被编译成一个函数 sub function，当然了函数名不一定是这个，然后会在使用 <code>#pragma omp parallel</code> 的函数当中将一个 parallel construct 编译成 OpenMP 动态库函数的调用，在上面的伪代码当中也指出了，具体会调用 OpenMP 的两个库函数 GOMP_parallel_start 和 GOMP_parallel_end ，并且主线程也会调用函数 subfunction ，我们在后面的文章当中在仔细分析这两个动态库函数的源代码。</p>
+<h2 id="深入剖析-parallel-动态库函数参数传递">深入剖析 Parallel 动态库函数参数传递</h2>
+<h3 id="动态库函数分析">动态库函数分析</h3>
+<p>在本小节当中，我们主要去分析一下在 OpenMP 当中共享参数是如何传递的，以及介绍函数 GOMP_parallel_start 的几个参数的含义。</p>
+<p>首先我们分析函数 GOMP_parallel_start 的参数含义，这个函数的函数原型如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-n">GOMP_parallel_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">fn</span><span class="tok-p">)(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">)</span>
+</code></pre></div><p>上面这个函数一共有三个参数：</p>
+<ul>
+<li>第一个参数 fn 是一个函数指针，主要是用于指向上面编译出来的 subfunction 这个函数的，因为需要多个线程同时执行这个函数，因此需要将这个函数传递过去，让不同的线程执行。</li>
+<li>第二个参数是传递的数据，我们在并行域当中会使用到共享的或者私有的数据，这个指针主要是用于传递数据的，我们在后面会仔细分析这个参数的使用。</li>
+<li>第三个参数是表示 num_threads 子句指定的线程个数，如果不指定这个子句默认的参数是 0 ，但是如果你使用了 IF 子句并且条件是 false 的话，那么这个参数的值就是 1 。</li>
+<li>这个函数的主要作用是启动一个或者多个线程，并且执行函数 fn 。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-n">GOMP_parallel_end</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-p">)</span>
+</code></pre></div><ul>
+<li>这个函数的主要作用是进行线程的同步，因为一个 parallel 并行域需要等待所有的线程都执行完成之后才继续往后执行。除此之外还需要释放线程组的资源并行返回到之前的 omp_in_parallel() 表示的状态。</li>
+</ul>
+<h3 id="参数传递分析">参数传递分析</h3>
+<p>我们现在使用下面的代码来具体分析参数传递过程：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">"omp.h"</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">two</span><span class="tok-w">  </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">-100</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"start</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-cp">#pragma omp parallel num_threads(4) default(none) shared(data, two)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"tid = %d data = %d two = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">two</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"finished</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们首先来分析一下上面的两个变量 data 和 two 的是如何被传递的，我们首先用图的方式进行表示，然后分析一下汇编程序并且对图进行验证。</p>
+<p>上面的代码当中两个变量 <code>data</code> 和 <code>two</code> 在内存当中的布局结构大致如下所示（假设 data 的初始位置时 0x0）：</p>
+<p><img src="/content/zh/images/cscore/images/openmp/12.webp" alt="14" loading="lazy" /></p>
+<p>那么在函数 GOMP_parallel_start 当中传递的参数 data 就是 0x0 也就是指向 data 的内存地址，如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/openmp/13.webp" alt="14" loading="lazy" /></p>
+<p>那么根据上面参数传递的情况，我们就可以在 subfunction 当中使用 *(int*)data 得到 data 的值，使用 *((int*) ((char*)data + 4)) 得到 two 的值，如果是 private 传递的话我们就可以先拷贝这个数据再使用，如果是 shared 的话，那么我们就可以直接使用指针就行啦。</p>
+<p>上面的程序我们用 pthread 大致描述一下，则 pthread 对应的代码如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">"pthread.h"</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">"stdio.h"</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">"stdint.h"</span>
+
+<span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">data_in_main_function</span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">two</span><span class="tok-p">;</span>
+<span class="tok-p">}</span><span class="tok-n">data_in_main_function</span><span class="tok-p">;</span>
+
+<span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">threads</span><span class="tok-p">[</span><span class="tok-mi">4</span><span class="tok-p">];</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">subfunction</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">two</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">data_in_main_function</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">data</span><span class="tok-p">)</span><span class="tok-o">-&gt;</span><span class="tok-n">two</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data_</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">data_in_main_function</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">data</span><span class="tok-p">)</span><span class="tok-o">-&gt;</span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"tid = %ld data = %d two = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pthread_self</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">data_</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">two</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 在主函数申请 8 个字节的栈空间</span>
+<span class="tok-w">  </span><span class="tok-n">data_in_main_function</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-n">two</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">-100</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">threads</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">subfunction</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">threads</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="汇编程序分析">汇编程序分析</h2>
+<p>在本节当中我们将仔细去分析上面的程序所产生的汇编程序，在本文当中的汇编程序基础 x86_64 平台。在分析汇编程序之前我们首先需要了解一下 x86函数的调用规约，具体来说就是在进行函数调用的时候哪些寄存器保存函数参数以及是第几个函数参数。具体的规则如下所示：</p>
+<table>
+<thead>
+<tr>
+<th>寄存器</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rdi</td>
+<td>第一个参数</td>
+</tr>
+<tr>
+<td>rsi</td>
+<td>第二个参数</td>
+</tr>
+<tr>
+<td>rdx</td>
+<td>第三个参数</td>
+</tr>
+<tr>
+<td>rcx</td>
+<td>第四个参数</td>
+</tr>
+<tr>
+<td>r8</td>
+<td>第五个参数</td>
+</tr>
+<tr>
+<td>r9</td>
+<td>第六个参数</td>
+</tr>
+</tbody>
+</table>
+<p>我们现在仔细分析一下上面的程序的 main 函数的反汇编程序：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">00000000004006</span><span class="tok-nf">cd</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-no">main</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">cd:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">ce:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">d1:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">83</span><span class="tok-w"> </span><span class="tok-nf">ec</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-w">             </span><span class="tok-no">sub</span><span class="tok-w">    </span><span class="tok-no">$0x10</span><span class="tok-p">,</span><span class="tok-nv">%rsp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">d5:</span><span class="tok-w">       </span><span class="tok-nf">c7</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w"> </span><span class="tok-mi">64</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">movl</span><span class="tok-w">   </span><span class="tok-no">$0x64</span><span class="tok-p">,-</span><span class="tok-mi">0x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">dc:</span><span class="tok-w">       </span><span class="tok-nf">c7</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w"> </span><span class="tok-mi">9</span><span class="tok-no">c</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">    </span><span class="tok-no">movl</span><span class="tok-w">   </span><span class="tok-no">$0xffffff9c</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">e3:</span><span class="tok-w">       </span><span class="tok-nf">bf</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w"> </span><span class="tok-mi">07</span><span class="tok-w"> </span><span class="tok-mi">40</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x4007f4</span><span class="tok-p">,</span><span class="tok-nv">%edi</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">e8:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">93</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">400580</span> <span class="tok-p">&lt;</span><span class="tok-no">puts@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">ed:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f0:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f3:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f6:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f9:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">             </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">fd:</span><span class="tok-w">       </span><span class="tok-nf">ba</span><span class="tok-w"> </span><span class="tok-mi">04</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x4</span><span class="tok-p">,</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">400702:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c6</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rsi</span>
+<span class="tok-w">  </span><span class="tok-err">400705:</span><span class="tok-w">       </span><span class="tok-nf">bf</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-no">d</span><span class="tok-w"> </span><span class="tok-mi">07</span><span class="tok-w"> </span><span class="tok-mi">40</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x40073d</span><span class="tok-p">,</span><span class="tok-nv">%edi</span>
+<span class="tok-w">  </span><span class="tok-err">40070</span><span class="tok-nl">a:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">61</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">400570</span> <span class="tok-p">&lt;</span><span class="tok-no">GOMP_parallel_start@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">40070</span><span class="tok-nl">f:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">             </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">400713:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c7</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rdi</span>
+<span class="tok-w">  </span><span class="tok-err">400716:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">22</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">40073d</span> <span class="tok-p">&lt;</span><span class="tok-no">main._omp_fn.0</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">40071</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">70</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">400590</span> <span class="tok-p">&lt;</span><span class="tok-no">GOMP_parallel_end@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">400720:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">400723:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">400726:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">400729:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f8</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">40072</span><span class="tok-nl">c:</span><span class="tok-w">       </span><span class="tok-nf">bf</span><span class="tok-w"> </span><span class="tok-no">fa</span><span class="tok-w"> </span><span class="tok-mi">07</span><span class="tok-w"> </span><span class="tok-mi">40</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x4007fa</span><span class="tok-p">,</span><span class="tok-nv">%edi</span>
+<span class="tok-w">  </span><span class="tok-err">400731:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-no">a</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">400580</span> <span class="tok-p">&lt;</span><span class="tok-no">puts@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">400736:</span><span class="tok-w">       </span><span class="tok-nf">b8</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x0</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">40073</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-nf">c9</span><span class="tok-w">                      </span><span class="tok-no">leaveq</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-mi">40073</span><span class="tok-no">c</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-no">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+</code></pre></div><p>从上面的反汇编程序我们可以看到在主函数的汇编代码当中确实调用了函数 GOMP_parallel_start 和 GOMP_parallel_end，并且 subfunction 为 main._omp_fn.0 ，它对应的汇编程序如下所示：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">000000000040073</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-no">main._omp_fn.0</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">40073</span><span class="tok-nl">d:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">40073</span><span class="tok-nl">e:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">400741:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">83</span><span class="tok-w"> </span><span class="tok-nf">ec</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-w">             </span><span class="tok-no">sub</span><span class="tok-w">    </span><span class="tok-no">$0x10</span><span class="tok-p">,</span><span class="tok-nv">%rsp</span>
+<span class="tok-w">  </span><span class="tok-err">400745:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rdi</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">400749:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">52</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">4005a0</span> <span class="tok-p">&lt;</span><span class="tok-no">omp_get_thread_num@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">40074</span><span class="tok-nl">e:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">55</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rdx</span>
+<span class="tok-w">  </span><span class="tok-err">400752:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-no">a</span><span class="tok-w"> </span><span class="tok-mi">04</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">0x4</span><span class="tok-p">(</span><span class="tok-nv">%rdx</span><span class="tok-p">),</span><span class="tok-nv">%ecx</span>
+<span class="tok-w">  </span><span class="tok-err">400755:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">55</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rdx</span>
+<span class="tok-w">  </span><span class="tok-err">400759:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rdx</span><span class="tok-p">),</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">40075</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c6</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%esi</span>
+<span class="tok-w">  </span><span class="tok-err">40075</span><span class="tok-nl">d:</span><span class="tok-w">       </span><span class="tok-nf">bf</span><span class="tok-w"> </span><span class="tok-mi">03</span><span class="tok-w"> </span><span class="tok-mi">08</span><span class="tok-w"> </span><span class="tok-mi">40</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x400803</span><span class="tok-p">,</span><span class="tok-nv">%edi</span>
+<span class="tok-w">  </span><span class="tok-err">400762:</span><span class="tok-w">       </span><span class="tok-nf">b8</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-no">$0x0</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">400767:</span><span class="tok-w">       </span><span class="tok-nf">e8</span><span class="tok-w"> </span><span class="tok-mi">44</span><span class="tok-w"> </span><span class="tok-no">fe</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">          </span><span class="tok-no">callq</span><span class="tok-w">  </span><span class="tok-mh">4005b0</span> <span class="tok-p">&lt;</span><span class="tok-no">printf@plt</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">40076</span><span class="tok-nl">c:</span><span class="tok-w">       </span><span class="tok-nf">c9</span><span class="tok-w">                      </span><span class="tok-no">leaveq</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-mi">40076</span><span class="tok-no">d</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-no">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+<span class="tok-w">  </span><span class="tok-mi">40076</span><span class="tok-no">e</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-mi">66</span><span class="tok-w"> </span><span class="tok-mi">90</span><span class="tok-w">                   </span><span class="tok-no">xchg</span><span class="tok-w">   </span><span class="tok-nv">%ax</span><span class="tok-p">,</span><span class="tok-nv">%ax</span>
+</code></pre></div><h3 id="gomp_parallel_start-详细参数分析">GOMP_parallel_start 详细参数分析</h3>
+<ul>
+<li>
+<p><code>void (*fn)(void *)</code>， 我们现在来看一下函数 GOMP_parallel_start 的第一个参数，根据我们前面谈到的第一个参数应该保存在 rdi 寄存器，我们现在分析一下在 main 函数的反汇编程序当中在调用函数 GOMP_parallel_start 之前 rdi 寄存器的值。我们可以看到在 main 函数位置为 4006f8 的地方的指令  <code>mov $0x40073d,%edi</code> 可以看到 rdi 寄存器的值为 0x40073d （edi 寄存器是 rdi 寄存器的低 32 位），我们可以看到 函数 main._omp_fn.0 的起始地址就是 0x40073d ，因此我们就可以在函数 GOMP_parallel_start 使用这个函数指针了，最终在启动的线程当中调用这个函数。</p>
+</li>
+<li>
+<p><code>void *data</code>，这是函数 GOMP_parallel_start 的第二个参数，根据前面的分析第二个参数保存在 rsi 寄存器当中，我现在将 main 数当中和 rsi 相关的指令选择出来：</p>
+</li>
+</ul>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">00000000004006</span><span class="tok-nf">cd</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-no">main</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">cd:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">ce:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">d1:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">83</span><span class="tok-w"> </span><span class="tok-nf">ec</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-w">             </span><span class="tok-no">sub</span><span class="tok-w">    </span><span class="tok-no">$0x10</span><span class="tok-p">,</span><span class="tok-nv">%rsp</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">d5:</span><span class="tok-w">       </span><span class="tok-nf">c7</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w"> </span><span class="tok-mi">64</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">movl</span><span class="tok-w">   </span><span class="tok-no">$0x64</span><span class="tok-p">,-</span><span class="tok-mi">0x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">dc:</span><span class="tok-w">       </span><span class="tok-nf">c7</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w"> </span><span class="tok-mi">9</span><span class="tok-no">c</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w"> </span><span class="tok-no">ff</span><span class="tok-w">    </span><span class="tok-no">movl</span><span class="tok-w">   </span><span class="tok-no">$0xffffff9c</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">ed:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f0:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f3:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f6:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4006</span><span class="tok-nl">f9:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">             </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">400702:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c6</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rsi</span>
+</code></pre></div><p>上面的汇编程序的栈空间以及在调用函数之前 GOMP_parallel_start 部分寄存器的指向如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/openmp/14.webp" alt="14" loading="lazy" /></p>
+<p>最终在调用函数 GOMP_parallel_start 之前 rsi 寄存器的指向如上图所示，上图当中 rsi 的指向的内存地址作为参数传递过去。根据上文谈到的 subfunction 中的参数可以知道，在函数 main._omp_fn.0 当中的 rdi 寄存器（也就是第一个参数 *data）的值就是上图当中 rsi 寄存器指向的内存地址的值（事实上也就是 rsi 寄存器的值）。大家可以自行对照着函数 main._omp_fn.0  的汇编程序对 rdi 寄存器的使用就可以知道这其中的参数传递的过程了。</p>
+<ul>
+<li><code>unsigned num_threads</code>，根据前文提到的保存第三个参数的寄存器是 rdx，在 main 函数的位置 4006fd 处，指令为 mov $0x4,%edx，这和我们自己写的程序是一致的都是 4 (0x4)。</li>
+</ul>
+<h2 id="动态库函数源码分析">动态库函数源码分析</h2>
+<h3 id="gomp_parallel_start-源码分析">GOMP_parallel_start 源码分析</h3>
+<p>我们首先来看一下函数 GOMP_parallel_start 的源代码：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span>
+<span class="tok-nf">GOMP_parallel_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">fn</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_resolve_num_threads</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">gomp_team_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">fn</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gomp_new_team</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">num_threads</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在这里我们对函数 gomp_team_start 进行分析，其他两个函数 gomp_resolve_num_threads 和 gomp_new_team 只简单进行作用说明，太细致的源码分析其实是没有必要的，感兴趣的同学自行分析即可，我们只需要了解整个执行流程即可。</p>
+<ul>
+<li>gomp_resolve_num_threads，这个函数的主要作用是最终确定需要几个线程去执行任务，因为我们可能并没有使用 num_threads 子句，而且这个值和环境变量也有关系，因此需要对线程的个数进行确定。</li>
+<li>gomp_new_team，这个函数的主要作用是创建包含 num_threads 个线程数据的线程组，并且对数据进行初始化操作。</li>
+<li>gomp_team_start，这个函数的主要作用是启动 num_threads 个线程去执行函数 fn ，这其中涉及一些细节，比如说线程的亲和性（affinity）设置。</li>
+</ul>
+<p>由于 gomp_team_start 的源代码太长了，这里只是节选部分源程序进行分析：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/* Launch new threads.  */</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">nthreads</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">start_data</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">pt</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">err</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">fn</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">fn</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 这行代码就是将 subfunction 函数指针进行保存最终在函数  gomp_thread_start 当中进行调用</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">fn_data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 这里保存函数 subfunction 的函数参数</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">team</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">team</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 线程的所属组</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">work_share</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">work_shares</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">last_work_share</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">team_id</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 线程的 id 我们可以使用函数 omp_get_thread_num 得到这个值</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">prev_ts</span><span class="tok-p">.</span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">thr</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">active_level</span><span class="tok-p">;</span>
+<span class="tok-cp">#ifdef HAVE_SYNC_BUILTINS</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">single_count</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-cp">#endif</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">static_trip</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">task</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">implicit_task</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">      </span><span class="tok-n">gomp_init_task</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">task</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">task</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">icv</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">implicit_task</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">icv</span><span class="tok-p">.</span><span class="tok-n">nthreads_var</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nthreads_var</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">thread_pool</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pool</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">start_data</span><span class="tok-o">-&gt;</span><span class="tok-n">nested</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nested</span><span class="tok-p">;</span>
+<span class="tok-w">			</span><span class="tok-c1">// 如果使用了线程的亲和性那么还需要进行亲和性设置</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">gomp_cpu_affinity</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-n">gomp_init_thread_affinity</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">);</span>
+
+<span class="tok-w">      </span><span class="tok-n">err</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pthread_create</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">pt</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">attr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">gomp_thread_start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">start_data</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">err</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-n">gomp_fatal</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-s">"Thread creation failed: %s"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strerror</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">err</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>上面的程序就是最终启动线程的源程序，可以看到这是一个 for 循环并且启动 nthreads 个线程，<code>pthread_create</code> 是真正创建了线程的代码，并且让线程执行函数 gomp_thread_start 可以看到线程不是直接执行 subfunction 而是将这个函数指针保存到 start_data 当中，并且在函数 gomp_thread_start 真正去调用这个函数，看到这里大家应该明白了整个 parallel construct 的整个流程了。</p>
+<p>gomp_thread_start 的函数题也相对比较长，在这里我们选中其中的比较重要的几行代码，其余的代码进行省略。对比上面线程启动的 pthread_create 语句我们可以知道，下面的程序真正的调用了 subfunction，并且给这个函数传递了对应的参数。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">gomp_thread_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">xdata</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_thread_start_data</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">xdata</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-cm">/* Extract what we need from data.  */</span>
+<span class="tok-w">  </span><span class="tok-n">local_fn</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">-&gt;</span><span class="tok-n">fn</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">local_data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">-&gt;</span><span class="tok-n">fn_data</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">local_fn</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">local_data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="gomp_parallel_end-分析">GOMP_parallel_end 分析</h3>
+<p>这个函数的主要作用就是一个同步点，保证所有的线程都执行完成之后再继续往后执行，这一部分的源代码比较杂，其核心原理就是使用路障 barrier 去实现的，这其中是 OpenMP 自己实现的一个 barrier 而不是直接使用 pthread 当中的 barrier ，这一部分的源程序就不进行仔细分析了，感兴趣的同学可以自行阅读，可以参考 <a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247487476&amp;idx=1&amp;sn=ed37c95595582b049f145576ce4c7060&amp;chksm=cf0c93fdf87b1aeb1ce1aac1b1851b7cccb7cb1f0466b4715c8ec3eb7af27eb71dca1e2d9d1c&amp;token=762829354&amp;lang=zh_CN#rd">OpenMP 锁实现原理</a> 。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了 parallel construct 的实现原理，以及他的动态库函数的调用以及源代码分析，大家只需要了解整个流程不太需要死扣细节（这并无很大的用处）只有当我们自己需要去实现 OpenMP 的时候需要去了解这些细节，不然我们只需要了解整个动态库的设计原理即可！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-09sync/"><span>较新</span>OpenMP 线程同步 Construct 实现原理以及源码分析（上）</a><a class="next" href="/posts/cscore-concurrency-05environment/"><span>较旧</span>OpenMP 环境变量使用总结</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#parallel-分析编译器角度">Parallel 分析——编译器角度</a></li>
+      <li class="toc-l2"><a href="#深入剖析-parallel-动态库函数参数传递">深入剖析 Parallel 动态库函数参数传递</a></li>
+      <li class="toc-l3"><a href="#动态库函数分析">动态库函数分析</a></li>
+      <li class="toc-l3"><a href="#参数传递分析">参数传递分析</a></li>
+      <li class="toc-l2"><a href="#汇编程序分析">汇编程序分析</a></li>
+      <li class="toc-l3"><a href="#gomp_parallel_start-详细参数分析">GOMP_parallel_start 详细参数分析</a></li>
+      <li class="toc-l2"><a href="#动态库函数源码分析">动态库函数源码分析</a></li>
+      <li class="toc-l3"><a href="#gomp_parallel_start-源码分析">GOMP_parallel_start 源码分析</a></li>
+      <li class="toc-l3"><a href="#gomp_parallel_end-分析">GOMP_parallel_end 分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

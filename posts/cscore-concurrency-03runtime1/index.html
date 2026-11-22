@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Openmp Runtime 库函数汇总（上） · Chang-LeHung</title>
+<meta name="description" content="omp_in_parallel，如果当前线程正在并行域内部，则此函数返回true，否则返回false。 复制 #include &lt;stdio.h&gt; #include &lt;omp.h&gt; int main () { printf ( &#34;0&gt; Not In parallel region value = %">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>Openmp Runtime 库函数汇总（上）</h1>
+      <p class="post-meta">
+        <time datetime="2023-01-15">2023-01-15</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <ul>
+<li>omp_in_parallel，如果当前线程正在并行域内部，则此函数返回true，否则返回false。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"0&gt; Not In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">          </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+
+<span class="tok-w">   </span><span class="tok-c1">// 在这里函数返回的 false 在 C 语言当中返回值等于 int 类型的 0</span>
+<span class="tok-w">   </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">omp_in_parallel</span><span class="tok-p">())</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"1&gt; In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">             </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 这里函数的返回值是 1 在 C 语言当中对应 int 类型的 1</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">omp_in_parallel</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"2&gt; In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-m">0</span>&gt;<span class="tok-w"> </span>Not<span class="tok-w"> </span>In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span><span class="tok-nv">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span>In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span><span class="tok-nv">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span>In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span><span class="tok-nv">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+</code></pre></div><p>需要注意的是在上面的函数 omp_in_parallel 使用时需要注意，如果你的并行域只有一个线程的时候 omp_in_parallel 返回的是 false。比如下面的例子：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"0&gt; Not In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">          </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+
+<span class="tok-w">   </span><span class="tok-c1">// 在这里函数返回的 false 在 C 语言当中返回值等于 int 类型的 0</span>
+<span class="tok-w">   </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">omp_in_parallel</span><span class="tok-p">())</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"1&gt; In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">             </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-c1">// 只有一个线程，因此并不会激活并行域</span>
+<span class="tok-w">   </span><span class="tok-cp">#pragma omp parallel num_threads(1) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 这里函数的返回值是 1 在 C 语言当中对应 int 类型的 1</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">omp_in_parallel</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"2&gt; In parallel region value = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">omp_in_parallel</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中，因为并行域当中只有一个线程，因此不会激活，所以即使在 parallel 代码块内不，这个 omp_in_parallel 也不会被触发，上面的程序只会输出第一个 printf 的内容：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-m">0</span>&gt;<span class="tok-w"> </span>Not<span class="tok-w"> </span>In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span><span class="tok-nv">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+</code></pre></div><ul>
+<li>omp_get_thread_num，这个函数的主要作用是用于返回当前并行域的线程组当中的唯一 ID，在一个串行代码当中，这个函数的返回结果之中等于 0 ，在并行域当中这个函数的返回值的区间等于 [0, num_threads - 1]，如果是一个线程组的 master 线程调用这个函数，这个函数的返回值始终是 0，对应的测试代码如下所示：</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Non parallel region: omp_get_thread_num() = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+
+<span class="tok-cp">#pragma omp parallel num_threads(5) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In parallel region: omp_get_thread_num() = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-cp">#pragma omp master</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In parallel region master: omp_get_thread_num() = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Non<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span>master:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">4</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+In<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region:<span class="tok-w"> </span>omp_get_thread_num<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+</code></pre></div><p>在上面的代码当中我们可以看到，在非并行域当中（第一个 printf） 函数的输出结果是 0，在并行域当中程序的输出结果范围是 [0. num_threads]，如果一个线程是 master 线程的话，那么它对应的线程组当中的返回值就是0。</p>
+<ul>
+<li>omp_get_team_size，这个函数的主要作用就是返回一个线程组当中的线程个数。这个函数接受一个参数，他的函数原型为 <code>int omp_get_team_size(int level);</code>，这个参数的 level 的含义就是并行域的嵌套层级，这个参数的范围是 [0, omp_get_level]，如果传入的参数不在这个范围，那么这个函数的返回值为 -1，如果你在一个并行域传入的 level 的参数是  omp_get_level ，那么这个函数的返回值和 omp_get_num_threads 的返回值相等。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">omp_set_nested</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">();</span>
+<span class="tok-w">   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_team_size</span><span class="tok-p">(</span><span class="tok-n">level</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Non parallel region : level = %d size = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">);</span>
+
+<span class="tok-cp">#pragma omp parallel num_threads(5) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_team_size</span><span class="tok-p">(</span><span class="tok-n">level</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"level = %d size = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">);</span>
+
+<span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">();</span>
+<span class="tok-w">         </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_team_size</span><span class="tok-p">(</span><span class="tok-n">level</span><span class="tok-p">);</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"level = %d size = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">level</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">);</span>
+
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Up one level team size = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_team_size</span><span class="tok-p">(</span><span class="tok-n">level</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">));</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Non<span class="tok-w"> </span>parallel<span class="tok-w"> </span>region<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Up<span class="tok-w"> </span>one<span class="tok-w"> </span>level<span class="tok-w"> </span>team<span class="tok-w"> </span><span class="tok-nv">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+</code></pre></div><p>在上面的代码当中在非并行域的代码当中，程序的输出结果和我们上面谈到的是相同的，level 等于 0，team size 等于 1，在并行域当中输出的结果也是符合预期的，我们来看一下最后两个输出，倒数第一个输出是查看上一个 level 的输出结果，可以看到他的输出结果等于 5，这和我们设置的 5 个线程是相符的。</p>
+<ul>
+<li>omp_get_num_procs，这个函数相对比较简单，主要是返回你的系统当中处理器的数量。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">nprocs</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_num_procs</span><span class="tok-p">();</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Number of processors = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nprocs</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>omp_in_final，这个函数主要是查看当前线程是否在最终任务或者包含任务当中，比如在下面的例子当中，我们就可以测试这个函数：</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">echo</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-cp">#pragma omp task shared(ret, n) final(n &lt;= 10)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">omp_in_final</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"In final n = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">);</span>
+<span class="tok-w">         </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">echo</span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"echo(100) = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">echo</span><span class="tok-p">(</span><span class="tok-mi">100</span><span class="tok-p">));</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>In<span class="tok-w"> </span>final<span class="tok-w"> </span><span class="tok-nv">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">10</span>
+echo<span class="tok-o">(</span><span class="tok-m">100</span><span class="tok-o">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">100</span>
+</code></pre></div><p>在上面的程序我们在函数 echo 当中定义了一个任务，当参数 n &lt;= 10 的时候，这个任务会变成一个 final 任务，因此在 n == 10 的时候，这个函数的 omp_in_final 会返回 true，因此会直接将 10 赋值给 ret ，不会进行递归调用，因此我们得到了上面的输出结果。</p>
+<ul>
+<li>omp_get_nested ，这个函数是用于判断是否开启并行区域的嵌套，如果开启了并行区域的嵌套，那么这个函数就返回 true ，否则就返回 false ，对应 C 语言的值分别为 1 和 0。在 OpenMP 当中默认是关闭的，你可以使用函数 omp_set_nested(1) 进行开启，或者使用 omp_set_nested(0) 关闭并行区域的嵌套。你可以对并行区域的嵌套有所疑惑，我们来看下面两个例子，你就豁然开朗了。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-c1">//   omp_set_nested(1);</span>
+<span class="tok-w">   </span><span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Outer tid = %d level = %d num_threads = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">             </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">(),</span>
+<span class="tok-w">             </span><span class="tok-n">omp_get_num_threads</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Inner tid = %d level = %d num_threads = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">(),</span>
+<span class="tok-w">                </span><span class="tok-n">omp_get_num_threads</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Outer<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+Outer<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+</code></pre></div><p>我们再来看一下如果我们开启了并行区域的嵌套之后程序的输出结果：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">omp_set_nested</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Outer tid = %d level = %d num_threads = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">             </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">(),</span>
+<span class="tok-w">             </span><span class="tok-n">omp_get_num_threads</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Inner tid = %d level = %d num_threads = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span>
+<span class="tok-w">                </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">(),</span>
+<span class="tok-w">                </span><span class="tok-n">omp_get_num_threads</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Outer<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Outer<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+Inner<span class="tok-w"> </span><span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+</code></pre></div><p>我们可以对比一下两个程序的输出结果的差异，我们可以看到当我们允许并行嵌套之后，程序的输出结果会更多一点，这是因为如果我们没有开启的话，子并行域每个线程只会启动一个线程，如果我们开启的话，那么每个线程就会重新启动 num_threads 个线程，比如在上面两个代码当中，对于第一份代码外部并行块会启动两个线程，然后在每个线程的内部有一个并行块，但是因为没有启动，因此不管你的 num_threads 设置成多少，每个线程只会启动一个线程，因此最终会有 4 个 printf 语句输出。而对于第二份代码，是启动了嵌套代码的，外部并行块有两个线程，在内部因为是开启了，这两个线程会分别创建 num_threads 个内部线程去执行内部代码块，因此会有 2 个外部线程 4 （2x2）个内部线程，一共会有 6 个输出，因此就符合上面的结果了。其实不仅可以嵌套两层，还可以嵌套更多层，原理也是一样的分析方法。</p>
+<ul>
+<li>
+<p>omp_get_active_level，这个函数主要是返回当前线程所在的并行域的嵌套的并行块的级别，从 1 开始，从外往内没加一层这个值就加一，如果没有启动并行嵌套，那么这个函数的返回值就是 1。</p>
+</li>
+<li>
+<p>omp_set_max_active_levels，我们在上面提到了，我们可以不断的进行并行域的嵌套，我们可以使用这个函数进行设置最大的嵌套的层数，如果超过这个层数那么就与不启动嵌套的效果一样了，也就是说 num_threads 不会发生效果了。</p>
+</li>
+</ul>
+<p>我们现在设置允许设置的最大的并行块的嵌套层数等于 2，但是我们一共有三个嵌套块，我们可以看一下对第三层嵌套的代码的影响。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">omp_set_nested</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-n">omp_set_max_active_levels</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+
+<span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"1&gt; omp_get_level = %d omp_get_active_level = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">());</span>
+<span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"2&gt; omp_get_level = %d omp_get_active_level = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">());</span>
+<span class="tok-cp">#pragma omp parallel num_threads(2) default(none)</span>
+<span class="tok-w">         </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"3&gt; omp_get_level = %d omp_get_active_level = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_level</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">omp_get_active_level</span><span class="tok-p">());</span>
+
+<span class="tok-w">         </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示（3&gt; 一共输出了 4 次，因为它的外部线程的个数是 4 (2x2)）：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-m">1</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-m">1</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+</code></pre></div><p>我们现在将函数 omp_set_max_active_levels 的参数设置成 3，也就是说允许的最大的并行块的嵌套层数等于3，重新看一下程序的输出结果是什么（将 omp_set_max_active_levels(2) 改成 omp_set_max_active_levels(3)）之后，程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-m">1</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-m">1</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">2</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">2</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-m">3</span>&gt;<span class="tok-w"> </span><span class="tok-nv">omp_get_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-nv">omp_get_active_level</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+</code></pre></div><p>可以看到 3&gt; 的输出次数等于8，这个次数就表明外部 4 个线程都在第三个并行块产生了两个线程，这就是启动嵌套并行块的效果，这就是设置函数 omp_set_max_active_levels 的效果。</p>
+<ul>
+<li>omp_get_nested，这个函数的作用就是返回是否启动了并行嵌套，在 C 语言当中如果启动了那么就是返回 1，否则就是返回 0。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"omp_get_nested() = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_nested</span><span class="tok-p">());</span>
+<span class="tok-w">   </span><span class="tok-n">omp_set_nested</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"omp_get_nested() = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_nested</span><span class="tok-p">());</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>omp_get_nested<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+omp_get_nested<span class="tok-o">()</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些在 OpenMP 当中常用的动态库函数，这篇文章的动态库函数主要是关于并行域和线程状态的函数，在下篇文章当中我们主要是分析一些 OpenMP 当中的锁相关函数。希望大家有所收获！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-04runtime2/"><span>较新</span>Openmp Runtime 库函数汇总（下）——深入剖析锁🔒原理与实现</a><a class="next" href="/posts/cscore-pl-01copy/"><span>较旧</span>深入理解 Python 的对象拷贝和内存布局</a>    </nav>
+  </div>
+
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

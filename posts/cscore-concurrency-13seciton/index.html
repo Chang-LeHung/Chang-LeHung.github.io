@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP Sections Construct 实现原理以及源码分析 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍 OpenMP 当中主要给大家介绍 OpenMP 当中 sections construct 的实现原理以及他调用的动态库函数分析。如果已经了解过了前面的关于 for 的调度方式的分析，本篇文章就非常简单了。 编译器角度分析 在这一小节当中我们将从编译器角度去分析编">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP Sections Construct 实现原理以及源码分析</h1>
+      <p class="post-meta">
+        <time datetime="2023-02-17">2023-02-17</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍 OpenMP 当中主要给大家介绍 OpenMP 当中 sections construct 的实现原理以及他调用的动态库函数分析。如果已经了解过了前面的关于 for 的调度方式的分析，本篇文章就非常简单了。</p>
+<h2 id="编译器角度分析">编译器角度分析</h2>
+<p>在这一小节当中我们将从编译器角度去分析编译器会怎么处理 sections construct ，我们以下面的 sections construct 为例子，看看编译器是如何处理 sections construct 的。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#pragma omp sections</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp section</span>
+<span class="tok-w">  </span><span class="tok-n">stmt1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp section</span>
+<span class="tok-w">  </span><span class="tok-n">stmt2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-cp">#pragma omp section</span>
+<span class="tok-w">  </span><span class="tok-n">stmt3</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码会被编译器转换成下面的形式，其中 GOMP_sections_start 和 GOMP_sections_next 是并发安全的，他们都会返回一个数据表示第几个 omp section 代码块，其中 GOMP_sections_start 的参数是表示有几个 omp section 代码块，并且返回给线程一个整数表示线程需要执行第几个 section 代码块，这两个函数的意义不同的是在 GOMP_sections_start 当中会进行一些数据的初始化操作。当两个函数返回 0 的时候表示所有的 section 都被执行完了，从而退出 for 循环。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">GOMP_sections_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">GOMP_sections_next</span><span class="tok-w"> </span><span class="tok-p">())</span>
+<span class="tok-w">  </span><span class="tok-k">switch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">:</span>
+<span class="tok-w">      </span><span class="tok-n">stmt1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">:</span>
+<span class="tok-w">      </span><span class="tok-n">stmt2</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">:</span>
+<span class="tok-w">      </span><span class="tok-n">stmt3</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-n">GOMP_barrier</span><span class="tok-w"> </span><span class="tok-p">();</span>
+</code></pre></div><h2 id="动态库函数分析">动态库函数分析</h2>
+<p>事实上在函数 GOMP_sections_start 和函数 GOMP_sections_next 当中调用的都是我们之前分析过的函数 gomp_iter_dynamic_next ，这个函数实际上就是让线程始终原子指令去竞争数据块（chunk），这个特点和 sections 需要完成的语意是相同的，只不过 sections 的块大小（chunk size）都是等于 1 的，因为一个线程一次只能够执行一个 section 代码块。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">unsigned</span>
+<span class="tok-nf">GOMP_sections_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 参数 count 的含义就是表示一共有多少个 section 代码块</span>
+<span class="tok-w">  </span><span class="tok-c1">// 得到当线程的相关数据</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_thread</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">thr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_thread</span><span class="tok-w"> </span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// 进行数据的初始化操作</span>
+<span class="tok-w">  </span><span class="tok-c1">// 将数据的 chunk size 设置等于 1</span>
+<span class="tok-w">  </span><span class="tok-c1">// 分割 chunk size 的起始位置设置成 1 因为根据上面的代码分析 0 表示退出循环 因此不能够使用 0 作为分割的起始位置</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">gomp_work_share_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-nb">false</span><span class="tok-p">))</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里传入 count 作为参数的原因是需要设置 chunk 分配的最终位置 具体的源代码在下方</span>
+<span class="tok-w">      </span><span class="tok-n">gomp_sections_init</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">thr</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">work_share</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">gomp_work_share_init_done</span><span class="tok-w"> </span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-c1">// 如果获取到一个 section 的执行权 gomp_iter_dynamic_next 返回 true 否则返回 false </span>
+<span class="tok-w">  </span><span class="tok-c1">// s 和 e 分别表示 chunk 的起始位置和终止位置 但是在 sections 当中需要注意的是所有的 chunk size 都等于 1</span>
+<span class="tok-w">  </span><span class="tok-c1">// 这也很容易理解一次执行一个 section 代码块</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">gomp_iter_dynamic_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">e</span><span class="tok-p">))</span>
+<span class="tok-w">    </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">else</span>
+<span class="tok-w">    </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// 下面是部分 gomp_sections_init 的代码</span>
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kr">inline</span><span class="tok-w"> </span><span class="tok-kt">void</span>
+<span class="tok-nf">gomp_sections_init</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_work_share</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ws</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">sched</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">GFS_DYNAMIC</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">chunk_size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 设置 chunk size 等于 1</span>
+<span class="tok-w">  </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">count</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mf">1L</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 因为一共有 count 个 section 块</span>
+<span class="tok-w">  </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">incr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 每次增长一个</span>
+<span class="tok-w">  </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 从 1 开始进行 chunk size 的分配 因为 0 表示退出循环（编译器角度分析）</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">unsigned</span>
+<span class="tok-nf">GOMP_sections_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 这个函数就比较容易理解了 就是获取一个 chunk 拿到对应的 section 的执行权</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">gomp_iter_dynamic_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">e</span><span class="tok-p">))</span>
+<span class="tok-w">    </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">else</span>
+<span class="tok-w">    </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// 下面的函数在之前的很多文章当中都分析过了 这里不再进行分析</span>
+<span class="tok-c1">// 下面的函数的主要过程就是使用 CAS 指令不断的进行尝试，直到获取成功或者全部获取完成 没有 chunk 需要分配</span>
+<span class="tok-kt">bool</span>
+<span class="tok-nf">gomp_iter_dynamic_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_thread</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">thr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_thread</span><span class="tok-w"> </span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_work_share</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ws</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">thr</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">work_share</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">chunk</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">end</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">incr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">incr</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">chunk</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">chunk_size</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">__builtin_expect</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">mode</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__sync_fetch_and_add</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">chunk</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">incr</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-p">{</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">chunk</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">else</span>
+<span class="tok-w">	</span><span class="tok-p">{</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">chunk</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">;</span>
+<span class="tok-w">	  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">left</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">incr</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-p">{</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">chunk</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">left</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-n">chunk</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">left</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">else</span>
+<span class="tok-w">	</span><span class="tok-p">{</span>
+<span class="tok-w">	  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">chunk</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">left</span><span class="tok-p">)</span>
+<span class="tok-w">	    </span><span class="tok-n">chunk</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">left</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">chunk</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__sync_val_compare_and_swap</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">__builtin_expect</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span>
+<span class="tok-w">	</span><span class="tok-k">break</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了 OpenMP 当中 sections 的实现原理和相关的动态库函数分析，关于 sections 重点在编译器会如何对 sections 的编译指导语句进行处理的，动态库函数和 for 循环的动态调度方式是一样的，只不过 chunk size 设置成 1，分块的起始位置等于 1，分块的最终值是 section 代码块的个数，最终在动态调度的方式使用 CAS 不断获取 section 的执行权，直到所有的 section 被执行完成。</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-14task/"><span>较新</span>OpenMP task construct 实现原理以及源码分析</a><a class="next" href="/posts/cscore-concurrency-12guided/"><span>较旧</span>OpenMP For Construct guided 调度方式实现原理和源码分析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#编译器角度分析">编译器角度分析</a></li>
+      <li class="toc-l2"><a href="#动态库函数分析">动态库函数分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

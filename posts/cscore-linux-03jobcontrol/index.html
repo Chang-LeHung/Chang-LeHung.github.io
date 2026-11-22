@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>孤儿进程与终端的关系 · Chang-LeHung</title>
+<meta name="description" content="孤儿进程 在本篇文章当中主要给大家介绍一下有关孤儿进程和终端之间的关系。 首先我们的需要知道什么是孤儿进程，简单的来说就是当一个程序还在执行，但是他的父进程已经退出了，这种进程叫做孤儿进程，因为父进程死亡了，因此被叫做孤儿进程。孤儿进程会被进程号等于 1 的 init 进程收养，也就是说他的新的父进">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>孤儿进程与终端的关系</h1>
+      <p class="post-meta">
+        <time datetime="2022-12-03">2022-12-03</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="孤儿进程">孤儿进程</h2>
+<p>在本篇文章当中主要给大家介绍一下有关孤儿进程和终端之间的关系。</p>
+<p>首先我们的需要知道什么是孤儿进程，简单的来说就是当一个程序还在执行，但是他的父进程已经退出了，这种进程叫做孤儿进程，因为父进程死亡了，因此被叫做孤儿进程。孤儿进程会被进程号等于 1 的 init 进程收养，也就是说他的新的父进程的进程号等于 1，我们可以使用下面的代码进行验证：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;err.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">fork</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">"fork:"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pid = %d ppid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">getppid</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">do</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pid = %d ppid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">getppid</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>daemon<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>./orphan.out<span class="tok-w"> </span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25835</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25251</span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25835</span>
+➜<span class="tok-w">  </span>daemon<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span><span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">25836</span><span class="tok-w"> </span><span class="tok-nv">ppid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+</code></pre></div><p>从上面终端的输出结果我们可以知道当父进程还没有退出的时候，子进程 25836 的父进程号还是 25835，但是当父进程退出之后，子进程的父进程号已经变成了 1 ，也就是 init 进程，这与我们在上面的分析的结果表现是一致的。</p>
+<h2 id="孤儿进程组和终端的关系">孤儿进程组和终端的关系</h2>
+<p>在前面我们提到了当一个进程的父进程退出之后，这个进程就会变成一个孤儿进程，其实与孤儿进程对应的有一个孤儿进程组，所谓孤儿进程组就是：一个进程组当中的进程要么是孤儿进程，要么父进程也在这个进程组当中，要么父进程在其他的会话当中，满足上述条件的进程组就是孤儿进程组。</p>
+<p>事实上内核在一种情况下也会发送 SIGHUP 信号给孤儿进程组，这个情况如下：</p>
+<ul>
+<li>父进程程序执行完成退出了，但是子进程还没有结束，而且被挂起了。</li>
+<li>当父进程退出的时候，shell 会在他内部维护的作业列表（job list）将退出的作业删除掉。子进程被 init 进程收养变成了孤儿进程，根据上文当中提到了孤儿进程组的概念，这是一个孤儿进程组，因为这个进程组当中的所有进程（如果不是多进程程序，只有一个）的父进程要么退出，要么父进程也在这个进程组当中，要么父进程在其他的会话当中。条件已经满足，因此这个进程组是一个孤儿进程组。</li>
+<li>现在有一个问题是，这个被挂起的孤儿进程没有谁去唤醒啊，理论上来说，在父进程退出之前，子进程被挂起，应该是父进程去收拾好这个烂摊子，但是现在父进程退出了，被挂起的孤儿进程没有在运行，那么就一直会占着他对应的系统资源，如果这样的进程过多的话，那么系统的资源将会被消耗殆尽。</li>
+</ul>
+<p>因此为了解决这种问题：如果一个进程组变成了孤儿进程组并且拥有已停止执行的成员，比如说被挂起来的进程，那么内核会向进程组中的所有成员发送一个 SIGHUP 信号通知它们已经与会话断开连接了，之后再发送一个 SIGCONT 信号确保它们恢复执行。如果孤儿进程组不包含被停止的成员，那么就不会发送任何信号。</p>
+<p>我们可以使用下面的例子去验证这一点：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define _GNU_SOURCE</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;signal.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;string.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;fcntl.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">sig</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">no</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">siginfo_t</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">info</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">context</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">[</span><span class="tok-mi">1024</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">fd</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">open</span><span class="tok-p">(</span><span class="tok-s">"text.txt"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">O_RDWR</span><span class="tok-w"> </span><span class="tok-o">|</span><span class="tok-w"> </span><span class="tok-n">O_CREAT</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mo">0644</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sprintf</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"No = %d pid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">no</span><span class="tok-w"> </span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">info</span><span class="tok-o">-&gt;</span><span class="tok-n">si_pid</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-n">fd</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">strlen</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-n">close</span><span class="tok-p">(</span><span class="tok-n">fd</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sync</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">_exit</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">sigaction</span><span class="tok-w"> </span><span class="tok-n">action</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">action</span><span class="tok-p">.</span><span class="tok-n">sa_sigaction</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">sig</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">action</span><span class="tok-p">.</span><span class="tok-n">sa_flags</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">SA_SIGINFO</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">action</span><span class="tok-p">.</span><span class="tok-n">sa_flags</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-o">~</span><span class="tok-p">(</span><span class="tok-n">SA_RESETHAND</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">sigaction</span><span class="tok-p">(</span><span class="tok-n">SIGHUP</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">action</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">fork</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">"fork:"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">kill</span><span class="tok-p">(</span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">SIGSTOP</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 父进程执行 给子进程发送 SIGSTOP 信号 让子进程停止执行</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">else</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 子进程执行</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中，我们 fork 出一个子进程，然后子进程不断的进行死循环，父进程会给子进程发送一个 SIGSTOP 信号，然后子进程会停止执行，因此父进程退出之后，那么子进程就会成为孤儿进程，子进程所在的进程组就会变成孤儿进程组，在这种情况下内核就会发送一个 SIGHUP 信号给这个孤儿进程，同时也会发送一个 SIGCONT 信号，保证孤儿进程在执行，而不是被挂起。我们在终端当中执行上面的程序会发现 text.txt 当中的内容如下所示：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">No</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-nv">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+</code></pre></div><p>pid = 0 表示这个信号是内核发送的，发送的信号为 1 ，对应的信号名字为 SIGHUP，因此这验证了我们在上面所谈到的内容。</p>
+<p><img src="/content/zh/images/cscore/vedio/jobcontrol3.gif" alt="jobcontrol3" loading="lazy" /></p>
+<h2 id="孤儿进程组和终端的读和写">孤儿进程组和终端的读和写</h2>
+<p>在前面的文章当中我们已经谈到了，当后台进程试图从控制终端中调用 read()时将会收到 SIGTTIN 信号，当后台进程试图向设置了 TOSTOP 标记的控制终端调用 write()时会收到 SIGTTOU 信号。但向一个孤儿进程组发送这些信号毫无意义，因为一旦被停止之后，它将再也无法恢复了。基于此，在进行 read()和 write()调用时内核会返回 EIO 的错误，而不是发送 SIGTTIN 或 SIGTTOU 信号。基于类似的原因，如果 SIGTSTP、SIGTTIN 以及 SIGTTOU 信号的分送会导致停止孤儿进程组中的成员，那么这个信号会被毫无征兆地丢弃。这种行为不会因为信号发送方式（如信号可能是由内核产生的或由显式地调用 kill()而发送）的改变而改变。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了关于孤儿进程和孤儿进程组的相关知识，总体来说比之前的两篇文章相对简单一点。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-02jobcontrol/"><span>较新</span>你在终端启动的进程，最后都是什么下场？（下）</a><a class="next" href="/posts/cscore-linux-01jobcontrol/"><span>较旧</span>你在终端启动的进程，最后都是什么下场？（上）</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#孤儿进程">孤儿进程</a></li>
+      <li class="toc-l2"><a href="#孤儿进程组和终端的关系">孤儿进程组和终端的关系</a></li>
+      <li class="toc-l2"><a href="#孤儿进程组和终端的读和写">孤儿进程组和终端的读和写</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

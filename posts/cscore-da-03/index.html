@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面试官：完全背包都不会，是你自己走还是我送你？ · Chang-LeHung</title>
+<meta name="description" content="在如今的面试当中算法题已经成为面试不可或缺的内容，今天就跟大家分享一个还比较困难的笔试题——完全背包。 完全背包问题 有 N 种物品和一个容量是 V 的背包，每种物品都有 无限件可用 。第 i 种物品的体积是 v i ，价值是 w i 。求解将哪些物品装入背包，可使这些物品的总体积不超过背包容量，且">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>面试官：完全背包都不会，是你自己走还是我送你？</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在如今的面试当中算法题已经成为面试不可或缺的内容，今天就跟大家分享一个还比较困难的笔试题——完全背包。</p>
+<h2 id="完全背包问题">完全背包问题</h2>
+<blockquote>
+<p>有<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math>种物品和一个容量是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>V</mi></mrow></math>的背包，每种物品都有<strong>无限件可用</strong>。第<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> 种物品的体积是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>v</mi><mi>i</mi></msub></mrow></math>，价值是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>w</mi><mi>i</mi></msub></mrow></math>。求解将哪些物品装入背包，可使这些物品的总体积不超过背包容量，且总价值最大。</p>
+</blockquote>
+<p>完全背包问题和01背包的唯一区别就在于物品的个数，在01背包当中所有的物品只有一件，也就只能使用一次。而在完全背包当中物品可以使用无限多次。</p>
+<p>比如下面的4个物品，背包能够承受的最大重量为5，我们应该如何选择，使得我们获得的总价值最大：</p>
+<table>
+<thead>
+<tr>
+<th>物品</th>
+<th>重量</th>
+<th>价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>B</td>
+<td>2</td>
+<td>4</td>
+</tr>
+<tr>
+<td>C</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>D</td>
+<td>4</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>这个问题还是比较简单，我们直接从图中看，我们可以选择五个<code>A</code>或者两个<code>B</code>一个<code>A</code>，可以产生最大的收益，最大收益为10。</p>
+<h2 id="完全背包问题分析">完全背包问题分析</h2>
+<h3 id="01背包动态转移方程分析">01背包动态转移方程分析</h3>
+<p>在01背包问题当中，我们是使用一个二维数组<code>dp[i][j]</code>进行计算，<code>dp[i][j]</code>表示在只使用前<code>i</code>个物品且背包容量为<code>j</code>的情况下，我们能够获得的最大的收益。在这个情况下，我们根据当前背包容量<code>j</code>判断是否能装入第<code>i</code>个物品可以得到下面两个方程（下面公式字母的含义与上文完全背包问题所提到的一致）。</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x02265;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003C;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr></mtable></mrow></mrow></math></div><p>上面01背包的公式的第二条比较简单，如果背包容量不足以容纳第<code>i</code>件物品，那么只能从前<code>i - 1</code>物品当中选择了。我们来仔细分析一下第一条公式。</p>
+<p>如果当前背包容量可以容纳第<code>i</code>个物品，那么我们就可以选择第<code>i</code>件物品或者不选择，我们应该选择两种选择当中收益更大的那个。</p>
+<ul>
+<li>如果我们不选择第<code>i</code>个物品，那么我们就能够使用容量为<code>j</code>的背包去选择前<code>i - 1</code>个物品，这种情况下我们的最大收益为<code>dp[i - 1][j]</code>。</li>
+<li>如果选择第<code>i</code>个物品，那么我们背包容量还剩下<code>j - v[i]</code>，还可以选择剩下的<code>i - 1</code>个物品，而且我们的收益需要加上<code>w[i]</code>，因此我们的收益为<code>max(dp[i - 1][j - v[i]] + w[i], dp[i - 1][j])</code>。</li>
+</ul>
+<h3 id="完全背包动态转移方程分析">完全背包动态转移方程分析</h3>
+<p>和01背包问题一样首先对于第<code>i</code>个物品，首先需要判断背包是否能够容纳：</p>
+<ul>
+<li>如果背包的容量大于等于第<code>i</code>个物品的体积，那我们就有两种选择：
+<ul>
+<li>将第<code>i</code>个物品放入背包当中，但是在这里需要注意的一点是完全背包的物品有无数件，因此当我们选择之后我们的转移方程为<code>dp[i][j - v[i]] + w[i]</code>，这里不是<code>i-1</code>而是<code>i</code>，因为第<code>i</code>件物品有无数件。</li>
+<li>不将第<code>i</code>个物品放入背包当中，那么我们就能够使用容量为<code>j</code>的背包去选择前<code>i - 1</code>个物品，这种情况下我们的最大收益为<code>dp[i - 1][j]</code>。</li>
+</ul>
+</li>
+<li>如果背包容量小于第<code>i</code>件物品的体积，我们就不能够选择第<code>i</code>件物品了，这种情况下我们的最大收益为<code>dp[i - 1][j]</code>。</li>
+</ul>
+<p>基于上面的分析我们可以知道完全背包问题的动态转移方程为：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x02265;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003C;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr></mtable></mrow></mrow></math></div><h2 id="背包问题代码构成设计">背包问题代码构成设计</h2>
+<p>根据对动态转移方程的分析，我们可以知道，我们在计算<code>dp[i][j]</code>这个数据的值的时候，我们首先需要将<code>dp[i][j - v[i]]</code>和<code>dp[i - 1][j])</code>的结果计算出来，因为<code>dp[i][j]</code>依赖这两个数据。</p>
+<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp32.webp" alt="" loading="lazy" /></p>
+<p>根据上面的分析和图我们知道，在计算<code>dp[i][j]</code>之前，我们需要将第<code>i</code>行第<code>j</code>列之前的数据和<code>dp[i - 1][j]</code>都计算出来，因为<code>dp[i][j]</code>依赖这些数据。而我们最终需要的结果是<code>dp[N][V]</code>表示在背包容量为<code>V</code>且能够前<code>N</code>个物品（也就是所以物品）能够获得的最大的收益，所以我们最终需要求出<code>dp[N][V]</code>的值。</p>
+<p>因此基于以上分析，我们要想最终解出<code>dp[N][V]</code>的值，我们可以采取两重<code>for</code>循环，第一重循环遍历物品，第二重循环遍历容量，但是我们的第<code>0</code>行没有前一行，因此我们需要对第<code>0</code>行进行初始化：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// 对第0行进行初始化操作</span>
+<span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果只能选择第一个数据，而且能选无数次</span>
+<span class="tok-w">    </span><span class="tok-c1">// 那就将所有的容量都拿来装第一个物品</span>
+<span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>根据动态转移方程，我们有下面的代码：</p>
+<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>C++</code>完整代码如下：</p>
+<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
+<span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
+<span class="tok-cp">#define MAX_LEN 10000</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">][</span><span class="tok-n">MAX_LEN</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">	</span><span class="tok-c1">// 对第0行进行初始化操作</span>
+<span class="tok-w">	</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">		</span><span class="tok-c1">// 如果只能选择第一个数据，而且能选无数次</span>
+<span class="tok-w">		</span><span class="tok-c1">// 那就将所有的容量都哪来装第一个物品</span>
+<span class="tok-w">		</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">][</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">		</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">			</span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">				</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">			</span><span class="tok-p">}</span>
+<span class="tok-w">			</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">				</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">];</span>
+<span class="tok-w">			</span><span class="tok-p">}</span>
+<span class="tok-w">		</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">V</span><span class="tok-p">];</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>java</code>代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Scanner</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Scanner</span><span class="tok-p">(</span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">in</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-o">][</span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-c1">// 对第0行进行初始化操作</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果只能选择第一个数据，而且能选无数次</span>
+<span class="tok-w">        </span><span class="tok-c1">// 那就将所有的容量都哪来装第一个物品</span>
+<span class="tok-w">        </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">][</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">][</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">][</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-n">V</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="完全背包数组优化">完全背包数组优化</h2>
+<p>在前面的内容当中我们已经仔细分析了完全背包问题的动态转移方程，我们发现在两层循环的内层循环当中，必须从<code>0</code>遍历到<code>V</code>，因为我们后面的数据依赖同一行前面的数据，还有就是依赖上一行相同列的数据，比如<code>dp[i][j]</code>依赖<code>dp[i][0]</code>到<code>dp[i][j - 1]</code>，还依赖<code>dp[i - 1][j]</code>，这个其实是可以只用一个数组进行计算的。</p>
+<p>我们先来看单行完全背包的<code>Java</code>代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Scanner</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Scanner</span><span class="tok-p">(</span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">in</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">scanner</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">V</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>下面我们举个使用单行数组优化的例子：</p>
+<p>假如我们正在更新<code>dp[j]</code>，此时<code>dp[j]</code>还是第<code>i-1</code>行的状态而<code>dp[0]</code>到<code>dp[j-1]</code>已经是第<code>i</code>行的状态了，因为我们是从前到后进行遍历。而要计算<code>dp[j]</code>的第i行状态的结果，那么他需要<code>dp[0]</code>到<code>dp[j-1]</code>的第i行状态的数据，<code>dp[j]</code>的第<code>i-1</code>行状态的数据，而实际情况数组能够满足这种依赖关系，因此我们可以使用单行数组优化。</p>
+<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp31.webp" alt="" loading="lazy" /></p>
+<p>这个单行数组与多行数组的区别是多行数组每一行有每一行的状态，而且他保存了所有行的状态，单行数组只存在一行的状态，但是他会经历所有行的状态，也就是在外层<code>for</code>循环下单行数组的状态不断更新。（如果你不理解这段话和上面谈到的单行数组优化，可以结合代码和文字进行理解）</p>
+<p><code>C++</code>代码：</p>
+<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
+<span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
+<span class="tok-cp">#define MAX_LEN 10000</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">MAX_LEN</span><span class="tok-p">]</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">	</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">		</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">			</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">		</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">V</span><span class="tok-p">];</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">	</span><span class="tok-n">cin</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">		</span><span class="tok-n">cin</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-n">cout</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">backpack</span><span class="tok-p">();</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在仔细分析完完全背包问题之后，我们可以总结一下动态规划的套路：</p>
+<ul>
+<li>分析问题设置<code>dp</code>数组并分析数组的含义。</li>
+<li>寻找动态转移方程，分析<code>dp</code>数组当中数据之间的依赖关系，我们在迭代的时候一定要遵循这个关系。</li>
+<li>初始化数组。</li>
+<li>进行数组<code>dp</code>求解。</li>
+<li>分析动态转移方程的含义和数据依赖关系，分析是否能够在不破坏数据依赖关系的条件下，优化数组空间。</li>
+</ul>
+<p>其实上面的套路对于大多数动态规划的题目都有用的，因为动态规划的流程基本一致，而动态规划最难的地方就是第一步了，通过分析问题寻找动态转移方程。</p>
+<p>以上就是本篇文章的所有内容了，希望大家有所收获，我是LeHung，我们下期再见！！！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-02combinations/"><span>较新</span>组合总和</a><a class="next" href="/posts/cscore-da-03combinations/"><span>较旧</span>[组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#完全背包问题">完全背包问题</a></li>
+      <li class="toc-l2"><a href="#完全背包问题分析">完全背包问题分析</a></li>
+      <li class="toc-l3"><a href="#01背包动态转移方程分析">01背包动态转移方程分析</a></li>
+      <li class="toc-l3"><a href="#完全背包动态转移方程分析">完全背包动态转移方程分析</a></li>
+      <li class="toc-l2"><a href="#背包问题代码构成设计">背包问题代码构成设计</a></li>
+      <li class="toc-l2"><a href="#完全背包数组优化">完全背包数组优化</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

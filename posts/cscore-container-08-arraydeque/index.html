@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArrayDeque（JDK双端队列）源码深度剖析 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要跟大家介绍 JDK 给我们提供的一种用数组实现的 双端队列 ，在之前的文章 LinkedList源码剖析当中 我们已经介绍了一种 双端队列 ，不过与 ArrayDeque 不同的是， LinkedList 的双端队列使用双向链表实现的。 双端队列整体分析 我们通常所谈论到的队">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>ArrayDeque（JDK双端队列）源码深度剖析</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-15">2022-07-15</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要跟大家介绍<code>JDK</code>给我们提供的一种用数组实现的<strong>双端队列</strong>，在之前的文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483907&amp;idx=1&amp;sn=6281a11e6ed1917ecb3a10319474193d&amp;chksm=cf0c9e0af87b171c7193949b5b7eb0b8f813b05b3d3b96ea784df86a3dde4286ad03908122da&amp;token=883596793&amp;lang=zh_CN#rd">LinkedList源码剖析当中</a>我们已经介绍了一种<strong>双端队列</strong>，不过与<code>ArrayDeque</code>不同的是，<code>LinkedList</code>的双端队列使用双向链表实现的。</p>
+<h2 id="双端队列整体分析">双端队列整体分析</h2>
+<p>我们通常所谈论到的队列都是一端进一端出，而双端队列的两端则都是可进可出。下面是双端队列的几个操作：</p>
+<ul>
+<li>数据从双端队列左侧进入。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/02.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>数据从双端队列右侧进入。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/03.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>数据从双端队列左侧弹出。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/04.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>数据从双端队列右侧弹出。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/05.webp" alt="" loading="lazy" /></p>
+<p>而在<code>ArrayDeque</code>当中也给我们提供了对应的方法去实现，比如下面这个例子就是上图对应的代码操作：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">test</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayDeque</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">deque</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayDeque</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">deque</span><span class="tok-p">.</span><span class="tok-na">addLast</span><span class="tok-p">(</span><span class="tok-mi">100</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">deque</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">deque</span><span class="tok-p">.</span><span class="tok-na">addFirst</span><span class="tok-p">(</span><span class="tok-mi">55</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">deque</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">deque</span><span class="tok-p">.</span><span class="tok-na">addLast</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">55</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">deque</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">deque</span><span class="tok-p">.</span><span class="tok-na">removeFirst</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">deque</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">deque</span><span class="tok-p">.</span><span class="tok-na">removeLast</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">deque</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-o">[</span><span class="tok-mi">100</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">55</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">55</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">55</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">100</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">55</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">100</span><span class="tok-o">]</span>
+</code></pre></div><h2 id="数组实现arraydeque双端队列的原理">数组实现ArrayDeque(双端队列)的原理</h2>
+<p><code>ArrayDeque</code>底层是使用数组实现的，而且数组的长度必须是<code>2</code>的整数次幂，这么操作的原因是为了后面位运算好操作。在<code>ArrayDeque</code>当中有两个整形变量<code>head</code>和<code>tail</code>，分别指向右侧的第一个进入队列的数据和左侧第一个进行队列的数据，整个内存布局如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/06.webp" alt="" loading="lazy" /></p>
+<p>其中<code>tail</code>指的位置没有数据，<code>head</code>指的位置存在数据。</p>
+<ul>
+<li>当我们需要从左往右增加数据时（入队），内存当中数据变化情况如下：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/14.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>当我们需要从右往做左增加数据时（入队），内存当中数据变化情况如下：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/15.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>当我们需要从右往左删除数据时（出队），内存当中数据变化情况如下：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/13.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>当我们需要从左往右删除数据时（出队），内存当中数据变化情况如下：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/arraydeque/12.webp" alt="" loading="lazy" /></p>
+<h2 id="底层数据遍历顺序和逻辑顺序">底层数据遍历顺序和逻辑顺序</h2>
+<p>上面主要谈论到的数组在内存当中的布局，但是他是具体的物理存储数据的顺序，这个顺序和我们的逻辑上的顺序是不一样的，根据上面的插入顺序，我们可以画出下面的图，大家可以仔细分析一下这个图的顺序问题。</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/16.webp" alt="" loading="lazy" /></p>
+<p>上图当中队列左侧的如队顺序是0, 1, 2, 3，右侧入队的顺序为15, 14, 13, 12, 11, 10, 9, 8，因此在逻辑上我们的队列当中的数据布局如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/17.webp" alt="" loading="lazy" /></p>
+<p>根据前面一小节谈到的输入在入队的时候数组当中数据的变化我们可以知道，数据在数组当中的布局为：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/19.webp" alt="" loading="lazy" /></p>
+<h2 id="arraydeque类关键字段分析">ArrayDeque类关键字段分析</h2>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// 底层用于存储具体数据的数组</span>
+<span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">elements</span><span class="tok-p">;</span>
+<span class="tok-c1">// 这就是前面谈到的 head</span>
+<span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-p">;</span>
+<span class="tok-c1">// 与上文谈到的 tail 含义一样</span>
+<span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">tail</span><span class="tok-p">;</span>
+<span class="tok-c1">// MIN_INITIAL_CAPACITY 表示数组 elements 的最短长度</span>
+<span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">MIN_INITIAL_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+</code></pre></div><p>以上就是<code>ArrayDeque</code>当中的最主要的字段，其含义还是比较容易理解的！</p>
+<h2 id="arraydeque构造函数分析">ArrayDeque构造函数分析</h2>
+<ul>
+<li>默认构造函数，数组默认申请的长度为<code>16</code>。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">ArrayDeque</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[</span><span class="tok-mi">16</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><ul>
+<li>指定数组长度的初始化长度，下面列出了改构造函数涉及的所有函数。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">ArrayDeque</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numElements</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">allocateElements</span><span class="tok-p">(</span><span class="tok-n">numElements</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">allocateElements</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numElements</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[</span><span class="tok-n">calculateSize</span><span class="tok-p">(</span><span class="tok-n">numElements</span><span class="tok-p">)</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+<span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">calculateSize</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numElements</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">MIN_INITIAL_CAPACITY</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// Find the best power of two to hold elements.</span>
+<span class="tok-w">    </span><span class="tok-c1">// Tests "&lt;=" because arrays aren't kept full.</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">numElements</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">numElements</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w">  </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w">  </span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w">  </span><span class="tok-mi">4</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w">  </span><span class="tok-mi">8</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">initialCapacity</span><span class="tok-o">++</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w">   </span><span class="tok-c1">// Too many elements, must back off</span>
+<span class="tok-w">            </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-c1">// Good luck allocating 2 ^ 30 elements</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的最难理解的就是函数<code>calculateSize</code>了，他的主要作用是如果用户输入的长度小于<code>MIN_INITIAL_CAPACITY</code>时，返回<code>MIN_INITIAL_CAPACITY</code>。否则返回比<code>initialCapacity</code>大的第一个是<code>2</code>的整数幂的整数，比如说如果输入的是<code>9</code>返回的<code>16</code>，输入<code>4</code>返回<code>8</code>。</p>
+<p><code>calculateSize</code>的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap17.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap21.webp" alt="" loading="lazy" /></p>
+<p>从上图当中我们会发现，我们在一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap23.webp" alt="" loading="lazy" /></p>
+<p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap24.webp" alt="" loading="lazy" /></p>
+<p>经过上述过程分析，我们就可以立即函数<code>calculateSize</code>了。</p>
+<h2 id="arraydeque关键函数分析">ArrayDeque关键函数分析</h2>
+<h3 id="addlast函数分析">addLast函数分析</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// tail 的初始值为 0 </span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">addLast</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">NullPointerException</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">tail</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里进行的 &amp; 位运算 相当于取余数操作</span>
+<span class="tok-w">    </span><span class="tok-c1">// (tail + 1) &amp; (elements.length - 1) == (tail + 1) % elements.length</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个操作主要是用于判断数组是否满了，如果满了则需要扩容</span>
+<span class="tok-w">    </span><span class="tok-c1">// 同时这个操作将 tail + 1，即 tail = tail + 1</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">doubleCapacity</span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>代码<code>(tail + 1) &amp; (elements.length - 1) == (tail + 1) % elements.length</code>成立的原因是任意一个数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>对<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>进行取余数操作和<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi></mrow></math>跟<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>运算的结果相等，即：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>a</mi><mi>&#x00025;</mi><msup><mn>2</mn><mi>n</mi></msup><mo>&#x0003D;</mo><mi>a</mi><mi>&#x00026;</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></div><p>从上面的代码来看下标为<code>tail</code>的位置是没有数据的，是一个空位置。</p>
+<h3 id="addfirst函数分析">addFirst函数分析</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// head 的初始值为 0 </span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">addFirst</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">NullPointerException</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-c1">// 若此时数组长度elements.length = 16</span>
+<span class="tok-w">    </span><span class="tok-c1">// 那么下面代码执行过后 head = 15</span>
+<span class="tok-w">    </span><span class="tok-c1">// 下面代码的操作结果和下面两行代码含义一致</span>
+<span class="tok-w">    </span><span class="tok-c1">// elements[(head - 1 + elements.length) % elements.length] = e</span>
+<span class="tok-w">    </span><span class="tok-c1">// head = (head - 1 + elements.length) % elements.length</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">tail</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">doubleCapacity</span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码操作结果和上文当中我们提到的，在队列当中从右向左加入数据一样。从上面的代码看，我们可以发现下标为<code>head</code>的位置是存在数据的。</p>
+<h3 id="doublecapacity函数分析">doubleCapacity函数分析</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">doubleCapacity</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">assert</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">tail</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">elements</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">r</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// number of elements to the right of p</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">newCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newCapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IllegalStateException</span><span class="tok-p">(</span><span class="tok-s">"Sorry, deque too big"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[</span><span class="tok-n">newCapacity</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// arraycopy(Object src,  int  srcPos,</span>
+<span class="tok-w">                                        </span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">dest</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">destPos</span><span class="tok-p">,</span>
+<span class="tok-w">                                        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">length</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-c1">// 上面是函数 System.arraycopy 的函数参数列表</span>
+<span class="tok-w">    </span><span class="tok-c1">// 大家可以参考上面理解下面的拷贝代码</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">r</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">arraycopy</span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">r</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码还是比较简单的，这里给大家一个图示，大家就更加容易理解了：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/21.webp" alt="" loading="lazy" /></p>
+<p>扩容之后将原来数组的数据拷贝到了新数组当中，虽然数据在旧数组和新数组当中的顺序发生变化了，但是他们的相对顺序却没有发生变化，他们的逻辑顺序也是一样的，这里的逻辑可能有点绕，大家在这里可以好好思考一下。</p>
+<h4 id="polllast和pollfirst函数分析">pollLast和pollFirst函数分析</h4>
+<p>这两个函数的代码就比较简单了，大家可以根据前文所谈到的内容和图示去理解下面的代码。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">pollLast</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 计算出待删除的数据的下标</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">t</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将需要删除的数据的下标值设置为 null 这样这块内存就</span>
+<span class="tok-w">    </span><span class="tok-c1">// 可以被回收了</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">t</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">pollFirst</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">h</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// Element is null if deque empty</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">elements</span><span class="tok-o">[</span><span class="tok-n">h</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w">     </span><span class="tok-c1">// Must null out slot</span>
+<span class="tok-w">    </span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">elements</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中，主要跟大家分享了<code>ArrayDeque</code>的设计原理，和他的底层实现过程。<code>ArrayDeque</code>底层数组当中的数据顺序和队列的逻辑顺序这部分可能比较抽象，大家可以根据图示好好体会一下！！！</p>
+<p>以上就是本篇文章的所有内容了，希望大家有所收获，我是LeHung，我们下期再见！！！都看到这里了，给孩子一个赞（star）吧，<img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" /><img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" /><img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" />免费的哦！！！<img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" /><img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" /><img src="/content/zh/images/cscore/images/qz.webp" alt="qz" loading="lazy" /></p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-container-09-arrayqueue/"><span>较新</span>深入剖析（JDK）ArrayQueue源码</a><a class="next" href="/posts/cscore-container-07-hashmap/"><span>较旧</span>`HashMap`源码深度剖析，手把手带你分析每一行代码！</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#双端队列整体分析">双端队列整体分析</a></li>
+      <li class="toc-l2"><a href="#数组实现arraydeque双端队列的原理">数组实现ArrayDeque(双端队列)的原理</a></li>
+      <li class="toc-l2"><a href="#底层数据遍历顺序和逻辑顺序">底层数据遍历顺序和逻辑顺序</a></li>
+      <li class="toc-l2"><a href="#arraydeque类关键字段分析">ArrayDeque类关键字段分析</a></li>
+      <li class="toc-l2"><a href="#arraydeque构造函数分析">ArrayDeque构造函数分析</a></li>
+      <li class="toc-l2"><a href="#arraydeque关键函数分析">ArrayDeque关键函数分析</a></li>
+      <li class="toc-l3"><a href="#addlast函数分析">addLast函数分析</a></li>
+      <li class="toc-l3"><a href="#addfirst函数分析">addFirst函数分析</a></li>
+      <li class="toc-l3"><a href="#doublecapacity函数分析">doubleCapacity函数分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

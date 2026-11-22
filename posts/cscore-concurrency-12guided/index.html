@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP For Construct guided 调度方式实现原理和源码分析 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍在 OpenMP 当中 guided 调度方式的实现原理。这个调度方式其实和 dynamic 调度方式非常相似的，从编译器角度来说基本上是一样的，在本篇文章当中就不介绍一些相关的必备知识了，如果不了解可以先看这篇文章 OpenMP For Construct dyn">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP For Construct guided 调度方式实现原理和源码分析</h1>
+      <p class="post-meta">
+        <time datetime="2023-02-14">2023-02-14</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍在 OpenMP 当中 guided 调度方式的实现原理。这个调度方式其实和 dynamic 调度方式非常相似的，从编译器角度来说基本上是一样的，在本篇文章当中就不介绍一些相关的必备知识了，如果不了解可以先看这篇文章 <a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247487775&amp;idx=1&amp;sn=112f5fb600584bdd4a7acfeddb58cd6e&amp;chksm=cf0c8d16f87b040098e650d350dce82b1fa75549c05ba25d92c8a4da3da661cfcef5a5c9542c&amp;token=1250927684&amp;lang=zh_CN#rd">OpenMP For Construct dynamic 调度方式实现原理和源码分析</a> 。</p>
+<h2 id="guided-调度方式分析">guided 调度方式分析</h2>
+<p>我们使用下面的代码来分析一下 guided 调度的情况下整个程序的执行流程是怎么样的：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#pragma omp parallel for num_threads(t) schedule(dynamic, size)</span>
+<span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lb</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">ub</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-n">body</span><span class="tok-p">;</span>
+</code></pre></div><p>编译器会将上面的程序编译成下面的形式：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">subfunction</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">_s0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">_e0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">GOMP_loop_guided_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">_s0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">_e0</span><span class="tok-p">))</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">_e1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">_e0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">_s0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">_e1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">body</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-c1">// GOMP_loop_end_nowait 这个函数的主要作用就是释放数据的内存空间 在后文当中不进行分析</span>
+<span class="tok-w">  </span><span class="tok-n">GOMP_loop_end_nowait</span><span class="tok-w"> </span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+
+<span class="tok-n">GOMP_parallel_loop_guided_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">subfunction</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">lb</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ub</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">);</span>
+<span class="tok-n">subfunction</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-c1">// 这个函数在前面的很多文章已经分析过 本文也不在进行分析</span>
+<span class="tok-n">GOMP_parallel_end</span><span class="tok-w"> </span><span class="tok-p">();</span>
+</code></pre></div><p>根据上面的代码可以知道，上面的代码当中最主要的两个函数就是 GOMP_parallel_loop_guided_start 和 GOMP_loop_guided_next，现在我们来分析一下他们的源代码：</p>
+<ul>
+<li>GOMP_parallel_loop_guided_start</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span>
+<span class="tok-nf">GOMP_parallel_loop_guided_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">fn</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">,</span>
+<span class="tok-w">				 </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span>
+<span class="tok-w">				 </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">gomp_parallel_loop_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">fn</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">,</span>
+<span class="tok-w">			    </span><span class="tok-n">GFS_GUIDED</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">void</span>
+<span class="tok-nf">gomp_parallel_loop_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">fn</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">,</span>
+<span class="tok-w">			  </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span>
+<span class="tok-w">			  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-k">enum</span><span class="tok-w"> </span><span class="tok-n">gomp_schedule_type</span><span class="tok-w"> </span><span class="tok-n">sched</span><span class="tok-p">,</span>
+<span class="tok-w">			  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_team</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">team</span><span class="tok-p">;</span>
+<span class="tok-w">	</span><span class="tok-c1">// 解析到底启动几个线程执行并行域的代码</span>
+<span class="tok-w">  </span><span class="tok-n">num_threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_resolve_num_threads</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 创建线程组</span>
+<span class="tok-w">  </span><span class="tok-n">team</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_new_team</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">num_threads</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 对共享数据进行初始化操作</span>
+<span class="tok-w">  </span><span class="tok-n">gomp_loop_init</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">work_shares</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">sched</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 启动线程组执行函数 fn</span>
+<span class="tok-w">  </span><span class="tok-n">gomp_team_start</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">fn</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">num_threads</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">team</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中 GOMP_parallel_loop_guided_start，有 7 个参数，我们接下来仔细解释一下这七个参数的含义：</p>
+<ul>
+<li>fn，函数指针也就是并行域被编译之后的函数。</li>
+<li>data，指向共享或者私有的数据，在并行域当中可能会使用外部的一些变量。</li>
+<li>num_threads，并行域当中指定启动线程的个数。</li>
+<li>start，for 循环迭代的初始值，比如 for(int i = 0; ;) 这个 start 就是 0 。</li>
+<li>end，for 循环迭代的最终值，比如 for(int i = 0; i &lt; 100; i++) 这个 end 就是 100 。</li>
+<li>incr，这个值一般都是 1 或者 -1，如果是 for 循环是从小到达迭代这个值就是 1，反之就是 -1，实际上这个值指的是 for 循环 i 大的增量。</li>
+<li>chunk_size，这个就是给一个线程划分块的时候一个块的大小，比如 schedule(dynamic, 1)，这个 chunk_size 就等于 1 。</li>
+</ul>
+<p>事实上上面的代码和 GOMP_parallel_loop_dynamic_start 基本上一摸一样，函数参数也一直，唯一的区别就是调度方式的不同，上面的代码和前面的文章 <a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247487775&amp;idx=1&amp;sn=112f5fb600584bdd4a7acfeddb58cd6e&amp;chksm=cf0c8d16f87b040098e650d350dce82b1fa75549c05ba25d92c8a4da3da661cfcef5a5c9542c&amp;token=1250927684&amp;lang=zh_CN#rd">OpenMP For Construct dynamic 调度方式实现原理和源码分析</a> 基本一样因此不再进行详细的分析。</p>
+<ul>
+<li>GOMP_loop_guided_next，这是整个 guided 调度方式的核心代码（整个过程仍然使用 CAS 进行原子操作，保证并发安全）</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">bool</span>
+<span class="tok-nf">gomp_loop_guided_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">istart</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">iend</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">bool</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_iter_guided_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">istart</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">iend</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ret</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">bool</span>
+<span class="tok-nf">gomp_iter_guided_next</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_thread</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">thr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">gomp_thread</span><span class="tok-w"> </span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_work_share</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ws</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">thr</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">work_share</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">gomp_team</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">team</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">thr</span><span class="tok-o">-&gt;</span><span class="tok-n">ts</span><span class="tok-p">.</span><span class="tok-n">team</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">nthreads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">team</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">team</span><span class="tok-o">-&gt;</span><span class="tok-n">nthreads</span><span class="tok-w"> </span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">;</span>
+<span class="tok-w">	</span>
+<span class="tok-w">  </span><span class="tok-c1">// 下一个分块的起始位置</span>
+<span class="tok-w">  </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// 最终位置 不能够超过这个位置</span>
+<span class="tok-w">  </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">end</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">incr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">incr</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// chunk_size 是每个线程的分块大小</span>
+<span class="tok-w">  </span><span class="tok-n">chunk_size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">chunk_size</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">unsigned</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">q</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+<span class="tok-w">			</span><span class="tok-c1">// 如果下一个分块的起始位置等于最终位置 那就说明没有需要继续分块的了 因此返回 false 表示没有分块需要执行了 </span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+<span class="tok-w">    	</span><span class="tok-c1">// 下面就是整个划分的逻辑 大家可以吧 incr = 1 带入 就能够知道每次线程分得的数据就是当前剩下的数据处以线程的个数</span>
+<span class="tok-w">      </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">q</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">nthreads</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">nthreads</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">q</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">)</span>
+<span class="tok-w">	</span><span class="tok-n">q</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">chunk_size</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">__builtin_expect</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">q</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span>
+<span class="tok-w">	</span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">q</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">incr</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">else</span>
+<span class="tok-w">	</span><span class="tok-n">nend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-p">;</span>
+<span class="tok-w">    	</span><span class="tok-c1">// 进行比较并交换操作 比较 start 和 ws-&gt;next 的值，如果相等则将 ws-&gt;next 的值变为 nend 并且返回 ws-&gt;next 原来的值</span>
+<span class="tok-w">      </span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">__sync_val_compare_and_swap</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">ws</span><span class="tok-o">-&gt;</span><span class="tok-n">next</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">__builtin_expect</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tmp</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span>
+<span class="tok-w">	</span><span class="tok-k">break</span><span class="tok-p">;</span>
+
+<span class="tok-w">      </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tmp</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">pstart</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">pend</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">nend</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>从上面的整个分析过程来看，guided 调度方式之所以每个线程的分块呈现递减趋势，是因为每次执行完一个 chunk size 之后，剩下的总的数据就少了，然后又除以线程数，因此每次得到的 chunk size 都是单调递减的。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了 OpenMP 当中 guided 调度方式当中数据的划分策略以及具体的实现代码， OpenMP 当中 for 循环的几种调度策略的越代码是非常相似的，只有具体的划分策略的 xxx_next 代码实现不同，因此整体来说是相对比较好阅读的。guided 调度方式主要是用剩下的数据个数除以线程的个数就是线程所得到的 chunk size 的大小，然后更新剩下的数据个数再次除以线程的个数就是下一个线程所得到的 chunk size 大小，如此反复直到划分完成。</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-13seciton/"><span>较新</span>OpenMP Sections Construct 实现原理以及源码分析</a><a class="next" href="/posts/cscore-concurrency-11for-dynamic/"><span>较旧</span>OpenMP For Construct dynamic 调度方式实现原理和源码分析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#guided-调度方式分析">guided 调度方式分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！ · Chang-LeHung</title>
+<meta name="description" content="我们在上篇文章 哈希表的设计原理 当中已经大体说明了哈希表的实现原理，在这篇文章当中我们将自己动手实现我们自己的 HashMap ，完整的代码在文章末尾。 在本篇文章当中主要通过线性探测法，从最基本的数组再到 HashMap 当中节点的设计，一步一步的实现一个能够实现 Key 、 Value 映射的">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>我们在上篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484145&amp;idx=1&amp;sn=362cf64866ace02ac95c0c1a970393e4&amp;chksm=cf0c9ef8f87b17eebb61ea422f58e9e439632783e9faa5a3b2ce55712c1582b140904b60cb17&amp;token=1155116583&amp;lang=zh_CN#rd">哈希表的设计原理</a>当中已经大体说明了哈希表的实现原理，在这篇文章当中我们将自己动手实现我们自己的<code>HashMap</code>，完整的代码在文章末尾。</p>
+<p>在本篇文章当中主要通过线性探测法，从最基本的数组再到<code>HashMap</code>当中节点的设计，一步一步的实现一个能够实现<code>Key</code>、<code>Value</code>映射的容器，写出我们自己的哈希表<code>MyHashMap</code>，让可以具备<code>HashMap</code>最常见的两个功能，<code>put</code>和<code>get</code>方法。</p>
+<h2 id="我们的数组当中应该存储什么样数据">我们的数组当中应该存储什么样数据？</h2>
+<p>在上篇<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484145&amp;idx=1&amp;sn=362cf64866ace02ac95c0c1a970393e4&amp;chksm=cf0c9ef8f87b17eebb61ea422f58e9e439632783e9faa5a3b2ce55712c1582b140904b60cb17&amp;token=1155116583&amp;lang=zh_CN#rd">哈希表的设计原理</a>当中我们已经仔细说明，在<code>HashMap</code>当中我们是使用数组去存储具体的数据的，那么在我们的数组当中应该存储什么样的数据呢？假设在<code>HashMap</code>的数组当中存储的数据类型为<code>Node</code>，那么这个类需要有哪些字段呢？</p>
+<ul>
+<li>
+<p>首先一点我们肯定需要存储<code>Value</code>值，因为我们最终需要通过<code>get</code>方法从<code>HashMap</code>当中取出我们所需要的值。</p>
+</li>
+<li>
+<p>第二点当我们通过<code>get</code>方法去取值的时候是通过<code>Key</code>（键值）去取的，当哈希值产生冲突的时候，我们不仅需要通过哈希值确定位置，还需要通过比较通过函数<code>get</code>传递的<code>Key</code>和数组当当中存储的数据的<code>key</code>是否相等，因此我们需要存储键值<code>Key</code>。</p>
+</li>
+<li>
+<p>第三点为了避免重复计算哈希值（因为有的对象的哈希值计算还是比较费时间），我们可以使用一个字段去存储计算好的哈希值。</p>
+</li>
+</ul>
+<p>根据以上三点我们的<code>Node</code>类的设计如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * 用于存储我们计算好的 key 的哈希值</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Key Value 中的 Key 对象</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Key Value 中的 Value 对象</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * hash 是键值 key 的哈希值  key 是键 value 是值</span>
+<span class="tok-cm">     * @param hash</span>
+<span class="tok-cm">     * @param key</span>
+<span class="tok-cm">     * @param value</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">Node</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">setValue</span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">oldValue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">oldValue</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-nd">@Override</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"="</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><h2 id="我们的数组长度应该怎么设置">我们的数组长度应该怎么设置？</h2>
+<p>在讨论这个问题之前我们首先来回归一下位运算的操作。在计算机当中数据都是二进制存储那么二进制运算是如何操作的呢？</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-p">;</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">;</span>
+<span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为3</span>
+</code></pre></div><p>上述代码的位运算操作如下：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap05.webp" alt="" loading="lazy" /></p>
+<p>进行位运算是，二进制数的对应位置进行相应的操作，<code>&amp;</code>运算的结果只有两个比特位的数据都是<code>1</code>时，运算结果才等于<code>1</code>，其余的情况都为0，因此<code>3 &amp; 7 = 3</code>。</p>
+<p>通过<code>put</code>函数放入<code>HashMap</code>当中的数据首先需要将<code>key</code>的哈希值与数组的长度进行取余运算得到对应的下标，再将数据放入到数组对应的下标当中。但是在实际的操作当中我们将底层数组的长度设置为<code>2</code>的整数次幂，并且使用位运算<code>&amp;</code>去进行取余数操作，而这样操作主要有一下三点原因：</p>
+<ul>
+<li>位运算<code>&amp;</code>的程序执行效率，比取余<code>%</code>操作更加高效，需要的时间越短。</li>
+<li>当数组的长度为<code>2</code>的整数次幂的时候，得到的下标越均匀，造成的哈希冲突更少。</li>
+<li>任何一个数<code>a</code>对<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>取余数得到的结果与<code>a</code>跟<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作结果是相等的，即：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>a</mi><mi>&#x00025;</mi><msup><mn>2</mn><mi>n</mi></msup><mo>&#x0003D;</mo><mi>a</mi><mi>&#x00026;</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></div><p>我们现在先来解释一下第三点，令<code>a = 127</code>，<code>n = 4</code>，那么：<code>127%16 = 15</code>，<code>127 &amp; 15 = 15</code>。</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap12.webp" alt="" loading="lazy" />首先我们需要明白求余数的意义是什么？<code>127</code>对<code>16</code>取余，就是用<code>127</code>一直减去<code>16</code>，直到某个结果小于<code>16</code>为止，得到的值为求余数结果。</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap07.webp" alt="" loading="lazy" /></p>
+<p>上图当中红框当中包括的位置就是小于<code>16</code>的部分</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap11.webp" alt="" loading="lazy" /></p>
+<p>上图当中红框框住的部分是<code>16</code>的倍数，因此在求余数的时候上图当中红框框住的部分就没有了，都为0，只会剩下小于<code>16</code>的部分，这跟<code>15</code>进行<code>&amp;</code>操作得到的结果是一致的。这也就解释了上面提到的第三条。</p>
+<p>在第二条中我们提到了使用数组长度为<code>2</code>的整数次幂可以在一定程度上减少哈希冲突，因为进行下标运算的时候是与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作，而<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>的二进制表示最后一部分位置上的数都是<code>1</code>。</p>
+<p>比如下图中的数据都是<code>2</code>的整数次幂减一之后的结果：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap13.webp" alt="" loading="lazy" /></p>
+<h2 id="roundup函数">RoundUp函数</h2>
+<p>因为我们需要数组的长度是<code>2</code>的整数次幂，而我们之后在初始化函数当中会允许用户输入一个数组长度的大小，但是用户输入的数字可能不是<code>2</code>的整数次幂，因此我们需要将用户输入的数据变成<code>2</code>的整数次幂，我们可以将用户输入的数据变成大于等于这个数的最小的<code>2</code>的整数次幂。</p>
+<p>比如说如果用户输入的是<code>12</code>我们需要将其变成<code>16</code>，如果输入的是<code>28</code>我们需要将其变成<code>32</code>。我们可以通过下面这个函数做到这一点：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 返回第一个大于或者等于 capacity 且为 2 的整数次幂的那个数</span>
+<span class="tok-cm">   * @param capacity</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">roundUp</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果最终得到的数据小于 0 则初始长度为 1</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果长度大于我们所允许的最大的容量 则将初始长度设置为我们</span>
+<span class="tok-w">    </span><span class="tok-c1">// 所允许的最大的容量</span>
+<span class="tok-w">    </span><span class="tok-c1">// MAXIMUM_CAPACITY = 1 &lt;&lt; 30;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><p>上面的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap17.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap21.webp" alt="" loading="lazy" /></p>
+<p>从上图当中我们会发现，我们咋一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap23.webp" alt="" loading="lazy" /></p>
+<p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，如果最终的容量没有大于我们设置的最大容量<code>MAXIMUM_CAPACITY</code>，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap24.webp" alt="" loading="lazy" /></p>
+<p>在<code>roundUp</code>函数当中，给初始容量减了个<code>1</code>，这样做的原因是让这个函数的返回值大于等于传入的参数<code>capacity</code>：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-c1">// 就是当传入的数据已经是 2 的整数次幂的时候也返回传入的值</span>
+<span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span>
+<span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">8</span>
+</code></pre></div><h2 id="哈希函数">哈希函数</h2>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个 key 是 put 函数传进来的 key</span>
+<span class="tok-cm">   * @param key</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hash</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 调用对象自己实现的 hashCode 方法</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-o">^</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><p>上面的函数之所以要将对象的哈希值右移<code>16</code>，是因为我们的数组的长度一般不会超过<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mn>16</mn></mrow></msup></mrow></math>，因为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mn>16</mn></mrow></msup></mrow></math>已经是一个比较大的值了，因此当哈希值与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作的时候，高位通常没有使用到，这样做的原理是可以充分利用数据哈希值当中的信息。</p>
+<h2 id="扩容机制">扩容机制</h2>
+<p>当我们一直往<code>HashMap</code>加入数据的话，数组迟早会被用完，当数组用完之后我们就需要进行扩容，我们要记住一点扩容之后的数组长度也需要满足<code>2</code>的整数次幂，因为上面我们已经提到数组的长度需要是<code>2</code>的整数次幂，因此扩容之后的长度也需要保持是<code>2</code>的整数次幂。</p>
+<p>但是在实际情况当中我们并不是当数组完全被使用完之后才进行扩容，因为如果数组快被使用完之后，再加入数据产生哈希冲突的可能性就会很大，因此我们通常会设置一个负载因子<code>(load factor)</code>，当数组的使用率超过这个值的时候就进行扩容，即当(数组长度为<code>L</code>，数组当中数据个数为<code>S</code>，负载因子为<code>F</code>)：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>S</mi><mo>&#x02265;</mo><mi>L</mi><mo>&#x000D7;</mo><mi>F</mi></mrow></math></div><h2 id="java代码实现hashmap">Java代码实现HashMap</h2>
+<h3 id="先看一下我们需要的字段">先看一下我们需要的字段</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyHashMap</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 默认数组的容量</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 默认负载因子</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_LOAD_FACTOR</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.75f</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表中数组的最大长度</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">30</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 真正存储数据的数组</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表数组当中存储的数据的个数</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表当中的负载因子</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.75f</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表扩容的阈值 = 哈希表的长度 x 负载因子</span>
+<span class="tok-cm">   * 当超过这个值的时候进行扩容</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">threshold</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="put函数的实现"><code>put</code>函数的实现</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">put</span><span class="tok-p">(</span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">RuntimeException</span><span class="tok-p">(</span><span class="tok-s">"哈希表的键值不能为空"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这表示使用了空参构造函数 而且是第一次调用 put 函数</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">hashTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">[</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 计算数组长度对应的扩容阈值</span>
+<span class="tok-w">        </span><span class="tok-n">threshold</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)(</span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-c1">// 进行 &amp; 运算得到数据下标</span>
+<span class="tok-w">        </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果数组不为空 说明已经有数据存在了</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果哈希值相同的话说明是同一个对象了</span>
+<span class="tok-w">        </span><span class="tok-c1">// 也可以进行跳出</span>
+<span class="tok-w">        </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">            </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果是通过 null != hashTable[idx] 条件跳出则是新添加数据</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果是通过 !key.equals(hashTable[idx].key) 条件跳出</span>
+<span class="tok-w">        </span><span class="tok-c1">// 则是因为 put 函数的 key 已经存在这次操作是更新数据</span>
+<span class="tok-w">        </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果数组当中使用过的数据超过阈值</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">++</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">threshold</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">resize</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="扩容resize函数实现">扩容(<code>resize</code>函数)实现</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 如果你已经看懂 put 函数的代码，那这个代码就比较简单了</span>
+<span class="tok-cm">   * 因为只是单纯的将原数组的数据重新进行哈希并且加入到新数组</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">resize</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">threshold</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">hashTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">[</span><span class="tok-n">n</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">continue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">.</span><span class="tok-na">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-n">node</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">        </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><h3 id="get函数实现"><code>get</code>函数实现</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">RuntimeException</span><span class="tok-p">(</span><span class="tok-s">"查询的键值不能为空"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里同样需要进行线性探测</span>
+<span class="tok-w">    </span><span class="tok-c1">// 因为哈希值相同时 key 值</span>
+<span class="tok-w">    </span><span class="tok-c1">// 不一定相同 因为会有哈希冲突</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(;;)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 当数组当中的数据不为空</span>
+<span class="tok-w">        </span><span class="tok-c1">// 且数据当中的哈希值和传入 key</span>
+<span class="tok-w">        </span><span class="tok-c1">// 的哈希值相等 而且键值相等</span>
+<span class="tok-w">        </span><span class="tok-c1">// 就是找到了对应的数据</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span>
+<span class="tok-w">            </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">hash</span>
+<span class="tok-w">            </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">            </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="完整代码">完整代码</h2>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.*</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyHashMap</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 默认数组的容量</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 默认负载因子</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_LOAD_FACTOR</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.75f</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表中数组的最大长度</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">30</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 真正存储数据的数组</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表数组当中存储的数据的个数</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表当中的负载因子</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.75f</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 哈希表扩容的阈值 = 哈希表的长度 x 负载因子</span>
+<span class="tok-cm">   * 当超过这个值的时候进行扩容</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">threshold</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 返回第一个大于或者等于 capacity 且为 2 的整数次幂的那个数</span>
+<span class="tok-cm">   * @param capacity</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">roundUp</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果最终得到的数据小于 0 则初始长度为 1</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果长度大于我们所允许的最大的容量 则将初始长度设置为我们</span>
+<span class="tok-w">    </span><span class="tok-c1">// 所允许的最大的容量</span>
+<span class="tok-w">    </span><span class="tok-c1">// MAXIMUM_CAPACITY = 1 &lt;&lt; 30;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * 用于存储我们计算好的 key 的哈希值</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Key Value 中的 Key 对象</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Key Value 中的 Value 对象</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * hash 是键值 key 的哈希值  key 是键 value 是值</span>
+<span class="tok-cm">     * @param hash</span>
+<span class="tok-cm">     * @param key</span>
+<span class="tok-cm">     * @param value</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">Node</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">setValue</span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">oldValue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newValue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">oldValue</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-nd">@Override</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"="</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyHashMap</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">loadFactor</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_LOAD_FACTOR</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyHashMap</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">float</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">RuntimeException</span><span class="tok-p">(</span><span class="tok-s">"初始化长度不能小于0"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">initialCapacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-n">initialCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">hashTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">[</span><span class="tok-n">initialCapacity</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">loadFactor</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">threshold</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">loadFactor</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">initialCapacity</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyHashMap</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">(</span><span class="tok-n">capacity</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">DEFAULT_LOAD_FACTOR</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hash</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-o">^</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">put</span><span class="tok-p">(</span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">RuntimeException</span><span class="tok-p">(</span><span class="tok-s">"哈希表的键值不能为空"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">hashTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">[</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">threshold</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)(</span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">DEFAULT_CAPACITY</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">        </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-n">hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">++</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">threshold</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">resize</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">resize</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">threshold</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">loadFactor</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">hashTable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">[</span><span class="tok-n">n</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">continue</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">K</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldTable</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">.</span><span class="tok-na">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-n">node</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">        </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-n">K</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">RuntimeException</span><span class="tok-p">(</span><span class="tok-s">"查询的键值不能为空"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">(</span><span class="tok-n">key</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(;;)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span>
+<span class="tok-w">          </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">hash</span>
+<span class="tok-w">          </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">key</span><span class="tok-p">))</span>
+<span class="tok-w">        </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">idx</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">value</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">StringBuilder</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">StringBuilder</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"["</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">hashTable</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-n">hashTable</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">", "</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">delete</span><span class="tok-p">(</span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-s">"]"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">builder</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="测试我们自己实现的hashmap">测试我们自己实现的<code>HashMap</code></h2>
+<p>测试代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-n">MyHashMap</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">map</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyHashMap</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">map1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">strs</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">1000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">UUID</span><span class="tok-p">.</span><span class="tok-na">randomUUID</span><span class="tok-p">().</span><span class="tok-na">toString</span><span class="tok-p">().</span><span class="tok-na">substring</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">1000</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">strs</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"开始测试插入 put 函数"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">map1</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">strs</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"HashMap：花费的时间 = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+
+<span class="tok-w">    </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">strs</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"MyHashMap：花费的时间 = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"开始测试查找 get 函数"</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">strs</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"MyHashMap：花费的时间 = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+
+<span class="tok-w">    </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">map1</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">strs</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"HashMap：花费的时间 = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>输出结果：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">开始测试插入</span><span class="tok-w"> </span><span class="tok-n">put</span><span class="tok-w"> </span><span class="tok-n">函数</span>
+<span class="tok-n">HashMap</span><span class="tok-err">：</span><span class="tok-n">花费的时间</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">232</span>
+<span class="tok-n">MyHashMap</span><span class="tok-err">：</span><span class="tok-n">花费的时间</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">324</span>
+<span class="tok-n">开始测试查找</span><span class="tok-w"> </span><span class="tok-n">get</span><span class="tok-w"> </span><span class="tok-n">函数</span>
+<span class="tok-n">MyHashMap</span><span class="tok-err">：</span><span class="tok-n">花费的时间</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">186</span>
+<span class="tok-n">HashMap</span><span class="tok-err">：</span><span class="tok-n">花费的时间</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">222</span>
+</code></pre></div><p>从上面的结果可以看出来我们自己实现的<code>HashMap</code>在插入数据的时候花费的时间比较长，<code>JDK</code>的<code>HashMap</code>使用的是链地址法，他们扩容的次数肯定会比我们少，因为我们一个位置只能放一个数据，而<code>JDK</code>的能放多个。</p>
+<p>但是我们查找的时候效率会高一点，因为<code>JDK</code>的哈希表还涉及链表的操作（可能还涉及红黑树），因此我们的效率可能会高一点。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中我们自己实现了一个线性探测的哈希表，但是我们并没有实现<code>remove</code>函数，大家可以自己去实现这个函数，也不太困难！！！整篇文章的内容主要包含以下内容：</p>
+<ul>
+<li>节点<code>Node</code>的设计。</li>
+<li>数组长度的设计。</li>
+<li><code>roundUp</code>函数设计。</li>
+<li>哈希函数的设计。</li>
+<li>扩容机制。</li>
+</ul>
+<p>本篇内容还是比较多的，希望大家有所收获，我是LeHung，我们下期再见！！！</p>
+<p>更多精彩内容合集可访问：https://github.com/Chang-LeHung/CSCore</p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-container-05-hashmap/"><span>较新</span>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</a><a class="next" href="/posts/cscore-da-01/"><span>较旧</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#我们的数组当中应该存储什么样数据">我们的数组当中应该存储什么样数据？</a></li>
+      <li class="toc-l2"><a href="#我们的数组长度应该怎么设置">我们的数组长度应该怎么设置？</a></li>
+      <li class="toc-l2"><a href="#roundup函数">RoundUp函数</a></li>
+      <li class="toc-l2"><a href="#哈希函数">哈希函数</a></li>
+      <li class="toc-l2"><a href="#扩容机制">扩容机制</a></li>
+      <li class="toc-l2"><a href="#java代码实现hashmap">Java代码实现HashMap</a></li>
+      <li class="toc-l3"><a href="#先看一下我们需要的字段">先看一下我们需要的字段</a></li>
+      <li class="toc-l3"><a href="#put函数的实现">put函数的实现</a></li>
+      <li class="toc-l3"><a href="#扩容resize函数实现">扩容(resize函数)实现</a></li>
+      <li class="toc-l3"><a href="#get函数实现">get函数实现</a></li>
+      <li class="toc-l2"><a href="#完整代码">完整代码</a></li>
+      <li class="toc-l2"><a href="#测试我们自己实现的hashmap">测试我们自己实现的HashMap</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

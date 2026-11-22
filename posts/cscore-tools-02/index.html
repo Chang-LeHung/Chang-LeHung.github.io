@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>彻底掌握Makefile（二） · Chang-LeHung</title>
+<meta name="description" content="前言 在前面的文章 彻底掌握Makefile（一） 当中，我们简要的介绍了一些常见的makefile使用方法，在本篇文章当中我们将继续介绍一些makefile当中的常见用法。 Makefile中的条件判断 ifeq 和 ifneq 我们在写makefile的时候常常会有通过if语句进行判断的需求，比">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>彻底掌握Makefile（二）</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-09">2022-10-09</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/工具/">工具</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在前面的文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486795&amp;idx=1&amp;sn=1da47724ddaa139d87b8994abefef7cd&amp;chksm=cf0c9142f87b1854f619b6f6d744b6f6c570adb726c857b36787cec7a821cebbaf2b6bd6799f&amp;token=1023752079&amp;lang=zh_CN#rd">彻底掌握Makefile（一）</a>当中，我们简要的介绍了一些常见的makefile使用方法，在本篇文章当中我们将继续介绍一些makefile当中的常见用法。</p>
+<h2 id="makefile中的条件判断">Makefile中的条件判断</h2>
+<h3 id="ifeq-和-ifneq">ifeq 和 ifneq</h3>
+<p>我们在写makefile的时候常常会有通过if语句进行判断的需求，比如说根据不同的文件设置不同的编译器等等。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cc</span><span class="tok-o">=</span>g++
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span>
+
+<span class="tok-cp">ifeq ($(cc), gcc)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>相等的语句执行了
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span>!<span class="tok-o">=</span><span class="tok-w"> </span>不相等的语句执行了
+<span class="tok-cp">endif</span>
+</code></pre></div><p>上面的makeifle的执行结果如下：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile12.webp" alt="makfile12" loading="lazy" /></p>
+<p>在上面的makefile当中定义了一个变量cc，他的值为gcc。在上面的makefile当中<code>ifeq</code>表示如果后边的表达式成立的话，也就是<code>$(cc)</code>的值等于<code>gcc</code>那么就执行后面的语句，否则执行else后面的语句。根据上面makefile的执行结果来看，$(cc)和gcc不相等，因此和我们的期待的结果是一致的。</p>
+<p>我们修改上面的makefile文件如下：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cc</span><span class="tok-o">=</span>g++
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span>
+
+<span class="tok-cp">ifneq ($(cc), gcc)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span>!<span class="tok-o">=</span><span class="tok-w"> </span>gcc
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>gcc
+<span class="tok-cp">endif</span>
+</code></pre></div><p>执行上面的makefile文件输出的结果如下：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile13.webp" alt="makfile12" loading="lazy" /></p>
+<p>在上面的makefile当中<code>ifneq</code>的含义表示如果不相等，因为g++不等于gcc，因此这个满足条件，程序执行的结果满足条件。</p>
+<p>关于make的输出问题，当makefile执行到<code>echo $(cc) != gcc</code>的时候，首先这条命令会被make输出，然后make会执行这条命令，而这条命令是输出<code>g++ != gcc</code>，因此才会有上面的输出。<code>echo g++ != gcc</code>，而执行这条命令还会输出<code>g++ != gcc</code>，看到这应该能够理解上面的makefile的输出结果了。</p>
+<p>前面两个关键字的语法如下所示：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">ifeq (&lt;arg1&gt;, &lt;arg2&gt;)</span>
+<span class="tok-cp">ifeq '&lt;arg1&gt;' '&lt;arg2&gt;'</span>
+<span class="tok-cp">ifeq "&lt;arg1&gt;" "&lt;arg2&gt;"</span>
+<span class="tok-cp">ifeq "&lt;arg1&gt;" '&lt;arg2&gt;'</span>
+<span class="tok-cp">ifeq '&lt;arg1&gt;' "&lt;arg2&gt;"</span>
+
+<span class="tok-cp">ifneq (&lt;arg1&gt;, &lt;arg2&gt;)</span>
+<span class="tok-cp">ifneq '&lt;arg1&gt;' '&lt;arg2&gt;'</span>
+<span class="tok-cp">ifneq "&lt;arg1&gt;" "&lt;arg2&gt;"</span>
+<span class="tok-cp">ifneq "&lt;arg1&gt;" '&lt;arg2&gt;'</span>
+<span class="tok-cp">ifneq '&lt;arg1&gt;' "&lt;arg2&gt;"</span>
+</code></pre></div><h3 id="ifdef-和-ifndef">ifdef 和 ifndef</h3>
+<p>除了上面的两个关键字之外，make还给我们提供了另外两个关键字<code>ifdef</code>和<code>ifndef</code>。</p>
+<p><code>ifdef</code>和<code>ifndef</code>用于判断表达式是否定义过，或者是否为空：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">foo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><p>上面的makefile的输出结果如下：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile14.webp" alt="makfile12" loading="lazy" /></p>
+<p>在上面的makefile当中我们定义了foo，因此<code>ifdef</code>判断正确，输出<code>define foo</code>，现在修改上面的makefile如下所示说：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile15.webp" alt="makfile12" loading="lazy" /></p>
+<p>在上面的makefile当中我们没有定义<code>foo</code>，因此在上面的makefile当中会输出<code>not define foot</code>。</p>
+<p>我们在来看一个结果比较令人疑惑的makefile:</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">foo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><p>在上面的makefile当中我们定义了foo，但是他没有值，我们看一下这个makefile的输出结果：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile15.webp" alt="makfile12" loading="lazy" /></p>
+<p>上面makefile的输出表示<code>foo</code>没有被定义，因此当我们定义一个空变量的时候和不定义的效果是一样的。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">bar</span><span class="tok-w"> </span><span class="tok-o">=</span>
+<span class="tok-nv">foo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>bar<span class="tok-k">)</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><p>在上面的makefile当中我们定义了一个空的变量<code>bar</code>但是我们令<code>foot=$(bar)</code>我们看一下上面的makefile文件的输出：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile17.webp" alt="makfile12" loading="lazy" /></p>
+<p>可以看出是定义了foo的虽然foo的真实的值也为空，从这里也可以看出<code>ifdef</code>和<code>ifndef</code>在进行判断的时候并不会将变量直接展开，而是直接判断成不为空。</p>
+<h2 id="makfile中的函数">Makfile中的函数</h2>
+<p>在makefile当中除了能够使用条件表达式之外我们还可以使用函数，在makefile当中函数的使用规则如下：</p>
+<div class="code-block" data-lang="makefiel"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(&lt;函数名&gt; &lt;函数参数&gt;)
+或者
+将()替换为{}
+</code></pre></div><p>函数的调用规则如上图所示，函数参数用,隔开。</p>
+<h3 id="字符串函数">字符串函数</h3>
+<h4 id="subst">subst</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">subst</span> &lt;<span class="tok-nv">from</span>&gt;,&lt;<span class="tok-nv">to</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><ul>
+<li>字符串替换函数。</li>
+<li><text>表示文本，这个函数会将text当中是<from>的字符串替换为<to>。</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>ii<span class="tok-w"> </span>am<span class="tok-w"> </span>learning<span class="tok-w"> </span>makefile
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>subst<span class="tok-w"> </span>ii,<span class="tok-w"> </span>you,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p>上面的makefile执行结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile18.webp" alt="makfile12" loading="lazy" /></p>
+<p>从上面的结果我们可以看出，确实将字符串s当中的ii替换成了you!</p>
+<h4 id="patsubst">patsubst</h4>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(patsubst &lt;pattern&gt;,&lt;replacement&gt;,&lt;text&gt;)
+</code></pre></div><ul>
+<li>pattern 表示第一个参数，用于表示如何对 text 进行匹配。</li>
+<li>replacement 表示第二个参数 表示如何对匹配的字符进行重写。</li>
+<li>patsubst在进行匹配替换的时候，会先将字符串text根据空格或者tab键或者回车换行符进行分割，然后一一的进行替换和匹配。</li>
+</ul>
+<p>这个函数也是一个字符串替换函数，但是与上面的函数不同的是这是一个模式替换。我们直接根据例子来进行分析：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>b.c<span class="tok-w"> </span>d.c<span class="tok-w"> </span>abc.c<span class="tok-w"> </span>abo.c
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>patsubst<span class="tok-w"> </span>%.c,<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p>执行make命令上面的makefile的输出结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile19.webp" alt="makfile12" loading="lazy" /></p>
+<p>从上面的结果我们可以看出，patsubst函数将所有的.c文件的后缀都变成了.o。</p>
+<ul>
+<li>
+<p>在上面的makefile当中首先会将$(s)当中的字符串按照回车换行、空格以及tab键将$(s)当中的进行分割，然后一个一个进行patsubst操作，然后将得到结果合并起来。</p>
+</li>
+<li>
+<p>在上面的patsubst函数当中%符号是一个通配符，他匹配了.c前面的所有符号。</p>
+</li>
+<li>
+<p>在pattern当中的符号为&quot;%.c&quot;，这个表示用%匹配了.c前面的所有的字符。</p>
+</li>
+<li>
+<p>在replacement当中的字符串为&quot;%.o&quot;，这个%用于表示在pattern当中匹配到的字符串，比如对于abo.c来说%就代表了abo，因此被替换的字符串就是abo.o。</p>
+</li>
+</ul>
+<p>你如果你对Python有所了解的话，那么上面的替换代码等价的Python代码如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile20.webp" alt="makfile12" loading="lazy" /></p>
+<h4 id="strip">Strip</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">strip</span> &lt;<span class="tok-nv">string</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><ul>
+<li>主要功能去掉字符串 string 首尾的空格。</li>
+</ul>
+<h4 id="findstring">findstring</h4>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(findstring &lt;find&gt;,&lt;text&gt;)
+</code></pre></div><ul>
+<li>这个函数的作用是从字符串<text>当中寻找字符串<find>，如果找到了字符串<find>就返回字符串<find>，否则返回空。</li>
+</ul>
+<p>filter</p>
+<div class="code-block" data-lang="makeifle"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(filter &lt;pattern...&gt;,&lt;text&gt;)
+</code></pre></div><p>这是一个过滤函数，这个函数执行时，首先会根据空格或者tab键或者回车换行符进行分割，然后一一的进行filter函数的操作。然后遍历每一个被分割出来的字符，如果不满足pattern的规则的话对应的字符就会被过滤掉。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>abo.c<span class="tok-w"> </span>s.o<span class="tok-w"> </span>s.y<span class="tok-w"> </span>x.o<span class="tok-w"> </span>x.y
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>filter<span class="tok-w"> </span>%.c<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p>上面的makefile执行之后输出的结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile21.webp" alt="makfile12" loading="lazy" /></p>
+<p>可以看过滤掉了不是以.c和.o结尾的文件。</p>
+<p>上面的过滤函数对应的Python代码如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile22.webp" alt="makfile12" loading="lazy" /></p>
+<p>filter-out</p>
+<p>这个函数和filter的用法是一样的只不过，作用刚好相反，filter是保存符合条件的字符串，filter-out是保存不符合条件的字符串。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>abo.c<span class="tok-w"> </span>s.o<span class="tok-w"> </span>s.y<span class="tok-w"> </span>x.o<span class="tok-w"> </span>x.y
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>filter-out<span class="tok-w"> </span>%.c<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile23.webp" alt="makfile12" loading="lazy" /></p>
+<h4 id="sort">sort</h4>
+<p>这个函数主要是用于帮助字符串排序的，同时还会取出分割之后相同的字符串。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>sort<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p>以上的makefile输出结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/tools/makfile24.webp" alt="makfile12" loading="lazy" /></p>
+<p>从上面的输出结果我们可以验证sort不仅可以给字符串排序还会去除相同的字符串。</p>
+<h4 id="word">word</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">word</span> &lt;<span class="tok-nv">n</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>这个功能很简单，返回<text>当中第<n>个字符。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>word<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span><span class="tok-w"> </span><span class="tok-c1"># 取出第一个字符</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile25.webp" alt="makfile12" loading="lazy" /></p>
+<h4 id="wordlist">wordlist</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">wordlist</span> &lt;<span class="tok-nv">start</span>&gt;,&lt;<span class="tok-nv">end</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>这个也是从字符串当中取出字符，是取出第<start>个字符一直到第<end>个字符。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>wordlist<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">5</span>,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile26.webp" alt="makfile12" loading="lazy" /></p>
+<h4 id="words">words</h4>
+<p>统计单词的个数。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>words<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile27.webp" alt="makfile12" loading="lazy" /></p>
+<h4 id="firstword">firstword</h4>
+<p>这个函数主要是用于返回第一个字符串的。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>firstword<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/tools/makfile28.webp" alt="makfile12" loading="lazy" /></p>
+<p>在本篇文章当中主要给大家介绍了Makefile当中一些常用的函数和条件语句的使用，整体比较简单，大家可以对照着makefile和结果自己实现一遍，下期我们将在makefile当中的一些其他的函数！</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-03mkls/"><span>较新</span>自己动手写ls命令——Java版</a><a class="next" href="/posts/cscore-tools-03/"><span>较旧</span>彻底掌握Makefile（三）</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#makefile中的条件判断">Makefile中的条件判断</a></li>
+      <li class="toc-l3"><a href="#ifeq-和-ifneq">ifeq 和 ifneq</a></li>
+      <li class="toc-l3"><a href="#ifdef-和-ifndef">ifdef 和 ifndef</a></li>
+      <li class="toc-l2"><a href="#makfile中的函数">Makfile中的函数</a></li>
+      <li class="toc-l3"><a href="#字符串函数">字符串函数</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

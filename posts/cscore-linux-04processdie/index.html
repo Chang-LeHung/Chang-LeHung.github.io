@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>进程最后的遗言 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍父子进程之间的关系，以及他们之间的交互以及可能造成的状态，帮助大家深入理解父子进程之间的关系，以及他们之间的交互。 僵尸进程和孤儿进程 僵尸进程 在 Unix 操作系统和类 Unix 操作系统当中，当子进程退出的时候，父进程可以从子进程当中获取子进程的退出信息，因此">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>进程最后的遗言</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-27">2022-10-27</time>
+        <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍父子进程之间的关系，以及他们之间的交互以及可能造成的状态，帮助大家深入理解父子进程之间的关系，以及他们之间的交互。</p>
+<h2 id="僵尸进程和孤儿进程">僵尸进程和孤儿进程</h2>
+<h3 id="僵尸进程">僵尸进程</h3>
+<p>在 Unix 操作系统和类 Unix 操作系统当中，当子进程退出的时候，父进程可以从子进程当中获取子进程的退出信息，因此在 类 Unix 操作系统当中只有父进程通过 wait 系统调用读取子进程的退出状态信息之后，子进程才会完全退出。那么子进程在程序执行完成之后（调用 _exit 系统调用之后），到父进程执行 wait 系统调用获取子进程退出状态信息之前，这一段时间的进程的状态是僵尸进程的状态。</p>
+<p>正式定义：在 Unix 或者类 Unix 操作系统当中，僵尸进程就是哪些已经完成程序的执行（完成_exit 系统调用退出了程序），但是在内核当中还有属于这个进程的进程表项。这个表项的作用主要是让父进程读取子进程的退出状态信息 (exit status)。</p>
+<p>在后文当中我们有一个例子详细分析这个退出状态的相关信息。一旦父进程通过 wait 系统调用读取完子进程的 exit statis 信息之后，僵尸进程的进程表项就会从进程表（process table）当中被移除，这个进程就算是彻底消亡了（reaped）。</p>
+<p>如果系统当中有很多处于僵尸状态的进程而父进程又没有使用 wait 系统调用去得到子进程的退出状态，那么系统当中就会有很多内存没有被释放，这就会导致资源泄露。</p>
+<p>下面是一个僵尸进程的例子，对应的代码名称为 Z.c：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"parent pid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fork</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"child process pid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面C语言对应的python代码如下：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">os</span>
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s2">"__main__"</span><span class="tok-p">:</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"parent pid = </span><span class="tok-si">{</span><span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">getpid</span><span class="tok-p">()</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+    <span class="tok-n">pid</span> <span class="tok-o">=</span> <span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">fork</span><span class="tok-p">()</span>
+    <span class="tok-k">if</span> <span class="tok-n">pid</span> <span class="tok-o">!=</span> <span class="tok-mi">0</span><span class="tok-p">:</span>
+        <span class="tok-c1"># parent process will never exit</span>
+        <span class="tok-k">while</span> <span class="tok-kc">True</span><span class="tok-p">:</span>
+            <span class="tok-k">pass</span>
+    <span class="tok-c1"># child process will exit</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"child process pid = </span><span class="tok-si">{</span><span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">getpid</span><span class="tok-p">()</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+</code></pre></div><p>现在执行上面的程序，得到的结果如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/53.webp" alt="53" loading="lazy" /></p>
+<p>从上图当中我们可以看到父进程一直在进行死循环的操作，而子进程退出了程序，而现在应该处于僵尸进程状态。而我们通过 ps 命令得到的进程状态的结果，根据进程号得到子进程的状态为 <code>Z+</code>，这个状态就表示这个进程就是一个僵尸进程。我们在这里再简要谈一下命令 ps 对进程的状态的各种表示：</p>
+<p><code>STAT</code> 当中字母的含义表：</p>
+<table>
+<thead>
+<tr>
+<th>条目</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D</td>
+<td>表示不能够被中断的睡眠操作，比如说IO操作</td>
+</tr>
+<tr>
+<td>I</td>
+<td>内核当中的空闲线程</td>
+</tr>
+<tr>
+<td>R</td>
+<td>正在执行或者处于就绪队列当中的进程</td>
+</tr>
+<tr>
+<td>S</td>
+<td>可以被中断的睡眠，一般是等待某个事件触发</td>
+</tr>
+<tr>
+<td>T</td>
+<td>被其他的进程发送的信号给停下来了</td>
+</tr>
+<tr>
+<td>t</td>
+<td>被调试或者tracing中</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>表示这个进程是一个僵尸进程</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>表示高优先级</td>
+</tr>
+<tr>
+<td>N</td>
+<td>表示低优先级</td>
+</tr>
+<tr>
+<td>L</td>
+<td>有页面被所在内存当中，也就是说这个页面不会被操作系统换出道对换区当中</td>
+</tr>
+<tr>
+<td>s</td>
+<td>表示这个进程是一个 session leader</td>
+</tr>
+<tr>
+<td>l</td>
+<td>是一个多线程程序</td>
+</tr>
+<tr>
+<td>+</td>
+<td>表示在前台进程组当中</td>
+</tr>
+</tbody>
+</table>
+<p>大家可以根据上表当中的内容对应一下程序的状态，就发现子进程目前处于僵尸状态。</p>
+<h3 id="孤儿进程">孤儿进程</h3>
+<p>孤儿进程：当一个进程还在执行，但是他的父进程已经退出了，那么这个进程就变成了一个孤儿进程，然后他会被 init 进程（进程ID=1）&quot;收养&quot;，然后 init 进程会调用 wait 系统调用回收这个进程的资源。</p>
+<p>下面是一个孤儿进程的例子，我们可以看看子进程的父进程的输出是什么：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fork</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 父进程退出</span>
+<span class="tok-w">    </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pid = %d parent pid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">getppid</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>对应的python代码如下：</p>
+<div class="code-block" data-lang="py"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">os</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">time</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s2">"__main__"</span><span class="tok-p">:</span>
+    <span class="tok-n">pid</span> <span class="tok-o">=</span> <span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">fork</span><span class="tok-p">()</span>
+
+    <span class="tok-k">if</span> <span class="tok-n">pid</span> <span class="tok-o">==</span> <span class="tok-mi">0</span><span class="tok-p">:</span>
+        <span class="tok-k">while</span> <span class="tok-kc">True</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"pid = </span><span class="tok-si">{</span><span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">getpid</span><span class="tok-p">()</span><span class="tok-si">}</span><span class="tok-s2"> parent pid = </span><span class="tok-si">{</span><span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">getppid</span><span class="tok-p">()</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+            <span class="tok-n">time</span><span class="tok-o">.</span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+</code></pre></div><p>程序执行结果如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/54.webp" alt="53" loading="lazy" /></p>
+<p>可以看到子进程的父进程发生了变化，当父进程退出之后，子进程的父进程变成了 init 进程，进程号等于1。</p>
+<h2 id="wait系统调用">wait系统调用</h2>
+<h3 id="waitpid-及其参数分析">waitpid 及其参数分析</h3>
+<p>在前文当中我们主要谈到了两种比较不一样的进程，其中更是主要谈到了 wait 系统调用对于僵尸进程的重要性。在 linux 当中与 wait 相关的主要有下面两个系统调用：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-nf">waitpid</span><span class="tok-p">(</span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">wstatus</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">options</span><span class="tok-p">);</span>
+<span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-nf">wait</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">wstatus</span><span class="tok-p">);</span>
+</code></pre></div><p>其中 wait 系统调用是 waitpid 系统调用的一个特例，我们首先解释一下 waipit 系统调用。上面两个系统调用主要是用于等待子进程的状态变化的，并且从子进程当中取出额外的状态信息（status information）。只有当子进程的状态发生变化了 wait 系统调用才能返回，主要有以下几种状态：</p>
+<ul>
+<li>子进程结束了。</li>
+<li>子进程被别的进程发送的信号停止运行了（SIGSTOP和SIGTSTP可以让一个进程被挂起停止执行）。</li>
+<li>停止运行的进程被信号唤醒继续执行了（SIGCONT可以唤醒进程继续执行）。</li>
+</ul>
+<p>当有子进程出现上面的状态的时候 wait 或者 waitpid 系统调用会马上返回，否则 wait 或者 waitpid 系统调用就会一致阻塞。waitpid 的几个参数：</p>
+<ul>
+<li>pid:
+<ul>
+<li>pid &lt; -1 表示等待任何进程组 -pid 当中的该进程的子进程。</li>
+<li>pid == -1 表示等待任何一个子进程。</li>
+<li>pid == 0 表示等待子进程，这些子进程的进程组号（process group id） 等于这个进程（调用 waitpid 函数的这个进程）的进程号。</li>
+<li>pid &gt; 0 表示等待进程号等于 pid 的子进程。</li>
+</ul>
+</li>
+<li>options：
+<ul>
+<li>WNOHANG：如果 options 等于这个值的话，表示如果还没有子进程结束执行就立即返回，不进行等待。</li>
+<li>WUNTRACED：如果子进程被其他进程发送的信号 stop 了，wait 函数也返回。</li>
+<li>WCONTINUED：如果子进程被其他进程发送的信号（SIGCONT）恢复执行了，wait 函数也返回。</li>
+<li>根据上面的分析， waitpid(-1, &amp;wstatus, 0) == wait( &amp;wstatus)</li>
+</ul>
+</li>
+<li>wstatus：是我们传入给 wait 或者 waitpid 函数的一个指针，系统调用会将子进程的很多状态信息放入到 wstatus 指针指向的数据当中，我们可以使用下面的一些宏去判断一些信息。
+<ul>
+<li>WIFEXITED(wstatus)：如果子进程正常退出（使用 exit 、_exit或者直接从main函数返回）这行代码就返回为 true。</li>
+<li>WEXITSTATUS(wstatus)：这个宏主要是返回程序退出的退出码，关于退出码的内容，可以参考这篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247487102&amp;idx=1&amp;sn=32f21013fc7974346a80056d56f60376&amp;chksm=cf0c9277f87b1b612b22a3005ed5667b42fb6e450ee2f24e0073892a8086eb8fbdfec00f35a8&amp;token=308651918&amp;lang=zh_CN#rd">Shell揭秘——程序退出状态码</a>。</li>
+<li>WIFSIGNALED(wstatus)：表示子进程是否是其他进程发送信号导致程序退出的。</li>
+<li>WTERMSIG(wstatus)：如果子进程是其他进程发送信号导致程序退出的话，我们可以使用这个宏去得到具体的信号值。</li>
+<li>WCOREDUMP(wstatus)：表示子进程是否发生 core dump 然后退出的。</li>
+<li>WIFSTOPPED(wstatus)：当子进程接收到了一个其他进程发送的信号导致程序被挂起，这个宏就返回 true。</li>
+<li>WSTOPSIG(wstatus)：返回挂起信号的具体的信号值。</li>
+<li>WIFCONTINUED(wstatus): 返回 true 如果子进程接收到了一个SIGCONT信号恢复程序的执行。</li>
+</ul>
+</li>
+</ul>
+<h3 id="示例说明">示例说明</h3>
+<p>下面是一个几乎综合了上面所有的信息的一个例子，我们仔细看看这个程序的输出：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/wait.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdint.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">argv</span><span class="tok-p">[])</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">cpid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">wstatus</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">cpid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">fork</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">cpid</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">"fork"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-n">EXIT_FAILURE</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">cpid</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w">            </span><span class="tok-cm">/* Code executed by child */</span>
+<span class="tok-w">        </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Child PID is %jd</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">intmax_t</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">getpid</span><span class="tok-p">());</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">argc</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">pause</span><span class="tok-p">();</span><span class="tok-w">   </span><span class="tok-c1">// 子进程会在这里等待接收信号 直到信号的处理函数返回                  /* Wait for signals */</span>
+<span class="tok-w">        </span><span class="tok-n">_exit</span><span class="tok-p">(</span><span class="tok-n">atoi</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]));</span>
+
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w">                    </span><span class="tok-cm">/* Code executed by parent */</span>
+<span class="tok-w">        </span><span class="tok-k">do</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">w</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">waitpid</span><span class="tok-p">(</span><span class="tok-n">cpid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">wstatus</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">WUNTRACED</span><span class="tok-w"> </span><span class="tok-o">|</span><span class="tok-w"> </span><span class="tok-n">WCONTINUED</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">w</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">perror</span><span class="tok-p">(</span><span class="tok-s">"waitpid"</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-n">EXIT_FAILURE</span><span class="tok-p">);</span><span class="tok-c1">// EXIT_FAILURE 是一个宏 等于 1</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">						</span><span class="tok-c1">// 程序是否是正常退出</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">WIFEXITED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"exited, status=%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">WEXITSTATUS</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">));</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">WIFSIGNALED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// 是否是被信号杀死</span>
+<span class="tok-w">                </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"killed by signal %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">WTERMSIG</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">));</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">WIFSTOPPED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// 是否被 stop </span>
+<span class="tok-w">                </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"stopped by signal %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">WSTOPSIG</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">));</span>
+<span class="tok-w">            </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">WIFCONTINUED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// 是否处于 stop 状态再被唤醒</span>
+<span class="tok-w">                </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"continued</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">          </span><span class="tok-c1">// 判断程序是否退出 正常退出和因为信号退出 如果程序是退出了 父进程就退出 while 循环</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">WIFEXITED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-n">WIFSIGNALED</span><span class="tok-p">(</span><span class="tok-n">wstatus</span><span class="tok-p">));</span>
+<span class="tok-w">        </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-n">EXIT_SUCCESS</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// EXIT_SUCCESS 是一个宏 等于 0</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/linux/command/55.webp" alt="53" loading="lazy" /></p>
+<p>在上图的例子当中，我们在上面的终端先执行 wait.out 程序，然后在下面一个终端我们首先发送一个 SIGSTOP 信号给子进程，先让进程停下来，然后在发送一个 SIGCONT 信号让进程继续执行，最后发送了一个 SIGKILL 信号让子进程退出，可以看到我们上面提到的宏操作都一一生效了，在父进程当中信号和退出状态都一一接受了。</p>
+<p>我们再来演示一个 coredump 的例子：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/wait.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fork</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">wait</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">s</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">WCOREDUMP</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"core dump true</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>子线程解引用NULL会造成segmentation fault (core dump)，然后父进程接收子进程的退出状态，然后对状态进行判断，是否是 coredump 导致的退出：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/56.webp" alt="53" loading="lazy" /></p>
+<p>我们在父进程对子进程的退出码进行了判断，如果子进程退出的原因是 core dump 的话就进行打印输出，而在上面的程序输出当中我们看到了程序进行了输出，因此父进程可以判断子进程是因为 core dump 而退出程序的。</p>
+<h2 id="从子进程获取系统资源信息">从子进程获取系统资源信息</h2>
+<p>出了上面所谈到的等在子进程退出的方法之外，我们还有可以获取子进程执行时候的状态信息，比如说运行时占用的最大的内存空间，进程有多少次上下文切换等等。主要有下面两个系统调用：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-nf">wait3</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">wstatus</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">options</span><span class="tok-p">,</span>
+<span class="tok-w">                   </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">rusage</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">rusage</span><span class="tok-p">);</span>
+<span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-nf">wait4</span><span class="tok-p">(</span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">wstatus</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">options</span><span class="tok-p">,</span>
+<span class="tok-w">                   </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">rusage</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">rusage</span><span class="tok-p">);</span>
+</code></pre></div><p>其中 3 和 4 表示对应的函数的参数的个数。在上面的两个函数当中有一个比较重要的数据类型 <code>struct rusage</code> ，我们看一下这个结构体的内容和对应字段的含义：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">rusage</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">timeval</span><span class="tok-w"> </span><span class="tok-n">ru_utime</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* user CPU time used */</span><span class="tok-w"> </span><span class="tok-c1">// 程序在用户态的时候使用了多少的CPU时间</span>
+<span class="tok-w">  </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">timeval</span><span class="tok-w"> </span><span class="tok-n">ru_stime</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* system CPU time used */</span><span class="tok-w"> </span><span class="tok-c1">// 程序在内核态的时候使用了多少CPU时间</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_maxrss</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* maximum resident set size */</span><span class="tok-w"> </span><span class="tok-c1">// 使用的内存的峰值 单位 kb</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_ixrss</span><span class="tok-p">;</span><span class="tok-w">         </span><span class="tok-cm">/* integral shared memory size */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_idrss</span><span class="tok-p">;</span><span class="tok-w">         </span><span class="tok-cm">/* integral unshared data size */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_isrss</span><span class="tok-p">;</span><span class="tok-w">         </span><span class="tok-cm">/* integral unshared stack size */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_minflt</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* page reclaims (soft page faults) */</span><span class="tok-w"> </span><span class="tok-c1">// 没有IO操作时候 page fault 的次数</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_majflt</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* page faults (hard page faults) */</span><span class="tok-w"> </span><span class="tok-c1">// 有 IO 操作的时候 page fault 的次数</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_nswap</span><span class="tok-p">;</span><span class="tok-w">         </span><span class="tok-cm">/* swaps */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_inblock</span><span class="tok-p">;</span><span class="tok-w">       </span><span class="tok-cm">/* block input operations */</span><span class="tok-w"> </span><span class="tok-c1">// 文件系统写操作次数</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_oublock</span><span class="tok-p">;</span><span class="tok-w">       </span><span class="tok-cm">/* block output operations */</span><span class="tok-w"> </span><span class="tok-c1">// 文件系统读操作次数</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_msgsnd</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* IPC messages sent */</span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_msgrcv</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* IPC messages received */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_nsignals</span><span class="tok-p">;</span><span class="tok-w">      </span><span class="tok-cm">/* signals received */</span><span class="tok-w"> </span><span class="tok-c1">// 暂时没有使用</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_nvcsw</span><span class="tok-p">;</span><span class="tok-w">         </span><span class="tok-cm">/* voluntary context switches */</span><span class="tok-w"> </span><span class="tok-c1">// 主动上下文切换的次数</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w">   </span><span class="tok-n">ru_nivcsw</span><span class="tok-p">;</span><span class="tok-w">        </span><span class="tok-cm">/* involuntary context switches */</span><span class="tok-w"> </span><span class="tok-c1">// 非主动上下文切换的次数</span>
+<span class="tok-p">};</span>
+</code></pre></div><p>下面我们用一个例子看看是如何从子进程当中获取子进程执行时候的一些详细数据信息的：</p>
+<p>下面是子进程的代码，我们在 fork 之后使用 execv 加载下面的程序：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"hello world</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>父进程代码：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/time.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/resource.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/wait.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">argv</span><span class="tok-p">[])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fork</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">rusage</span><span class="tok-w"> </span><span class="tok-n">usage</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 定义一个统计资源的结构体</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">wait4</span><span class="tok-p">(</span><span class="tok-mi">-1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">usage</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 将这个结构体的地址传入 好让内核能讲对应的信息存在指针所指向的地方</span>
+<span class="tok-w">    </span><span class="tok-c1">// 打印内存使用的峰值</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"pid = %d memory usage peek = %ldkb</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">usage</span><span class="tok-p">.</span><span class="tok-n">ru_maxrss</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">execv</span><span class="tok-p">(</span><span class="tok-s">"./getrusage.out"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">argv</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面程序执行结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/57.webp" alt="53" loading="lazy" /></p>
+<p>可以看出我们得到了内存使用的峰值，其实我们还可以使用 time 命令去查看一个进程执行时候的这些数据值。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/58.webp" alt="53" loading="lazy" /></p>
+<p>从上面的结果可以看到使用 time 命令得到的结果和我们自己使用程序得到的结果是一样的，这也从侧面验证了我们的程序。如果要达到上面的效果的话，需要注意使用绝对地址命令，因为 time 是shell的保留字。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家详细介绍了僵尸进程、孤儿进程、父进程从子进程获取进程退出信息，以及他们形成的原因，并且使用实际的例子进行了验证，这一部分知识练习比较紧密，希望大家有所收获！</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-01introduction/"><span>较新</span>OpenMP 入门</a><a class="next" href="/posts/cscore-linux-06kill/"><span>较旧</span>如何优雅的杀掉一个进程</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#僵尸进程和孤儿进程">僵尸进程和孤儿进程</a></li>
+      <li class="toc-l3"><a href="#僵尸进程">僵尸进程</a></li>
+      <li class="toc-l3"><a href="#孤儿进程">孤儿进程</a></li>
+      <li class="toc-l2"><a href="#wait系统调用">wait系统调用</a></li>
+      <li class="toc-l3"><a href="#waitpid-及其参数分析">waitpid 及其参数分析</a></li>
+      <li class="toc-l3"><a href="#示例说明">示例说明</a></li>
+      <li class="toc-l2"><a href="#从子进程获取系统资源信息">从子进程获取系统资源信息</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

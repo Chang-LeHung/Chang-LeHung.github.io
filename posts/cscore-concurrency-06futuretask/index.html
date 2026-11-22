@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>60行自己动手写FutureTask · Chang-LeHung</title>
+<meta name="description" content="前言 在并发编程当中我们最常见的需求就是启动一个线程执行一个函数去完成我们的需求，而在这种需求当中，我们常常需要函数有返回值。比如我们需要同一个非常大的数组当中数据的和，让每一个线程求某一个区间内部的和，最终将这些和加起来，那么每个线程都需要返回对应区间的和。而在Java当中给我们提供了这种机制，去">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>60行自己动手写FutureTask</h1>
+      <p class="post-meta">
+        <time datetime="2022-08-05">2022-08-05</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在并发编程当中我们最常见的需求就是启动一个线程执行一个函数去完成我们的需求，而在这种需求当中，我们常常需要函数有返回值。比如我们需要同一个非常大的数组当中数据的和，让每一个线程求某一个区间内部的和，最终将这些和加起来，那么每个线程都需要返回对应区间的和。而在Java当中给我们提供了这种机制，去实现这一个效果——<code>FutureTask</code>。</p>
+<h2 id="futuretask">FutureTask</h2>
+<p>在自己写<code>FutureTask</code>之前我们首先写一个例子来回顾一下<code>FutureTask</code>的编程步骤：</p>
+<ul>
+<li>写一个类实现<code>Callable</code>接口。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nd">@FunctionalInterface</span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">interface</span> <span class="tok-nc">Callable</span><span class="tok-o">&lt;</span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Computes a result, or throws an exception if unable to do so.</span>
+<span class="tok-cm">     *</span>
+<span class="tok-cm">     * @return computed result</span>
+<span class="tok-cm">     * @throws Exception if unable to compute a result</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">call</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">Exception</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>实现接口就实现<code>call</code>即可，可以看到这个函数是有返回值的，而<code>FutureTask</code>返回给我们的值就是这个函数的返回值。</p>
+<ul>
+<li><code>new</code>一个<code>FutureTask</code>对象，并且<code>new</code>一个第一步写的类，<code>new FutureTask&lt;&gt;(callable实现类)</code>。</li>
+<li>最后将刚刚得到的<code>FutureTask</code>对象传入<code>Thread</code>类当中，然后启动线程即可<code>new Thread(futureTask).start();</code>。</li>
+<li>然后我们可以调用<code>FutureTask</code>的<code>get</code>方法得到返回的结果<code>futureTask.get();</code>。</li>
+</ul>
+<blockquote>
+<p>假如有一个数组<code>data</code>，长度为100000，现在有10个线程，第<code>i</code>个线程求数组<code>[i * 10000, (i + 1) * 10000)</code>所有数据的和，然后将这十个线程的结果加起来。</p>
+</blockquote>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.lang.reflect.Array</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Arrays</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Random</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Callable</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ExecutionException</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.FutureTask</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FutureTaskDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">ExecutionException</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">100000</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">10000</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">Array</span><span class="tok-p">.</span><span class="tok-na">newInstance</span><span class="tok-p">(</span><span class="tok-n">FutureTask</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 设置10个 futuretask 任务计算数组当中数据的和</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-n">tasks</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-n">k</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 开启线程执行 futureTask 任务</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">futureTask</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">futureTask</span><span class="tok-p">).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">threadSum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">futureTask</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">threadSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">futureTask</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">stream</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">).</span><span class="tok-na">sum</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">threadSum</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 结果始终为 true</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>可能你会对<code>FutureTask</code>的使用方式感觉困惑，或者不是很清楚，现在我们来仔细捋一下思路。</p>
+<ol>
+<li>首先启动一个线程要么是继承自<code>Thread</code>类，然后重写<code>Thread</code>类的<code>run</code>方法，要么是给<code>Thread</code>类传递一个实现了<code>Runnable</code>的类对象，当然可以用匿名内部类实现。</li>
+<li>既然我们的<code>FutureTask</code>对象可以传递给<code>Thread</code>类，说明<code>FutureTask</code>肯定是实现了<code>Runnable</code>接口，我们现在来看一下<code>FutureTask</code>的继承体系。</li>
+</ol>
+<p><img src="/content/zh/images/cscore/images/concurrency/38.webp" alt="" loading="lazy" /></p>
+<p>​	可以发现的是<code>FutureTask</code>确实实现了<code>Runnable</code>接口，同时还实现了<code>Future</code>接口，这个<code>Future</code>接口主要提供了后面我们使用<code>FutureTask</code>的一系列函数比如<code>get</code>。</p>
+<ol start="3">
+<li>看到这里你应该能够大致想到在<code>FutureTask</code>中的<code>run</code>方法会调用<code>Callable</code>当中实现的<code>call</code>方法，然后将结果保存下来，当调用<code>get</code>方法的时候再将这个结果返回。</li>
+</ol>
+<h2 id="自己实现futuretask">自己实现FutureTask</h2>
+<h3 id="工具准备">工具准备</h3>
+<p>经过上文的分析你可能已经大致了解了<code>FutureTask</code>的大致执行过程了，但是需要注意的是，如果你执行<code>FutureTask</code>的<code>get</code>方法是可能阻塞的，因为可能<code>Callable</code>的<code>call</code>方法还没有执行完成。因此在<code>get</code>方法当中就需要有阻塞线程的代码，但是当<code>call</code>方法执行完成之后需要将这些线程都唤醒。</p>
+<p>在本篇文章当中使用锁<code>ReentrantLock</code>和条件变量<code>Condition</code>进行线程的阻塞和唤醒，在我们自己动手实现<code>FutureTask</code>之前，我们先熟悉一下上面两种工具的使用方法。</p>
+<ul>
+<li><code>ReentrantLock</code>主要有两个方法：
+<ul>
+<li><code>lock</code>对临界区代码块进行加锁。</li>
+<li><code>unlock</code>对临界区代码进行解锁。</li>
+</ul>
+</li>
+<li><code>Condition</code>主要有三个方法：
+<ul>
+<li><code>await</code>阻塞调用这个方法的线程，等待其他线程唤醒。</li>
+<li><code>signal</code>唤醒一个被<code>await</code>方法阻塞的线程。</li>
+<li><code>signalAll</code>唤醒所有被<code>await</code>方法阻塞的线程。</li>
+</ul>
+</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.Condition</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.ReentrantLock</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LockDemo</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Condition</span><span class="tok-w"> </span><span class="tok-n">condition</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-n">LockDemo</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">condition</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">newCondition</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">blocking</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">" 准备等待被其他线程唤醒"</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">inform</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 先休眠两秒 等他其他线程先阻塞</span>
+<span class="tok-w">    </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">" 准备唤醒其他线程"</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">signal</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 唤醒一个被 await 方法阻塞的线程</span>
+<span class="tok-w">      </span><span class="tok-c1">// condition.signalAll(); // 唤醒所有被 await 方法阻塞的线程</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">LockDemo</span><span class="tok-w"> </span><span class="tok-n">lockDemo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">LockDemo</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lockDemo</span><span class="tok-p">.</span><span class="tok-na">blocking</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 执行阻塞线程的代码</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"Blocking-Thread"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">lockDemo</span><span class="tok-p">.</span><span class="tok-na">inform</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 执行唤醒线程的代码</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"Inform-Thread"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">thread1</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码的输出：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Thread[Blocking-Thread,5,main] 准备等待被其他线程唤醒
+Thread[Inform-Thread,5,main] 准备唤醒其他线程
+</code></pre></div><h3 id="futuretask设计与实现">FutureTask设计与实现</h3>
+<p>在前文当中我们已经谈到了<code>FutureTask</code>的实现原理，主要有以下几点：</p>
+<ul>
+<li>构造函数需要传入一个实现了<code>Callable</code>接口的类对象，这个将会在<code>FutureTask</code>的<code>run</code>方法执行，然后得到函数的返回值，并且将返回值存储起来。</li>
+<li>当线程调用<code>get</code>方法的时候，如果这个时候<code>Callable</code>当中的<code>call</code>已经执行完成，直接返回<code>call</code>函数返回的结果就行，如果<code>call</code>函数还没有执行完成，那么就需要将调用<code>get</code>方法的线程挂起，这里我们可以使用<code>condition.await()</code>将线程挂起。</li>
+<li>在<code>call</code>函数执行完成之后，需要将之前被<code>get</code>方法挂起的线程唤醒继续执行，这里使用<code>condition.signalAll()</code>将所有挂起的线程唤醒。</li>
+<li>因为是我们自己实现<code>FutureTask</code>，功能不会那么齐全，只需要能够满足我们的主要需求即可，主要是帮助大家了解<code>FutureTask</code>原理。</li>
+</ul>
+<p>实现代码如下（分析都在注释当中）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Callable</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.Condition</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.locks.ReentrantLock</span><span class="tok-p">;</span>
+
+<span class="tok-c1">// 这里需要实现 Runnable 接口，因为需要将这个对象放入 Thread 类当中</span>
+<span class="tok-c1">// 而 Thread 要求传入的对象实现了 Runnable 接口</span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Callable</span><span class="tok-o">&lt;</span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">callable</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">returnVal</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 这个表示我们最终的返回值</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Condition</span><span class="tok-w"> </span><span class="tok-n">condition</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyFutureTask</span><span class="tok-p">(</span><span class="tok-n">Callable</span><span class="tok-o">&lt;</span><span class="tok-n">V</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">callable</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将传入的 callable 对象存储起来 方便在后面的 run 方法当中调用</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">callable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">callable</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ReentrantLock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">condition</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">newCondition</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">timeout</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">TimeUnit</span><span class="tok-w"> </span><span class="tok-n">unit</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 如果符合条件 说明 call 函数已经执行完成 返回值已经不为 null 了</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">returnVal</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 直接将结果返回即可 这样不用竞争锁资源 提高程序执行效率</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 这里需要进行二次判断 (双重检查)</span>
+<span class="tok-w">      </span><span class="tok-c1">// 因为如果一个线程在第一次判断 returnVal 为空</span>
+<span class="tok-w">      </span><span class="tok-c1">// 然后这个时候它可能因为获取锁而被挂起</span>
+<span class="tok-w">      </span><span class="tok-c1">// 而在被挂起的这段时间，call 可能已经执行完成</span>
+<span class="tok-w">      </span><span class="tok-c1">// 如果这个时候不进行判断直接执行 await方法</span>
+<span class="tok-w">      </span><span class="tok-c1">// 那后面这个线程将无法被唤醒</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">(</span><span class="tok-n">timeout</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">unit</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">returnVal</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">returnVal</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 同样的需要进行双重检查</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">      	</span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">await</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">returnVal</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 在 Runnable 的 run 方法当中</span>
+<span class="tok-w">      </span><span class="tok-c1">// 执行 Callable 方法的 call 得到返回结果</span>
+<span class="tok-w">      </span><span class="tok-n">returnVal</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">callable</span><span class="tok-p">.</span><span class="tok-na">call</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">lock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 因为已经得到了结果</span>
+<span class="tok-w">      </span><span class="tok-c1">// 因此需要将所有被 await 方法阻塞的线程唤醒</span>
+<span class="tok-w">      </span><span class="tok-c1">// 让他们从 get 方法返回</span>
+<span class="tok-w">      </span><span class="tok-n">condition</span><span class="tok-p">.</span><span class="tok-na">signalAll</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">lock</span><span class="tok-p">.</span><span class="tok-na">unlock</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-c1">// 下面是测试代码</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">ft</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">101</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">ft</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">ft</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">100</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">MILLISECONDS</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 输出为 null</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">ft</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 输出为 101</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们现在用我们自己写的<code>MyFutureTask</code>去实现在前文当中数组求和的例子：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">ExecutionException</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">100000</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">Random</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Random</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">random</span><span class="tok-p">.</span><span class="tok-na">nextInt</span><span class="tok-p">(</span><span class="tok-mi">10000</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;[]</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">Array</span><span class="tok-p">.</span><span class="tok-na">newInstance</span><span class="tok-p">(</span><span class="tok-n">MyFutureTask</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">tasks</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-n">k</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">MyFutureTask</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">MyFutureTask</span><span class="tok-p">).</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">threadSum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">MyFutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">MyFutureTask</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">threadSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">MyFutureTask</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">stream</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">).</span><span class="tok-na">sum</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">threadSum</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为 true</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了<code>FutureTask</code>的内部原理，并且我们自己通过使用<code>ReentrantLock</code>和<code>Condition</code>实现了我们自己的<code>FutureTask</code>，本篇文章的主要内容如下：</p>
+<ul>
+<li><code>FutureTask</code>的内部原理：
+<ul>
+<li><code>FutureTask</code>首先会继承<code>Runnable</code>接口，这样就可以将<code>FutureTask</code>的对象直接放入<code>Thread</code>类当中，作为构造函数的参数。</li>
+<li>我们在使用<code>FutureTask</code>的时候需要传入一个<code>Callable</code>实现类的对象，在函数<code>call</code>当中实现我们需要执行的函数，执行完成之后，将<code>call</code>函数的返回值保存下来，当有线程调用<code>get</code>方法时候将保存的返回值返回。</li>
+</ul>
+</li>
+<li>我们使用条件变量进行对线程的阻塞和唤醒。
+<ul>
+<li>当有线程调用<code>get</code>方法时，如果<code>call</code>已经执行完成，那么可以直接将结果返回，否则需要使用条件变量将线程挂起。</li>
+<li>当<code>call</code>函数执行完成的时候，需要使用条件变量将所有阻塞在<code>get</code>方法的线程唤醒。</li>
+</ul>
+</li>
+<li>双重检查：
+<ul>
+<li>我们在<code>get</code>方法当中首先判断<code>returnVal</code>是否为空，如果不为空直接将结果返回，这就可以不用去竞争锁资源了，可以提高程序执行的效率。</li>
+<li>但是我们在使用锁保护的临界区还需要进行判断，判断<code>returnVal</code>是否为空，因为如果一个线程在第一次判断 <code>returnVal</code> 为空，然后这个时候它可能因为获取锁而被挂起， 而在被挂起的这段时间，call 可能已经执行完成，如果这个时候不进行判断直接执行 await方法，那后面这个线程将无法被唤醒，因为在<code>call</code>函数执行完成之后调用了<code>condition.signalAll()</code>，如果线程在这之后执行<code>await</code>方法，那么将来再没有线程去将这些线程唤醒。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-05falsesharing/"><span>较新</span>并发刺客（False Sharing）——并发程序的隐藏杀手</a><a class="next" href="/posts/cscore-concurrency-04volatile/"><span>较旧</span>万字长文：从计算机本源深入探寻volatile和Java内存模型</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#futuretask">FutureTask</a></li>
+      <li class="toc-l2"><a href="#自己实现futuretask">自己实现FutureTask</a></li>
+      <li class="toc-l3"><a href="#工具准备">工具准备</a></li>
+      <li class="toc-l3"><a href="#futuretask设计与实现">FutureTask设计与实现</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自己动手写ls命令——Java版 · Chang-LeHung</title>
+<meta name="description" content="介绍 在前面的文章 Linux命令系列之ls——原来最简单的ls这么复杂 当中，我们仔细的介绍了关于ls命令的使用和输出结果，在本篇文章当中我们用Java代码自己实现ls命令，更加深入的了解ls命令。 代码实现 文件操作的基本原理 如果我们使用Java实现一个简单的ls命令其实并不难，因为Java已">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>自己动手写ls命令——Java版</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-10">2022-10-10</time>
+        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="介绍">介绍</h2>
+<p>在前面的文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486970&amp;idx=1&amp;sn=fa7635fbad831a1081ce789b59a45e2a&amp;chksm=cf0c91f3f87b18e5cbaf2e61b3115141f33a480a132546e10021ff48bc0705cbbec4549c5072&amp;token=952740120&amp;lang=zh_CN#rd">Linux命令系列之ls——原来最简单的ls这么复杂</a>当中，我们仔细的介绍了关于ls命令的使用和输出结果，在本篇文章当中我们用Java代码自己实现ls命令，更加深入的了解ls命令。</p>
+<h2 id="代码实现">代码实现</h2>
+<h3 id="文件操作的基本原理">文件操作的基本原理</h3>
+<p>如果我们使用Java实现一个简单的ls命令其实并不难，因为Java已经给我们提供了一些比较方便和文件系统相关的api了，困难的是理解api是在做什么事儿！</p>
+<p>事实上这些api都是操作系统给我们提供的，然后Java进行了一些列的封装，将这些操作给我们进行提供，我们仔细来看一下封装的层次，首先操作系统会给我们提供很多系统调用用于和设备（磁盘、CPU）进行交互，比如说和文件的交互就是读写数据，当然我们的Java程序也需要这些操作，因此JVM也需要给我们提供这些操作，因此JVM就对系统调用进行了一系列的封装，在Java当中具体的形式就是用native修饰的方法。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/25.webp" alt="" loading="lazy" /></p>
+<p>如果你是一个比较有经验Java程序员那么一定见过Java当中的<code>native</code>方法，这些方法都是Java给我们封装的底层接口，比如说在<code>FileInputStream</code>当中有一个<code>read</code>方法，这个方法就是读取文件当中的内容，我们看一下这个方法是如何实现的：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">read</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">IOException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">read0</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>这里让大家的感受更加深入一点😂，我在这里贴一张<code>FileInputStream</code>的源代码图片：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/26.webp" alt="" loading="lazy" /></p>
+<p>从上面的图看当我们调用<code>FileInputStream</code>方法的时候确实调用了native方法。我们再来看一些与文件操作相关的api，他们也是使用Java给我们封装的native方法实现的。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/27.webp" alt="" loading="lazy" /></p>
+<p>上面主要谈了一些基本的文件操作过程的原理，简要说明了Java将很多系统操作封装成native方法供我们调用，现在我们来看看要想实现ls命令，我们需要哪些api。</p>
+<h3 id="查看一个目录下面有哪些文件和目录">查看一个目录下面有哪些文件和目录</h3>
+<p>在Java当中给我们提供了一个类<code>File</code>，我们可以使用这个类去得到一个目录下面有哪些文件和目录。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">fileTest</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">File</span><span class="tok-w"> </span><span class="tok-n">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">File</span><span class="tok-p">(</span><span class="tok-s">"./"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// file.listFiles() 将当前 file 对应的目录下所有的文件和目录都得到</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">File</span><span class="tok-w"> </span><span class="tok-n">listFile</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">file</span><span class="tok-p">.</span><span class="tok-na">listFiles</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">listFile</span><span class="tok-p">.</span><span class="tok-na">getName</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 将文件或者目录的名字打印</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><h3 id="查看文件和目录的元数据">查看文件和目录的元数据</h3>
+<p>在Java当中给我们提供了一个工具类查看文件的一些元信息(metadata)，比如说文件的uid（用户id）、gid（用户组id）、文件的大小和文件的链接数目(nlink)。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-n">Path</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Paths</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-s">"."</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:dev"</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 打印存储当前目录数据的设备的设备id</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:ino"</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 打印存储当前目录数据inode号</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:mode"</span><span class="tok-p">));</span><span class="tok-c1">// 打印存储当前目录数据的mode数据 这个数据主要用于表示文件的类型</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:uid"</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 打印存储当前目录所属用户的用户id</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:gid"</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 打印存储当前目录所属组的组id</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:size"</span><span class="tok-p">));</span><span class="tok-c1">// 打印存储当前目录数据所占的空间大小</span>
+<span class="tok-w">  </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:nlink"</span><span class="tok-p">));</span><span class="tok-c1">// 打印存储当前目录数据的链接数</span>
+</code></pre></div><p>除了上面的方式，我们还可以使用下面的方式去得到文件的元数据：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">attrTest02</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">IOException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Path</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Paths</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-s">"."</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 传入的参数就是文件或者目录的路径 这个传入的就是当前目录</span>
+<span class="tok-w">    </span><span class="tok-n">PosixFileAttributes</span><span class="tok-w"> </span><span class="tok-n">attr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">readAttributes</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFileAttributes</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">NOFOLLOW_LINKS</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">owner</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 打印用户名</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">group</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 打印用户组名</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">isRegularFile</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 是不是一般文件</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">isSymbolicLink</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 是不是一个符号链接</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">isDirectory</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 是否是目录</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">isOther</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">//其他类型</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">permissions</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 打印文件的权限 是否可读 可写 可执行</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">lastAccessTime</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 上一次访问时间</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">creationTime</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 创建时间</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">lastModifiedTime</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 上一次修改时间</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">fileKey</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 打印文件其他相关参数 主要是设备id和inode编号</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 文件的大小</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">root</span><span class="tok-w"> </span><span class="tok-c1">// 这里是用户名</span>
+<span class="tok-n">root</span><span class="tok-w"> </span><span class="tok-c1">// 这里是用户组名</span>
+<span class="tok-kc">false</span>
+<span class="tok-kc">false</span>
+<span class="tok-kc">true</span>
+<span class="tok-kc">false</span>
+<span class="tok-o">[</span><span class="tok-n">GROUP_READ</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OTHERS_EXECUTE</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OWNER_WRITE</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OWNER_EXECUTE</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OTHERS_READ</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">OWNER_READ</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">GROUP_EXECUTE</span><span class="tok-o">]</span>
+<span class="tok-mi">2022</span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-o">-</span><span class="tok-mi">09</span><span class="tok-n">T18</span><span class="tok-p">:</span><span class="tok-mi">08</span><span class="tok-p">:</span><span class="tok-mf">47.791072133</span><span class="tok-n">Z</span>
+<span class="tok-mi">2022</span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-o">-</span><span class="tok-mi">09</span><span class="tok-n">T13</span><span class="tok-p">:</span><span class="tok-mi">10</span><span class="tok-p">:</span><span class="tok-mi">51</span><span class="tok-n">Z</span>
+<span class="tok-mi">2022</span><span class="tok-o">-</span><span class="tok-mi">10</span><span class="tok-o">-</span><span class="tok-mi">09</span><span class="tok-n">T18</span><span class="tok-p">:</span><span class="tok-mi">08</span><span class="tok-p">:</span><span class="tok-mf">23.746949182</span><span class="tok-n">Z</span>
+<span class="tok-p">(</span><span class="tok-n">dev</span><span class="tok-o">=</span><span class="tok-mi">1000012</span><span class="tok-p">,</span><span class="tok-n">ino</span><span class="tok-o">=</span><span class="tok-mi">16176823</span><span class="tok-p">)</span>
+<span class="tok-mi">192</span>
+</code></pre></div><h3 id="文件权限">文件权限</h3>
+<p>在Java当中给我们提供了一个类表示文件的9中权限（文件的作者的读写执行，作者所在组的读写执行，和其他人的读写执行，一共九种权限）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.attribute</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">enum</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Read permission, owner. 作者读权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OWNER_READ</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Write permission, owner. 作者写权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OWNER_WRITE</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Execute/search permission, owner. 作者的执行权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OWNER_EXECUTE</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Read permission, group. 作者所在组的读权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">GROUP_READ</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Write permission, group.作者所在组的写权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">GROUP_WRITE</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Execute/search permission, group.</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">GROUP_EXECUTE</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Read permission, others. 其他人读权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OTHERS_READ</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Write permission, others. 其他人写权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OTHERS_WRITE</span><span class="tok-p">,</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Execute/search permission, others. 其他人执行权限</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">OTHERS_EXECUTE</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面查看文件或者目录的元数据的时候我们已经得到的文件的所有权限信息：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">attr</span><span class="tok-p">.</span><span class="tok-na">permissions</span><span class="tok-p">());</span>
+<span class="tok-c1">//[GROUP_READ, OTHERS_EXECUTE, OWNER_WRITE, OWNER_EXECUTE, OTHERS_READ, OWNER_READ, GROUP_EXECUTE]</span>
+</code></pre></div><p>函数返回的是一个集合<code>set</code>，里面存放的就是文件的各种权限的信息，比如在我们的例子当中我们可以看到，有组读，其他人执行，作者自己写，作者执行，其他人读，作者读权限，如果我们想判断某种权限，只需要看看集合当中是否包含即可。</p>
+<h3 id="完整代码实现">完整代码实现</h3>
+<p>在上面我们已经谈到了所有的关于实现 ls 命令的细节了，接下来看一下我们的代码实现：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.io.File</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.io.IOException</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.Files</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.Path</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.Paths</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.attribute.PosixFileAttributes</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.attribute.PosixFilePermission</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Objects</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Set</span><span class="tok-p">;</span>
+
+<span class="tok-kn">import static</span><span class="tok-w"> </span><span class="tok-nn">java.nio.file.LinkOption.NOFOLLOW_LINKS</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LS</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">hasRight</span><span class="tok-p">(</span><span class="tok-n">Set</span><span class="tok-o">&lt;</span><span class="tok-n">PosixFilePermission</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span>
+<span class="tok-w">                                 </span><span class="tok-n">permission</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">set</span><span class="tok-p">.</span><span class="tok-na">contains</span><span class="tok-p">(</span><span class="tok-n">permission</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">echoCharacter</span><span class="tok-p">(</span><span class="tok-n">Set</span><span class="tok-o">&lt;</span><span class="tok-n">PosixFilePermission</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">set</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// user</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OWNER_READ</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'r'</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OWNER_WRITE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'w'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OWNER_EXECUTE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'x'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-c1">// group</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">GROUP_READ</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'r'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">GROUP_WRITE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'w'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">GROUP_EXECUTE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'x'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-c1">// others</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OTHERS_READ</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'r'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OTHERS_WRITE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'w'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">hasRight</span><span class="tok-p">(</span><span class="tok-n">set</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFilePermission</span><span class="tok-p">.</span><span class="tok-na">OTHERS_EXECUTE</span><span class="tok-p">))</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'x'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">echoType</span><span class="tok-p">(</span><span class="tok-n">PosixFileAttributes</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">isDirectory</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'d'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">isRegularFile</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'-'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">isSymbolicLink</span><span class="tok-p">())</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'l'</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">else</span>
+<span class="tok-w">      </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-sc">'o'</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">echoFileInformation</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">IOException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Path</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Paths</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">args</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">PosixFileAttributes</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">readAttributes</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PosixFileAttributes</span><span class="tok-p">.</span><span class="tok-na">class</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">NOFOLLOW_LINKS</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">echoType</span><span class="tok-p">(</span><span class="tok-n">attributes</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">echoCharacter</span><span class="tok-p">(</span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">permissions</span><span class="tok-p">());</span>
+
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">printf</span><span class="tok-p">(</span><span class="tok-s">"\t%-2d"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Files</span><span class="tok-p">.</span><span class="tok-na">getAttribute</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-s">"unix:nlink"</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-s">"\t"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">owner</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">print</span><span class="tok-p">(</span><span class="tok-s">"\t"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">group</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">printf</span><span class="tok-p">(</span><span class="tok-s">"\t%-5d"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">printf</span><span class="tok-p">(</span><span class="tok-s">"\t %10s"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">attributes</span><span class="tok-p">.</span><span class="tok-na">lastAccessTime</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"\t"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">getFileName</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">IOException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-n">File</span><span class="tok-w"> </span><span class="tok-n">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">File</span><span class="tok-p">(</span><span class="tok-n">args</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">File</span><span class="tok-w"> </span><span class="tok-n">listFile</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">Objects</span><span class="tok-p">.</span><span class="tok-na">requireNonNull</span><span class="tok-p">(</span><span class="tok-n">file</span><span class="tok-p">.</span><span class="tok-na">listFiles</span><span class="tok-p">()))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">echoFileInformation</span><span class="tok-p">(</span><span class="tok-n">listFile</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码很短，如果大家了解了上main所谈到的api的话，就应该很容易理解了。下面我们看看程序的输出结果：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/28.webp" alt="24" loading="lazy" /></p>
+<p>可以看到我们的程序的输出结果和ls命令的输出结果是一样的，只是在时间的表示上有所差别而已，这一点没什么关系。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-16retalkingthreadpool/"><span>较新</span>再谈线程池——深入剖析线程池的前世今生</a><a class="next" href="/posts/cscore-tools-02/"><span>较旧</span>彻底掌握Makefile（二）</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#介绍">介绍</a></li>
+      <li class="toc-l2"><a href="#代码实现">代码实现</a></li>
+      <li class="toc-l3"><a href="#文件操作的基本原理">文件操作的基本原理</a></li>
+      <li class="toc-l3"><a href="#查看一个目录下面有哪些文件和目录">查看一个目录下面有哪些文件和目录</a></li>
+      <li class="toc-l3"><a href="#查看文件和目录的元数据">查看文件和目录的元数据</a></li>
+      <li class="toc-l3"><a href="#文件权限">文件权限</a></li>
+      <li class="toc-l3"><a href="#完整代码实现">完整代码实现</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

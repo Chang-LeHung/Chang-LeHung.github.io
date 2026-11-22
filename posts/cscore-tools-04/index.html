@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Makfile总结 · Chang-LeHung</title>
+<meta name="description" content="在前面的三篇文章 彻底掌握Makefile（一） 、 彻底掌握Makefile（二） 和 彻底掌握Makeifle（三） 当中我们仔细介绍了Makefile各种使用方法，在本篇文章当中主要是对前面三篇关于makefile的文章做一个总结，方便大家快速查阅和检查。 Makefile基础以及小技巧 Ma">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>Makfile总结</h1>
+      <p class="post-meta">
+        <time datetime="2022-09-28">2022-09-28</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/工具/">工具</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在前面的三篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486795&amp;idx=1&amp;sn=1da47724ddaa139d87b8994abefef7cd&amp;chksm=cf0c9142f87b1854f619b6f6d744b6f6c570adb726c857b36787cec7a821cebbaf2b6bd6799f&amp;token=1023752079&amp;lang=zh_CN#rd">彻底掌握Makefile（一）</a>、<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486840&amp;idx=1&amp;sn=68fc4d2c10eb8112bd3c1c26b1c38ac5&amp;chksm=cf0c9171f87b186769351ef320efa7e916dc367de9e948da83c30164b235e079340547e28cb5&amp;token=2139521096&amp;lang=zh_CN#rd">彻底掌握Makefile（二）</a>和<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486881&amp;idx=1&amp;sn=de6d09baa5b844ab29ad942535d58b72&amp;chksm=cf0c91a8f87b18becd5b4121c461943c41a81af5468a874d3f86bb60dae9b5a0ff302c2a96b1&amp;token=2139521096&amp;lang=zh_CN#rd">彻底掌握Makeifle（三）</a>当中我们仔细介绍了Makefile各种使用方法，在本篇文章当中主要是对前面三篇关于makefile的文章做一个总结，方便大家快速查阅和检查。</p>
+<h2 id="makefile基础以及小技巧">Makefile基础以及小技巧</h2>
+<h3 id="make命令的工作流程">Make命令的工作流程</h3>
+<p>当我们在命令行当中输入<code>make</code>的时候他的执行流程如下：</p>
+<ul>
+<li>make命令首先会在当前目录下面寻找makefile或者Makefile文件。</li>
+<li>寻找到makefile文件之后，他会在文件当中寻找到一个编译目标，比如在上面的makefile文件当中他会找到<code>demo</code>这个编译目标，而不是<code>clean</code>这个目标，因为<code>clean</code>是第二个编译目标。</li>
+<li>然后make会解析编译目标的依赖，如果这个依赖是其他的编译目标A的话，那么make会先完成它依赖的编译目标A的命令，如果它依赖的编译目标A也存在依赖B的话，make就会去执行依赖的B的编译命令，如此的递归下去，知道有所得依赖目标都存在了，才会完成第一个编译目标的编译，这个也很好理解，只有依赖文件都存在了我们才能够完成正确的编译过程。</li>
+</ul>
+<h3 id="makefile当中的小技巧">Makefile当中的小技巧</h3>
+<ul>
+<li>makefile基本规则</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nf">编译目标</span><span class="tok-o">:</span>依赖文件
+<span class="tok-w">	</span>编译命令
+</code></pre></div><ul>
+<li>一个最基本的makefile</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">o</span> <span class="tok-n">myprint</span>.<span class="tok-n">o</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>-o<span class="tok-w"> </span>out
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>make<span class="tok-w"> </span>解析编译完成
+
+<span class="tok-nf">demo.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>-c<span class="tok-w"> </span>demo.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>demo.o
+
+<span class="tok-nf">myprint.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">myprint</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>-c<span class="tok-w"> </span>myprint.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>myprint.o
+
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>out
+</code></pre></div><ul>
+<li>在makefile当中使用变量</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cflags</span><span class="tok-o">=</span>-c
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">o</span> <span class="tok-n">myprint</span>.<span class="tok-n">o</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>-o<span class="tok-w"> </span>out
+
+<span class="tok-nf">demo.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>demo.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>demo.o
+
+<span class="tok-nf">myprint.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">myprint</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>myprint.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>myprint.o
+
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>out
+</code></pre></div><ul>
+<li>在makefile当中使用include</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">include submakefile</span>
+
+<span class="tok-nf">demo.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>demo.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>demo.o
+
+<span class="tok-nf">myprint.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">myprint</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>myprint.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>myprint.o
+
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>out
+</code></pre></div><ul>
+<li>在makefile当中使用PHONY</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cflags</span><span class="tok-o">=</span>-c
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">o</span> <span class="tok-n">myprint</span>.<span class="tok-n">o</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>-o<span class="tok-w"> </span>main
+
+<span class="tok-nf">demo.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>demo.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>demo.o
+
+<span class="tok-nf">myprint.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">myprint</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>myprint.c<span class="tok-w"> </span>-o<span class="tok-w"> </span>myprint.o
+
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>main
+<span class="tok-nf">.PHONY</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">clean</span> <span class="tok-c"># 增加这一行</span>
+</code></pre></div><ul>
+<li>在makefile当中使用通配符</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cflags</span><span class="tok-o">=</span>-c
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">o</span> <span class="tok-n">myprint</span>.<span class="tok-n">o</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>-o<span class="tok-w"> </span>main
+
+<span class="tok-nf">%.o</span><span class="tok-o">:</span><span class="tok-w"> </span>%.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>$&lt;
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>main
+<span class="tok-nf">.PHONY</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">clean</span>
+</code></pre></div><ul>
+<li>在makefile当中使用VPATH自动搜索</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cflags</span><span class="tok-o">=</span>-c
+
+<span class="tok-nv">VPATH</span><span class="tok-o">=</span>./files
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">o</span> <span class="tok-n">myprint</span>.<span class="tok-n">o</span> <span class="tok-n">a</span>.<span class="tok-n">o</span> <span class="tok-n">b</span>.<span class="tok-n">o</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>a.o<span class="tok-w"> </span>b.o<span class="tok-w"> </span>-o<span class="tok-w"> </span>main
+
+<span class="tok-nf">demo.o</span><span class="tok-o">:</span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>demo.c<span class="tok-w"> </span>
+
+<span class="tok-nf">myprint.o</span><span class="tok-o">:</span><span class="tok-n">myprint</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>myprint.c<span class="tok-w"> </span>
+
+<span class="tok-nf">a.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">a</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>$&lt;
+<span class="tok-nf">b.o</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">b</span>.<span class="tok-n">c</span> 
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span><span class="tok-k">$(</span>cflags<span class="tok-k">)</span><span class="tok-w"> </span>$&lt;
+
+<span class="tok-nf">clean</span><span class="tok-o">:</span>
+<span class="tok-w">	</span>rm<span class="tok-w"> </span>myprint.o<span class="tok-w"> </span>demo.o<span class="tok-w"> </span>main
+<span class="tok-nf">.PHONY</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">clean</span>
+</code></pre></div><ul>
+<li>@符号</li>
+</ul>
+<p>有时候在makefile当中我们不想输出某些命令（如果不进行设置makefile会输出每一条我们执行过的命令），我们就可以使用@符号进行修饰。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span>@echo<span class="tok-w"> </span>hello<span class="tok-w"> </span>world
+</code></pre></div><ul>
+<li>override覆盖命令行的赋值，让makefile文件当中的变量覆盖命令行当中的变量。</li>
+</ul>
+<h2 id="makefile当中进行if判断">Makefile当中进行if判断</h2>
+<h3 id="ifeq-和-ifneq">ifeq 和 ifneq</h3>
+<p>主要是用于判断字符是否相等。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cc</span><span class="tok-o">=</span>g++
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span>
+
+<span class="tok-cp">ifeq ($(cc), gcc)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>相等的语句执行了
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span>!<span class="tok-o">=</span><span class="tok-w"> </span>不相等的语句执行了
+<span class="tok-cp">endif</span>
+</code></pre></div><div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">cc</span><span class="tok-o">=</span>g++
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span>
+
+<span class="tok-cp">ifneq ($(cc), gcc)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span>!<span class="tok-o">=</span><span class="tok-w"> </span>gcc
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>cc<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>gcc
+<span class="tok-cp">endif</span>
+</code></pre></div><h3 id="ifdef-和-ifndef">ifdef 和 ifndef</h3>
+<p>判断变量是否被定义或者为空</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">foo</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-cp">ifdef foo</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">else</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>not<span class="tok-w"> </span>define<span class="tok-w"> </span>foo
+<span class="tok-cp">endif</span>
+</code></pre></div><h2 id="makefile当中的函数">Makefile当中的函数</h2>
+<p>在makefile当中除了能够使用条件表达式之外我们还可以使用函数，在makefile当中函数的使用规则如下：</p>
+<div class="code-block" data-lang="makefiel"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(&lt;函数名&gt; &lt;函数参数&gt;)
+或者
+将()替换为{}
+</code></pre></div><p>函数的调用规则如上图所示，函数参数用.隔开。</p>
+<h3 id="字符串函数">字符串函数</h3>
+<h4 id="subst">subst</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">subst</span> &lt;<span class="tok-nv">from</span>&gt;,&lt;<span class="tok-nv">to</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><ul>
+<li>字符串替换函数。</li>
+<li><text>表示文本，这个函数会将text当中是<from>的字符串替换为<to>。</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>ii<span class="tok-w"> </span>am<span class="tok-w"> </span>learning<span class="tok-w"> </span>makefile
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>subst<span class="tok-w"> </span>ii,<span class="tok-w"> </span>you,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="patsubst">patsubst</h4>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(patsubst &lt;pattern&gt;,&lt;replacement&gt;,&lt;text&gt;)
+</code></pre></div><ul>
+<li>pattern 表示第一个参数，用于表示如何对 text 进行匹配。</li>
+<li>replacement 表示第二个参数 表示如何对匹配的字符进行重写。</li>
+<li>patsubst在进行匹配替换的时候，会先将字符串text根据空格或者tab键或者回车换行符进行分割，然后一一的进行替换和匹配。</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>b.c<span class="tok-w"> </span>d.c<span class="tok-w"> </span>abc.c<span class="tok-w"> </span>abo.c
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>patsubst<span class="tok-w"> </span>%.c,<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span>demo
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="strip">Strip</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">strip</span> &lt;<span class="tok-nv">string</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>主要功能去掉字符串 string 首尾的空格。</p>
+<h4 id="findstring">findstring</h4>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(findstring &lt;find&gt;,&lt;text&gt;)
+</code></pre></div><p>这个函数的作用是从字符串<text>当中寻找字符串<find>，如果找到了字符串<find>就返回字符串<find>，否则返回空。</p>
+<h4 id="filter">filter</h4>
+<div class="code-block" data-lang="makeifle"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>$(filter &lt;pattern...&gt;,&lt;text&gt;)
+</code></pre></div><p>这是一个过滤函数，这个函数执行时，首先会根据空格或者tab键或者回车换行符进行分割，然后一一的进行filter函数的操作。然后遍历每一个被分割出来的字符，如果不满足pattern的规则的话对应的字符就会被过滤掉。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>abo.c<span class="tok-w"> </span>s.o<span class="tok-w"> </span>s.y<span class="tok-w"> </span>x.o<span class="tok-w"> </span>x.y
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>filter<span class="tok-w"> </span>%.c<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="filter-out">filter-out</h4>
+<p>这个函数和filter的用法是一样的只不过，作用刚好相反，filter是保存符合条件的字符串，filter-out是保存不符合条件的字符串。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>abo.c<span class="tok-w"> </span>s.o<span class="tok-w"> </span>s.y<span class="tok-w"> </span>x.o<span class="tok-w"> </span>x.y
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>filter-out<span class="tok-w"> </span>%.c<span class="tok-w"> </span>%.o,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="sort">sort</h4>
+<p>这个函数主要是用于帮助字符串排序的，同时还会取出分割之后相同的字符串。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>sort<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="word">word</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">word</span> &lt;<span class="tok-nv">n</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>这个功能很简单，返回<text>当中第<n>个字符。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>word<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span><span class="tok-w"> </span><span class="tok-c1"># 取出第一个字符</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="wordlist">wordlist</h4>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">wordlist</span> &lt;<span class="tok-nv">start</span>&gt;,&lt;<span class="tok-nv">end</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>这个也是从字符串当中取出字符，是取出第<start>个字符一直到第<end>个字符。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>g<span class="tok-w"> </span>a<span class="tok-w"> </span>b<span class="tok-w"> </span>c<span class="tok-w"> </span>d<span class="tok-w"> </span>e<span class="tok-w"> </span>f<span class="tok-w">  </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>a<span class="tok-w"> </span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>wordlist<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">5</span>,<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="words">words</h4>
+<p>统计单词的个数。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>words<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h4 id="firstword">firstword</h4>
+<p>这个函数主要是用于返回第一个字符串的。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">ss</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>firstword<span class="tok-w"> </span><span class="tok-k">$(</span>s<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>ss<span class="tok-k">)</span>
+</code></pre></div><h3 id="文件函数">文件函数</h3>
+<h4 id="dir与notdir函数">dir与notdir函数</h4>
+<p>dir函数主要书获取文件路径当中的目录部分，而notdir函数主要是获取文件路径当中文件名的部分</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>./files/a.c
+<span class="tok-nv">fdir</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>dir<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nv">nfdir</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>notdir<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>fdir<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>nfdir<span class="tok-k">)</span>
+</code></pre></div><h4 id="suffix函数">suffix函数</h4>
+<p>这个函数主要是用于获取文件的后缀名。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>./files/a.c
+<span class="tok-nv">fdir</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>dir<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nv">nfdir</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>notdir<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nv">name</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>suffix<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>fdir<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>nfdir<span class="tok-k">)</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>name<span class="tok-k">)</span>
+</code></pre></div><h4 id="basename">basename</h4>
+<p>这个函数用于获取文件路径当中除去后缀名的部分。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>./files/a.c
+<span class="tok-nv">base</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>basename<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>base<span class="tok-k">)</span>
+</code></pre></div><h4 id="addsuffix">addsuffix</h4>
+<p>这个函数主要是给文件加上后缀的。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>./files/a.c
+<span class="tok-nv">base</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>addsuffix<span class="tok-w"> </span>.c,<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>base<span class="tok-k">)</span>
+</code></pre></div><h4 id="addprefix">addprefix</h4>
+<p>这个函数的主要作用就是在字符串的前面加上一串字符。</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">file</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>files/a.c
+<span class="tok-nv">base</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>addprefix<span class="tok-w"> </span>./src/main/,<span class="tok-w"> </span><span class="tok-k">$(</span>file<span class="tok-k">))</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>base<span class="tok-k">)</span>
+</code></pre></div><h3 id="其他函数">其他函数</h3>
+<h4 id="循环函数foreach">循环函数foreach</h4>
+<p><code>foreach</code>函数的主要使用规则为：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">foreach</span> &lt;<span class="tok-nv">var</span>&gt;,&lt;<span class="tok-nv">list</span>&gt;,&lt;<span class="tok-nv">text</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><p>我们直接使用一个例子来说明这个情况：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">files</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>a.c<span class="tok-w"> </span>b.c<span class="tok-w"> </span>c.c<span class="tok-w"> </span>d.c
+<span class="tok-nv">new_files</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">$(</span>foreach<span class="tok-w"> </span>n,<span class="tok-w"> </span><span class="tok-k">$(</span>files<span class="tok-k">)</span>,<span class="tok-w"> </span><span class="tok-k">$(</span>n<span class="tok-k">)</span>pp<span class="tok-k">)</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>new_files<span class="tok-k">)</span>
+</code></pre></div><h4 id="call函数">call函数</h4>
+<p>call函数在makefile当中可以用于调用我们自定义的一个表达式，他的语法个数如下面所示：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">call</span> &lt;<span class="tok-nv">expression</span>&gt;,&lt;<span class="tok-nv">parm1</span>&gt;,&lt;<span class="tok-nv">parm2</span>&gt;,<span class="tok-nv">...</span>,&lt;<span class="tok-nv">parmn</span>&gt;<span class="tok-k">)</span>
+</code></pre></div><ul>
+<li><expression>表示定义的表达式的名字。</li>
+<li><parmn>表示第n个参数，我们在<expression>当中可以使用<code>$(n)</code>进行引用。</li>
+</ul>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">a</span><span class="tok-o">=</span>a.c
+<span class="tok-nv">b</span><span class="tok-o">=</span>b.c
+<span class="tok-nv">c</span><span class="tok-o">=</span><span class="tok-k">$(</span>a<span class="tok-k">)</span>-------<span class="tok-k">$(</span>b<span class="tok-k">)</span>
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>c<span class="tok-k">)</span>
+</code></pre></div><h4 id="在makefile当中使用shell函数">在makefile当中使用shell函数</h4>
+<p>我们在makefile的表达式当中可以使用shell的函数。</p>
+<p>比如现在我们有一个文件叫做<code>test.txt</code>，文件的内容如下所示：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">a.c</span><span class="tok-w"> </span><span class="tok-err">b.c</span><span class="tok-w"> </span><span class="tok-err">c.c</span><span class="tok-w"> </span><span class="tok-err">d.c</span>
+</code></pre></div><div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">content</span><span class="tok-o">=</span><span class="tok-k">$(</span>shell<span class="tok-w"> </span>cat<span class="tok-w"> </span>test.txt<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-c1"># 将shell命令的输出内容赋给content</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">demo</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span><span class="tok-nb">echo</span><span class="tok-w"> </span><span class="tok-k">$(</span>content<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-c1"># 输出content</span>
+</code></pre></div><h4 id="origin函数">origin函数</h4>
+<p>origin这个函数主要是返回变量的定义方式，使用格式如下：</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">$(</span><span class="tok-nv">origin</span> &lt;<span class="tok-nv">variable</span>&gt;<span class="tok-k">)</span><span class="tok-w"> </span><span class="tok-c"># 其中 variable 是变量名字 这里不需要使用 $ 符号去引用</span>
+</code></pre></div><h4 id="error函数">error函数</h4>
+<p>在makefile当中我们可以使用error函数让makefie停止执行。当我们有需求：让在某种条件下让makefile停止编译</p>
+<div class="code-block" data-lang="makefile"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">data</span><span class="tok-o">=</span>data
+
+<span class="tok-cp">ifeq ($(data), data)</span>
+<span class="tok-k">$(</span><span class="tok-nv">error</span> "<span class="tok-nv">data</span> == <span class="tok-nv">data</span>"<span class="tok-k">)</span>
+<span class="tok-cp">endif</span>
+
+<span class="tok-nf">main</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">main</span>.<span class="tok-n">c</span>
+<span class="tok-w">	</span>gcc<span class="tok-w"> </span>main.c
+</code></pre></div><p>除此之外还有个warning函数使用方法和error一样！</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家总结了一些常见的makefile的使用方法，方便大家查阅复习！</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-01top/"><span>较新</span>Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识</a><a class="next" href="/posts/cscore-des-des/"><span>较旧</span>DES算法——从小白到登堂入室</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#makefile基础以及小技巧">Makefile基础以及小技巧</a></li>
+      <li class="toc-l3"><a href="#make命令的工作流程">Make命令的工作流程</a></li>
+      <li class="toc-l3"><a href="#makefile当中的小技巧">Makefile当中的小技巧</a></li>
+      <li class="toc-l2"><a href="#makefile当中进行if判断">Makefile当中进行if判断</a></li>
+      <li class="toc-l3"><a href="#ifeq-和-ifneq">ifeq 和 ifneq</a></li>
+      <li class="toc-l3"><a href="#ifdef-和-ifndef">ifdef 和 ifndef</a></li>
+      <li class="toc-l2"><a href="#makefile当中的函数">Makefile当中的函数</a></li>
+      <li class="toc-l3"><a href="#字符串函数">字符串函数</a></li>
+      <li class="toc-l3"><a href="#文件函数">文件函数</a></li>
+      <li class="toc-l3"><a href="#其他函数">其他函数</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

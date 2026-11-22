@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>并发开篇——带你从0到1建立并发知识体系的基石 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下： 并发的需求 我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>并发开篇——带你从0到1建立并发知识体系的基石</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-19">2022-07-19</time>
+        <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下：</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/12.webp" alt="" loading="lazy" /></p>
+<h2 id="并发的需求">并发的需求</h2>
+<ul>
+<li>我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况下对于一个进程或者一个任务来说可能想要同时执行两个不同的子任务，因此就需要在一个进程当中产生多个子线程，不同的线程执行不同的任务。</li>
+<li>现在的机器的CPU核心个数一般都有很多个，比如现在一般的电脑都会有4个CPU，而每一个CPU在同一个时刻都可以执行一个任务，因此为了充分利用CPU的计算资源，我们可以让这多个CPU同时执行不同的任务，让他们同时工作起来，而不是空闲没有事可做。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/concurrency/01.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>还有就是在科学计算和高性能计算领域有这样的需求，比如矩阵计算，如果一个线程进行计算的话需要很长的时间，那么我们就可能使用多核的优势，让多个CPU同时进行计算，这样一个计算任务的计算时间就会比之前少很多，比如一个任务单线程的计算时间为24小时，如果我们有24个CPU核心，那么我们的计算任务可能在1-2小时就计算完成了，可以节约非常多的时间。</li>
+</ul>
+<h2 id="并发的基础概念">并发的基础概念</h2>
+<p>在并发当中最常见的两个概念就是进程和线程了，那什么是进程和线程呢？</p>
+<ul>
+<li>进程简单的说来就是一个程序的执行，比如说你在windows操作系统当中双击一个程序，在linux当中在命令行执行一条命令等等，就会产生一个进程，总之进程是一个独立的主体，他可以被操作系统调度和执行。</li>
+<li>而线程必须依赖进程执行，只有在进程当中才能产生线程，现在通常会将线程称为轻量级进程（Light Weight Process）。一个进程可以产生多个线程，二者多个线程之间共享进程当中的某些数据，比如全局数据区的数据，但是线程的本地数据是不进行共享的。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/concurrency/13.webp" alt="" loading="lazy" /></p>
+<blockquote>
+<p>你可能会听过进程是资源分配的基本单位，这句话是怎么来的呢？在上面我们已经提到了线程必须依赖于进程而存在，在我们启动一个程序的时候我们就会开启一个进程，而这个进程会向操作系统申请资源，比如内存，磁盘和CPU等等，这就是为什么操作系统是申请资源的基本单位。</p>
+</blockquote>
+<blockquote>
+<p>你可能也听过线程是操作系统调度的基本单位。那这又是为什么呢？首先你需要明白CPU是如何工作的，首先需要明白我们的程序会被编译成一条条的指令，而这些指令会存在在内存当中，而CPU会从内存当中一一的取出这些指令，然后CPU进行指令的执行，而一个线程通常是执行一个函数，而这个函数也是会被编译成很多指令，因此这个线程也可以被CPU执行，因为线程可以被操作系统调度，将其放到CPU上进行执行，而且没有比线程更小的可以被CPU调度的单位了，因此说线程是操作系统调度的基本单位。</p>
+</blockquote>
+<h2 id="java实现并发">Java实现并发</h2>
+<h3 id="继承thread类">继承Thread类</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">ConcurrencyMethod1</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-nd">@Override</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// Thread.currentThread().getName() 得到当前正在执行的线程的名字</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 新开启一个线程</span>
+<span class="tok-w">            </span><span class="tok-n">ConcurrencyMethod1</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ConcurrencyMethod1</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">t</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span><span class="tok-c1">// 启动这个线程</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 某次执行输出的结果（输出的顺序不一定）</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">4</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">1</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">2</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">3</span>
+</code></pre></div><p>上面代码当中不同的线程需要得到CPU资源，在CPU当中被执行，而这些线程需要被操作系统调度，然后由操作系统放到不同的CPU上，最终输出不同的字符串。</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/14.webp" alt="" loading="lazy" /></p>
+<h3 id="使用匿名内部类实现runnable接口">使用匿名内部类实现runnable接口</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">ConcurrencyMethod2</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-nd">@Override</span>
+<span class="tok-w">                </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-c1">// Thread.currentThread().getName() 得到当前正在执行的线程的名字</span>
+<span class="tok-w">                    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-p">});</span>
+<span class="tok-w">            </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 某次执行输出的结果（输出的顺序不一定）</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">1</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">2</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">4</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">3</span>
+</code></pre></div><p>当然你也可以采用Lambda函数去实现：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">ConcurrencyMethod3</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">=</span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">            </span><span class="tok-p">});</span>
+<span class="tok-w">            </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">1</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">2</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">4</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">3</span>
+</code></pre></div><p>其实还有一种<code>JDK</code>给我们提供的方法去实现多线程，这个点我们在后文当中会进行说明。</p>
+<h3 id="理解主线程和join函数">理解主线程和Join函数</h3>
+<blockquote>
+<p>假如现在我们有一个任务，子线程输出一下自己的线程的名字，在线程输出完自己的名字之后，主线程再输出字符串“线程执行完成”。</p>
+</blockquote>
+<p>在完成上面的任务之前，首先我们需要明白什么是主线程和子线程，所谓主线程就是在执行Java程序的时候不是通过<code>new Thread</code>操作这样显示的创建的线程。比如在我们的非并发的程序当中，执行程序的线程就是主线程。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MainThread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"我是主线程"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>比如在上面的代码当中执行语句<code>System.out.println(&quot;我是主线程&quot;);</code>的线程就是主线程。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MainThread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 下面这段代码是由主线程执行的</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主线程通过下面这段代码创建一个子线程</span>
+<span class="tok-w">        </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"我是主线程创建的子线程"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">});</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这句代码也是主线程执行的</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主要意义就是主线程启动子线程</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"我是主线程"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>现在我们再来看一下我们之前的任务：</p>
+<blockquote>
+<p>假如现在我们有一个任务，子线程输出一下自己的线程的名字，在线程输出完自己的名字之后，主线程再输出字符串“线程执行完成”。</p>
+</blockquote>
+<p>上面的任务很明确就是主线程在执行输出自己线程的名字的语句之前，比须等待子线程执行完成，而在<code>Java</code>线程当中给我提供了一种方式，帮助我们实现这一点，可以保证主线程的某段代码可以在子线程执行完成之后再执行。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MainThread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 下面这段代码是由主线程执行的</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主线程通过下面这段代码创建一个子线程</span>
+<span class="tok-w">        </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">        </span><span class="tok-p">});</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这句代码也是主线程执行的</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主要意义就是主线程启动子线程</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这句代码的含义就是阻塞主线程</span>
+<span class="tok-w">        </span><span class="tok-c1">// 直到 thread 的 run 函数执行完成</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
+<span class="tok-n">main</span>
+</code></pre></div><p>上面代码的执行流程大致如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/08.webp" alt="" loading="lazy" /></p>
+<p>我们需要知道的一点是<code>thread.join()</code>这条语句是主线程执行的，它的主要功能就是等待线程<code>thread</code>执行完成，只有<code>thread</code>执行完成之后主线程才会继续执行<code>thread.join()</code>后面的语句。</p>
+<h2 id="第一个并发任务求x2的积分">第一个并发任务——求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分</h2>
+<p>接下来我们用一个例子去具体体会并发带来的效果提升。我们的这个例子就是求函数的积分，我们的函数为最简单的二次函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>，当然我们就积分（下图当中的阴影部分）完全可以根据公式进行求解（如果你不懂积分也没有关系，下文我们会把这个函数写出来，不会影响你对并发的理解）：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/04.webp" alt="" loading="lazy" /></p>
+<p>但是我们用程序去求解的时候并不是采用上面的方法，而是使用微元法：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/06.webp" alt="" loading="lazy" /></p>
+<p>下面我们用一个单线程先写出求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>积分的代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">X2</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">x2integral</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.001</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">x2integral</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 这个函数是计算 x^2 a 到 b 位置的积分</span>
+<span class="tok-cm">   * @param a 计算积分的起始位置</span>
+<span class="tok-cm">   * @param b 计算积分的最终位置</span>
+<span class="tok-cm">   * @param delta 表示微元法的微元间隔</span>
+<span class="tok-cm">   * @return x^2 a 到 b 位置的积分结果</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">x2integral</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">pow</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个输出的结果为 0.3333333832358528</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个函数计算的是 x^2 0到1之间的积分</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">x2integral</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mf">0.0000001</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码当中的函数<code>x2integral</code>主要是用于计算区间<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">[</mo><mi>a</mi><mo>&#x0002C;</mo><mi>b</mi><mo stretchy="false">]</mo></mrow></math>之间的二次函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分结果，我们现在来看一下如果我们想计算区间<code>[0, 10000]</code>之间的积分结果且<code>delta = 0.000001</code>需要多长时间，其中<code>delta</code>表示每一个微元之间的距离。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">x2integral</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">10000</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mf">0.000001</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>从上面的结果来看计算区间<code>[0, 10000]</code>之间的积分结果且<code>delta = 0.000001</code>，现在假设我们使用<code>8</code>个线程来做这件事，我们改如何去规划呢？</p>
+<p>因为我们是采用<code>8</code>个线程来做这件事儿，因此我们可以将这个区间分成<code>8</code>段，每个线程去执行一小段，最终我们将每一个小段的结果加起来就行，整个过程大致如下。</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/10.webp" alt="" loading="lazy" /></p>
+<p>首先我们先定义一个继承<code>Thread</code>的类（因为我们要进行多线程计算，所以要继承这个类）去计算区间<code>[a, b]</code>之间的函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">ThreadX2</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mf">0.000001</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">getSum</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setSum</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">getDelta</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setDelta</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">delta</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * 重写函数 run</span>
+<span class="tok-cm">   * 计算区间 [a, b] 之间二次函数的积分</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">    </span><span class="tok-nd">@Override</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">pow</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">delta</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">getA</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setA</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">getB</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setB</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们最终开启8个线程的代码如下所示：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">	</span><span class="tok-c1">// 单线程测试计算时间</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"单线程"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ThreadX2</span><span class="tok-w"> </span><span class="tok-n">x2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ThreadX2</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">x2</span><span class="tok-p">.</span><span class="tok-na">setA</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">x2</span><span class="tok-p">.</span><span class="tok-na">setB</span><span class="tok-p">(</span><span class="tok-mi">1250</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">x2</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">x2</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">x2</span><span class="tok-p">.</span><span class="tok-na">getSum</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"花费时间为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"多线程"</span><span class="tok-p">);</span>
+<span class="tok-w">	</span>
+<span class="tok-w">    </span><span class="tok-c1">// 多线程测试计算时间</span>
+<span class="tok-w">    </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ThreadX2</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">threads</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ThreadX2</span><span class="tok-o">[</span><span class="tok-mi">8</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">threads</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ThreadX2</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">threads</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">setA</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">1250</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">threads</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">.</span><span class="tok-na">setB</span><span class="tok-p">((</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">1250</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里要等待每一个线程执行完成</span>
+<span class="tok-w">    </span><span class="tok-c1">// 因为只有执行完成才能得到计算的结果</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ThreadX2</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">threads</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ThreadX2</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">threads</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"花费时间为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ThreadX2</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">threads</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">getSum</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">ans</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-n">单线程</span>
+<span class="tok-mf">3.333332302493948E11</span>
+<span class="tok-n">花费时间为</span><span class="tok-err">：</span><span class="tok-mi">14527</span>
+<span class="tok-n">多线程</span>
+<span class="tok-n">花费时间为</span><span class="tok-err">：</span><span class="tok-mi">2734</span>
+<span class="tok-mf">3.333332303236695E11</span>
+</code></pre></div><table>
+<thead>
+<tr>
+<th></th>
+<th>单线程</th>
+<th>多线程（8个线程）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>计算结果</td>
+<td>3.333332302493948E11</td>
+<td>3.333332303236695E11</td>
+</tr>
+<tr>
+<td>执行时间</td>
+<td>14527</td>
+<td>2734</td>
+</tr>
+</tbody>
+</table>
+<p>从上面的结果来看，当我们使用多个线程执行的时候花费的时间比单线程少的多，几乎减少了7倍，由此可见并发的“威力”。</p>
+<h2 id="futuretask机制">FutureTask机制</h2>
+<p>在前文和代码当中，我们发现不论是我们继承自<code>Thread</code>类或者写匿名内部内我们都没有返回值，我们的返回值都是<code>void</code>，那么如果我们想要我们的<code>run</code>函数有返回值怎么办呢？<code>JDK</code>为我们提供了一个机制，可以让线程执行我们指定函数并且带有返回值，我们来看下面的代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Callable</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ExecutionException</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.FutureTask</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FT</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">ExecutionException</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">task</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">FutureTask</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyCallable</span><span class="tok-p">());</span>
+<span class="tok-w">        </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">task</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-c1">// get 函数如果结果没有计算出来</span>
+<span class="tok-w">        </span><span class="tok-c1">// 主线程会在这里阻塞，如果计算</span>
+<span class="tok-w">        </span><span class="tok-c1">// 出来了将返回结果</span>
+<span class="tok-w">        </span><span class="tok-n">Integer</span><span class="tok-w"> </span><span class="tok-n">integer</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">task</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">integer</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">class</span>  <span class="tok-nc">MyCallable</span><span class="tok-w"> </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">Callable</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-nd">@Override</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-w"> </span><span class="tok-nf">call</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">Exception</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"线程正在执行"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">101</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-n">线程正在执行</span>
+<span class="tok-mi">101</span>
+</code></pre></div><p><img src="/content/zh/images/cscore/images/concurrency/11.webp" alt="" loading="lazy" /></p>
+<p>从上面的继承结构我们可以看出<code>FutureTask</code>实现了<code>Runnable</code>接口，而上面的代码当中我们最终会将一个<code>FutureTask</code>作为参数传入到<code>Thread</code>类当中，因此线程最终会执行<code>FutureTask</code>当中的<code>run</code>方法，而我们也给<code>FutureTask</code>传入了一个<code>Callable</code>接口实现类对象，那么我们就可以在<code>FutureTask</code>当中的<code>run</code>方法执行我们传给<code>FutureTask</code>的<code>Callable</code>接口中实现的<code>call</code>方法，然后将<code>call</code>方法的返回值保存下来，当我们使用<code>FutureTask</code>的<code>get</code>函数去取结果的时候就将<code>call</code>函数的返回结果返回回来，在了解这个过程之后你应该可以理解上面代码当中<code>FutureTask</code>的使用方式了。</p>
+<p>需要注意的一点是，如果我们在调用<code>get</code>函数的时候<code>call</code>函数还没有执行完成，<code>get</code>函数会阻塞调用<code>get</code>函数的线程，关于这里面的实现还是比较复杂，我们在之后的文章当中会继续讨论，大家现在只需要在逻辑上理解上面使用<code>FutureTask</code>的使用过程就行。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些并发的需求和基础概念，并且使用了一个求积分的例子带大家切身体会并发带来的效果提升，并且给大家介绍了在Java当中3中实现并发的方式，并且给大家梳理了一下<code>FutureTask</code>的方法的大致工作过程，帮助大家更好的理解<code>FutureTask</code>的使用方式。除此之外给大家介绍了join函数，大家需要好好去理解这一点，仔细去了解join函数到底是阻塞哪个线程，这个是很容搞错的地方。</p>
+<p>以上就是本文所有的内容了，希望大家有所收获，我是LeHung，我们下期再见！！！（记得<strong>点赞</strong>收藏哦！）</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-02/"><span>较新</span>并发程序的噩梦——数据竞争</a><a class="next" href="/posts/cscore-container-09-arrayqueue/"><span>较旧</span>深入剖析（JDK）ArrayQueue源码</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#并发的需求">并发的需求</a></li>
+      <li class="toc-l2"><a href="#并发的基础概念">并发的基础概念</a></li>
+      <li class="toc-l2"><a href="#java实现并发">Java实现并发</a></li>
+      <li class="toc-l3"><a href="#继承thread类">继承Thread类</a></li>
+      <li class="toc-l3"><a href="#使用匿名内部类实现runnable接口">使用匿名内部类实现runnable接口</a></li>
+      <li class="toc-l3"><a href="#理解主线程和join函数">理解主线程和Join函数</a></li>
+      <li class="toc-l2"><a href="#第一个并发任务求x2的积分">第一个并发任务——求x^2的积分</a></li>
+      <li class="toc-l2"><a href="#futuretask机制">FutureTask机制</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

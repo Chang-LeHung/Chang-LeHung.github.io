@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP 原子指令设计与实现 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要与大家分享一下 openmp 当中的原子指令 atomic，分析 #pragma omp atomic 在背后究竟做了什么，编译器是如何处理这条指令的。 为什么需要原子指令 加入现在有两个线程分别执行在 CPU0 和 CPU1，如果这两个线程都要对同一个共享变量进行更新操作，">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP 原子指令设计与实现</h1>
+      <p class="post-meta">
+        <time datetime="2023-01-20">2023-01-20</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要与大家分享一下 openmp 当中的原子指令 atomic，分析 <code>#pragma omp atomic</code> 在背后究竟做了什么，编译器是如何处理这条指令的。</p>
+<h2 id="为什么需要原子指令">为什么需要原子指令</h2>
+<p>加入现在有两个线程分别执行在 CPU0 和 CPU1，如果这两个线程都要对同一个共享变量进行更新操作，就会产生竞争条件。如果没有保护机制来避免这种竞争，可能会导致结果错误或者程序崩溃。原子指令就是解决这个问题的一种解决方案，它能够保证操作的原子性，即操作不会被打断或者更改。这样就能保证在多线程环境下更新共享变量的正确性。</p>
+<p>比如在下面的图当中，两个线程分别在 CPU0 和 CPU1 执行 data++ 语句，如果目前主存当中的 data = 1 ，然后按照图中的顺序去执行，那么主存当中的 data 的最终值等于 2 ，但是这并不是我们想要的结果，因为有两次加法操作我们希望最终在内存当中的 data 的值等于 3 ，那么有什么方法能够保证一个线程在执行 data++ 操作的时候下面的三步操作是原子的嘛（不可以分割）：</p>
+<ul>
+<li>Load data : 从主存当中将 data 加载到 cpu 的缓存。</li>
+<li>data++ : 执行 data + 1 操作。</li>
+<li>Store data : 将 data 的值写回主存。</li>
+</ul>
+<p>事实上硬件就给我们提供了这种机制，比如 x86 的 lock 指令，在这里我们先不去讨论这一点，我们将在后文当中对此进行仔细的分析。</p>
+<p><img src="/content/zh/images/cscore/images/openmp/07.webp" alt="" loading="lazy" /></p>
+<h2 id="openmp-原子指令">OpenMP 原子指令</h2>
+<p>在 openmp 当中 <code>#pragma omp atomic</code> 的表达式格式如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#pragma omp atomic</span>
+<span class="tok-n">表达式</span><span class="tok-p">;</span>
+</code></pre></div><p>其中表达式可以是一下几种形式：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-n">binop</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">表达式</span><span class="tok-p">;</span>
+<span class="tok-n">x</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-n">x</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-o">++</span><span class="tok-n">x</span><span class="tok-p">;</span>
+<span class="tok-o">--</span><span class="tok-n">x</span><span class="tok-p">;</span>
+</code></pre></div><p>二元运算符 binop 为++， --， +， -， *， /， &amp;， ^， | ， &gt;&gt;， &lt;&lt;或 || ，x 是基本数据类型 int，short，long，float 等数据类型。</p>
+<p>我们现在来使用一个例子熟悉一下上面锁谈到的语法：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-cp">#pragma omp parallel num_threads(4) shared(data) default(none)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-cp">#pragma omp atomic</span>
+<span class="tok-w">    </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序最终的输出结果如下：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">81</span>
+</code></pre></div><p>上面的 data += data * 2 ，相当于每次操作将 data 的值扩大三倍，因此最终的结果就是 81 。</p>
+<h2 id="原子操作和锁的区别">原子操作和锁的区别</h2>
+<p>OpenMP 中的 atomic 指令允许执行无锁操作，而不会影响其他线程的并行执行。这是通过在硬件层面上实现原子性完成的。锁则是通过软件来实现的，它阻塞了其他线程对共享资源的访问。</p>
+<p>在选择使用 atomic 或锁时，应该考虑操作的复杂性和频率。对于简单的操作和高频率的操作，atomic 更加高效，因为它不会影响其他线程的并行执行。但是，对于复杂的操作或者需要多个操作来完成一个任务，锁可能更加合适。</p>
+<p>原子操作只能够进行一些简单的操作，如果操作复杂的是没有原子指令进行操作的，这一点我们在后文当中详细谈到，如果你想要原子性的是一个代码块的只能够使用锁，而使用不了原子指令。</p>
+<h2 id="深入剖析原子指令从汇编角度">深入剖析原子指令——从汇编角度</h2>
+<h3 id="加法和减法原子操作">加法和减法原子操作</h3>
+<p>我们现在来仔细分析一下下面的代码的汇编指令，看看编译器在背后为我们做了些什么：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-cp">#pragma omp parallel num_threads(4) shared(data) default(none)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-cp">#pragma omp atomic</span>
+<span class="tok-w">    </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>首先我们需要了解一点编译器会将并行域的代码编译成一个函数，我们现在看看上面的 parallel 并行域的对应的函数的的汇编程序：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000401193</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">main._omp_fn.0</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">401193:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401194:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401197:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rdi</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">f:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a2:</span><span class="tok-w">       </span><span class="tok-nf">f0</span><span class="tok-w"> </span><span class="tok-mi">83</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">01</span><span class="tok-w">             </span><span class="tok-no">lock</span><span class="tok-w"> </span><span class="tok-no">addl</span><span class="tok-w"> </span><span class="tok-no">$0x1</span><span class="tok-p">,(</span><span class="tok-nv">%rax</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1"># 这就是编译出来的原子指令——对应x86平台</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a6:</span><span class="tok-w">       </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a7:</span><span class="tok-w">       </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+<span class="tok-w">  </span><span class="tok-mi">4011</span><span class="tok-no">a8</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">84</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">nopl</span><span class="tok-w">   </span><span class="tok-mi">0x0</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">af:</span><span class="tok-w">       </span><span class="tok-err">00</span><span class="tok-w"> </span>
+</code></pre></div><p>在上面的汇编代码当中最终的一条指令就是 <code>lock addl $0x1,(%rax)</code>，这条指令便是编译器在编译 <code>#pragma omp atomic</code> 的时候将 <code>data += 1</code> 转化成硬件的对应的指令。我们可以注意到和普通的加法指令的区别就是这条指令前面有一个 lock ，这是告诉硬件在指令 lock 后面的指令的时候需要保证指令的原子性。</p>
+<p>以上就是在 x86 平台下加法操作对应的原子指令。我们现在将上面的 data += 1，改成 data -= 1，在来看一下它对应的汇编程序：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000401193</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">main._omp_fn.0</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">401193:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401194:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401197:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rdi</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">f:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a2:</span><span class="tok-w">       </span><span class="tok-nf">f0</span><span class="tok-w"> </span><span class="tok-mi">83</span><span class="tok-w"> </span><span class="tok-mi">28</span><span class="tok-w"> </span><span class="tok-mi">01</span><span class="tok-w">             </span><span class="tok-no">lock</span><span class="tok-w"> </span><span class="tok-no">subl</span><span class="tok-w"> </span><span class="tok-no">$0x1</span><span class="tok-p">,(</span><span class="tok-nv">%rax</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a6:</span><span class="tok-w">       </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a7:</span><span class="tok-w">       </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+<span class="tok-w">  </span><span class="tok-mi">4011</span><span class="tok-no">a8</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">84</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">nopl</span><span class="tok-w">   </span><span class="tok-mi">0x0</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">af:</span><span class="tok-w">       </span><span class="tok-err">00</span><span class="tok-w"> </span>
+</code></pre></div><p>可以看到它和加法指令的主要区别就是 addl 和 subl，其他的程序是一样的。</p>
+<h3 id="乘法和除法原子操作">乘法和除法原子操作</h3>
+<p>我们现在将下面的程序进行编译：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-cp">#pragma omp parallel num_threads(4) shared(data) default(none)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-cp">#pragma omp atomic</span>
+<span class="tok-w">    </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">*=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码的并行域被编译之后的汇编程序如下所示：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000401193</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">main._omp_fn.0</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">401193:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401194:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401197:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rdi</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">f:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">08</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">),</span><span class="tok-nv">%rcx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a2:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">01</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rcx</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a4:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c2</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a6:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">34</span><span class="tok-w"> </span><span class="tok-mi">12</span><span class="tok-w">                </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rdx</span><span class="tok-p">,</span><span class="tok-nv">%rdx</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">),</span><span class="tok-nv">%esi</span><span class="tok-w"> </span><span class="tok-c1"># 这条语句的含义为 data *= 2</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a9:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">ab:</span><span class="tok-w">       </span><span class="tok-nf">f0</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-no">b1</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w">             </span><span class="tok-no">lock</span><span class="tok-w"> </span><span class="tok-no">cmpxchg</span><span class="tok-w"> </span><span class="tok-nv">%esi</span><span class="tok-p">,(</span><span class="tok-nv">%rcx</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">af:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d6</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%esi</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b1:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c2</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b3:</span><span class="tok-w">       </span><span class="tok-err">39</span><span class="tok-w"> </span><span class="tok-nf">f0</span><span class="tok-w">                   </span><span class="tok-no">cmp</span><span class="tok-w">    </span><span class="tok-nv">%esi</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b5:</span><span class="tok-w">       </span><span class="tok-err">75</span><span class="tok-w"> </span><span class="tok-nf">ef</span><span class="tok-w">                   </span><span class="tok-no">jne</span><span class="tok-w">    </span><span class="tok-mh">4011a6</span> <span class="tok-p">&lt;</span><span class="tok-no">main._omp_fn.0</span><span class="tok-p">+</span><span class="tok-mi">0x13</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b7:</span><span class="tok-w">       </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b8:</span><span class="tok-w">       </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+<span class="tok-w">  </span><span class="tok-mi">4011</span><span class="tok-no">b9</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">80</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">nopl</span><span class="tok-w">   </span><span class="tok-mi">0x0</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">)</span>
+</code></pre></div><p>我们先不仔细去分析上面的汇编程序，我们先来看一下上面程序的行为：</p>
+<ul>
+<li>首先加载 data 的值，保存为 temp，这个 temp 的值保存在寄存器当中。</li>
+<li>然后将 temp 的值乘以 2 保存在寄存器当中。</li>
+<li>最后比较 temp 的值是否等于 data，如果等于那么就将 data 的值变成 temp ，如果不相等（也就是说有其他线程更改了 data 的值，此时不能赋值给 data）回到第一步，这个操作主要是基于指令 <code>cmpxchg</code> 。</li>
+</ul>
+<p>上面的三个步骤当中第三步是一个原子操作对应上面的汇编指令 <code>lock cmpxchg %esi,(%rcx)</code> ，cmpxchg 指令前面加了 lock 主要是保存这条 cmpxchg 指令的原子性。</p>
+<p>如果我们将上面的汇编程序使用 C 语言重写的话，那么就是下面的程序那样：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdbool.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdatomic.h&gt;</span>
+
+<span class="tok-c1">// 这个函数对应上面的汇编程序</span>
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">atomic_multiply</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">oldval</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">write</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldval</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// __atomic_compare_exchange_n 这个函数的作用就是</span>
+<span class="tok-w">  </span><span class="tok-c1">// 将 data 指向的值和 old 的值进行比较，如果相等就将 write 的值写入 data</span>
+<span class="tok-w">  </span><span class="tok-c1">// 指向的内存地址 如果操作成功返回 true 否则返回 false</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">__atomic_compare_exchange_n</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">oldval</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">write</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">,</span>
+<span class="tok-w">                                      </span><span class="tok-n">__ATOMIC_ACQUIRE</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">__ATOMIC_RELAXED</span><span class="tok-p">))</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">oldval</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">data</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">write</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldval</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">atomic_multiply</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>现在我们在来仔细分析一下上面的汇编程序，首先我们需要仔细了解一下 <a href="https://www.felixcloutier.com/x86/cmpxchg">cmpxchg</a> 指令，这个指令在上面的汇编程序当中的作用是比较 eax 寄存器和 rcx 寄存器指向的内存地址的数据，如果相等就将 esi 寄存器的值写入到 rcx 指向的内存地址，如果不想等就将 rcx 寄存器指向的内存的值写入到 eax 寄存器。</p>
+<p>通过理解上面的指令，在 cmpxchg 指令之后的就是查看是否 esi 寄存器的值写入到了 rcx 寄存器指向的内存地址，如果是则不执行跳转语句，否则指令回到位置 4011a6 重新执行，这就是一个 while 循环。</p>
+<p>我们在来看一下将乘法变成除法之后的汇编指令：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000401193</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">main._omp_fn.0</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-err">401193:</span><span class="tok-w">       </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401194:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">401197:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rdi</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">b:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">             </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%rax</span>
+<span class="tok-w">  </span><span class="tok-err">40119</span><span class="tok-nl">f:</span><span class="tok-w">       </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">08</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">),</span><span class="tok-nv">%rcx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a2:</span><span class="tok-w">       </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">01</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rcx</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a4:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c2</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a6:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">a8:</span><span class="tok-w">       </span><span class="tok-nf">c1</span><span class="tok-w"> </span><span class="tok-no">e8</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w">                </span><span class="tok-no">shr</span><span class="tok-w">    </span><span class="tok-no">$0x1f</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">ab:</span><span class="tok-w">       </span><span class="tok-err">01</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">ad:</span><span class="tok-w">       </span><span class="tok-nf">d1</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">                   </span><span class="tok-no">sar</span><span class="tok-w">    </span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">af:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c6</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%esi</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b1:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b3:</span><span class="tok-w">       </span><span class="tok-nf">f0</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-no">b1</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w">             </span><span class="tok-no">lock</span><span class="tok-w"> </span><span class="tok-no">cmpxchg</span><span class="tok-w"> </span><span class="tok-nv">%esi</span><span class="tok-p">,(</span><span class="tok-nv">%rcx</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b7:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d6</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%esi</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">b9:</span><span class="tok-w">       </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">c2</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">bb:</span><span class="tok-w">       </span><span class="tok-err">39</span><span class="tok-w"> </span><span class="tok-nf">f0</span><span class="tok-w">                   </span><span class="tok-no">cmp</span><span class="tok-w">    </span><span class="tok-nv">%esi</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">bd:</span><span class="tok-w">       </span><span class="tok-err">75</span><span class="tok-w"> </span><span class="tok-nf">e7</span><span class="tok-w">                   </span><span class="tok-no">jne</span><span class="tok-w">    </span><span class="tok-mh">4011a6</span> <span class="tok-p">&lt;</span><span class="tok-no">main._omp_fn.0</span><span class="tok-p">+</span><span class="tok-mi">0x13</span><span class="tok-p">&gt;</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">bf:</span><span class="tok-w">       </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">c0:</span><span class="tok-w">       </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span><span class="tok-w">   </span>
+<span class="tok-w">  </span><span class="tok-mi">4011</span><span class="tok-no">c1</span><span class="tok-p">:</span><span class="tok-w">       </span><span class="tok-mi">66</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-no">e</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">84</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">    </span><span class="tok-no">nopw</span><span class="tok-w">   </span><span class="tok-nv">%cs</span><span class="tok-p">:</span><span class="tok-mi">0x0</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">c8:</span><span class="tok-w">       </span><span class="tok-err">00</span><span class="tok-w"> </span><span class="tok-err">00</span><span class="tok-w"> </span><span class="tok-err">00</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-err">4011</span><span class="tok-nl">cb:</span><span class="tok-w">       </span><span class="tok-err">0</span><span class="tok-nf">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">44</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">          </span><span class="tok-no">nopl</span><span class="tok-w">   </span><span class="tok-mi">0x0</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+</code></pre></div><p>从上面的汇编代码当中的 cmpxchg 和 jne 指令可以看出除法操作使用的还是比较并交换指令(CAS) cmpxchg，并且也是使用 while 循环。</p>
+<p>其实复杂的表达式都是使用这个方式实现的：while 循环 + cmpxchg 指令，我们就不一一的将其他的使用方式也拿出来一一解释了。简单的表达式可以直接使用 lock + 具体的指令实现。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要是深入剖析了 OpenMP 当中各种原子指令的实现原理以及分析了他们对应的汇编程序，OpenMP 在处理 #pragma omp atomic 的时候如果能够使用原子指令完成需求那就直接使用原子指令，否则的话就使用 CAS cmpxchg 指令和 while 循环完成对应的需求。</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-06sync/"><span>较新</span>深入理解 OpenMP 线程同步机制</a><a class="next" href="/posts/cscore-concurrency-04runtime2/"><span>较旧</span>Openmp Runtime 库函数汇总（下）——深入剖析锁🔒原理与实现</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#为什么需要原子指令">为什么需要原子指令</a></li>
+      <li class="toc-l2"><a href="#openmp-原子指令">OpenMP 原子指令</a></li>
+      <li class="toc-l2"><a href="#原子操作和锁的区别">原子操作和锁的区别</a></li>
+      <li class="toc-l2"><a href="#深入剖析原子指令从汇编角度">深入剖析原子指令——从汇编角度</a></li>
+      <li class="toc-l3"><a href="#加法和减法原子操作">加法和减法原子操作</a></li>
+      <li class="toc-l3"><a href="#乘法和除法原子操作">乘法和除法原子操作</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

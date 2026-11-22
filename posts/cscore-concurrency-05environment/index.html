@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenMP 环境变量使用总结 · Chang-LeHung</title>
+<meta name="description" content="OMP_CANCELLATION，在 OpenMP 规范 4.5 当中规定了取消机制，我们可以使用这个环境变量去设置是否启动取消机制，如果这个值等于 TRUE 那么就是开启线程取消机制，如果这个值等于 FALSE 那么就是关闭取消机制。 复制 #include &lt;stdio.h&gt; #include ">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>OpenMP 环境变量使用总结</h1>
+      <p class="post-meta">
+        <time datetime="2023-01-20">2023-01-20</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <ul>
+<li>OMP_CANCELLATION，在 OpenMP 规范 4.5 当中规定了取消机制，我们可以使用这个环境变量去设置是否启动取消机制，如果这个值等于 TRUE 那么就是开启线程取消机制，如果这个值等于 FALSE 那么就是关闭取消机制。</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+
+<span class="tok-w">   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">omp_get_cancellation</span><span class="tok-p">();</span>
+<span class="tok-w">   </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-p">);</span>
+<span class="tok-cp">#pragma omp parallel num_threads(8) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">)</span>
+<span class="tok-w">      </span><span class="tok-p">{</span>
+<span class="tok-cp">#pragma omp cancel parallel</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中，如果我们启动取消机制，那么线程号等于 2 的线程就不会执行后面的 printf 语句。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>cmake-build-hun<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w">  </span><span class="tok-nb">export</span><span class="tok-w"> </span><span class="tok-nv">OMP_CANCELLATION</span><span class="tok-o">=</span>TRUE<span class="tok-w"> </span><span class="tok-c1"># 启动取消机制</span>
+➜<span class="tok-w">  </span>cmake-build-hun<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>./cancel<span class="tok-w"> </span>
+<span class="tok-m">1</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">4</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">1</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">3</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">5</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">6</span>
+<span class="tok-nv">tid</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">7</span>
+</code></pre></div><ul>
+<li>OMP_DISPLAY_ENV，这个环境变量的作用就是程序在执行的时候首先会打印 OpenMP 相关的环境变量。如果这个环境变量值等于 TRUE 就会打印环境变量的值，如果是 FLASE 就不会打印。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>cmake-build-hun<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span><span class="tok-nb">export</span><span class="tok-w"> </span><span class="tok-nv">OMP_DISPLAY_ENV</span><span class="tok-o">=</span>TRUE<span class="tok-w">   </span>
+➜<span class="tok-w">  </span>cmake-build-hun<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>./critical<span class="tok-w"> </span>
+
+OPENMP<span class="tok-w"> </span>DISPLAY<span class="tok-w"> </span>ENVIRONMENT<span class="tok-w"> </span>BEGIN
+<span class="tok-w">  </span><span class="tok-nv">_OPENMP</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'201511'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_DYNAMIC</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'FALSE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_NESTED</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'FALSE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_NUM_THREADS</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'32'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_SCHEDULE</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'DYNAMIC'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_PROC_BIND</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'FALSE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_PLACES</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">''</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_STACKSIZE</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'0'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_WAIT_POLICY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'PASSIVE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_THREAD_LIMIT</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'4294967295'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_MAX_ACTIVE_LEVELS</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'2147483647'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_CANCELLATION</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'TRUE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_DEFAULT_DEVICE</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'0'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_MAX_TASK_PRIORITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'0'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_DISPLAY_AFFINITY</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'FALSE'</span>
+<span class="tok-w">  </span><span class="tok-nv">OMP_AFFINITY_FORMAT</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'level %L thread %i affinity %A'</span>
+OPENMP<span class="tok-w"> </span>DISPLAY<span class="tok-w"> </span>ENVIRONMENT<span class="tok-w"> </span>END
+<span class="tok-nv">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-m">0</span>
+</code></pre></div><ul>
+<li>OMP_DYNAMIC，如果将这个环境变量设置为true，OpenMP实现可以调整用于执行并行区域的线程数，以优化系统资源的使用。与这个环境变量相关的一共有两个函数：</li>
+</ul>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">omp_set_dynamic</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">);</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">omp_get_dynamic</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-p">);</span>
+</code></pre></div><p>omp_set_dynamic 使用这个函数表示是否设置动态调整线程的个数，如果传入的参数不等于 0 表示开始，如果参数等于 0 就表示关闭动态调整。</p>
+<p>我们现在来谈一谈 dynamic 动态调整线程个数以优化系统资源的使用是什么意思，这个意思就是 OpenMP 创建的线程个数在同一个时刻不会超过你系统的处理器的个数，因为 OpenMP 常常用在数据密集型任务当中，这类任务对 CPU 的需求大，因此为了充分利用资源，只会创建处理器个数的线程个数。</p>
+<p>下面我们使用一个例子来验证上面所谈到的内容。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">argv</span><span class="tok-p">[])</span>
+<span class="tok-p">{</span>
+<span class="tok-c1">//   omp_set_dynamic(1);</span>
+
+<span class="tok-cp">#pragma omp parallel num_threads(33) default(none)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"tid = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">omp_get_thread_num</span><span class="tok-p">());</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码如果我们没有设置 OMP_DYNAMIC=TRUE 或者没有使用 omp_set_dynamic(1) 去启动态调整的话，那么上面的 printf 语句会被执行 33 次，但是如果你进行了设置，也就是启动了动态调整线程的个数的话，那么创建的线程个数就是 min(33, num_processors) ，后者是你的机器的处理器的个数，比如如果处理器的核的个数是 16 那么就只会有 16 个线程执行并行域当中的代码。</p>
+<ul>
+<li>OMP_NESTED，这个表示是否开启并行域的嵌套模式，这个环境变量要么是 <code>TRUE</code> 或者 <code>FALSE</code> ，如果这个环境变量的值为 <code>TRUE</code> 那么能够嵌套的最大的并行域的数量受到环境变量 OMP_MAX_ACTIVE_LEVELS 的限制，与这个环境变量相关的一个动态库函数为 <code>void omp_set_nested(int nested);</code> ，表示是否开启嵌套的并行域。</li>
+<li>OMP_NUM_THREADS，这个表示设置并行域的线程个数，与这个环境变量相关的有 num_threads 这个子句和动态库函数 <code>void omp_set_num_threads(int num_threads);</code>也是相关的。他们的优先级为：num_threads &gt; omp_set_num_threads &gt; OMP_NUM_THREADS。这个环境变量的值必须是一个大于 0 的整数，关于他们的优先级你可以认为离并行域越远的就优先级越低，反之越高。</li>
+<li>OMP_STACKSIZE，这个环境变量的主要作用就是设置一个线程的栈空间的大小。</li>
+<li>OMP_WAIT_POLICY，这个参数的主要作用就是控制当线程没有拿到锁的时候是自旋获取锁还是进入内核被挂起。这个参数主要有两个值，active 或者 passive。
+<ul>
+<li>PASSIVE，等待的线程不消耗 CPU ，而是进入内核挂起。</li>
+<li>ACTIVE，等待的线程消耗 CPU，一直自旋获取锁。</li>
+</ul>
+</li>
+</ul>
+<p>我们现在使用例子来验证上面的规则：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">omp_lock_t</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">;</span>
+<span class="tok-w">   </span><span class="tok-n">omp_init_lock</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">lock</span><span class="tok-p">);</span>
+<span class="tok-cp">#pragma omp parallel num_threads(16) default(none) shared(lock)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">omp_set_lock</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">lock</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">omp_unset_lock</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">lock</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中有一个并行域，并行域中线程的个数是 16，我们首先使用 ACTIVE 来看一下这个进程的负载，根据前面我们的描述那么 16 个线程都会在自旋获取锁，这个过程将会一直使用 CPU，因此这个进程的负载 %CPU ，应该是接近 1600 % ，每个线程都是 100% 加起来就是 1600 % 。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>cmake-build-openmp<span class="tok-w"> </span><span class="tok-nb">export</span><span class="tok-w"> </span><span class="tok-nv">OMP_WAIT_POLICY</span><span class="tok-o">=</span>ACTIVE<span class="tok-w"> </span>
+➜<span class="tok-w">  </span>cmake-build-openmp<span class="tok-w"> </span>./wait_policy<span class="tok-w">                </span>
+</code></pre></div><p>我们使用 top 命令查看一下这个进程的 CPU 使用率。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>top<span class="tok-w"> </span>-<span class="tok-w"> </span><span class="tok-m">17</span>:27:14<span class="tok-w"> </span>up<span class="tok-w"> </span><span class="tok-m">263</span><span class="tok-w"> </span>days,<span class="tok-w">  </span><span class="tok-m">2</span>:11,<span class="tok-w">  </span><span class="tok-m">2</span><span class="tok-w"> </span>users,<span class="tok-w">  </span>load<span class="tok-w"> </span>average:<span class="tok-w"> </span><span class="tok-m">93</span>.87,<span class="tok-w"> </span><span class="tok-m">87</span>.59,<span class="tok-w"> </span><span class="tok-m">85</span>.78
+Tasks:<span class="tok-w">  </span><span class="tok-m">31</span><span class="tok-w"> </span>total,<span class="tok-w">   </span><span class="tok-m">2</span><span class="tok-w"> </span>running,<span class="tok-w">  </span><span class="tok-m">29</span><span class="tok-w"> </span>sleeping,<span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span>stopped,<span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span>zombie
+%Cpu<span class="tok-o">(</span>s<span class="tok-o">)</span>:<span class="tok-w"> </span><span class="tok-m">80</span>.0<span class="tok-w"> </span>us,<span class="tok-w">  </span><span class="tok-m">0</span>.7<span class="tok-w"> </span>sy,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>ni,<span class="tok-w"> </span><span class="tok-m">19</span>.2<span class="tok-w"> </span>id,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>wa,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>hi,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>si,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>st
+KiB<span class="tok-w"> </span>Mem<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-m">13191648</span>+total,<span class="tok-w"> </span><span class="tok-m">54673112</span><span class="tok-w"> </span>free,<span class="tok-w"> </span><span class="tok-m">15049648</span><span class="tok-w"> </span>used,<span class="tok-w"> </span><span class="tok-m">62193724</span><span class="tok-w"> </span>buff/cache
+KiB<span class="tok-w"> </span>Swap:<span class="tok-w"> </span><span class="tok-m">12499968</span>+total,<span class="tok-w"> </span><span class="tok-m">11869649</span>+free,<span class="tok-w">  </span><span class="tok-m">6303184</span><span class="tok-w"> </span>used.<span class="tok-w"> </span><span class="tok-m">11600438</span>+avail<span class="tok-w"> </span>Mem
+
+<span class="tok-w">   </span>PID<span class="tok-w"> </span>USER<span class="tok-w">      </span>PR<span class="tok-w">  </span>NI<span class="tok-w">    </span>VIRT<span class="tok-w">    </span>RES<span class="tok-w">    </span>SHR<span class="tok-w"> </span>S<span class="tok-w">  </span>%CPU<span class="tok-w"> </span>%MEM<span class="tok-w">     </span>TIME+<span class="tok-w"> </span>COMMAND
+<span class="tok-m">112290</span><span class="tok-w"> </span>root<span class="tok-w">      </span><span class="tok-m">20</span><span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w">  </span><span class="tok-m">133868</span><span class="tok-w">   </span><span class="tok-m">1576</span><span class="tok-w">   </span><span class="tok-m">1452</span><span class="tok-w"> </span>R<span class="tok-w">  </span><span class="tok-m">1600</span><span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w">  </span><span class="tok-m">11</span>:52.84<span class="tok-w"> </span>wait_policy
+</code></pre></div><p>根据上面的输出结果我们可以看到我们的预测是对的，所有的线程都活跃的在使用 CPU。</p>
+<p>现在我们再来看一下如果我们使用 PASSIVE 的情况会是怎么样的？根据前面的描述如果线程没有获取到锁那么就会被挂起，因为只能够有一个线程获取到锁，其余 15 个线程都将被挂起，因此 CPU 的使用率应该是  100 % 左右，这个线程就是那个获取到锁的线程。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>cmake-build-openmp<span class="tok-w"> </span><span class="tok-nb">export</span><span class="tok-w"> </span><span class="tok-nv">OMP_WAIT_POLICY</span><span class="tok-o">=</span>PASSIVE
+➜<span class="tok-w">  </span>cmake-build-openmp<span class="tok-w"> </span>./wait_policy<span class="tok-w"> </span>
+</code></pre></div><p>我们再使用 top 命令查看一下对应的输出：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>top<span class="tok-w"> </span>-<span class="tok-w"> </span><span class="tok-m">17</span>:27:53<span class="tok-w"> </span>up<span class="tok-w"> </span><span class="tok-m">263</span><span class="tok-w"> </span>days,<span class="tok-w">  </span><span class="tok-m">2</span>:11,<span class="tok-w">  </span><span class="tok-m">2</span><span class="tok-w"> </span>users,<span class="tok-w">  </span>load<span class="tok-w"> </span>average:<span class="tok-w"> </span><span class="tok-m">92</span>.76,<span class="tok-w"> </span><span class="tok-m">88</span>.10,<span class="tok-w"> </span><span class="tok-m">86</span>.03
+Tasks:<span class="tok-w">  </span><span class="tok-m">31</span><span class="tok-w"> </span>total,<span class="tok-w">   </span><span class="tok-m">2</span><span class="tok-w"> </span>running,<span class="tok-w">  </span><span class="tok-m">29</span><span class="tok-w"> </span>sleeping,<span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span>stopped,<span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span>zombie
+%Cpu<span class="tok-o">(</span>s<span class="tok-o">)</span>:<span class="tok-w"> </span><span class="tok-m">53</span>.3<span class="tok-w"> </span>us,<span class="tok-w">  </span><span class="tok-m">0</span>.8<span class="tok-w"> </span>sy,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>ni,<span class="tok-w"> </span><span class="tok-m">45</span>.9<span class="tok-w"> </span>id,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>wa,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>hi,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>si,<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w"> </span>st
+KiB<span class="tok-w"> </span>Mem<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-m">13191648</span>+total,<span class="tok-w"> </span><span class="tok-m">54675824</span><span class="tok-w"> </span>free,<span class="tok-w"> </span><span class="tok-m">15046932</span><span class="tok-w"> </span>used,<span class="tok-w"> </span><span class="tok-m">62193728</span><span class="tok-w"> </span>buff/cache
+KiB<span class="tok-w"> </span>Swap:<span class="tok-w"> </span><span class="tok-m">12499968</span>+total,<span class="tok-w"> </span><span class="tok-m">11869649</span>+free,<span class="tok-w">  </span><span class="tok-m">6303184</span><span class="tok-w"> </span>used.<span class="tok-w"> </span><span class="tok-m">11600710</span>+avail<span class="tok-w"> </span>Mem
+
+<span class="tok-w">   </span>PID<span class="tok-w"> </span>USER<span class="tok-w">      </span>PR<span class="tok-w">  </span>NI<span class="tok-w">    </span>VIRT<span class="tok-w">    </span>RES<span class="tok-w">    </span>SHR<span class="tok-w"> </span>S<span class="tok-w">  </span>%CPU<span class="tok-w"> </span>%MEM<span class="tok-w">     </span>TIME+<span class="tok-w"> </span>COMMAND
+<span class="tok-m">112317</span><span class="tok-w"> </span>root<span class="tok-w">      </span><span class="tok-m">20</span><span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w">  </span><span class="tok-m">133868</span><span class="tok-w">   </span><span class="tok-m">1624</span><span class="tok-w">   </span><span class="tok-m">1496</span><span class="tok-w"> </span>R<span class="tok-w">  </span><span class="tok-m">99</span>.3<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w">   </span><span class="tok-m">0</span>:04.58<span class="tok-w"> </span>wait_policy
+</code></pre></div><p>从上面的输出结果来看也是符合我们的预期，只有一个线程在不断的使用 CPU。</p>
+<ul>
+<li>
+<p>GOMP_SPINCOUNT，这个环境变量的主要作用就是当 OMP_WAIT_POLICY 是 active 的时候，最多忙等待自旋多少次，如果自旋的次数超过这个值的话，那么这个线程将会被挂起。</p>
+<p>当这个环境变量没有定义：</p>
+<ul>
+<li>OMP_WAIT_POLICY=PASSIVE，那么自旋次数为 0 。</li>
+<li>如果 OMP_WAIT_POLICY 也是未定义的话，那么这个自旋次数将会被设置成 300,000 。</li>
+<li>OMP_WAIT_POLICY=ACTIVE，那么自旋的次数是 300 亿次。</li>
+</ul>
+<p>另外如果 OpenMP 的线程的个数大于可用的 CPU 的核心的个数的时候，1000 和 100 次就是 GOMP_SPINCOUNT 的值，对应OMP_WAIT_POLICY=ACTIVE 和 OMP_WAIT_POLICY 没有定义。</p>
+</li>
+<li>
+<p>OMP_MAX_TASK_PRIORITY，这个是设置 OpenMP 任务的优先级的最大值，这个值应该是一个大于等于 0 的值，如果没有定义，默认优先级的值就是 0 。</p>
+</li>
+<li>
+<p>OMP_MAX_ACTIVE_LEVELS，这个参数的主要作用是设置最大的嵌套的并行域的个数。</p>
+</li>
+<li>
+<p>GOMP_CPU_AFFINITY，这个环境变量的作用就是将线程绑定到特定的 CPU 核心上。该变量应包含以空格分隔或逗号分隔的CPU列表。此列表可能包含不同类型的条目：任意顺序的单个CPU编号、CPU范围（M-N）或具有一定步长的范围（M-N:S）。CPU编号从零开始。例如，GOMP_CPU_AFFINITY=“0 3 1-2 4-15:2”将分别将初始线程绑定到CPU 0，第二个绑定到CPU 3，第三个绑定到CPU1，第四个绑定到CPU 2，第五个绑定到CPU 4，第六个到第十个绑定到ccu 6、8、10、12和14，然后从列表的开头开始重新分配。GOMP_CPU_AFFINITY=0将所有线程绑定到CPU 0。</p>
+</li>
+</ul>
+<p>我们现在来使用一个例子查看环境变量的使用。我们的测试程序如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;omp.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">   </span><span class="tok-n">omp_lock_t</span><span class="tok-w"> </span><span class="tok-n">lock</span><span class="tok-p">;</span>
+<span class="tok-w">   </span><span class="tok-n">omp_init_lock</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">lock</span><span class="tok-p">);</span>
+<span class="tok-cp">#pragma omp parallel num_threads(4) default(none) shared(lock)</span>
+<span class="tok-w">   </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">   </span><span class="tok-p">}</span>
+<span class="tok-w">   </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序就是开启四个线程然后进行死循环。在我的测试环境中一共有 4 个 CPU 计算核心。我们现在执行上面的程序，对应的结果如下所示，下面的图是使用命令 htop 得到的结果：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>tmp<span class="tok-w"> </span>./a.out
+────────────────────────────────────────────────────────────────────────────────
+
+<span class="tok-w">    </span><span class="tok-m">0</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span><span class="tok-w">   </span>Tasks:<span class="tok-w"> </span><span class="tok-m">118</span>,<span class="tok-w"> </span><span class="tok-m">212</span><span class="tok-w"> </span>thr<span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span>running
+<span class="tok-w">    </span><span class="tok-m">1</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span><span class="tok-w">   </span>Load<span class="tok-w"> </span>average:<span class="tok-w"> </span><span class="tok-m">2</span>.62<span class="tok-w"> </span><span class="tok-m">0</span>.86<span class="tok-w"> </span><span class="tok-m">0</span>.29
+<span class="tok-w">    </span><span class="tok-m">2</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span><span class="tok-w">   </span>Uptime:<span class="tok-w"> </span><span class="tok-m">04</span>:21:10
+<span class="tok-w">    </span><span class="tok-m">3</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span>
+<span class="tok-w">  </span>Mem<span class="tok-o">[||||||||||||||||||||</span>575M/3.82G<span class="tok-o">]</span>
+<span class="tok-w">  </span>Swp<span class="tok-o">[</span><span class="tok-w">                      </span>0K/3.82G<span class="tok-o">]</span>
+
+<span class="tok-w">    </span>PID<span class="tok-w"> </span>USER<span class="tok-w">      </span>PRI<span class="tok-w">  </span>NI<span class="tok-w">  </span>VIRT<span class="tok-w">   </span>RES<span class="tok-w">   </span>SHR<span class="tok-w"> </span>S<span class="tok-w"> </span>CPU%▽MEM%<span class="tok-w">   </span>TIME+<span class="tok-w">  </span>Command
+<span class="tok-w">  </span><span class="tok-m">10750</span><span class="tok-w"> </span>lehung<span class="tok-w">     </span><span class="tok-m">20</span><span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-m">27304</span><span class="tok-w">   </span><span class="tok-m">852</span><span class="tok-w">   </span><span class="tok-m">756</span><span class="tok-w"> </span>R<span class="tok-w"> </span><span class="tok-m">400</span>.<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w">  </span><span class="tok-m">2</span>:30.53<span class="tok-w"> </span>./a.out
+</code></pre></div><p>从上面 htop 命令的输出结果可以看到 0 - 3 四个核心都跑满了，我们现在来看一下如果我们使用 GOMP_CPU_AFFINITY 环境变量使用线程绑定的方式 CPU 的负载将会是什么样！下面我们将所有的线程绑定到 0 1 两个核心，那么根据我们之前的分析 0 号核心上将会有第一个和第三个线程，1 号核心将会有第二个和第四个线程在上面运行。</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>tmp<span class="tok-w"> </span><span class="tok-nb">export</span><span class="tok-w"> </span><span class="tok-nv">GOMP_CPU_AFFINITY</span><span class="tok-o">=</span><span class="tok-s2">"0 1"</span>
+➜<span class="tok-w">  </span>tmp<span class="tok-w"> </span>./a.out
+────────────────────────────────────────────────────────────────────────────────
+
+<span class="tok-w">    </span><span class="tok-m">0</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span><span class="tok-w">   </span>Tasks:<span class="tok-w"> </span><span class="tok-m">118</span>,<span class="tok-w"> </span><span class="tok-m">213</span><span class="tok-w"> </span>thr<span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-w"> </span>running
+<span class="tok-w">    </span><span class="tok-m">1</span><span class="tok-o">[||||||||||||||||||||||||</span><span class="tok-m">100</span>.0%<span class="tok-o">]</span><span class="tok-w">   </span>Load<span class="tok-w"> </span>average:<span class="tok-w"> </span><span class="tok-m">2</span>.29<span class="tok-w"> </span><span class="tok-m">1</span>.10<span class="tok-w"> </span><span class="tok-m">0</span>.41
+<span class="tok-w">    </span><span class="tok-m">2</span><span class="tok-o">[</span><span class="tok-p">|</span><span class="tok-w">                         </span><span class="tok-m">1</span>.3%<span class="tok-o">]</span><span class="tok-w">   </span>Uptime:<span class="tok-w"> </span><span class="tok-m">04</span>:22:03
+<span class="tok-w">    </span><span class="tok-m">3</span><span class="tok-o">[</span><span class="tok-p">|</span><span class="tok-w">                         </span><span class="tok-m">0</span>.7%<span class="tok-o">]</span>
+<span class="tok-w">  </span>Mem<span class="tok-o">[||||||||||||||||||||</span>576M/3.82G<span class="tok-o">]</span>
+<span class="tok-w">  </span>Swp<span class="tok-o">[</span><span class="tok-w">                      </span>0K/3.82G<span class="tok-o">]</span>
+
+<span class="tok-w">    </span>PID<span class="tok-w"> </span>USER<span class="tok-w">      </span>PRI<span class="tok-w">  </span>NI<span class="tok-w">  </span>VIRT<span class="tok-w">   </span>RES<span class="tok-w">   </span>SHR<span class="tok-w"> </span>S<span class="tok-w"> </span>CPU%▽MEM%<span class="tok-w">   </span>TIME+<span class="tok-w">  </span>Command
+<span class="tok-w">  </span><span class="tok-m">10772</span><span class="tok-w"> </span>lehung<span class="tok-w">     </span><span class="tok-m">20</span><span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-m">27304</span><span class="tok-w">   </span><span class="tok-m">840</span><span class="tok-w">   </span><span class="tok-m">744</span><span class="tok-w"> </span>R<span class="tok-w"> </span><span class="tok-m">200</span>.<span class="tok-w">  </span><span class="tok-m">0</span>.0<span class="tok-w">  </span><span class="tok-m">0</span>:10.42<span class="tok-w"> </span>./a.out
+</code></pre></div><p>其实与上面的过程相关的两个主要的系统调用就是：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">sched_setaffinity</span><span class="tok-p">(</span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">cpusetsize</span><span class="tok-p">,</span>
+<span class="tok-w">                             </span><span class="tok-k">const</span><span class="tok-w"> </span><span class="tok-kt">cpu_set_t</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">mask</span><span class="tok-p">);</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">sched_getaffinity</span><span class="tok-p">(</span><span class="tok-kt">pid_t</span><span class="tok-w"> </span><span class="tok-n">pid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">cpusetsize</span><span class="tok-p">,</span>
+<span class="tok-w">                             </span><span class="tok-kt">cpu_set_t</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">mask</span><span class="tok-p">);</span>
+</code></pre></div><p>感兴趣的同学可能查看一下上面的两个函数的手册。</p>
+<ul>
+<li>OMP_SCHEDULE，这个环境变量主要是用在 OpenMP 关于 for 循环的调度上的，他的规则为 OMP_SCHEDULE=type[,chunk]，其中 type 的取值可以为 static, dynamic, guided, auto 。并且 chunk size 是可选的，而且他的值是一个正整数。如果这个环境变量没有定义，默认的调度方式是 dynamic 并且 chunk size = 1 。</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些经常使用的 OpenMP 系统环境变量，设置环境变量有时候能够更加方便的设置程序，同时有些环境变量对应一些 OpenMP 的动态库函数。以上就是本篇文章的所有内容希望大家有所收获！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-08parallel/"><span>较新</span>OpenMP Parallel Construct 实现原理与源码分析</a><a class="next" href="/posts/cscore-concurrency-06sync/"><span>较旧</span>深入理解 OpenMP 线程同步机制</a>    </nav>
+  </div>
+
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

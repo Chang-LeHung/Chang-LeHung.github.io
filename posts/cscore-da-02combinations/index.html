@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组合总和 · Chang-LeHung</title>
+<meta name="description" content="前言 在上篇文章 通过组合问题看透回溯法 当中我们通过介绍一个组合问题，仔细地分析了组合问题的回溯过程。我们之后会继续介绍一些比较经典的回溯算法题，帮助深入彻底理解回溯算法的执行过程和原理，如果对回溯的整个过程还不是很了解的话可以先阅读上面那篇文章。 组合总和 给你一个 无重复元素 的整数数组 ca">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>组合总和</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在上篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486751&amp;idx=1&amp;sn=8e9cedd729d01ff8867fcb2c085ecbe3&amp;chksm=cf0c9116f87b18002551eefcd773f4762d79d2c06614b304437bfcd382e14afa031d29cc4dcc&amp;mpshare=1&amp;scene=22&amp;srcid=0921yRhazbXlqGuEZagKb0p9&amp;sharer_sharetime=1663737871952&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">通过组合问题看透回溯法</a>当中我们通过介绍一个组合问题，仔细地分析了组合问题的回溯过程。我们之后会继续介绍一些比较经典的回溯算法题，帮助深入彻底理解回溯算法的执行过程和原理，如果对回溯的整个过程还不是很了解的话可以先阅读上面那篇文章。</p>
+<h2 id="组合总和"><a href="https://leetcode.cn/problems/combination-su/">组合总和</a></h2>
+<blockquote>
+<p>给你一个 无重复元素 的整数数组 candidates 和一个目标整数 target ，找出 candidates 中可以使数字和为目标数 target 的 所有 不同组合 ，并以列表形式返回。你可以按 任意顺序 返回这些组合。</p>
+<p>candidates 中的 同一个 数字可以 无限制重复被选取 。如果至少一个数字的被选数量不同，则两种组合是不同的。</p>
+<p>对于给定的输入，保证和为 target 的不同组合数少于 150 个。</p>
+</blockquote>
+<p>例1：</p>
+<div class="code-block" data-lang="JAVA"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">输入</span><span class="tok-err">：</span><span class="tok-n">candidates</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">6</span><span class="tok-p">,</span><span class="tok-mi">7</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">7</span>
+<span class="tok-n">输出</span><span class="tok-err">：</span><span class="tok-o">[[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-o">[</span><span class="tok-mi">7</span><span class="tok-o">]]</span>
+<span class="tok-n">解释</span><span class="tok-err">：</span>
+<span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">和</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-n">可以形成一组候选</span><span class="tok-err">，</span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-err">。</span><span class="tok-n">注意</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-n">可以使用多次</span><span class="tok-err">。</span>
+<span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-n">也是一个候选</span><span class="tok-err">，</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">7</span><span class="tok-w"> </span><span class="tok-err">。</span>
+<span class="tok-n">仅有这两种组合</span><span class="tok-err">。</span>
+</code></pre></div><p>例2：</p>
+<div class="code-block" data-lang="JAVA"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nl">输入</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span>
+<span class="tok-nl">输出</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-o">[[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">3</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-o">[</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-o">]]</span>
+</code></pre></div><h2 id="解法">解法</h2>
+<p>根据题目的意思我们是需要从给定的集合当中选出几个数据，而且可以进行重复选取，只需要保证被我们选中的数据的和为<code>target</code>即可。对于这个问题我们可以构造一个如下图所示的解树：（下面的树的<code>target = 8, candidates = [2,3,5]</code>，当被选中的数据的和大于8的时候我们不需要再往下进行遍历了，因为再选择数据的话，被选择的数据的和只会大于8，这永远不可能等于<code>target = 8</code>）</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/13.webp" alt="11" loading="lazy" /></p>
+<p>可能你会对上面的解树有所疑问，为什么我们选完2之后是从<code>[2, 3, 5]</code>当中继续选择数据，选择完3之后是从<code>[3,5]</code>当中继续选择数据，而选择完5之后只能从<code>[5]</code>当中选择数据呢？</p>
+<p>事实上我们是需要穷举所有的组合的然后一一进行匹配，所以我们现在的问题是上面的树穷举完所有的组合了吗？上面的树是穷举完所有的组合了的，下面我们分析一下为什么上面的树能够覆盖所有的组合。</p>
+<p>穷举的组合如下：</p>
+<ul>
+<li>第一个数据和其他所有数据进行组合，</li>
+<li>第二个数据和其他所有数据的组合。</li>
+<li>第三个数据和其他所有数据的组合。</li>
+<li>....</li>
+</ul>
+<p>我们现在来仔细分析一样上面的解树：</p>
+<ul>
+<li>我们再进行第一次选择的时候，当我们选择完2之后还可以从<code>[2, 3, 5]</code>当中进行选择，这就表示了2和其他所有数据<code>[3, 5]</code>进行了组合，因为题目说明我们还可以进行重复选择，因此还加入了2，这就保证了2进行了所有的组合。</li>
+<li>我们再进行第一次选择的时候。当我们选择3的时候，还能从<code>[3, 5]</code>当中进行选择，选择3的原因也是因为可以重复进行选择，但是选择5的原因是因为需要和其他所有数据进行组合。在这里你可能还会有一个疑问就是3不是只和5进行了组合吗，还缺它和2的组合啊，仔细想一想我们在前一步选择2的时候已经将2和3的组合遍历过一遍了，因此在这不需要再进行组合了。</li>
+<li>同样的道理我们在第一次选择5的时候，不需要和在他前面的数据进行组合，因为在他前面的数据已经遍历过所有跟5的组合了。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/backtrace/14.webp" alt="11" loading="lazy" /></p>
+<h2 id="写代码的流程">写代码的流程</h2>
+<ul>
+<li>仔细分析程序递归的过程，分析求解问题的树，得到代码的主题思路，根据分析的结果我们可以设计我们函数会有哪些参数，在这道题目当中我们需要记录选中的数据的集合的和，这样就可以避免反复去计算选中数据的和了，还有当前遍历到数据的下标。</li>
+</ul>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">)</span>
+</code></pre></div><ul>
+<li>确定递归函数的出口：
+<ul>
+<li>在这里我们一个出口就是，当被选中的集合当中的数据的和满足要求的时候就进行退出。</li>
+<li>当被选中的数据的和大于给定的值的时候我们不需要再进行遍历了，因为即使遍历得到的结果使用会大于给定的值，因此没有遍历的必要了，下图当中深红色的节点就是表示和大于给定的值的情况。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/backtrace/12.webp" alt="11" loading="lazy" /></p>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ans</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">())</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-p">;</span>
+</code></pre></div><ul>
+<li>
+<p>根据我们思路确定我们函数的主体部分：</p>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">    </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">pop_back</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-p">}</span>
+</code></pre></div></li>
+</ul>
+<h2 id="完整代码">完整代码</h2>
+<h3 id="c版">C++版</h3>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
+<span class="tok-k">public</span><span class="tok-o">:</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">combinationSum</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">ans</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">())</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">            </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">pop_back</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">};</span>
+</code></pre></div><h3 id="java版">Java版</h3>
+<div class="code-block" data-lang="JAVA"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-nf">combinationSum</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">        </span><span class="tok-n">solve</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">solve</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">startPosition</span><span class="tok-p">,</span>
+<span class="tok-w">                      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">res</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">));</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">startPosition</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">solve</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>这道题目体现了经典的回溯过程，就是在往集合当加入数据之后，再经过遍历完成，就需要将之前加入的数据移出，而这个回到开始的状态的现象就叫做回溯，即回到之前的状态。但是在这个题目当中还需要注意一点的是他的数据可以重复进行使用，因此在遍历传递参数的时候需要传递的是<code>i</code>而不是<code>i+1</code>，这一点需要注意。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-02-01/"><span>较新</span>你真的懂01背包问题吗？01背包的这几问你能答出来吗？</a><a class="next" href="/posts/cscore-da-03/"><span>较旧</span>面试官：完全背包都不会，是你自己走还是我送你？</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#组合总和">组合总和</a></li>
+      <li class="toc-l2"><a href="#解法">解法</a></li>
+      <li class="toc-l2"><a href="#写代码的流程">写代码的流程</a></li>
+      <li class="toc-l2"><a href="#完整代码">完整代码</a></li>
+      <li class="toc-l3"><a href="#c版">C++版</a></li>
+      <li class="toc-l3"><a href="#java版">Java版</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入剖析（JDK）ArrayQueue源码 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍一个比较简单的 JDK 为我们提供的容器 ArrayQueue ，这个容器主要是用数组实现的一个单向队列，整体的结构相对其他容器来说就比较简单了。 ArrayQueue内部实现 在谈 ArrayQueue 的内部实现之前我们先来看一个 ArrayQueue 的使用例">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入剖析（JDK）ArrayQueue源码</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-17">2022-07-17</time>
+        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍一个比较简单的<code>JDK</code>为我们提供的容器<code>ArrayQueue</code>，这个容器主要是用数组实现的一个单向队列，整体的结构相对其他容器来说就比较简单了。</p>
+<h2 id="arrayqueue内部实现">ArrayQueue内部实现</h2>
+<p>在谈<code>ArrayQueue</code>的内部实现之前我们先来看一个<code>ArrayQueue</code>的使用例子：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">testQueue</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">queue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayQueue</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">queue</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 这个参数只能为0 表示删除队列当中第一个元素，也就是队头元素</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">queue</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">queue</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果</span>
+<span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-mi">3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-o">]</span>
+</code></pre></div><p>首先<code>ArrayQueue</code>内部是由循环数组实现的，可能保证增加和删除数据的时间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>，不像<code>ArrayList</code>删除数据的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>。在<code>ArrayQueue</code>内部有两个整型数据<code>head</code>和<code>tail</code>，这两个的作用主要是指向队列的头部和尾部，它的初始状态在内存当中的布局如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/24.webp" alt="" loading="lazy" /></p>
+<p>因为是初始状态<code>head</code>和<code>tail</code>的值都等于0，指向数组当中第一个数据。现在我们向<code>ArrayQueue</code>内部加入5个数据，那么他的内存布局将如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/26.webp" alt="" loading="lazy" /></p>
+<p>现在我们删除4个数据，那么上图经过4次删除操作之后，<code>ArrayQueue</code>内部数据布局如下：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/27.webp" alt="" loading="lazy" /></p>
+<p>在上面的状态下，我们继续加入8个数据，那么布局情况如下：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/28.webp" alt="" loading="lazy" /></p>
+<p>我们知道上图在加入数据的时候不仅将数组后半部分的空间使用完了，而且可以继续使用前半部分没有使用过的空间，也就是说在<code>ArrayQueue</code>内部实现了一个循环使用的过程。</p>
+<h2 id="arrayqueue源码剖析">ArrayQueue源码剖析</h2>
+<h3 id="构造函数">构造函数</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">ArrayQueue</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">capacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">queue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newArray</span><span class="tok-p">(</span><span class="tok-n">capacity</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">T</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-nf">newArray</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">T</span><span class="tok-o">[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-o">[</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的构造函数的代码比较容易理解，主要就是根据用户输入的数组空间长度去申请数组，不过他具体在申请数组的时候会多申请一个空间。</p>
+<h3 id="add函数">add函数</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">T</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-o">[</span><span class="tok-n">tail</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 循环使用数组</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">newtail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newtail</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">head</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IndexOutOfBoundsException</span><span class="tok-p">(</span><span class="tok-s">"Queue full"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newtail</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// we did add something</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码也相对比较容易看懂，在上文当中我们已经提到了<code>ArrayQueue</code>可以循环将数据加入到数组当中去，这一点在上面的代码当中也有所体现。</p>
+<h3 id="remove函数">remove函数</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">T</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IllegalArgumentException</span><span class="tok-p">(</span><span class="tok-s">"Can only remove head of queue"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">tail</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IndexOutOfBoundsException</span><span class="tok-p">(</span><span class="tok-s">"Queue empty"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">T</span><span class="tok-w"> </span><span class="tok-n">removed</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">queue</span><span class="tok-o">[</span><span class="tok-n">head</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">queue</span><span class="tok-o">[</span><span class="tok-n">head</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">removed</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>从上面的代码当中可以看出，在<code>remove</code>函数当中我们必须传递参数0，否则会抛出异常。而在这个函数当中我们只会删除当前<code>head</code>下标所在位置的数据，然后将<code>head</code>的值进行循环加1操作。</p>
+<h3 id="get函数">get函数</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">T</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">msg</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s">"Index "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">", queue size "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IndexOutOfBoundsException</span><span class="tok-p">(</span><span class="tok-n">msg</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">head</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-n">capacity</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">queue</span><span class="tok-o">[</span><span class="tok-n">index</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>get</code>函数的参数表示得到第<code>i</code>个数据，这个第<code>i</code>个数据并不是数组位置的第<code>i</code>个数据，而是距离<code>head</code>位置为<code>i</code>的位置的数据，了解这一点，上面的代码是很容易理解的。</p>
+<h3 id="resize函数">resize函数</h3>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">resize</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">newcapacity</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newcapacity</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IndexOutOfBoundsException</span><span class="tok-p">(</span><span class="tok-s">"Resizing would lose data"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">newcapacity</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newcapacity</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">capacity</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">T</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">newqueue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newArray</span><span class="tok-p">(</span><span class="tok-n">newcapacity</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">newqueue</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">capacity</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newcapacity</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">queue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newqueue</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">head</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">tail</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在<code>resize</code>函数当中首先申请新长度的数组空间，然后将原数组的数据一个一个的拷贝到新的数组当中，注意在这个拷贝的过程当中，重新更新了<code>head</code>与<code>tail</code>，而且并不是简单的数组拷贝，因为在之前的操作当中<code>head</code>可能已经不是了0，因此新的拷贝需要我们一个一个的从就数组拿出来，让后放到新数组当中。下图可以很直观的看出这个过程：</p>
+<p><img src="/content/zh/images/cscore/images/arraydeque/29.webp" alt="" loading="lazy" /></p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了<code>ArrayQueue</code>的内部实现过程和原理，并且看了<code>ArrayQueue</code>的源代码，有图的辅助整个阅读的过程应该是比较清晰的，<code>ArrayQueue</code>也是一个比较简单的容器，<code>JDK</code>对他的实现也比较简单。</p>
+<p>以上就是本文所有的内容了，希望大家有所收获，我是LeHung，我们下期再见！！！（记得<strong>点赞</strong>收藏哦！）</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-01-java/"><span>较新</span>并发开篇——带你从0到1建立并发知识体系的基石</a><a class="next" href="/posts/cscore-container-08-arraydeque/"><span>较旧</span>ArrayDeque（JDK双端队列）源码深度剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#arrayqueue内部实现">ArrayQueue内部实现</a></li>
+      <li class="toc-l2"><a href="#arrayqueue源码剖析">ArrayQueue源码剖析</a></li>
+      <li class="toc-l3"><a href="#构造函数">构造函数</a></li>
+      <li class="toc-l3"><a href="#add函数">add函数</a></li>
+      <li class="toc-l3"><a href="#remove函数">remove函数</a></li>
+      <li class="toc-l3"><a href="#get函数">get函数</a></li>
+      <li class="toc-l3"><a href="#resize函数">resize函数</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入剖析前缀、中缀、后缀表达式以及表达式求值 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要跟大家介绍以下几点 前缀、中缀和后缀表达式。 如何将中缀表达式转化成后缀表达式。 如何使用后缀表达式进行求值。 表达式求值这是一个比较经典的计算机系统基础问题，但是整个过程比较抽象，本文主要通过图解的方法帮助大家理解这个问题。 表达式介绍 后缀表达式也称作逆波兰表达式，前缀表">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入剖析前缀、中缀、后缀表达式以及表达式求值</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要跟大家介绍以下几点</p>
+<ul>
+<li>前缀、中缀和后缀表达式。</li>
+<li>如何将中缀表达式转化成后缀表达式。</li>
+<li>如何使用后缀表达式进行求值。</li>
+</ul>
+<p>表达式求值这是一个比较经典的计算机系统基础问题，但是整个过程比较抽象，本文主要通过图解的方法帮助大家理解这个问题。</p>
+<h2 id="表达式介绍">表达式介绍</h2>
+<p>后缀表达式也称作逆波兰表达式，前缀表达式也称作波兰表达式，这个是因为这是由波兰数学家<strong>杨-武卡谢维奇</strong>提出来的，用于简化命题逻辑的一种方法。</p>
+<h3 id="中缀表达式">中缀表达式</h3>
+<p>我们常见的数学表达式就是中缀表达式，比如说：<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn></mrow></math>，像这种我们从小到大经常见到的表达式就叫做中缀表达式，这个表达式的特点就是将<strong>运算符</strong>（加减乘除）放在两个操作数（数字）中间。</p>
+<h3 id="后缀表达式">后缀表达式</h3>
+<p>后缀表达式和中缀表达式的最大区别就是，他不是将<strong>运算符</strong>放在<strong>操作数</strong>中间，而是将<strong>运算符</strong>放在<strong>操作数</strong>后面，比如上面的中缀表达式<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn></mrow></math>转化成后缀表达式就为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>12</mn><mo>&#x0002B;</mo></mrow></math>。</p>
+<h3 id="前缀表达式">前缀表达式</h3>
+<p>前缀表达式就是将<strong>运算符</strong>放在<strong>操作数</strong>的前面，比如上面的中缀表达式<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn></mrow></math>转化成前缀表达式之后为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002B;</mo><mn>12</mn></mrow></math>。</p>
+<h3 id="表达式之间转化的例子">表达式之间转化的例子</h3>
+<p>上面的表达式还是比较简单，可能不足以帮助大家好好理解表达式之间的转化过程。</p>
+<p>中缀表达式：<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mo>&#x0002B;</mo><mi>B</mi><mo>&#x0002A;</mo><mo stretchy="false">&#x00028;</mo><mi>C</mi><mo>&#x02212;</mo><mi>D</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>E</mi><mo>&#x0002F;</mo><mi>F</mi></mrow></math></p>
+<p>现在我们来将上面的中缀表达式转化成后缀表达式，我们的第一个计算的部分如下（括号里面的优先计算）：</p>
+<p><img src="/content/zh/images/cscore/images/expression/01.webp" alt="" loading="lazy" /></p>
+<p>根据我们的转化原理：将<strong>运算符</strong>放在<strong>操作数</strong>后面，</p>
+<p><img src="/content/zh/images/cscore/images/expression/02.webp" alt="" loading="lazy" /></p>
+<p>上面的得到的后缀表达式继续进行转化（现在需要计算<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math>乘以后面的那个部分）：</p>
+<p><img src="/content/zh/images/cscore/images/expression/05.webp" alt="" loading="lazy" /></p>
+<p>继续进行转化（从左往后进行计算）：</p>
+<p><img src="/content/zh/images/cscore/images/expression/06.webp" alt="" loading="lazy" /></p>
+<p>继续进行转化（除法的优先级比减法高）：</p>
+<p><img src="/content/zh/images/cscore/images/expression/07.webp" alt="" loading="lazy" /></p>
+<p>得到最终的结果：</p>
+<p><img src="/content/zh/images/cscore/images/expression/08.webp" alt="" loading="lazy" /></p>
+<h2 id="程序如何将中缀表达式转化成后缀表达式">程序如何将中缀表达式转化成后缀表达式</h2>
+<p>将中缀表达式转化成后缀表达式有以下几条规则（下面的栈是存储操作符的栈，而且只存储操作符）：</p>
+<ul>
+<li>从左到右进行遍历。</li>
+<li>遇到操作数，直接加入到后缀表达式当中。</li>
+<li>遇到界限符。遇到“(”直接入栈，遇到“)”则依次弹出栈内运算符并加入后缀表达式，直到弹出“(” 为止，注意:“(” 不加入后缀表达式。</li>
+<li>遇到运算符。依次弹出栈中优先级高于或等于当前运算符的所有运算符，并加入后缀表达式，若碰到“(”或栈空则停止。之后再把当前运算符入栈。</li>
+</ul>
+<p>现在我们根据上面的规则来将上文当中的中缀表达式转化成后缀表达式。</p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>，根据第二条规则，将<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>加入到后缀表达式当中，当前的后缀表达式为：<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/09.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>现在遍历到加号，根据前面的规则需要弹出栈里面优先级大的运算符，再将加号加入到栈中，当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi></mrow></math>。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/11.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math>，直接加入到后缀表达式当中，目前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi></mrow></math>。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/12.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002A;</mo></mrow></math>，根据规则直接将其加入到栈中，当前后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi></mrow></math>。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/13.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo></mrow></math>，根据规则直接将其加入到栈中，当前后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi></mrow></math>。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/14.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math>，则直接将其加入到后缀表达式当中，当前后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi></mrow></math>。</p>
+</li>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>，根据规则将其加入到栈中，当前后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi></mrow></math>。</p>
+</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/15.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>D</mi></mrow></math>，则将其直接加入到后缀表达式当中，当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi></mrow></math>。</p>
+</li>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00029;</mo></mrow></math>，则需要将栈中的符号弹出，直到遇到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo></mrow></math>，当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo></mrow></math>。</p>
+</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/16.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>，需要将栈中优先级大于等于<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>的运算符弹出，则当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo></mrow></math>，再将<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>压入栈中。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/17.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>E</mi></mrow></math>，直接将数字加入到后缀表达式当中，则当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo><mi>E</mi></mrow></math>。</p>
+</li>
+<li>
+<p>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002F;</mo></mrow></math>，将栈中优先级大于等于<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002F;</mo></mrow></math>的运算符，再将<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002F;</mo></mrow></math>压入到栈中，当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo><mi>E</mi></mrow></math>。</p>
+</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/19.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>F</mi></mrow></math>，直接将其加入到后缀表达式当中，则当前的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo><mi>E</mi><mi>F</mi></mrow></math>。</li>
+<li>最终将栈中所有的运算符都弹出，得到的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo><mi>E</mi><mi>F</mi><mo>&#x0002F;</mo><mo>&#x02212;</mo></mrow></math>。</li>
+</ul>
+<p>经过上面的过程就可以将一个中缀表达式转成后缀表达式了，大家如果想要代码实现，只需要在遍历数据的时候根据上面四个规则一个个进行判断即可，程序并不困难，就是逻辑稍微有点多，需要考虑更多的问题，在写代码的时候需要细致一点。</p>
+<h2 id="后缀表达式求值">后缀表达式求值</h2>
+<p>在前文当中我们已经得到了表达式<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mo>&#x0002B;</mo><mi>B</mi><mo>&#x0002A;</mo><mo stretchy="false">&#x00028;</mo><mi>C</mi><mo>&#x02212;</mo><mi>D</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>E</mi><mo>&#x0002F;</mo><mi>F</mi></mrow></math>的后缀表达式为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi><mo>&#x02212;</mo><mo>&#x0002A;</mo><mo>&#x0002B;</mo><mi>E</mi><mi>F</mi><mo>&#x0002F;</mo><mo>&#x02212;</mo></mrow></math>。现在我们需要将这个后缀表达式进行求值。根据后缀表达式求值主要有以下两条规则：</p>
+<ul>
+<li>如果遇到数字直接将其加入到数字栈。</li>
+<li>如果遇到操作符直接从操作数栈弹出两个数据进行对应的运算，再将运算结果加入到栈中。</li>
+</ul>
+<p>现在我们进行后缀表达式的求值过程;</p>
+<ul>
+<li>首先前面四个<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>A</mi><mi>B</mi><mi>C</mi><mi>D</mi></mrow></math>都是数字，根据上面提到的第一条规则，我们都需要将数字压入到栈当中，因此遍历四个数字之后，情况如下：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/21.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>现在遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>，我们需要将<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>D</mi></mrow></math>和<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi></mrow></math>弹出，然后进行<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>操作的运算，再将结果压入栈中。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/23.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>现在遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002A;</mo></mrow></math>，我们需要将<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>C</mi><mo>&#x02212;</mo><mi>D</mi><mo>&#x0003D;</mo><mi>M</mi></mrow></math>和<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>B</mi></mrow></math>弹出，进行乘法运算，然后将结果压入栈中。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/25.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>现在我们遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002B;</mo></mrow></math>，需要将栈中剩余的两个数弹出，进行加法运算，在将结果压栈。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/26.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>遍历<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>E</mi><mi>F</mi></mrow></math>都需要将这两个数压入到栈当中。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/27.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>现在遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x0002F;</mo></mrow></math>，需要进行除法运算，在将得到的结果压入到栈中。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/28.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>最后遍历到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo>&#x02212;</mo></mrow></math>，将栈中的两个数弹出栈，进行减法运算得到最后的结果。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/expression/29.webp" alt="" loading="lazy" /></p>
+<p>相信经过上面过程你对后缀表达式求值的过程已经非常清楚了。</p>
+<h2 id="代码实现">代码实现</h2>
+<p>在<strong>LeetCode</strong>中有一道题就是根据后缀表达式求值——<a href="https://leetcode.cn/problems/8Zf90G/">剑指 Offer II 036. 后缀表达式</a></p>
+<blockquote>
+<p>根据<a href="https://baike.baidu.com/item/%E9%80%86%E6%B3%A2%E5%85%B0%E5%BC%8F/128437"> 逆波兰表示法</a>，求该后缀表达式的计算结果。</p>
+<p>有效的算符包括 <code>+</code>、<code>-</code>、<code>*</code>、<code>/</code> 。每个运算对象可以是整数，也可以是另一个逆波兰表达式。</p>
+<p><strong>说明：</strong></p>
+<ul>
+<li>整数除法只保留整数部分。</li>
+<li>给定逆波兰表达式总是有效的。换句话说，表达式总会得出有效数值且不存在除数为 0 的情况。</li>
+</ul>
+<p>示例 1：</p>
+<p>输入：tokens = [&quot;2&quot;,&quot;1&quot;,&quot;+&quot;,&quot;3&quot;,&quot;*&quot;]
+输出：9
+解释：该算式转化为常见的中缀算术表达式为：((2 + 1) * 3) = 9</p>
+<p>示例 2：</p>
+<p>输入：tokens = [&quot;4&quot;,&quot;13&quot;,&quot;5&quot;,&quot;/&quot;,&quot;+&quot;]
+输出：6
+解释：该算式转化为常见的中缀算术表达式为：(4 + (13 / 5)) = 6</p>
+</blockquote>
+<p>上面问题的代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">evalRPN</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">tokens</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Stack</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Stack</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">token</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">tokens</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">switch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">token</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-s">"+"</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">push</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-s">"-"</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">push</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-s">"*"</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">push</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-s">"/"</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">          </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">push</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">default</span><span class="tok-p">:</span>
+<span class="tok-w">          </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">push</span><span class="tok-p">(</span><span class="tok-n">Integer</span><span class="tok-p">.</span><span class="tok-na">parseInt</span><span class="tok-p">(</span><span class="tok-n">token</span><span class="tok-p">));</span>
+<span class="tok-w">          </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">.</span><span class="tok-na">pop</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>本文主要给大家介绍了如何将中缀表达式转化成后缀表达式，以及代码根据后缀表达式求值。本文所谈到的问题可能相对于其他问题来说逻辑上可能更加复杂，需要大家自己阅读和根据文字和图进行理解。</p>
+<p>以上就是本文所有的内容了，希望大家有所收获，我是<strong>LeHung</strong>，我们下期再见！！！（记得<strong>点赞</strong>收藏哦！）</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-0601-1/"><span>较新</span>01背包面试题系列（一）</a><a class="next" href="/posts/cscore-da-0801-2/"><span>较旧</span>01背包面试题系列（二）</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#表达式介绍">表达式介绍</a></li>
+      <li class="toc-l3"><a href="#中缀表达式">中缀表达式</a></li>
+      <li class="toc-l3"><a href="#后缀表达式">后缀表达式</a></li>
+      <li class="toc-l3"><a href="#前缀表达式">前缀表达式</a></li>
+      <li class="toc-l3"><a href="#表达式之间转化的例子">表达式之间转化的例子</a></li>
+      <li class="toc-l2"><a href="#程序如何将中缀表达式转化成后缀表达式">程序如何将中缀表达式转化成后缀表达式</a></li>
+      <li class="toc-l2"><a href="#后缀表达式求值">后缀表达式求值</a></li>
+      <li class="toc-l2"><a href="#代码实现">代码实现</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

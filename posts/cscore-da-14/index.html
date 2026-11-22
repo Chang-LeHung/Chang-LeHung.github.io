@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>完全背包转化为多重背包 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍如何将完全背包问题转化成多重背包问题，在前面的文章 完全背包 当中，我们仔细的介绍了完全背包的状态转移方程、根据状态转移方程如何完成代码以及多重背包的数组优化的原理，为什么这种优化能够有效！本篇文章主要专注于如何将完全背包转化成多重背包。如果你还不了解多重背包可以先">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>完全背包转化为多重背包</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍如何将完全背包问题转化成多重背包问题，在前面的文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484544&amp;idx=1&amp;sn=c4de17583010430fa519ecd1703bedea&amp;chksm=cf0c9889f87b119fe5621bacf417b163020dcd8a7c0ed63df94de20ba67ae742b4d86e22ae16&amp;token=883596793&amp;lang=zh_CN#rd">完全背包</a>当中，我们仔细的介绍了完全背包的状态转移方程、根据状态转移方程如何完成代码以及多重背包的数组优化的原理，为什么这种优化能够有效！本篇文章主要专注于如何将完全背包转化成多重背包。如果你还不了解多重背包可以先阅读<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484627&amp;idx=1&amp;sn=ac975cb31ba1af89425558cfe4442258&amp;chksm=cf0c98daf87b11cc4178c55864ba8eeecd741aaa49bde712aca1c5999f7dbbbbd0997beb6cc2&amp;token=1311889589&amp;lang=zh_CN#rd">深入剖析多重背包问题（上篇）</a>和<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484703&amp;idx=1&amp;sn=d0fb3c949b99a803a30a5dd1452d7bce&amp;chksm=cf0c9916f87b10002e32bf8acfa298c1201d33793c80beb538ac099024868373e4c7a5b35a53&amp;token=1311889589&amp;lang=zh_CN#rd">深入剖析多重背包问题（下篇）</a>。</p>
+<h2 id="完全背包问题">完全背包问题</h2>
+<blockquote>
+<p>有<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math>种物品和一个容量是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>V</mi></mrow></math>的背包，每种物品都有<strong>无限件可用</strong>。第<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math> 种物品的体积是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>v</mi><mi>i</mi></msub></mrow></math>，价值是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>w</mi><mi>i</mi></msub></mrow></math>。求解将哪些物品装入背包，可使这些物品的总体积不超过背包容量，且总价值最大。</p>
+</blockquote>
+<p>完全背包问题和01背包的唯一区别就在于物品的个数，在01背包当中所有的物品只有一件，也就只能使用一次。而在完全背包当中物品可以使用无限多次。</p>
+<p>比如下面的4个物品，背包能够承受的最大重量为5，我们应该如何选择，使得我们获得的总价值最大：</p>
+<table>
+<thead>
+<tr>
+<th>物品</th>
+<th>重量</th>
+<th>价值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>B</td>
+<td>2</td>
+<td>4</td>
+</tr>
+<tr>
+<td>C</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>D</td>
+<td>4</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>这个问题还是比较简单，我们直接从图中看，我们可以选择五个<code>A</code>或者两个<code>B</code>一个<code>A</code>，可以产生最大的收益，最大收益为10。</p>
+<h2 id="动态转移方程">动态转移方程</h2>
+<p>在前面的文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484544&amp;idx=1&amp;sn=c4de17583010430fa519ecd1703bedea&amp;chksm=cf0c9889f87b119fe5621bacf417b163020dcd8a7c0ed63df94de20ba67ae742b4d86e22ae16&amp;token=883596793&amp;lang=zh_CN#rd">完全背包</a>当中我们仔细介绍了完全背包的动态转移方程。我们用一个二位数组<code>dp[i][j]</code>表示当只使用前<code>i</code>个物品且背包容量为<code>j</code>的时候，我们能够获取的最大的收益。</p>
+<p>和01背包问题一样首先对于第<code>i</code>个物品，首先需要判断背包是否能够容纳（<code>v[i]</code>表示第<code>i</code>件物品的体积，<code>w[i]</code>表示第<code>i</code>件物品的价值）：</p>
+<ul>
+<li>如果背包的容量大于等于第<code>i</code>个物品的体积，那我们就有两种选择：
+<ul>
+<li>将第<code>i</code>个物品放入背包当中，但是在这里需要注意的一点是完全背包的物品有无数件，因此当我们选择之后我们的转移方程为<code>dp[i][j - v[i]] + w[i]</code>，这里不是<code>i-1</code>而是<code>i</code>，因为第<code>i</code>件物品有无数件。</li>
+<li>不将第<code>i</code>个物品放入背包当中，那么我们就能够使用容量为<code>j</code>的背包去选择前<code>i - 1</code>个物品，这种情况下我们的最大收益为<code>dp[i - 1][j]</code>。</li>
+</ul>
+</li>
+<li>如果背包容量小于第<code>i</code>件物品的体积，我们就不能够选择第<code>i</code>件物品了，这种情况下我们的最大收益为<code>dp[i - 1][j]</code>。</li>
+</ul>
+<p>基于上面的分析我们可以知道完全背包问题的动态转移方程为：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x02265;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>j</mi><mo>&#x0003C;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo></mtd></mtr></mtable></mrow></mrow></math></div><p>根据上面的状态转移方程，我们的核心代码如下（其中N表示物品的个数，V表示背包的容量，w[i]表示第i个物品的价值，v[i]表示第i个物品所占的体积）：</p>
+<div class="code-block" data-lang="c++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">][</span><span class="tok-n">j</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">V</span><span class="tok-p">];</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>但是上面的代码我们可以进行数组优化，优化之后的代码如下（如果你还不是很清楚优化原理的话，你可以阅读<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484544&amp;idx=1&amp;sn=c4de17583010430fa519ecd1703bedea&amp;chksm=cf0c9889f87b119fe5621bacf417b163020dcd8a7c0ed63df94de20ba67ae742b4d86e22ae16&amp;token=883596793&amp;lang=zh_CN#rd">完全背包</a>当中的数组优化小节）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">	</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">		</span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">j</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">			</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">		</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">V</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="问题转化">问题转化</h2>
+<p>我们知道完全背包问题当中的物品是可以无限次使用的，但是实质上我们不可能拿无限个物品，因为我们的背包容量是有限的，假如我们的背包容量为<code>V</code>物品的体积为<code>v</code>，那么我们能够拿的最大的个数就是：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x0230A;</mi><mfrac><mrow><mi>V</mi></mrow><mrow><mi>v</mi></mrow></mfrac><mi>&#x0230B;</mi></mrow></math></div><p>因此我们这样就将一个完全背包问题转化成了多重背包问题，每一个物品的最大数量就是：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x0230A;</mi><mfrac><mrow><mi>V</mi></mrow><mrow><msub><mi>v</mi><mi>i</mi></msub></mrow></mfrac><mi>&#x0230B;</mi></mrow></math></div><p>上面的公式简单的说来就是拿的所有的物品所占的体积不能超过背包的容量。因此我们可以重写完全背包的状态转移方程：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mspace linebreak="newline" /><mo stretchy="false">&#x0007B;</mo><mspace linebreak="newline" /><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mspace linebreak="newline" /><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mspace linebreak="newline" /><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002A;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002A;</mo><mn>2</mn><mo>&#x0002C;</mo><mspace linebreak="newline" /><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002C;</mo><mspace linebreak="newline" /><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msub><mi>T</mi><mi>i</mi></msub><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msub><mi>T</mi><mi>i</mi></msub><mspace linebreak="newline" /><mo stretchy="false">&#x0007D;</mo></mrow></math></div><p>其中 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>T</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>&#x0230A;</mi><mfrac><mrow><mi>V</mi></mrow><mrow><msub><mi>v</mi><mi>i</mi></msub></mrow></mfrac><mi>&#x0230B;</mi></mrow></math>。</p>
+<p>因此完全背包转多重背包的代码如下（进行数组优化之后的代码，如果你还不了解数组的优化，可以先阅读<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484544&amp;idx=1&amp;sn=c4de17583010430fa519ecd1703bedea&amp;chksm=cf0c9889f87b119fe5621bacf417b163020dcd8a7c0ed63df94de20ba67ae742b4d86e22ae16&amp;token=883596793&amp;lang=zh_CN#rd">完全背包</a>、<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484627&amp;idx=1&amp;sn=ac975cb31ba1af89425558cfe4442258&amp;chksm=cf0c98daf87b11cc4178c55864ba8eeecd741aaa49bde712aca1c5999f7dbbbbd0997beb6cc2&amp;token=1311889589&amp;lang=zh_CN#rd">深入剖析多重背包问题（上篇）</a>和<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484703&amp;idx=1&amp;sn=d0fb3c949b99a803a30a5dd1452d7bce&amp;chksm=cf0c9916f87b10002e32bf8acfa298c1201d33793c80beb538ac099024868373e4c7a5b35a53&amp;token=1311889589&amp;lang=zh_CN#rd">深入剖析多重背包问题（下篇）</a>当中数组优化的小节）：</p>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;iostream&gt;</span>
+
+<span class="tok-k">using</span><span class="tok-w"> </span><span class="tok-k">namespace</span><span class="tok-w"> </span><span class="tok-nn">std</span><span class="tok-p">;</span>
+
+<span class="tok-cp">#define MAX_LENGTH 2000</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">values</span><span class="tok-p">[</span><span class="tok-n">MAX_LENGTH</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">volumes</span><span class="tok-p">[</span><span class="tok-n">MAX_LENGTH</span><span class="tok-p">];</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">MAX_LENGTH</span><span class="tok-p">];</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">complete_backpack</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 前面两侧循环和正常的 dp 循环一样</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">volumes</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-o">--</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 这里就是根据背包容量进行限制了 j 肯定要大于等于拿的所有物品的容量</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">volumes</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">volumes</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">values</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">k</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">cin</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">cin</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">volumes</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">values</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">complete_backpack</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-p">[</span><span class="tok-n">V</span><span class="tok-p">]);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了入和将完全背包转化成多重背包，我们可以知道完全背包的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>N</mi><mi>V</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，但是如果将完全背包转化成多重背包之后时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>N</mi><mi>V</mi><mi>M</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，其中M表示平均每个物品能拿的最大的个数，因此可以知道其实不必将完全背包转化成多重背包，但是可以扩展我们的思维。</p>
+<p>将完全背包转化成多重背包的最核心的就是背包容量的限制，我们可以通过背包容量有限制这一条件，知道我们能够拿的最大的物品数量，从而将完全背包转化成多重背包问题。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-13/"><span>较新</span>深入浅出零钱兑换问题——背包问题的套壳</a><a class="next" href="/posts/cscore-concurrency-01pthread/"><span>较旧</span>Pthread 并发编程（一）——深入剖析线程基本元素和状态</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#完全背包问题">完全背包问题</a></li>
+      <li class="toc-l2"><a href="#动态转移方程">动态转移方程</a></li>
+      <li class="toc-l2"><a href="#问题转化">问题转化</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

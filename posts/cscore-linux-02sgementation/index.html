@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>你的哪些骚操作会导致Segmentation Fault😂 · Chang-LeHung</title>
+<meta name="description" content="前言 如果你是一个写过一些C程序的同学，那么很大可能你会遇到魔幻的 segmentation fault ，可能一时间抓耳挠腮，本篇文章主要介绍一些常见的导致segmentation fault的代码问题，希望能够帮助大家快速定位问题！ 出现Segmentation Fault的常见操作 写只读数据">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>你的哪些骚操作会导致Segmentation Fault😂</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-19">2022-10-19</time>
+        <span class="sep">·</span>3 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>如果你是一个写过一些C程序的同学，那么很大可能你会遇到魔幻的<strong>segmentation fault</strong>，可能一时间抓耳挠腮，本篇文章主要介绍一些常见的导致segmentation fault的代码问题，希望能够帮助大家快速定位问题！</p>
+<h2 id="出现segmentation-fault的常见操作">出现Segmentation Fault的常见操作</h2>
+<h3 id="写只读数据">写只读数据</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">char</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">str</span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s">"hello world"</span><span class="tok-p">;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%s</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">str</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">str</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-sc">'1'</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的程序当中，<code>str</code>是一个全局变量，一个指向只读数据<code>hello world</code>的指针，因为指向的数据存放在只读数据区，如下图所示（rodata区域）：</p>
+<p><img src="/content/zh/images/cscore/images/programming/03.webp" alt="03" loading="lazy" /></p>
+<h3 id="数组下标越界">数组下标越界</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">arr</span><span class="tok-p">[</span><span class="tok-mi">10</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-n">arr</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 会导致 segmentation fault</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"arr[n] = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">arr</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">]);</span><span class="tok-w"> </span><span class="tok-c1">// 会导致 segmentation fault</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="栈溢出-stakc_overflow">栈溢出 stakc_overflow</h3>
+<p>我们可以使用<code>ulimit -a</code>命令查看，系统的一些参数设置，比如说栈的最大大小：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>code<span class="tok-w"> </span>git:<span class="tok-o">(</span>main<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span><span class="tok-nb">ulimit</span><span class="tok-w"> </span>-a
+-t:<span class="tok-w"> </span>cpu<span class="tok-w"> </span><span class="tok-nb">time</span><span class="tok-w"> </span><span class="tok-o">(</span>seconds<span class="tok-o">)</span><span class="tok-w">              </span>unlimited
+-f:<span class="tok-w"> </span>file<span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>blocks<span class="tok-o">)</span><span class="tok-w">              </span>unlimited
+-d:<span class="tok-w"> </span>data<span class="tok-w"> </span>seg<span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>kbytes<span class="tok-o">)</span><span class="tok-w">          </span>unlimited
+-s:<span class="tok-w"> </span>stack<span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>kbytes<span class="tok-o">)</span><span class="tok-w">             </span><span class="tok-m">8192</span>
+-c:<span class="tok-w"> </span>core<span class="tok-w"> </span>file<span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>blocks<span class="tok-o">)</span><span class="tok-w">         </span><span class="tok-m">0</span>
+-m:<span class="tok-w"> </span>resident<span class="tok-w"> </span><span class="tok-nb">set</span><span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>kbytes<span class="tok-o">)</span><span class="tok-w">      </span>unlimited
+-u:<span class="tok-w"> </span>processes<span class="tok-w">                       </span><span class="tok-m">2061578</span>
+-n:<span class="tok-w"> </span>file<span class="tok-w"> </span>descriptors<span class="tok-w">                </span><span class="tok-m">1048576</span>
+-l:<span class="tok-w"> </span>locked-in-memory<span class="tok-w"> </span>size<span class="tok-w"> </span><span class="tok-o">(</span>kbytes<span class="tok-o">)</span><span class="tok-w">  </span><span class="tok-m">65536</span>
+-v:<span class="tok-w"> </span>address<span class="tok-w"> </span>space<span class="tok-w"> </span><span class="tok-o">(</span>kbytes<span class="tok-o">)</span><span class="tok-w">          </span>unlimited
+-x:<span class="tok-w"> </span>file<span class="tok-w"> </span>locks<span class="tok-w">                      </span>unlimited
+-i:<span class="tok-w"> </span>pending<span class="tok-w"> </span>signals<span class="tok-w">                 </span><span class="tok-m">2061578</span>
+-q:<span class="tok-w"> </span>bytes<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>POSIX<span class="tok-w"> </span>msg<span class="tok-w"> </span>queues<span class="tok-w">       </span><span class="tok-m">819200</span>
+-e:<span class="tok-w"> </span>max<span class="tok-w"> </span>nice<span class="tok-w">                        </span><span class="tok-m">0</span>
+-r:<span class="tok-w"> </span>max<span class="tok-w"> </span>rt<span class="tok-w"> </span>priority<span class="tok-w">                 </span><span class="tok-m">0</span>
+-N<span class="tok-w"> </span><span class="tok-m">15</span>:<span class="tok-w">                              </span>unlimited
+</code></pre></div><p>上面的参数你可以通过重新编译linux进行更改。在上面的参数当中我们的栈能够申请的最大空间等于<code>8192kb = 8M</code>，我们现在写一个程序来测试一下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">stakc_overflow</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">times</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"times = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">times</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">];</span><span class="tok-w"> </span><span class="tok-c1">// 每次申请 1 Mega 数据</span>
+<span class="tok-w">  </span><span class="tok-n">stakc_overflow</span><span class="tok-p">(</span><span class="tok-o">++</span><span class="tok-n">times</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">stakc_overflow</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<p><img src="/content/zh/images/cscore/images/programming/04.webp" alt="03" loading="lazy" /></p>
+<p>当我们第8次调用<code>stakc_overflow</code>函数的时候，程序崩溃了，因为这个时候我们再申请数组的时候，就一定会超过8M，因为在前面的 7 次调用当中已经申请的 7M 的空间，除此之外还有其他的数据需要使用一定的栈空间，因此会有栈溢出，然后报 segmentation failt 错误。</p>
+<h3 id="解引用空指针或者野指针">解引用空指针或者野指针</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-p">;</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">p</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>当我们去解引用一个空指针或者一个野指针的时候就汇报segmentation fault，其实本质上还是解引用访问的页面没有分配或者没有权限访问，比如下面代码我们可以解引用一个已经被释放的空间。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdint.h&gt;</span>
+
+<span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-nf">find_rbp</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 这个函数主要是得到寄存器 rbp 的值</span>
+<span class="tok-w">  </span><span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"movq %%rbp, %0;"</span>
+<span class="tok-w">    </span><span class="tok-o">:</span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rbp</span><span class="tok-p">)</span><span class="tok-o">::</span>
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-n">find_rbp</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"rbp = %lx</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// long* p = 0x7ffd4ea724a0;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rbp</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码当中我们调用函数 <code>find_rbp</code>，得到这个函数对应的寄存器 rbp 的值，当这个函数调用返回的时候，这个函数的栈帧会被摧毁，也就是说 rbp 指向的位置程序已经没有使用了，但是上面的程序不会产生 segmentation fault ，其中最主要的原因就是解引用的位置的页面我们已经分配了，而且我们有读权限，而且我们也有写权限，我们甚至可以给 rbp 指向的位置赋值，像下面那样，程序也不会崩溃。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdint.h&gt;</span>
+
+<span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-nf">find_rbp</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"movq %%rbp, %0;"</span>
+<span class="tok-w">    </span><span class="tok-o">:</span><span class="tok-s">"=m"</span><span class="tok-p">(</span><span class="tok-n">rbp</span><span class="tok-p">)</span><span class="tok-o">::</span>
+<span class="tok-w">  </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kt">uint64_t</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w">  </span><span class="tok-n">find_rbp</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"rbp = %lx</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">rbp</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// long* p = 0x7ffd4ea724a0;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rbp</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">rbp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 给指向的位置进行复制操作</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="解引用已经释放的内存">解引用已经释放的内存</h3>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">ptr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">malloc</span><span class="tok-p">(</span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-p">));</span>
+
+<span class="tok-w">  </span><span class="tok-n">free</span><span class="tok-p">(</span><span class="tok-n">ptr</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-o">*</span><span class="tok-n">ptr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>其实上面的代码不见得一定会产生 sementation fault 因为我们使用的libc给我们提供的 free 和 malloc 函数，当我们使用 free 函数释放我们的内存的时候，这部分内存不一定就马上还给操作系统了，因此在地址空间当中这部分内存还是存在的，因此是可以解引用的。</p>
+<h3 id="其他方式">其他方式</h3>
+<p>我相信你肯定还有很多其他的方式去引起 sementation fault 的，嗯相信你！！！😂</p>
+<p>造成 sementation failt 的原因主要有以下两大类：</p>
+<ul>
+<li>读写没有权限的位置：
+<ul>
+<li>比如说前面对只读数据区的写操作，或者读写内核数据等等。</li>
+</ul>
+</li>
+<li>使用没有分配的页面：
+<ul>
+<li>比如数组越界，就是访问一个没有分配的页面。</li>
+<li>解引用空指针或者野指针或者没有初始化的指针，因为空指针或者野指针指向的地址没有分配。</li>
+<li>不正确的使用解引用和取地址符号，比如你在使用scanf的时候没有使用取地址符号，也可能造成segmentation fault。</li>
+<li>栈溢出，这个是操作系统规定的栈的最大空间。</li>
+</ul>
+</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些常见的造成段错误的原因，下篇我们仔细分析 segmentation fauilt 的本质，以及我们应该如何应对和处理 segmentation fauilt 。希望大家有所收获～～～</p>
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-03segprincinple/"><span>较新</span>深入剖析Sgementation fault原理</a><a class="next" href="/posts/cscore-concurrency-17threadpoolimplementation/"><span>较旧</span>自己动手写乞丐版线程池</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#出现segmentation-fault的常见操作">出现Segmentation Fault的常见操作</a></li>
+      <li class="toc-l3"><a href="#写只读数据">写只读数据</a></li>
+      <li class="toc-l3"><a href="#数组下标越界">数组下标越界</a></li>
+      <li class="toc-l3"><a href="#栈溢出-stakc_overflow">栈溢出 stakc_overflow</a></li>
+      <li class="toc-l3"><a href="#解引用空指针或者野指针">解引用空指针或者野指针</a></li>
+      <li class="toc-l3"><a href="#解引用已经释放的内存">解引用已经释放的内存</a></li>
+      <li class="toc-l3"><a href="#其他方式">其他方式</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

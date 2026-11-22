@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[组合总和 II](https://leetcode.cn/problems/combination-sum-ii/) · Chang-LeHung</title>
+<meta name="description" content="题目介绍 给定一个候选人编号的集合 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。 candidates 中的每个数字在每个组合中只能使用 一次 。 注意：解集不能包含重复的组合。 示例： 复制 输入 : candidat">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>[组合总和 II](https://leetcode.cn/problems/combination-sum-ii/)</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="题目介绍">题目介绍</h2>
+<blockquote>
+<p>给定一个候选人编号的集合 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合。</p>
+<p>candidates 中的每个数字在每个组合中只能使用 一次 。</p>
+<p>注意：解集不能包含重复的组合。</p>
+</blockquote>
+<p>示例：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nl">输入</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">10</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">7</span><span class="tok-p">,</span><span class="tok-mi">6</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">,</span>
+<span class="tok-nl">输出</span><span class="tok-p">:</span>
+<span class="tok-o">[</span>
+<span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">6</span><span class="tok-o">]</span><span class="tok-p">,</span>
+<span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-p">,</span>
+<span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">7</span><span class="tok-o">]</span><span class="tok-p">,</span>
+<span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">6</span><span class="tok-o">]</span>
+<span class="tok-o">]</span>
+</code></pre></div><p>示例：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nl">输入</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">,</span>
+<span class="tok-nl">输出</span><span class="tok-p">:</span>
+<span class="tok-o">[</span>
+<span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-p">,</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">,</span>
+<span class="tok-o">[</span><span class="tok-mi">5</span><span class="tok-o">]</span>
+<span class="tok-o">]</span>
+</code></pre></div><h2 id="问题分析">问题分析</h2>
+<h3 id="方法一">方法一</h3>
+<p>在这道问题当中我们仍然是从一组数据当中取出数据进行组合，然后得到指定的和，但是与前面的<a href="https://mp.weixin.qq.com/s/7A8-rmw0l5Y8c8SnQ5vqwQ">组合总和</a>不同的是，在这个问题当中我们可能遇到重复的数字而且每个数字只能够使用一次。这就给我们增加了很大的困难，因为如果存在相同的数据的话我们就又可能产生数据相同的组合，比如在第二个例子当中我们产生的结果<code>[1, 2, 2]</code>其中的2就可能来自<code>candidates</code>当中不同位置的2，可以是第一个，可以是第三个，也可以是最后一个2。但是在我们的最终答案当中是不允许存在重复的组合的。当然我们可以按照正常的方式遍历，然后将得到的复合要求的结果加入到一个哈希表当中，对得到的结果进行去重处理。但是这样我们的时间和空间开销都会加大很多。</p>
+<p>在这个问题当中为了避免产生重复的集合，我们可以首先将这些数据进行排序，然后进行遍历，我们拿一个数据来进行举例子：<code>[1,  2 1]</code>，现在我们将这个数据进行排序得到的结果为：<code>[1, 1, 2]</code>，那么遍历的树结构如下：</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/15.webp" alt="15" loading="lazy" /></p>
+<p>上图表示<code>[1, 1, 2]</code>的遍历树，每一个数据都有选和不选两种情况，根据这种分析方式可以构造上面的解树，我们对上面的树进行分析我们可以知道，在上面的树当中有一部分子树是有重复的（重复的子树那么我们就回产生重复的结果，因此我们要删除重复的分支，也就是不进行递归求解），如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/16.webp" alt="15" loading="lazy" /></p>
+<p>我们现在来分析一下上面图中产生重复子树的原因，在一层当中选1的到第二层不选1的子树和第一层不选1而第二层选1的树产生了重复，因此我们可以在第一层不选1第二层选1的子树当中停止递归。</p>
+<p>根据上面的例子我们可以总结出来，在同一层当中，如果后面的值等于他前面一个值的话，我们就可以不去生成“选择”这个分支的子树，因为在他的前面已经生成了一颗一模一样的子树了。</p>
+<p>现在我们的问题是如何确定和上一个遍历的节点是在同一层上面。我们可以使用一个<code>used</code>数组进行确定，当我们使用一个数据之后我们将对应下标的<code>used</code>数组的值设置为<code>true</code>，当递归完成进行回溯的时候在将对应位置的<code>used</code>值设置为<code>false</code>，因此当我们遍历一个数据的时候如果他前面的一个数据的<code>used</code>值是<code>false</code>的话，那么这个节点就和前面的一个节点在同一层上面。</p>
+<p>根据上面的分析我们可以写出如下的代码：</p>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
+<span class="tok-k">public</span><span class="tok-o">:</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">combinationSum2</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">sort</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">begin</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">end</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">bool</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-p">,</span>
+<span class="tok-w">                   </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">bool</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// 满足条件则保存结果然后返回</span>
+<span class="tok-w">        </span><span class="tok-n">ans</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 选择分支</span>
+<span class="tok-w">        </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]);</span><span class="tok-w"> </span>
+<span class="tok-w">        </span><span class="tok-n">used</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">     		</span><span class="tok-c1">// 在这里进行回溯</span>
+<span class="tok-w">        </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">pop_back</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">used</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 不选择分支</span>
+<span class="tok-w">        </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">       </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">used</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">==</span>
+<span class="tok-w">              </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// 在这里进行判断是否在同一层，如果在同一层并且值相等的话 那就不需要进行选择了 只需要走不选择的分支及即可</span>
+<span class="tok-w">         </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">       </span><span class="tok-p">}</span><span class="tok-k">else</span><span class="tok-p">{</span>
+<span class="tok-w">         </span><span class="tok-c1">// 选择分支</span>
+<span class="tok-w">         </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]);</span>
+<span class="tok-w">         </span><span class="tok-n">used</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">true</span><span class="tok-p">;</span>
+<span class="tok-w">         </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">         </span><span class="tok-c1">// 在这里进行回溯</span>
+<span class="tok-w">         </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">pop_back</span><span class="tok-p">();</span>
+<span class="tok-w">         </span><span class="tok-n">used</span><span class="tok-p">[</span><span class="tok-n">curIdx</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">false</span><span class="tok-p">;</span>
+<span class="tok-w">         </span><span class="tok-c1">// 不选择分支</span>
+<span class="tok-w">         </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">used</span><span class="tok-p">);</span>
+<span class="tok-w">       </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">};</span>
+</code></pre></div><h3 id="方法二">方法二</h3>
+<p>在回溯算法当中我们一般有两种选择情况，这一点我们在前面<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486751&amp;idx=1&amp;sn=8e9cedd729d01ff8867fcb2c085ecbe3&amp;chksm=cf0c9116f87b18002551eefcd773f4762d79d2c06614b304437bfcd382e14afa031d29cc4dcc&amp;mpshare=1&amp;scene=22&amp;srcid=0921yRhazbXlqGuEZagKb0p9&amp;sharer_sharetime=1663737871952&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">组合问题</a>当中已经介绍过了，一种方法是用选择和不选择去生成解树，这样我们将生成一颗二叉树的解树，另外一种是多叉树，下面我们来看一下后者的解树：</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/19.webp" alt="17" loading="lazy" /></p>
+<p>同样对上面的解树进行分析我们回发现同样的也存在相同子树的情况，如下图所示，途中绿色的节点就时相同的节点：</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/18.webp" alt="18" loading="lazy" /></p>
+<p>与前一种方法分析一样，当当前的数据和同一层上面的前一个数据相同的时候我们不需要进行求解了，可以直接返回跳过这个分支，因为这个分支已经在前面被求解过了。具体的分析过程如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/backtrace/20.webp" alt="18" loading="lazy" /></p>
+<p>因此和第一种方法一样，我们也需要一个<code>used</code>数组去保存数据是否被访问过，但是在这个方法当中我们还可以根据遍历时候下标去实现这一点，因此不需要<code>used</code>数组了，代码如下所示：</p>
+<h4 id="java代码">Java代码</h4>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-nf">combinationSum2</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">sort</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">backtrace</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curPosition</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 达到条件则保存结果然后返回</span>
+<span class="tok-w">            </span><span class="tok-n">res</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">));</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">curPosition</span><span class="tok-p">;</span>
+<span class="tok-w">             </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">;</span>
+<span class="tok-w">             </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          	</span><span class="tok-c1">// 如果 i &gt; curPosition 说明 i 对应的节点和 curPosition 对应的节点在同一层</span>
+<span class="tok-w">          	</span><span class="tok-c1">// 如果 i == curPosition 说明 i 是某一层某个子树的第一个节点</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">curPosition</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-k">continue</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">          	</span><span class="tok-c1">// 进行回溯操作</span>
+<span class="tok-w">            </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">remove</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-p">}</span>
+</code></pre></div><h4 id="c代码">C++代码</h4>
+<div class="code-block" data-lang="C++"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">path</span><span class="tok-p">;</span>
+<span class="tok-k">public</span><span class="tok-o">:</span>
+<span class="tok-w">    </span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-n">combinationSum2</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">sort</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">begin</span><span class="tok-p">(),</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">end</span><span class="tok-p">());</span>
+<span class="tok-w">      </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">vector</span><span class="tok-o">&lt;</span><span class="tok-kt">int</span><span class="tok-o">&gt;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">ans</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">path</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">.</span><span class="tok-n">size</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">curIdx</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">])</span>
+<span class="tok-w">          </span><span class="tok-k">continue</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">push_back</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">        </span><span class="tok-n">backtrace</span><span class="tok-p">(</span><span class="tok-n">candidates</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">candidates</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">        </span><span class="tok-n">path</span><span class="tok-p">.</span><span class="tok-n">pop_back</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">};</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了组合问题II，这个问题如果仔细进行分析的话会发现里面还是有很多很有意思的细节的，可能需要大家仔细进行思考才能够领悟其中的精妙之处，尤其是两种方法如何处理重复数据结果的情况。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-03/"><span>较新</span>面试官：完全背包都不会，是你自己走还是我送你？</a><a class="next" href="/posts/cscore-da-04-v1/"><span>较旧</span>深入剖析多重背包问题（上篇）</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#题目介绍">题目介绍</a></li>
+      <li class="toc-l2"><a href="#问题分析">问题分析</a></li>
+      <li class="toc-l3"><a href="#方法一">方法一</a></li>
+      <li class="toc-l3"><a href="#方法二">方法二</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

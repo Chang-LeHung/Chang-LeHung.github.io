@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor · Chang-LeHung</title>
+<meta name="description" content="前言 在上篇文章当中我们介绍了一个我们自己实现的一个简易的线程池，不过这个线程值只能够支持没有返回值的线程池，而且只能够是固定线程个数的线程，而在本篇文章当中我们要去写一个与 ThreadPoolExecutor 使用方式非常相似的线程值，并且能够弥补我们上一个线程池没有的功能。 需求分析 在正式实">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor</h1>
+      <p class="post-meta">
+        <time datetime="2022-09-01">2022-09-01</time>
+        <span class="sep">·</span>1 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在上篇文章当中我们介绍了一个我们自己实现的一个简易的线程池，不过这个线程值只能够支持没有返回值的线程池，而且只能够是固定线程个数的线程，而在本篇文章当中我们要去写一个与<code>ThreadPoolExecutor</code>使用方式非常相似的线程值，并且能够弥补我们上一个线程池没有的功能。</p>
+<h2 id="需求分析">需求分析</h2>
+<p>在正式实现我们自己的ThreadPoolExecutor之前我们先来看一下ThreadPoolExecutor给我们提供了一些什么功能。ThreadPoolExecutor实现了一个线程池，我们先来看一下他的参数，通过他的参数分析ThreadPoolExecutor给我们提供的大致的功能，我们通过它的构造函数进行分析！</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">ThreadPoolExecutor</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">corePoolSize</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">maximumPoolSize</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">keepAliveTime</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-n">TimeUnit</span><span class="tok-w"> </span><span class="tok-n">unit</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-n">BlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Runnable</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">workQueue</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-n">ThreadFactory</span><span class="tok-w"> </span><span class="tok-n">threadFactory</span><span class="tok-p">,</span>
+<span class="tok-w">                          </span><span class="tok-n">RejectedExecutionHandler</span><span class="tok-w"> </span><span class="tok-n">handler</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">corePoolSize</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">||</span>
+<span class="tok-w">      </span><span class="tok-n">maximumPoolSize</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">||</span>
+<span class="tok-w">      </span><span class="tok-n">maximumPoolSize</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">corePoolSize</span><span class="tok-w"> </span><span class="tok-o">||</span>
+<span class="tok-w">      </span><span class="tok-n">keepAliveTime</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IllegalArgumentException</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">workQueue</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">threadFactory</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">handler</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">NullPointerException</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">acc</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">getSecurityManager</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">?</span>
+<span class="tok-w">    </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-p">:</span>
+<span class="tok-w">  </span><span class="tok-n">AccessController</span><span class="tok-p">.</span><span class="tok-na">getContext</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">corePoolSize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">corePoolSize</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">maximumPoolSize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">maximumPoolSize</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">workQueue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">workQueue</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">keepAliveTime</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">unit</span><span class="tok-p">.</span><span class="tok-na">toNanos</span><span class="tok-p">(</span><span class="tok-n">keepAliveTime</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">threadFactory</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">threadFactory</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">handler</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">handler</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="自己动手实现线程池">自己动手实现线程池</h2>
+<h2 id="总结">总结</h2>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-14threadpool/"><span>较新</span>彻底了解线程池的原理——40行从零开始自己写线程池</a><a class="next" href="/posts/cscore-concurrency-13locksupport/"><span>较旧</span>60行自己动手写LockSupport是什么体验？</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#需求分析">需求分析</a></li>
+      <li class="toc-l2"><a href="#自己动手实现线程池">自己动手实现线程池</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

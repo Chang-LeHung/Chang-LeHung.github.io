@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>这种动态规划你见过吗——状态机动态规划之股票问题(上) · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要通过介绍各种 股票问题 跟大家介绍 状态机动态规划 ，主要了解在 股票问题 当中是如何在动态规划当中进行状态转移的，通过仔细剖析状态转移过程给大家介绍 状态机动态规划 。所谓状态机，就是有很多状态和他们之间的转移关系组成起来形成系统，这个说法看起来有点高大上，其实很简单，在后">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>这种动态规划你见过吗——状态机动态规划之股票问题(上)</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>9 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要通过介绍各种<strong>股票问题</strong>跟大家介绍<strong>状态机动态规划</strong>，主要了解在<strong>股票问题</strong>当中是如何在动态规划当中进行状态转移的，通过仔细剖析状态转移过程给大家介绍<strong>状态机动态规划</strong>。所谓状态机，就是有很多状态和他们之间的转移关系组成起来形成系统，这个说法看起来有点高大上，其实很简单，在后面讲动态规划解法的时候大家就明白了。</p>
+<h2 id="买卖股票的最佳时机i"><a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/">买卖股票的最佳时机I</a></h2>
+<blockquote>
+<p>给定一个数组 prices ，它的第 i 个元素 prices[i] 表示一支给定股票第 i 天的价格。你只能选择 某一天 买入这只股票，并选择在未来的某一个不同的日子卖出该股票。设计一个算法来计算你所能获取的最大利润。返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 0 。</p>
+</blockquote>
+<blockquote>
+<p>示例 1：</p>
+<p>输入：[7,1,5,3,6,4]</p>
+<p>输出：5</p>
+<p>解释：在第 2 天（股票价格 = 1）的时候买入，在第 5 天（股票价格 = 6）的时候卖出，最大利润 = 6-1 = 5 。注意利润不能是 7-1 = 6, 因为卖出价格需要大于买入价格；同时，你不能在买入前卖出股票。</p>
+</blockquote>
+<blockquote>
+<p>示例 2：</p>
+<p>输入：prices = [7,6,4,3,1]</p>
+<p>输出：0</p>
+<p>解释：在这种情况下, 没有交易完成, 所以最大利润为 0。</p>
+</blockquote>
+<h3 id="暴力解法">暴力解法</h3>
+<p>在这个问题当中，我们的任务是在某一天买入股票，然后在未来某天再将股票卖出去，那么我们就可以用一个二重循环，第一层循环遍历每一天的股票，第二层循环遍历该天之后的股票，然后找到差值最大的那一天即可，也就是寻找某天后面价值最高的股票！通过做差得到差值，将差值最大的返回即可！</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">){</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">ans</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false">&#x00029;</mo></mrow></math>，空间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>，由于时间复杂度过高，上面的代码在<strong>Leetcode</strong>上面提交会超时。</p>
+<h3 id="贪心解法">贪心解法</h3>
+<p>在暴力解法当中我们思考的是寻找某天后面的最大值，在这个问题当中我们可以换一个角度，就是寻找某天前面股票价值最低的那一天，然后在那一天买进，在当天卖出即可，这个效果和上面暴力解法是一样的。这样的话我们可以用一个数组<code>mins</code>去存某一天前面价值最小的股票，然后做一个减法即可，即<code>prices[i] - mins[i]</code>，这样我们就得到了在第<code>i</code>个位置卖出能够得到的最大的价值，那么我们再比较所有的这些值，我们就可以找到最后的答案了！这样的话我们可以将时间复杂度降低到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">mins</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">min</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-p">.</span><span class="tok-na">MAX_VALUE</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">min</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">min</span><span class="tok-p">(</span><span class="tok-n">min</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">mins</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">min</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">ans</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">mins</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，空间复杂度也是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，其实仔细思考一下我们还可以降低空间复杂度：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">low</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-p">.</span><span class="tok-na">MAX_VALUE</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">low</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">min</span><span class="tok-p">(</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">low</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">ans</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">low</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们在第一次遍历的时候可以用一个值<code>low</code>保存第<code>i</code>个位置左边最小的值即可，并且在遍历的过程当中不断更新<code>low</code>值，而且我们在遍历的时候可以顺便求出对应位置的能够获取的最大价值，可以避免第二次遍历。在这个情况下我们的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，空间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
+<h3 id="动态规划解法">动态规划解法</h3>
+<p>在求解动态规划问题的时候通常的步骤有以下几个：</p>
+<ul>
+<li>寻找能够表示状态的数组<code>dp</code>，即我们需要寻找<code>dp</code>的含义，分析需要用几纬数组表示具体的状态。</li>
+<li>通过分析问题，寻找动态转移公式。</li>
+<li>初始化状态数组。</li>
+<li>通过分析动态转移方程，确定数组的遍历顺序。</li>
+</ul>
+<h4 id="状态表示数组">状态表示数组</h4>
+<p>在这个问题当中我们用一个二维数组去表示我们的状态，在这个问题当中主要有两个状态，一个是手上有股票，另一是手上没有股票：</p>
+<ul>
+<li>
+<p><code>dp[i][0]</code>表示在第<code>i</code>天手上没有股票能够获得的最大的收益，比如我们在第一天的没有股票的收益为0元。</p>
+</li>
+<li>
+<p><code>dp[i][1]</code>表示在第<code>i</code>天手上存在股票能够获得的最大的收益，比如我们在第一天买入股票之后收益为<code>-prices[0]</code>。</p>
+</li>
+</ul>
+<p>那么我们最后的答案是<code>dp[N][0]</code>，这个表示在最后一天，我们的手中不存在股票，即我们将股票卖出去能够获取的最大的收益。</p>
+<h4 id="状态转移方程">状态转移方程</h4>
+<p>现在我们来分析一下如何进行状态的转移：</p>
+<ul>
+<li>
+<p><code>dp[i][0]</code>的状态如何从第<code>i-1</code>的状态转移过来：</p>
+<ul>
+<li>如果第<code>i-1</code>个状态是手中不存在股票，即<code>dp[i-1][0]</code>，那么第<code>i</code>个状态也没有股票，那么直接是<code>dp[i][0] = dp[i - 1][0]</code>，因为没有进行交易。</li>
+<li>如果第<code>i-1</code>个状态手中存在股票，即<code>dp[i-1][1]</code>，那么如果想在第<code>i</code>个状态没有股票，那么就需要将股票卖出，那么收益就为<code>dp[i-1][1] +prices[i]</code>，即<code>dp[i][0] = dp[i-1][1] +prices[i]</code>。</li>
+<li>综合上面的两种转移方式可以得到下面的转移方程：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo></mrow></math></div></li>
+<li>
+<p><code>dp[i][1]</code>的状态如何进行转移：</p>
+<ul>
+<li>如果第<code>i-1</code>个状态是手中不存在股票，即<code>dp[i-1][0]</code>，而第<code>i</code>个状态有股票，那么<code>dp[i][0] = -prices[i]</code>，因为买入股票，而且只能够买入一次，因此直接等于<code>-prices[i]</code>即可，注意这里不能是<code>dp[i - 1][0] - prices[i]</code>，因为在<code>dp[i-][0]</code>当中可能存在先买入再卖出的情况，而题干要求只能买入卖出一次。</li>
+<li>如果第<code>i-1</code>个状态手中存在股票，即<code>dp[i-1][1]</code>，而第<code>i</code>个状态有股票，因此不需要进行交易，即<code>dp[i][1]=dp[i - 1][1]</code>。</li>
+<li>综合上面的两种转移方式可以得到下面的转移方程：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>;</mi></mrow></math></div><p>整个状态转移过程如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/dsal/dp/01-dp38.webp" alt="" loading="lazy" /></p>
+</li>
+</ul>
+<p>上面所谈到的有两种状态，一种是有股票，一种是没有股票，这两种状态需要从第<code>i-1</code>行转移到第<code>i</code>行，即从第<code>i-1</code>行的有股票和无股票状态转移到第<code>i</code>行的有股票和无股票状态，这就是我们在前文谈到的状态机，我们已经有了状态（是否持有股票），而且也有了状态之间的转换，这就是<strong>状态机动态规划</strong>。你可能会问这好像跟之前传统的动态规划区别也不是太大啊，这是因为在这个问题当中只有两个状态，我们在下篇当中遇到的问题就会有多个状态了，在那个时候你可能就更加理解为什么称这种动态规划叫做<strong>状态机动态规划</strong>了。</p>
+<ul>
+<li>综合两种状态，整个转移方式如下：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mo>&#x02212;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>;</mi></mtd></mtr></mtable></mrow></mrow></math></div><p>整个代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-o">][</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 初始化数组 dp[0][0] 默认等于0 不用</span>
+<span class="tok-w">    </span><span class="tok-c1">// 显示初始化</span>
+<span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h4 id="数组优化滚动数组优化">数组优化（滚动数组优化）</h4>
+<p>我们可以仔细分析一下上面的状态转移方程，可以发现第<code>i</code>行，只依赖第<code>i-1</code>行，因此我们只使用两行数组即可，第一行推测出第二行，第二行推测出来的结果再存回第一行.......</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>可以使用位运算稍微优化一下（下面代码优化的依赖原理：<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>a</mi><mi>&#x00026;</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>a</mi><mi>&#x00025;</mi><msup><mn>2</mn><mi>n</mi></msup></mrow></math>）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>最终经过上面的优化动态规划的时间和空间复杂度可以优化到<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>和<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
+<h3 id="小结">小结</h3>
+<p>在上文当中主要介绍了<strong>买卖股票的最佳时机I</strong>各种解决办法，其中最主要想介绍的就是动态规划的方法了，而在动态规划当中最重要的就是状态之间如何进行转换，这个题中其实很像状态机中的状态转换，在这个问题当中只有两种状态之间的转换——有股票和没股票，大家如果要弄明白<strong>状态机动态规划</strong>算法，那就需要深刻的去理解上面状态转换的过程。</p>
+<h1 id="买卖股票的最佳时机-ii"><a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/">买卖股票的最佳时机 II</a></h1>
+<blockquote>
+<p>给你一个整数数组 prices ，其中 prices[i] 表示某支股票第 i 天的价格。在每一天，你可以决定是否购买和/或出售股票。你在任何时候 最多 只能持有 一股 股票。你也可以先购买，然后在 同一天 出售。返回你能获得的最大 利润。</p>
+</blockquote>
+<blockquote>
+<p>示例1:</p>
+<p>输入：prices = [7,1,5,3,6,4]</p>
+<p>输出：7</p>
+<p>解释：在第 2 天（股票价格 = 1）的时候买入，在第 3 天（股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4 。
+随后，在第 4 天（股票价格 = 3）的时候买入，在第 5 天（股票价格 = 6）的时候卖出, 这笔交易所能获得利润 = 6 - 3 = 3 。
+总利润为 4 + 3 = 7 。</p>
+</blockquote>
+<blockquote>
+<p>示例 2：</p>
+<p>输入：prices = [1,2,3,4,5]</p>
+<p>输出：4</p>
+<p>解释：在第 1 天（股票价格 = 1）的时候买入，在第 5 天 （股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4 。
+总利润为 4 。</p>
+</blockquote>
+<p>这道题和第一题的区别就是，在这道题当中你可以买卖股票多次，但是最多只能持有一只股票，因此这道题和第一题的大多数情况是相同的。</p>
+<h4 id="状态表示数组-1">状态表示数组</h4>
+<p>在这个问题当中我们用一个二维数组去表示我们的状态，在这个问题当中主要有两个状态，一个是手上有股票，另一是手上没有股票：</p>
+<ul>
+<li>
+<p><code>dp[i][0]</code>表示在第<code>i</code>天手上没有股票能够获得的最大的收益，比如我们在第一天的没有股票的收益为0元。</p>
+</li>
+<li>
+<p><code>dp[i][1]</code>表示在第<code>i</code>天手上存在股票能够获得的最大的收益，比如我们在第一天买入股票之后收益为<code>-prices[0]</code>。</p>
+</li>
+</ul>
+<p>那么我们最后的答案是<code>dp[N][0]</code>，这个表示在最后一天，我们的手中不存在股票，即我们将股票卖出去能够获取的最大的收益。</p>
+<h4 id="状态转移方程-1">状态转移方程</h4>
+<p>现在我们来分析一下如何进行状态的转移：</p>
+<ul>
+<li>
+<p><code>dp[i][0]</code>的状态如何从第<code>i-1</code>的状态转移过来：</p>
+<ul>
+<li>如果第<code>i-1</code>个状态是手中不存在股票，即<code>dp[i-1][0]</code>，那么第<code>i</code>个状态也没有股票，那么直接是<code>dp[i][0] = dp[i - 1][0]</code>，因为没有进行交易。</li>
+<li>如果第<code>i-1</code>个状态手中存在股票，即<code>dp[i-1][1]</code>，那么如果想在第<code>i</code>个状态没有股票，那么就需要将股票卖出，那么收益就为<code>dp[i-1][1] +prices[i]</code>，即<code>dp[i][0] = dp[i-1][1] +prices[i]</code>。</li>
+<li>综合上面的两种转移方式可以得到下面的转移方程：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo></mrow></math></div></li>
+<li>
+<p><code>dp[i][1]</code>的状态如何进行转移：</p>
+<ul>
+<li>如果第<code>i-1</code>个状态是手中不存在股票，即<code>dp[i-1][0]</code>，而第<code>i</code>个状态有股票，这道题目和上一道题目只有这个地方是不一致的，在上一道题当中<code>dp[i][0] = -prices[i]</code>，这是因为只能够买入股票一次，具体原因是在<code>dp[i - 1][0]</code>当中可以存在股票买入，而且已经卖出这种情况，而第一题只能买入卖出一次，而在这道题目当中，能够买卖股票多次，因此<code>dp[i][0] = dp[i - 1][0] - prices[i]</code>。</li>
+<li>如果第<code>i-1</code>个状态手中存在股票，即<code>dp[i-1][1]</code>，而第<code>i</code>个状态有股票，因此不需要进行交易，即<code>dp[i][1]=dp[i - 1][1]</code>。</li>
+<li>综合上面的两种转移方式可以得到下面的转移方程：</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x02212;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>;</mi></mrow></math></div></li>
+<li>
+<p>综合上面的两个状态：</p>
+</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mrow><mo stretchy="true" fence="true" form="prefix">&#x0007B;</mo><mtable><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo></mtd></mtr><mtr><mtd columnalign="left"><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x02212;</mo><mi>p</mi><mi>r</mi><mi>i</mi><mi>c</mi><mi>e</mi><mi>s</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>;</mi></mtd></mtr></mtable></mrow></mrow></math></div><p>参考代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-mi">2</span><span class="tok-o">][</span><span class="tok-mi">2</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-p">(</span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-mi">0</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h4 id="贪心解法-1">贪心解法</h4>
+<p>因为我们可以无数次买入卖出，因此只要存在前一天的价格低于今天的价格，那么我们就可以在前一天买入，在今天卖出，在这种情况下我们的收益就是最大的，因为我们抓住了“每一次赚钱的机会”。</p>
+<ul>
+<li>比如<code>prices=[1, 2, 3]</code>，我们的收益就等于<code>(2 - 1) + (3 - 2) = 2</code>，这个过程相当于在第一天买入，第二天卖出，第二天再买入（注意题目当中说明了一天可以同时买入和卖出，只需要保证手上的股票不超过两个），第三天卖出。</li>
+<li>又比如<code>prices=[4, 5, 3, 6]</code>，我们的收益等于<code>(5 - 4) + 0 + (6 - 3) = 4</code>，这个过程相当于第一天买入第二天卖出，第三天再买入第四天卖出。</li>
+</ul>
+<p>代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">maxProfit</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">ans</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">prices</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了两个股票问题，这两个问题比较中规中矩的方法就是使用动态规划，但是也可以使用贪心法巧妙求解。在本文当中最想跟大家介绍的还是<strong>状态之间的转换</strong>，但是在本文当中的两个问题当中涉及的状态还是比较少，只有含有股票和不含有股票两种状态，但是也可以看作状态机当中状态之间的转换。下篇当中的题目状态会稍微多一点，可能大家理解起来更加容易一点！</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-0801-2/"><span>较新</span>01背包面试题系列（二）</a><a class="next" href="/posts/cscore-da-10-02/"><span>较旧</span>这种动态规划你见过吗——状态机动态规划之股票问题(中)</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#买卖股票的最佳时机i">买卖股票的最佳时机I</a></li>
+      <li class="toc-l3"><a href="#暴力解法">暴力解法</a></li>
+      <li class="toc-l3"><a href="#贪心解法">贪心解法</a></li>
+      <li class="toc-l3"><a href="#动态规划解法">动态规划解法</a></li>
+      <li class="toc-l3"><a href="#小结">小结</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

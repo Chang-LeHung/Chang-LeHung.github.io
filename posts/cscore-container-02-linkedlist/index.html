@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LinkedList源码深度剖析 · Chang-LeHung</title>
+<meta name="description" content="LinkedList继承体系 首先先直观的看一下 LinedList 的继承体系和实现的接口 复制 public class LinkedList &lt; E &gt; extends AbstractSequentialList &lt; E &gt; implements List &lt; E &gt; , Deque &lt; E">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>LinkedList源码深度剖析</h1>
+      <p class="post-meta">
+        <time datetime="2022-07-09">2022-07-09</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="linkedlist继承体系">LinkedList继承体系</h2>
+<p>首先先直观的看一下<code>LinedList</code>的继承体系和实现的接口</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist01.webp" alt="" loading="lazy" /></p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
+<span class="tok-w">    </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">AbstractSequentialList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
+<span class="tok-w">    </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Deque</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Cloneable</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">java</span><span class="tok-p">.</span><span class="tok-na">io</span><span class="tok-p">.</span><span class="tok-na">Serializable</span>
+</code></pre></div><ul>
+<li>实现了<code>List</code>接口，这个接口定义了一些常见的容器的方法，比如<code>add</code>、<code>addAll</code>、<code>get</code>、<code>set</code>、<code>contains</code>、<code>sort</code>等等。</li>
+<li>实现了<code>Deque</code>接口，这个接口你可以简单的认为是一个双端队列，两头都可以进可以出，它定义的方法有<code>getFirst</code>、<code>getLast</code>、<code>addFirst</code>、<code>addLast</code>、<code>removeFirst</code>、<code>removeLast</code>等等。</li>
+<li>实现<code>Cloneable</code>和<code>Serializable</code>接口主要是为了能够进行深拷贝和序列化，这个问题我们后续再谈。</li>
+<li><code>AbstractSequentialList</code>主要是给一些接口方法提供默认实现。</li>
+</ul>
+<p>根据<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483691&amp;idx=1&amp;sn=5f730f9ca5f84aa97a13a730ed6d85df&amp;chksm=cf0c9d22f87b14347aed05fa3c0cd313f278618e43aef37cd4fc078fb124c9845b527ba55d3d&amp;token=917021200&amp;lang=zh_CN#rd">上篇文章</a>的分析，我们很容易知道链表作为一个容器肯定需要将数据加入到容器当中，也需要从容器当中得到某个数据，判断数据是否存在容器当中，因此有<code>add</code>、<code>addAll</code>、<code>get</code>、<code>set</code>、<code>contains</code>、<code>sort</code>这些方法是很自然的。此外<code>LinedList</code>实现的是双向链表，我们很容易在链表的任意位置进行插入和删除，当我们在链表的头部和尾部进行插入和删除的时候就可以满足<code>Deque</code>的需求了（双端队列需要能够在队列的头和尾进行出队和入队，就相当于插入和删除），因此<code>LinedList</code>实现<code>getFirst</code>、<code>getLast</code>、<code>addFirst</code>、<code>addLast</code>、<code>removeFirst</code>、<code>removeLast</code>也就很容易理解了。</p>
+<h2 id="linkedlist整体结构">LinkedList整体结构</h2>
+<ul>
+<li><code>LinkedList</code>主要几个字段</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">	</span><span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 用于记录链表当中节点的个数，也就是有几个数据</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Pointer to first node.</span>
+<span class="tok-cm">     * Invariant: (first == null &amp;&amp; last == null) ||</span>
+<span class="tok-cm">     *            (first.prev == null &amp;&amp; first.item != null)</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">first</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 指向双向链表的头结点</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Pointer to last node.</span>
+<span class="tok-cm">     * Invariant: (first == null &amp;&amp; last == null) ||</span>
+<span class="tok-cm">     *            (last.next == null &amp;&amp; last.item != null)</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">transient</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">last</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 指向双向链表的尾节点</span>
+</code></pre></div><ul>
+<li><code>LinkedList</code>当中的内部节点的形式</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">item</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>根据上面的字段分析，<code>LinkedList</code>内部结构主要如下：</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist03.webp" alt="" loading="lazy" /></p>
+<p>链表当中有<code>first</code>和<code>last</code>字段主要指向链表当中第一个节点和最后一个节点，如果链表当中没有节点，那么他们都是<code>null</code>，如果链表当中有一个节点他们指向同一个节点，如果链表中节点个数大于2，他们分别指向第一个节点和最后一个节点。</p>
+<h2 id="linkedlist重要方法">LinkedList重要方法</h2>
+<ul>
+<li><code>add</code>方法，这个方法主要是向链表尾部增加一个元素，作用和 <code>linkLast </code>一致。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Appends the specified element to the end of this list.</span>
+<span class="tok-cm">     *</span>
+<span class="tok-cm">     * &lt;p&gt;This method is equivalent to {@link #addLast}.</span>
+<span class="tok-cm">     *</span>
+<span class="tok-cm">     * @param e element to be appended to this list</span>
+<span class="tok-cm">     * @return {@code true} (as specified by {@link Collection#add})</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这个方法主要是向链表尾部增加一个元素，作用和 linkLast 一致</span>
+<span class="tok-w">        </span><span class="tok-n">linkLast</span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Links e as last element.</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">linkLast</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这个方法和我们上篇自己的写的方法基本一模一样</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">l</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">last</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// l 作为新节点的前驱节点，因为是在链表最后增加一个元素，因此它的下一个元素是 null</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">l</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-c1">// 新节点是最后一个节点，因为是往链表节点插入</span>
+<span class="tok-w">        </span><span class="tok-n">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">l</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 如果是第一个加入一个节点（初始是 first 和 last 节点都是空），给 first 赋值</span>
+<span class="tok-w">            </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">else</span>
+<span class="tok-w">            </span><span class="tok-n">l</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 因为是往链表当中增加一个节点，因此链表中数据的个数+1</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 这个字段主要是用于 fast-fail 的，这个我们在后面将继续谈到</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>linkBefore</code>和<code>linkLast</code>的作用相反，是在某个节点前面插入数据<code>e</code>，大体和前面的<code>linkLast</code>方法一致。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Inserts element e before non-null Node succ.</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">linkBefore</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// assert succ != null;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">pred</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">succ</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">else</span>
+<span class="tok-w">            </span><span class="tok-n">pred</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>unlink</code>主要是用于删除某个节点。</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Unlinks non-null node x.</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">unlink</span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// assert x != null;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-p">;</span>
+<span class="tok-w">		</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果前一个节点为 null 说明被删除的就是首节点，因此需要跟新首节点为原来节点的下一个节点，也就是 next</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">prev</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">prev</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">		</span><span class="tok-c1">// 同样的，如果 next 为 null ，那么被删除的节点就是为节点，因此需要更新 last 为被删除节点的上一个节点</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">next</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">next</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+
+<span class="tok-w">        </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>unlinkFirst</code>，删除链表当中第一个节点</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">unlinkFirst</span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// f 表示头结点，且 f 不等于 null</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">f</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">f</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// help GC</span>
+<span class="tok-w">        </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">next</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 头结点变成f的下一个节点</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">next</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">else</span>
+<span class="tok-w">            </span><span class="tok-n">next</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-o">--</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 删除一个节点链表当中数据少了一个，因此size--</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>unlinkLast</code>，删除链表当中最后一个节点</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">unlinkLast</span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">l</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// assert l == last &amp;&amp; l != null;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">l</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-kd">final</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">l</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">l</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">l</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// help GC</span>
+<span class="tok-w">        </span><span class="tok-n">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">prev</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">prev</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">else</span>
+<span class="tok-w">            </span><span class="tok-n">prev</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-o">--</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>remove</code>方法，删除链表当中的某个元素</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">remove</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果元素为 null，就删除链表当中第一个值为 null 的元素</span>
+<span class="tok-w">        </span><span class="tok-c1">// 从这里也可以看出 LinkedList 支持值为 null 的对象</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">first</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">unlink</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">);</span>
+<span class="tok-w">                    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">first</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                    </span><span class="tok-n">unlink</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">);</span>
+<span class="tok-w">                    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>node</code>方法，根据下标找到对应的元素</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-nf">node</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 找到第 index + 1 个元素</span>
+<span class="tok-w">		</span><span class="tok-c1">// 判断对应位置的元素是离链表头部近还是离链表尾部近，哪头近就从哪头遍历</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">first</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">last</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">--</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>get</code>方法，通过下标 <code>index</code>得到对应的元素</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这个函数的主要目的是查看 index 是否合法，主要判断是否小于0或者大于等于链表当中元素的个数</span>
+<span class="tok-w">        </span><span class="tok-n">checkElementIndex</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">).</span><span class="tok-na">item</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// node函数在上面已经提到了</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">checkElementIndex</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">isElementIndex</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">))</span>
+<span class="tok-w">            </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">IndexOutOfBoundsException</span><span class="tok-p">(</span><span class="tok-n">outOfBoundsMsg</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">isElementIndex</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>addAll</code>方法，将一个集合中的所有元素加入到链表的指定位置当中</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">addAll</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Collection</span><span class="tok-o">&lt;?</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">checkPositionIndex</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 这个函数和checkElementIndex一样都是用于检测 index 是否合法的</span>
+
+<span class="tok-w">        </span><span class="tok-n">Object</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-p">.</span><span class="tok-na">toArray</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numNew</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">numNew</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">pred</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 首先找到 index 对应位置的节点 succ 和他的前驱节点 pred</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">succ</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">last</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">succ</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 遍历每个数据产生新的节点 节点的前驱节点为 pred 后驱节点为 null</span>
+<span class="tok-w">            </span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Node</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">pred</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">                </span><span class="tok-n">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-k">else</span>
+<span class="tok-w">                </span><span class="tok-n">pred</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-c1">// 更新 pred 节点为 新加入的节点，然后继续插入</span>
+<span class="tok-w">            </span><span class="tok-n">pred</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">newNode</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">		</span>
+<span class="tok-w">        </span><span class="tok-c1">// 将新插入的所有节点和原来的节点拼接上</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">succ</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pred</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">pred</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">succ</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">succ</span><span class="tok-p">.</span><span class="tok-na">prev</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">pred</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">		</span>
+<span class="tok-w">        </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">numNew</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">modCount</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>整个过程如下图所示：</p>
+<p>进行插入之前：</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist06.webp" alt="" loading="lazy" /></p>
+<p>插入之后：</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist09.webp" alt="" loading="lazy" /></p>
+<ul>
+<li><code>set</code>方法，更新某个下标的数据<code>item</code></li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">	</span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">checkElementIndex</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 判断下标是否合法</span>
+<span class="tok-w">        </span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">oldVal</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 更新数据</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">oldVal</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 返回旧数据</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><ul>
+<li><code>get</code>方法，通过下标获取数据</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">checkElementIndex</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 判断下标是否合法</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">node</span><span class="tok-p">(</span><span class="tok-n">index</span><span class="tok-p">).</span><span class="tok-na">item</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 取出对应的数据</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>以上主要介绍了<code>LinkedList</code>当中主要的一些方法和其主要的工作机制，其他的一下方法都比较简单，大家可以自行参考<code>LinkedList</code>源代码。</p>
+<h2 id="linkedlist类杂谈">LinkedList类杂谈</h2>
+<p>本小节主要介绍在<code>LinkedList</code>当中除了链表之外的其他的比较重要的知识点，帮助大家理解一些习以为常但是又可能没有仔细思考过的点！！！</p>
+<h3 id="tostring方法重写">toString方法重写</h3>
+<p>我们首先来看一下下面代码的输出</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">CodeTest</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果：</span>
+<span class="tok-c1">// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+</code></pre></div><p>执行上面一段代码我们可以在控制台看见对应的输出，我们知道最终打印在屏幕上的是一个字符串，那这个字符串怎么来的呢，我们打印的是一个对象，它是怎么得到字符串的呢？我们可以查看<code>System.out.println</code>的源代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">println</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">s</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-p">.</span><span class="tok-na">valueOf</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-kd">synchronized</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-k">this</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">print</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">newLine</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>从上述代码当中我们可以看见通过<code>String s = String.valueOf(x);</code>这行代码得到了一个字符串，然后进行打印，我们在进入<code>String.valueOf</code>方法看看是如何得到字符串的：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">valueOf</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">obj</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-s">"null"</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">obj</span><span class="tok-p">.</span><span class="tok-na">toString</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>我们可以看到如果对象不为 <code>null</code> 最终是调用对象的<code>toString</code>方法得到的字符串。<strong>因此当打印一个对象的时候，最终会打印这个对象的<code>toString</code>方法返回的字符串</strong>。</p>
+<p>我们在<code>LinkedList</code>类中搜索<code>toString</code>方法，发现这个方法是存在于<code>AbstractCollection</code>类当中，也就是下面这个类，<code>LinkedList</code>继承于它：</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist10.webp" alt="" loading="lazy" /></p>
+<p><code>toString</code>方法的源代码如下所示：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 得到链表的迭代器</span>
+<span class="tok-w">        </span><span class="tok-n">Iterator</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">it</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">iterator</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果链表当中没有数据则返回空</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-w"> </span><span class="tok-n">it</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">())</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-s">"[]"</span><span class="tok-p">;</span>
+<span class="tok-w">		</span><span class="tok-c1">// 额，写这个代码的工程师应该不懂中文 哈哈哈</span>
+<span class="tok-w">        </span><span class="tok-n">StringBuilder</span><span class="tok-w"> </span><span class="tok-n">sb</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">StringBuilder</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">sb</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-sc">'['</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(;;)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">it</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-c1">// 将对象加入到 StringBuilder 当中，这里加入的也是一个对象</span>
+<span class="tok-w">            </span><span class="tok-c1">// 但是在 append 源代码当中会同样会使用 String.ValueOf </span>
+<span class="tok-w">            </span><span class="tok-c1">// 得到对象的 toString 方法的结果</span>
+<span class="tok-w">            </span><span class="tok-n">sb</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-k">this</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-s">"(this Collection)"</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-w"> </span><span class="tok-n">it</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">())</span>
+<span class="tok-w">                </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">sb</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-sc">']'</span><span class="tok-p">).</span><span class="tok-na">toString</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">sb</span><span class="tok-p">.</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-sc">','</span><span class="tok-p">).</span><span class="tok-na">append</span><span class="tok-p">(</span><span class="tok-sc">' '</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>从上面的代码我们可以看出所有继承自<code>AbstractCollection</code>的类的<code>toString</code>方法都是在方括号里面填入集合中对象的<code>toString</code>结果。</p>
+<h3 id="equlas方法重写">equlas方法重写</h3>
+<p>当我们去比较两个链表是否相等的时候我们通常去使用<code>equlas</code>方法。比如比较两个字符串对象是否相等：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">stringEqualsTest</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">s1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-p">(</span><span class="tok-s">"一无是处的研究僧"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">s2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-p">(</span><span class="tok-s">"一无是处的研究僧"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">s1</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">s2</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">s1</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">s2</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-c1">// 输出</span>
+<span class="tok-c1">// false</span>
+<span class="tok-c1">// true</span>
+</code></pre></div><p>其中 <code>==</code> 比较的是两个对象的内存地址（也就是<code>s1</code>和<code>s2</code>指向的两个对象）是否相同，也就是<code>s1</code>和<code>s2</code>是否是同一个对象，<code>equals</code>比较的是两个字符串对象的内容是否相同（不同的类实现方式不一样可能有差异，字符串<code>String</code>实现方式是只要内容相同<code>equlas</code>方法就返回<code>true</code>，否则返回<code>false</code>），上述代码在内存当中的布局大致如下：</p>
+<p><img src="/content/zh/images/cscore/images/linkedlist/02-linkedlist11.webp" alt="" loading="lazy" /></p>
+<p><code>==</code>比较的是两个箭头指向的内容的内存地址是否一致，<code>equlas</code>根据具体的类的实现有所差异。</p>
+<p>现在我们来看一下<code>LinkedList</code>类是如何实现<code>equlas</code>方法的，和<code>toString</code>方法一样，<code>equlas</code>方法也是在类<code>AbstractCollection</code>当中实现的。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">equals</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-k">this</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-k">instanceof</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-p">))</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-n">ListIterator</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">e1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">listIterator</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">ListIterator</span><span class="tok-o">&lt;?&gt;</span><span class="tok-w"> </span><span class="tok-n">e2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">List</span><span class="tok-o">&lt;?&gt;</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">).</span><span class="tok-na">listIterator</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">e1</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">e2</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">o1</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">e1</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o2</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">e2</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-p">(</span><span class="tok-n">o1</span><span class="tok-o">==</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">o2</span><span class="tok-o">==</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">o1</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">o2</span><span class="tok-p">)))</span>
+<span class="tok-w">                </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-o">!</span><span class="tok-p">(</span><span class="tok-n">e1</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">e2</span><span class="tok-p">.</span><span class="tok-na">hasNext</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>上面代码的主要流程：</p>
+<ul>
+<li>首先判断<code>o</code>和<code>this</code>是否是同一个对象，如果是则返回<code>true</code>，比如下面这种情况：</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">Object</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">);</span>
+</code></pre></div><ul>
+<li>如果对象没有实现<code>List</code>接口返回<code>false</code>。</li>
+<li>逐个判断链表里面的对象是否相等（调用链表当中存储的对象的<code>equals</code>方法），如果两个链表当中节点数目一样而且都相等则返回<code>true</code>否则返回<code>false</code>。</li>
+</ul>
+<p>通过上面的分析我们可以发现<code>LinkedList</code>方法并没有让比较的对象是<code>LinkedList</code>对象，只需要实现<code>List</code>接口并且数据数目和内容都相同，这样<code>equals</code>方法返回的结果就是<code>true</code>，比如下面代码就验证的这个结果：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">arrayList</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">arrayList</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">arrayList</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 结果为 true</span>
+</code></pre></div><h3 id="克隆clone方法重写">克隆(clone)方法重写</h3>
+<p>当我们想要克隆一个对象的时候我们通常会使用到这个方法，这个方法通常是将被克隆的对象复制一份，我们来看一下<code>LinkedList</code>的<code>clone</code>方法。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">	</span><span class="tok-nd">@SuppressWarnings</span><span class="tok-p">(</span><span class="tok-s">"unchecked"</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-nf">superClone</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-c1">// 这里返回一个新的 LinkedList 空对象</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">super</span><span class="tok-p">.</span><span class="tok-na">clone</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 这里的super.clone() 是 protected native Object clone() throws CloneNotSupportedException; 本地方法</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">CloneNotSupportedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">throw</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">InternalError</span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">	</span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-nf">clone</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这里得到一个新的 LinkedList 空对象</span>
+<span class="tok-w">        </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">clone</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">superClone</span><span class="tok-p">();</span>
+<span class="tok-w">		</span>
+<span class="tok-w">        </span><span class="tok-c1">// 空对象初始化</span>
+<span class="tok-w">        </span><span class="tok-n">clone</span><span class="tok-p">.</span><span class="tok-na">first</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">clone</span><span class="tok-p">.</span><span class="tok-na">last</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">clone</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">clone</span><span class="tok-p">.</span><span class="tok-na">modCount</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-c1">// 将所有的元素加入到新的 LinkedList 对象</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">first</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">next</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">clone</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">.</span><span class="tok-na">item</span><span class="tok-p">);</span>
+
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">clone</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><p>通过上面的代码我们可以知道<code>LinkedList</code>的克隆方法创建了一个新的链表但是没有改变里面的数据，因此如果你修改克隆链表中的数据的话，原来的链表里面的数据也会改，比如：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.LinkedList</span><span class="tok-p">;</span>
+
+<span class="tok-kd">class</span> <span class="tok-nc">Person</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">setName</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">name</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-s">"Person{"</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">        </span><span class="tok-s">"name='"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-sc">'\''</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">        </span><span class="tok-sc">'}'</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LinkedListTest</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">Person</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Person</span><span class="tok-w"> </span><span class="tok-n">person</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Person</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">person</span><span class="tok-p">.</span><span class="tok-na">setName</span><span class="tok-p">(</span><span class="tok-s">"一无是处的研究僧"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">person</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">Person</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">LinkedList</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">clone</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">).</span><span class="tok-na">setName</span><span class="tok-p">(</span><span class="tok-s">"LeHung"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">list</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+<span class="tok-c1">// 输出结果：</span>
+<span class="tok-kc">true</span>
+<span class="tok-n">Person</span><span class="tok-p">{</span><span class="tok-n">name</span><span class="tok-o">=</span><span class="tok-err">'</span><span class="tok-n">一无是处的研究僧</span><span class="tok-err">'</span><span class="tok-p">}</span>
+<span class="tok-n">Person</span><span class="tok-p">{</span><span class="tok-n">name</span><span class="tok-o">=</span><span class="tok-err">'</span><span class="tok-n">一无是处的研究僧</span><span class="tok-err">'</span><span class="tok-p">}</span>
+<span class="tok-kc">true</span>
+<span class="tok-n">Person</span><span class="tok-p">{</span><span class="tok-n">name</span><span class="tok-o">=</span><span class="tok-err">'</span><span class="tok-n">LeHung</span><span class="tok-err">'</span><span class="tok-p">}</span>
+<span class="tok-n">Person</span><span class="tok-p">{</span><span class="tok-n">name</span><span class="tok-o">=</span><span class="tok-err">'</span><span class="tok-n">LeHung</span><span class="tok-err">'</span><span class="tok-p">}</span>
+</code></pre></div><p>以上就是对<code>LinkedList</code>的源码分析，我是LeHung，我们下期再见！！！</p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机知识</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-container-01/"><span>较新</span>链表设计与实现</a><a class="next" href="/posts/cscore-container-03-array/"><span>较旧</span>数组容器(ArrayList)设计与Java实现</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#linkedlist继承体系">LinkedList继承体系</a></li>
+      <li class="toc-l2"><a href="#linkedlist整体结构">LinkedList整体结构</a></li>
+      <li class="toc-l2"><a href="#linkedlist重要方法">LinkedList重要方法</a></li>
+      <li class="toc-l2"><a href="#linkedlist类杂谈">LinkedList类杂谈</a></li>
+      <li class="toc-l3"><a href="#tostring方法重写">toString方法重写</a></li>
+      <li class="toc-l3"><a href="#equlas方法重写">equlas方法重写</a></li>
+      <li class="toc-l3"><a href="#克隆clone方法重写">克隆(clone)方法重写</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

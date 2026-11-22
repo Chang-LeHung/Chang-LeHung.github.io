@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理 · Chang-LeHung</title>
+<meta name="description" content="在此前的 四篇长文 当中我们已经实现了我们自己的 ArrayList 和 LinkedList ，并且分析了 ArrayList 和 LinkedList 的 JDK 源代码。 本篇文章主要跟大家介绍我们非常常用的一种数据结构 HashMap ，在本篇文章当中主要介绍他的实现原理，下篇我们自己动手实">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/容器/">容器</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在此前的<a href="https://github.com/Chang-LeHung/CSCore">四篇长文</a>当中我们已经实现了我们自己的<code>ArrayList</code>和<code>LinkedList</code>，并且分析了<code>ArrayList</code>和<code>LinkedList</code>的<code>JDK</code>源代码。 本篇文章主要跟大家介绍我们非常常用的一种数据结构<code>HashMap</code>，在本篇文章当中主要介绍他的实现原理，下篇我们自己动手实现我们自己的<code>HashMap</code>，让他可以像<code>JDK</code>的<code>HashMap</code>一样工作。</p>
+<h2 id="hashmap初识">HashMap初识</h2>
+<p>如果你使用过<code>HashMap</code>的话，那你肯定很熟悉<code>HashMap</code>给我们提供了一个非常方便的功能就是<code>键值(key, value)</code>查找。比如我们通过学生的姓名查找分数。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;</span><span class="tok-n">String</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">map</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">HashMap</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-s">"学生A"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">60</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-s">"学生B"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">70</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-s">"学生C"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-s">"学生D"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">85</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-s">"学生E"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">99</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"学生B的分数是："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">map</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-s">"学生B"</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+</code></pre></div><p>我们知道<code>HashMap</code>给我们提供查询<code>get函数</code>功能的时间复杂度为<code>O(1)</code>，他在常数级别的时间复杂度就可以查询到结果。那它是如何做到的呢？</p>
+<p>我们知道在计算机当中一个最基本也是唯一的，能够实现常数级别的查询的类型就是数组，数组的查询时间复杂度为<code>O(1)</code>，我们只需要通过下标就能访问对应的数据。比如我们想访问下标为<code>6</code>的数据，就可以这样：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">strs</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-o">[</span><span class="tok-mi">10</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-n">strs</span><span class="tok-o">[</span><span class="tok-mi">6</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s">"一无是处的研究僧"</span><span class="tok-p">;</span>
+<span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">strs</span><span class="tok-o">[</span><span class="tok-mi">6</span><span class="tok-o">]</span><span class="tok-p">);</span>
+</code></pre></div><p>因此我们要想实现<code>HashMap</code>给我们提供的<code>O(1)</code>级别查询的时间复杂度的话，就必须使用到数组，而在具体的<code>HashMap</code>实现当中，比如说<code>JDK</code>底层也是采用数组实现的。</p>
+<h2 id="hashmap整体设计">HashMap整体设计</h2>
+<p>我们实现的<code>HashMap</code>需要满足的最重要的功能是根据<code>键(key)</code>查询到对应的<code>值(value)</code>，比如上面提到的根据学生姓名查询成绩。</p>
+<p>因此我们可以有一个这样的设计，我们可以根据数据的<code>键值</code>计算出一个数字（像这种可以将一个数据转化成一个数字的叫做<code>哈希函数</code>，计算出来的值叫做<code>哈希值</code>我们后续将会仔细说明），将这个哈希值作为数组的下标，这样的话<code>键值</code>和下标就有了对应关系了，我们可以在数组对应的哈希值为下标的位置存储具体的数据，比如上面谈到的<code>成绩</code>，整个流程如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap01.webp" alt="" loading="lazy" /></p>
+<p>但是像这种哈希函数计算出来的数值一般是没有范围的，因此我们通常通过哈希函数计算出来的数值通常会经过一个求余数操作(<code>%</code>)，对数组的长度进行求余数，否则求出来的数值将超过数组的长度。比如数组的长度是16，计算出来的哈希值为186，那么求余数之后的结果为<code>186%16=10</code>，那么我们可以将数据存储在数组当中下标为10的位置，下次我们来取的时候就取出下标为10位置的数据即可。</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap02.webp" alt="" loading="lazy" /></p>
+<h2 id="如何设计一个哈希函数">如何设计一个哈希函数？</h2>
+<p>首先我们需要了解一个知识，那就是在计算机世界当中我们所含有的两种最基本的数据类型就是，整型(<code>short</code>, <code>int</code>, <code>long</code>)和字符串(<code>String</code>)，其他的数据类型可以由这些数据类型组合起来，下面我们来分析一下常见的数据类型的哈希函数设计。</p>
+<h3 id="整型的哈希函数">整型的哈希函数</h3>
+<p>对于整型数据，他本来就是一个数值，因此我们可以直接将这个值返回作为他的哈希值，而<code>JDK</code>中也是这么实现的！<code>JDK</code>中实现整型的哈希函数的方法：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">     * Returns a hash code for a {@code int} value; compatible with</span>
+<span class="tok-cm">     * {@code Integer.hashCode()}.</span>
+<span class="tok-cm">     *</span>
+<span class="tok-cm">     * @param value the value to hash</span>
+<span class="tok-cm">     * @since 1.8</span>
+<span class="tok-cm">     *</span>
+<span class="tok-cm">     * @return a hash code value for a {@code int} value.</span>
+<span class="tok-cm">     */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+</code></pre></div><h3 id="字符串的哈希函数">字符串的哈希函数</h3>
+<p>我们知道字符串底层存储的还是用整型数据存储的，比说说字符串<code>hello world</code>，就可以使用字符数组<code>['h', 'e', 'l', 'l', 'o' , 'w', 'o', 'r', 'l', 'd']</code>进行存储，因为我们计算出来的这个哈希值需要尽量不和别的数据计算出来的哈希值冲突（这种现象叫做<code>哈希冲突</code>，我们后面会仔细讨论这个问题），因此我们要尽可能的充分利用字符串里面的每个字符信息。我们来看一下<code>JDK</code>当中是怎么实现字符串的哈希函数的</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// hash 是 String 类当中一个私有的 int 变量，主要作用即存储计算出来的哈希值</span>
+<span class="tok-w">    </span><span class="tok-c1">// 避免哈希值重复计算 节约时间</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 如果是第一次调用 hashCode 这个函数 hash 的值为0，也就是说 h 值为 0</span>
+<span class="tok-w">    </span><span class="tok-c1">// value 就是存储字符的字符数组</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">val</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">val</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-c1">// 更新 hash 的值</span>
+<span class="tok-w">        </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的计算<code>hashCode</code>的代码，可以用下面这个公式表示：</p>
+<ul>
+<li>其中<code>s</code>，表示存储字符串的字符数组</li>
+<li><code>n</code>表示字符数组当中字符的个数</li>
+</ul>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>s</mi><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msup><mn>31</mn><mrow><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><mi>s</mi><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msup><mn>31</mn><mrow><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002B;</mo><mi>s</mi><mo stretchy="false">[</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math></div><h3 id="自定义类型的哈希函数">自定义类型的哈希函数</h3>
+<p>比如我们自己定义了一个学生类，我们改设计他的哈希函数，并且计算他的哈希值呢？</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Student</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">grade</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们可以根据上面提到的两种哈希函数，仿照他们的设计，设计我们自己的哈希函数，比如像下面这样。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Student</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">grade</span><span class="tok-p">;</span>
+<span class="tok-w">    </span>
+<span class="tok-w">  </span><span class="tok-c1">// 我们自己要实现的哈希函数</span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">grade</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">    </span>
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">equals</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-k">this</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">getClass</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">.</span><span class="tok-na">getClass</span><span class="tok-p">())</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Student</span><span class="tok-w"> </span><span class="tok-n">student</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Student</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">grade</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">student</span><span class="tok-p">.</span><span class="tok-na">grade</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span>
+<span class="tok-w">        </span><span class="tok-n">Objects</span><span class="tok-p">.</span><span class="tok-na">equals</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">student</span><span class="tok-p">.</span><span class="tok-na">name</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>事实上<code>JDK</code>也贴心的为我们实现了一个类，去计算我们自定义类的哈希函数。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-c1">// 下面这个函数是我们自己设计的类 Student 的哈希函数</span>
+<span class="tok-nd">@Override</span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">Objects</span><span class="tok-p">.</span><span class="tok-na">hash</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">grade</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// 下面这个函数为  Objects.hash 函数</span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hash</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-p">...</span><span class="tok-w"> </span><span class="tok-n">values</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">Arrays</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">(</span><span class="tok-n">values</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// 下面这个函数为  Arrays.hashCode 函数</span>
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-o">[]</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">element</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">());</span>
+
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>JDK</code>帮助我们实现的哈希函数，本质上就是将类当中所有的字段封装成一个数组，然后像计算字符串的哈希值那样去计算我们自定义类的哈希值。</p>
+<h3 id="集合类型的哈希函数">集合类型的哈希函数</h3>
+<p>其实集合类型的哈希函数也可以像字符串那样设计哈希函数，我们来看一下<code>JDK</code>内部是如何实现集合类的哈希函数的。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">hashCode</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">hashCode</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 遍历集合当中的对象，进行哈希值的计算</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-k">this</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">hashCode</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">31</span><span class="tok-o">*</span><span class="tok-n">hashCode</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-o">==</span><span class="tok-kc">null</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">hashCode</span><span class="tok-p">());</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">hashCode</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上述代码也可以用之前的公式来表示，其中<code>s[i]</code>表示集合当中第<code>i</code>个数据对象：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>s</mi><mo stretchy="false">[</mo><mn>0</mn><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msup><mn>31</mn><mrow><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><mi>s</mi><mo stretchy="false">[</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002A;</mo><msup><mn>31</mn><mrow><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></msup><mo>&#x0002B;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002B;</mo><mi>s</mi><mo stretchy="false">[</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo></mrow></math></div><h2 id="哈希冲突">哈希冲突</h2>
+<p>因为我们用的最终的数组的下标是通过哈希值取余数得到的，那么就有可能产生冲突。比如说我们的数组长度为<code>10</code>，有两个数据他们的哈希值分别为<code>8</code>和<code>28</code>，他们对<code>10</code>取余之后得到的结果都为<code>8</code>那么改如何解决这个问题呢？</p>
+<h3 id="开放地址法再散列法">开放地址法（再散列法）</h3>
+<h4 id="线性探测再散列">线性探测再散列</h4>
+<p>假设我们的哈希函数为<code>H</code>，我们的数组长度为<code>m</code>，我们的键为<code>key</code>，那么我计算出来的下标为：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi></mrow></math></div><p>当我们有哈希冲突的时候，我们计算下标的方法变为：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi><mo>&#x0002C;</mo><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>i</mi></mrow></math></div><p>当我们第一次冲突的时候<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math>，如果重新进行计算仍然冲突那么<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mn>2</mn></msub><mo>&#x0003D;</mo><mn>2</mn></mrow></math> ......</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap03.webp" alt="" loading="lazy" /></p>
+<p>比如在上图当中我们首次计算的哈希值<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mn>5</mn></mrow></math>的结果等于5，如果有哈希冲突，那么下次计算出来的哈希值为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mn>12</mn><mo>&#x0003D;</mo><mn>6</mn></mrow></math>，如果还是冲突那么计算出来的哈希值为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mn>12</mn><mo>&#x0003D;</mo><mn>7</mn></mrow></math> ......，直到找到一个空位置。谈到这里你可能会问，万一都满了呢？我们在下一小节再谈这个问题。</p>
+<h4 id="二次探测再散列">二次探测再散列</h4>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi><mo>&#x0002C;</mo><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mo>&#x02212;</mo><mn>1</mn><msup><mo stretchy="false">&#x00029;</mo><mrow><mi>i</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msup><msup><mi>i</mi><mn>2</mn></msup></mrow></math></div><p>这个散列方法和线性探测散列差不多，只不过<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow></math>的值变化情况不一样而已，大家可以参考线性探测进行分析，这个方法可以往数组的两个方法走，因为前面有一个而线性探测只能往数组的一个方向走。此外这个方法走的距离比线性探测更大，因此可能可以在更小的冲突次数当中找到一个<code>空位置</code>。</p>
+<h4 id="伪随机数再散列">伪随机数再散列</h4>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>h</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mo stretchy="false">&#x00028;</mo><mi>H</mi><mo stretchy="false">&#x00028;</mo><mi>k</mi><mi>e</mi><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><msub><mi>d</mi><mi>i</mi></msub><mo stretchy="false">&#x00029;</mo><mi>&#x00025;</mi><mi>m</mi><mo>&#x0002C;</mo><msub><mi>d</mi><mi>i</mi></msub><mo>&#x0003D;</mo><mi>一</mi><mi>个</mi><mi>随</mi><mi>机</mi><mi>数</mi></mrow></math></div><p>这个方式的大致策略和前面差不多，只不过<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>d</mi><mi>i</mi></msub></mrow></math>上稍微有所差异。</p>
+<h3 id="再哈希法">再哈希法</h3>
+<p>我们可以准备多个哈希函数，当使用一个哈希函数产生冲突的时候，我们可以换一个哈希函数，希望通过不同的哈希函数得到不同的哈希值，以解决哈希冲突的问题。</p>
+<h3 id="链地址法">链地址法</h3>
+<p>这个方法是目前使用比较多的方法，当产生哈希冲突的时候，数据用一个链表将冲突的数据链接起来，比如像下面这样：</p>
+<p><img src="/content/zh/images/cscore/images/hashmap/01-hashmap04.webp" alt="" loading="lazy" /></p>
+<p>以上就是一些常见的解决哈希冲突的方法，因为都是文字说明没有代码，你可能稍微有些难以理解，比如说我通过上面的方法存储数据，那么我之后怎么拿到我存进去的数据呢？好像放进去就拿不出来了呀🤣🤣🤣！没事儿，这些疑问我们在<code>下篇</code>自己实现哈希表的时候会一一解开，到时候你就发现原来这些算法的设计如此巧妙。</p>
+<h2 id="扩容">扩容</h2>
+<p>在上面的文章当中我们并没有谈到当数组满了之后怎么办。很简单嘛，我可以使用一个变量记录数组当中已经使用了的空间，如果全部使用过了，我们就进行扩容，扩大我们的数组就可以了嘛！然后将原数组当中的数据重新进行哈希存放到新数组当中即可！因为我们在计算存储下标的时候需要对数组长度进行取余，而当我们申请新数组的时候数组长度已经发生变化了，因此需要重新对数据进行哈希操作。这里面仍然有很多需要考虑的细节问题，这些问题我们在<code>下篇</code>当中进行代码实现的时候会仔细讨论。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中，我们主要谈到了如何去设计一个可以使用的哈希表，同时介绍了我们改如何设计一个哈希函数，最终谈到了解决哈希冲突和数组满了的问题！！！</p>
+<ul>
+<li>
+<p><code>HashMap</code>整体的设计结构。</p>
+</li>
+<li>
+<p>设计一个好的哈希函数。</p>
+<ul>
+<li>整型数据的哈希函数。</li>
+<li>字符串的哈希函数。</li>
+<li>自定义类型的哈希函数。</li>
+<li>集合的哈希函数。</li>
+</ul>
+</li>
+<li>
+<p>解决哈希冲突的办法。</p>
+<ul>
+<li>开放地址法
+<ul>
+<li>线性探测</li>
+<li>二次探测</li>
+<li>随机数探测</li>
+</ul>
+</li>
+<li>再哈希法</li>
+<li>链地址地址法</li>
+</ul>
+</li>
+<li>
+<p>扩容方法</p>
+</li>
+</ul>
+<p>以上就是本篇文章的所有内容了，我们将在<code>下篇</code>当中自己动手实现一个自己的哈希表<code>MyHashMap</code>，这其中还有很多非常细节的设计，其中涉及到很多位运算操作和很多其他非常巧妙的操作。我是LeHung我们下期再见！！！</p>
+<p>更多精彩内容合集，可访问：https://github.com/Chang-LeHung/CSCore</p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机知识！！！</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-02openmp/"><span>较新</span>OpenMP 教程（一）——OpenMP 当中的 reduction 子句</a><a class="next" href="/posts/cscore-container-06-hashmap/"><span>较旧</span>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#hashmap初识">HashMap初识</a></li>
+      <li class="toc-l2"><a href="#hashmap整体设计">HashMap整体设计</a></li>
+      <li class="toc-l2"><a href="#如何设计一个哈希函数">如何设计一个哈希函数？</a></li>
+      <li class="toc-l3"><a href="#整型的哈希函数">整型的哈希函数</a></li>
+      <li class="toc-l3"><a href="#字符串的哈希函数">字符串的哈希函数</a></li>
+      <li class="toc-l3"><a href="#自定义类型的哈希函数">自定义类型的哈希函数</a></li>
+      <li class="toc-l3"><a href="#集合类型的哈希函数">集合类型的哈希函数</a></li>
+      <li class="toc-l2"><a href="#哈希冲突">哈希冲突</a></li>
+      <li class="toc-l3"><a href="#开放地址法再散列法">开放地址法（再散列法）</a></li>
+      <li class="toc-l3"><a href="#再哈希法">再哈希法</a></li>
+      <li class="toc-l3"><a href="#链地址法">链地址法</a></li>
+      <li class="toc-l2"><a href="#扩容">扩容</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

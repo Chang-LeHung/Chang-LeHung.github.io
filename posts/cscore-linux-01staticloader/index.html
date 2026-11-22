@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>静态加载器 · Chang-LeHung</title>
+<meta name="description" content="通常我们程序的加载时通过fork execve系统调用进行加载的。然后在execve当中会对elf文件进行解析，将程序头表当中指定的需要加载的数据，使用mmap将数据加载到内存当中。如果我们想要不使用系统调用去加载程序的话，也就是说在用户态加载程序的话，我们就需要模拟execve的功能。 程序的执行">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>静态加载器</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-08">2022-10-08</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>通常我们程序的加载时通过fork execve系统调用进行加载的。然后在execve当中会对elf文件进行解析，将程序头表当中指定的需要加载的数据，使用mmap将数据加载到内存当中。如果我们想要不使用系统调用去加载程序的话，也就是说在用户态加载程序的话，我们就需要模拟execve的功能。</p>
+<p>程序的执行就是不断的从内存当中加载指令然后译码执行，如果想要完成我们自己的加载器我们只需要给进程创建它需要的初始状态即可（execve也是给进程创建一个初始状态，然后将程序的第一条指令地址放入rip，程序就执行起来了），程序的初始状态主要有两个部分一个是栈的状态，另外一个是寄存器的状态。</p>
+<p>一个进程的初始状态在手册当中是确定下来的，我们只需要了解手册当中对程序初始状态的规定，然后将代码和数据映射到地址空间当中即可，而代码和数据映射到地址空间中的什么位置在程序头表当中已经设置好了，我们只需要从elf文件当中读入程序头表然后得到虚拟地址空间和elf文件之间的映射关系，然后将elf文件需要加载的位置，加载到对应的虚拟地址空间即可，这里主要是为程序的执行准备好了代码和数据，下一步就是需要准备寄存器状态。</p>
+<p>上面是手册对于一个进程初始状态的规定，寄存器rsp指向的位置存放的是命令行参数的个数，也就是argc，之后从低地址向高地址变化的依次为每一个argv指针，在argv的结束位置放入一个8字节的0，也就是NULL，然后继续放入系统环境变量的值，最后在系统环境变量结束后的位置，再放入一个8字节的0，最后在放入一些辅助向量的结构体，并且最后一个辅助向量为 AT_NULL，表示辅助向量的结束（后面没有辅助向量了）。整个栈的空间变化大致如下（下面是32位的情况，64为也大致相同，只是占用的字节大小发生了变化）</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>position            content                     size (bytes) + comment
+  ------------------------------------------------------------------------
+  stack pointer -&gt;  [ argc = number of args ]     4
+                    [ argv[0] (pointer) ]         4   (program name)
+                    [ argv[1] (pointer) ]         4
+                    [ argv[..] (pointer) ]        4 * x
+                    [ argv[n - 1] (pointer) ]     4
+                    [ argv[n] (pointer) ]         4   (= NULL)
+
+                    [ envp[0] (pointer) ]         4
+                    [ envp[1] (pointer) ]         4
+                    [ envp[..] (pointer) ]        4
+                    [ envp[term] (pointer) ]      4   (= NULL)
+
+                    [ auxv[0] (Elf32_auxv_t) ]    8
+                    [ auxv[1] (Elf32_auxv_t) ]    8
+                    [ auxv[..] (Elf32_auxv_t) ]   8
+                    [ auxv[term] (Elf32_auxv_t) ] 8   (= AT_NULL vector)
+
+</code></pre></div><p>寄存器的初始状态如下：</p>
+<ul>
+<li>rip 指向第一条指令</li>
+<li>rsp 指向栈顶（上面所谈到的进程的初始栈）。</li>
+<li>rdx 赋值为0即可。</li>
+</ul>
+<p>静态加载器的代码：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdint.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;string.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdlib.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;assert.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;elf.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;fcntl.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/mman.h&gt;</span>
+
+<span class="tok-cp">#define STK_SZ           (1 &lt;&lt; 20) </span><span class="tok-c1">// 设置程序执行栈的大小</span>
+<span class="tok-cp">#define ROUND(x, align)  (void *)(((uintptr_t)x) &amp; ~(align - 1)) </span><span class="tok-c1">// 使用mmap函数的时候需要保证4kb对其 这个宏主要是用于定义 x 按照 align 字节对齐 如果没有对齐则返回能够按照align对齐的位置最大值</span>
+<span class="tok-cp">#define MOD(x, align)    (((uintptr_t)x) &amp; (align - 1))</span>
+<span class="tok-c1">// 下面这个宏主要是往栈上存入数据 并且将 sp 的值加上对应数据的大小 以便后续继续给栈赋值</span>
+<span class="tok-cp">#define push(sp, T, ...) ({ *((T*)sp) = (T)__VA_ARGS__; sp = (void *)((uintptr_t)(sp) + sizeof(T)); })</span>
+
+<span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">execve_</span><span class="tok-p">(</span><span class="tok-k">const</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">file</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">argv</span><span class="tok-p">[],</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">envp</span><span class="tok-p">[])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// WARNING: This execve_ does not free process resources.</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">fd</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">open</span><span class="tok-p">(</span><span class="tok-n">file</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">O_RDONLY</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">fd</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 读入 elf 文件</span>
+<span class="tok-w">  </span><span class="tok-n">Elf64_Ehdr</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">mmap</span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">4096</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PROT_READ</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">MAP_PRIVATE</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">fd</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-mi">-1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 确保是静态加载的可执行文件</span>
+<span class="tok-w">  </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-o">-&gt;</span><span class="tok-n">e_type</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">ET_EXEC</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-o">-&gt;</span><span class="tok-n">e_machine</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">EM_X86_64</span><span class="tok-p">);</span>
+<span class="tok-w">	</span><span class="tok-c1">// 得到程序头表</span>
+<span class="tok-w">  </span><span class="tok-n">Elf64_Phdr</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">pht</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Elf64_Phdr</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)((</span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">h</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-o">-&gt;</span><span class="tok-n">e_phoff</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// 遍历程序头表当中的每一项然后将需要加载的项（PT_LOAD）加载进入内存</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">h</span><span class="tok-o">-&gt;</span><span class="tok-n">e_phnum</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Elf64_Phdr</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">p</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">pht</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_type</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">PT_LOAD</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">prot</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-c1">// 设置读写执行权限</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_flags</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">PF_R</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">prot</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">PROT_READ</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_flags</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">PF_W</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">prot</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">PROT_WRITE</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_flags</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">PF_X</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-n">prot</span><span class="tok-w"> </span><span class="tok-o">|=</span><span class="tok-w"> </span><span class="tok-n">PROT_EXEC</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-c1">// 将数据从磁盘当中加载进入内存</span>
+<span class="tok-w">      </span><span class="tok-c1">// 这里需要注意对齐的问题 尤其是加载进入内存的长度</span>
+<span class="tok-w">      </span><span class="tok-c1">// elf 满足一个 assertion MOD(p-&gt;p_vaddr, p-&gt;p_align) == MOD(p-&gt;p_offest, p-&gt;p_align)</span>
+<span class="tok-w">      </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">mmap</span><span class="tok-p">(</span>
+<span class="tok-w">        </span><span class="tok-n">ROUND</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_vaddr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_align</span><span class="tok-p">),</span><span class="tok-w">              </span><span class="tok-c1">// addr, rounded to ALIGN</span>
+<span class="tok-w">        </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_memsz</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">MOD</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_vaddr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_align</span><span class="tok-p">),</span><span class="tok-w">   </span><span class="tok-c1">// length</span>
+<span class="tok-w">        </span><span class="tok-n">prot</span><span class="tok-p">,</span><span class="tok-w">                                       </span><span class="tok-c1">// protection</span>
+<span class="tok-w">        </span><span class="tok-n">MAP_PRIVATE</span><span class="tok-w"> </span><span class="tok-o">|</span><span class="tok-w"> </span><span class="tok-n">MAP_FIXED</span><span class="tok-p">,</span><span class="tok-w">                    </span><span class="tok-c1">// flags, private &amp; strict</span>
+<span class="tok-w">        </span><span class="tok-n">fd</span><span class="tok-p">,</span><span class="tok-w">                                         </span><span class="tok-c1">// file descriptor</span>
+<span class="tok-w">        </span><span class="tok-p">(</span><span class="tok-kt">uintptr_t</span><span class="tok-p">)</span><span class="tok-n">ROUND</span><span class="tok-p">(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_offset</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_align</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// offset</span>
+<span class="tok-w">      </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-mi">-1</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-c1">// 将多余的空间复制为0</span>
+<span class="tok-w">      </span><span class="tok-n">memset</span><span class="tok-p">((</span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)(</span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_vaddr</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_filesz</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_memsz</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">p</span><span class="tok-o">-&gt;</span><span class="tok-n">p_filesz</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">close</span><span class="tok-p">(</span><span class="tok-n">fd</span><span class="tok-p">);</span>
+<span class="tok-w">	</span><span class="tok-c1">// 申请栈空间</span>
+<span class="tok-w">  </span><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-n">stack</span><span class="tok-p">[</span><span class="tok-n">STK_SZ</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">rnd</span><span class="tok-p">[</span><span class="tok-mi">16</span><span class="tok-p">];</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">sp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">ROUND</span><span class="tok-p">(</span><span class="tok-n">stack</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">stack</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">4096</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">16</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">sp_exec</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">sp</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// argc</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-n">argc</span><span class="tok-p">])</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// 根据手册将 argc 放入栈中</span>
+<span class="tok-w">  </span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">sp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">intptr_t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-c1">// argv[], NULL-terminate</span>
+<span class="tok-w">  </span><span class="tok-c1">// 根据手册将 argv 当中所所有的参数传入栈中</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">sp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">intptr_t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]);</span>
+<span class="tok-w">	</span><span class="tok-c1">// 根据手册 结束的位置需要传入一个0</span>
+<span class="tok-w">  </span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">sp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">intptr_t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// glibc 将会使用到 AT_RANDOM 主要是用于避免栈溢出攻击 因此下面这行代码一定不能够少</span>
+<span class="tok-w">  </span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">sp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Elf64_auxv_t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-p">.</span><span class="tok-n">a_type</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">AT_RANDOM</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">.</span><span class="tok-n">a_un</span><span class="tok-p">.</span><span class="tok-n">a_val</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">uintptr_t</span><span class="tok-p">)</span><span class="tok-n">rnd</span><span class="tok-w"> </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">push</span><span class="tok-p">(</span><span class="tok-n">sp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Elf64_auxv_t</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-p">.</span><span class="tok-n">a_type</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">AT_NULL</span><span class="tok-w"> </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 这一行表示辅助向量的结束</span>
+
+<span class="tok-w">  </span><span class="tok-k">asm</span><span class="tok-w"> </span><span class="tok-k">volatile</span><span class="tok-p">(</span>
+<span class="tok-w">    </span><span class="tok-s">"mov $0, %%rdx;"</span><span class="tok-w"> </span><span class="tok-c1">// 手册规定</span>
+<span class="tok-w">    </span><span class="tok-s">"mov %0, %%rsp;"</span><span class="tok-w"> </span><span class="tok-c1">// 将栈顶 sp_exec 传给 rsp 寄存器</span>
+<span class="tok-w">    </span><span class="tok-s">"jmp *%1"</span><span class="tok-w"> </span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-s">"a"</span><span class="tok-p">(</span><span class="tok-n">sp_exec</span><span class="tok-p">),</span><span class="tok-w"> </span><span class="tok-s">"b"</span><span class="tok-p">(</span><span class="tok-n">h</span><span class="tok-o">-&gt;</span><span class="tok-n">e_entry</span><span class="tok-p">));</span><span class="tok-w"> </span><span class="tok-c1">// 跳到程序的入口地址</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">argc</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">argv</span><span class="tok-p">[],</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">envp</span><span class="tok-p">[])</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">argc</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// argv[1] 是需要加载的程序的名字</span>
+<span class="tok-w">    </span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-n">execve_</span><span class="tok-p">(</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">argv</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">envp</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div>
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-tools-03/"><span>较新</span>彻底掌握Makefile（三）</a><a class="next" href="/posts/cscore-linux-02ls/"><span>较旧</span>Linux命令系列之ls——原来最简单的ls这么复杂</a>    </nav>
+  </div>
+
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

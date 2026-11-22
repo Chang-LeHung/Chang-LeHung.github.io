@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>这才是使用ps命令的正确姿势 · Chang-LeHung</title>
+<meta name="description" content="前言 在linux系统当中我们通常会使用命令去查看一些系统的进程信息，我们最常使用的就是 ps (process status)。ps 命令主要是用于查看当前正在运行的程序，以及他们相关的的信息，我们可以通过不同的选项进行查看。ps 给我们提供了非常多的选项，这些选项常常令人分辨不清楚，本篇文章我们">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>这才是使用ps命令的正确姿势</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-24">2022-10-24</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在linux系统当中我们通常会使用命令去查看一些系统的进程信息，我们最常使用的就是 ps (process status)。ps 命令主要是用于查看当前正在运行的程序，以及他们相关的的信息，我们可以通过不同的选项进行查看。ps 给我们提供了非常多的选项，这些选项常常令人分辨不清楚，本篇文章我们仔细谈一谈 ps 输出具体的含义。</p>
+<h2 id="ps命令详解">ps命令详解</h2>
+<h3 id="只输出跟当前shell有关的进程">只输出跟当前shell有关的进程</h3>
+<p>当我们在命令行当中直接输入 ps 命令，那么就只能够看到在当前终端当中启动的进程，即使同一个用户启动其他的终端，在这个终端当中也不能看到同一个用户在其他终端启动的进程，如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/40.webp" alt="40" loading="lazy" /></p>
+<p>分割线表示上下有两个终端：</p>
+<ul>
+<li>我们在上一个终端后台启动一个 sleep.out 的程序，我们就能够在上面的终端里面看到我们刚刚启动的程序。</li>
+<li>但是我们在下面同一个用户的不同终端就不能够看到在上面一个终端启动的程序。</li>
+</ul>
+<p>ps 命令输出的含义：</p>
+<ul>
+<li>PID：进程的进程号，有唯一性。</li>
+<li>TTY：用户登陆的时候使用的虚拟终端。</li>
+<li>TIME：程序使用的CPU时间总和。</li>
+<li>CMD：进程启动的时候执行的命令。</li>
+</ul>
+<h3 id="输出所有的进程">输出所有的进程</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-A
+ps<span class="tok-w"> </span>-e
+</code></pre></div><p>上面的两个命令输出系统当中所有的进程信息，我们可以使用这个命令统计系统当中一个有多少进程：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/41.webp" alt="40" loading="lazy" /></p>
+<h3 id="输出所有进程但是排除终端和session-leader">输出所有进程但是排除终端和session leader</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-a
+</code></pre></div><p>上面的命令输出除了 session leader 和跟终端无关的所有进程。</p>
+<ul>
+<li>跟终端无关的进程很好理解，就是跟终端脱离关系，一般是系统进程和用户的守护进程。</li>
+<li>而 session leader 就是你登陆终端时候的那个进程，如下图所示：</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/linux/command/42.webp" alt="40" loading="lazy" /></p>
+<p>一个更具体的描述一个 shell 中 session leader 和其他进程的关系如下图所示（图中最左方就是 session leader 进程）：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/43.webp" alt="40" loading="lazy" /></p>
+<h3 id="查看正在运行的程序">查看正在运行的程序</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-r
+</code></pre></div><h3 id="查看当前用户的进程">查看当前用户的进程</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-x
+</code></pre></div><h3 id="查看具体某个进程的信息">查看具体某个进程的信息</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-p<span class="tok-w"> </span>pid
+</code></pre></div><p><img src="/content/zh/images/cscore/images/linux/command/44.webp" alt="40" loading="lazy" /></p>
+<h3 id="输出内容携带用户名">输出内容携带用户名</h3>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps -u
+</code></pre></div><h3 id="查看所有与当前终端有关的进程">查看所有与当前终端有关的进程</h3>
+<p>这个命令和直接输入ps执行的效果一样</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-T
+</code></pre></div><h3 id="一个我们非常熟悉的命令">一个我们非常熟悉的命令</h3>
+<p>我们在linux操作系统下面我们通常使用 ps 命令的时候，我们会使用如下两个命令：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>aux<span class="tok-w"> </span><span class="tok-c1"># ax 通常要在一起使用 一起使用时候的效果和 -e 或者 -A 是一样的</span>
+ps<span class="tok-w"> </span>-ef
+</code></pre></div><p>其实在很多情况下我们只想查看与我们自己有关的程序，而上面的两个命令还查看了很多其他用户的进程，因此我们可以修改一下上面两个命令：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>xu
+</code></pre></div><p>上面这个命令只会输出与我们自己有关的程序同时输出的内容还算完整。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/45.webp" alt="40" loading="lazy" /></p>
+<h3 id="指定ps命令输出的内容">指定ps命令输出的内容</h3>
+<p>在前面的命令当中我们都没有定制化的输出过一些内容，都是ps命令想输出啥就输出啥！其实我们可以指定ps命令只输出我们需要的内容，比如下面的命令输出进程id，父进程id，以及程序执行时候输入的命令：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,command
+</code></pre></div><div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>pthreads<span class="tok-w"> </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,command
+<span class="tok-w">    </span>PID<span class="tok-w">    </span>PPID<span class="tok-w"> </span>COMMAND
+<span class="tok-m">2782266</span><span class="tok-w">   </span><span class="tok-m">34624</span><span class="tok-w"> </span>/usr/bin/zsh
+<span class="tok-m">2825942</span><span class="tok-w"> </span><span class="tok-m">2782266</span><span class="tok-w"> </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,command
+</code></pre></div><p>-o表示指定我们想要输出的内容，在上面的命令当中：</p>
+<ul>
+<li>pid: 表示当前进程的进程号。</li>
+<li>ppid: 表示当前进程父进程的进程号。</li>
+<li>command: 表示执行这个命令的时候输入的命令。</li>
+</ul>
+<p>还有很多其他的可以输出的内容，在下表当中列出一些经常使用的条目：</p>
+<table>
+<thead>
+<tr>
+<th>条目</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>pid</td>
+<td>进程号</td>
+</tr>
+<tr>
+<td>ppid</td>
+<td>父进程进程号</td>
+</tr>
+<tr>
+<td>command</td>
+<td>执行命令</td>
+</tr>
+<tr>
+<td>%cpu</td>
+<td>进程对于cpu的使用率</td>
+</tr>
+<tr>
+<td>%mem</td>
+<td>内存占有率</td>
+</tr>
+<tr>
+<td>comm</td>
+<td>更加简洁的命令和command一致</td>
+</tr>
+<tr>
+<td>cputime</td>
+<td>进程累计使用的CPU时间</td>
+</tr>
+<tr>
+<td>etime</td>
+<td>进程开始执行到现在一共过了多长时间</td>
+</tr>
+<tr>
+<td>stat</td>
+<td>进程的状态</td>
+</tr>
+<tr>
+<td>ni</td>
+<td>进程的优先级</td>
+</tr>
+<tr>
+<td>user</td>
+<td>用户名</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>这里我们在重点谈一下进程的状态 stat，我们看一个他的输出：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>pthreads<span class="tok-w"> </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,stat,command
+<span class="tok-w">    </span>PID<span class="tok-w">    </span>PPID<span class="tok-w"> </span>STAT<span class="tok-w"> </span>COMMAND
+<span class="tok-m">2782266</span><span class="tok-w">   </span><span class="tok-m">34624</span><span class="tok-w"> </span>Ss<span class="tok-w">   </span>/usr/bin/zsh
+<span class="tok-m">2832729</span><span class="tok-w"> </span><span class="tok-m">2782266</span><span class="tok-w"> </span>SN<span class="tok-w">   </span>./sleep.out
+<span class="tok-m">2832740</span><span class="tok-w"> </span><span class="tok-m">2782266</span><span class="tok-w"> </span>R+<span class="tok-w">   </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,stat,command
+</code></pre></div><p>在上面当中 <code>STAT</code> 那一列就是表示进程的状态，我们现在仔细分析一下上面字母表示的含义：</p>
+<p><code>STAT</code> 当中字母的含义表：</p>
+<table>
+<thead>
+<tr>
+<th>条目</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D</td>
+<td>表示不能够被中断的睡眠操作，比如说IO操作</td>
+</tr>
+<tr>
+<td>I</td>
+<td>内核当中的空闲线程</td>
+</tr>
+<tr>
+<td>R</td>
+<td>正在执行或者处于就绪队列当中的进程</td>
+</tr>
+<tr>
+<td>S</td>
+<td>可以被中断的睡眠，一般是等待某个事件触发</td>
+</tr>
+<tr>
+<td>T</td>
+<td>被其他的进程发送的信号给停下来了</td>
+</tr>
+<tr>
+<td>t</td>
+<td>被调试或者tracing中</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>表示这个进程是一个僵尸进程</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>表示高优先级</td>
+</tr>
+<tr>
+<td>N</td>
+<td>表示低优先级</td>
+</tr>
+<tr>
+<td>L</td>
+<td>有页面被所在内存当中，也就是说这个页面不会被操作系统换出道对换区当中</td>
+</tr>
+<tr>
+<td>s</td>
+<td>表示这个进程是一个 session leader</td>
+</tr>
+<tr>
+<td>l</td>
+<td>是一个多线程程序</td>
+</tr>
+<tr>
+<td>+</td>
+<td>表示在前台进程组当中</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>现在根据上面表格当中的内容我们可以知道：</p>
+<ul>
+<li>进程 2782266 正在等待某个事件触发，而且这个进程是 session leader。</li>
+<li>进程 2832729 也是在等待某个事件触发，而且是低优先级的进程。</li>
+<li>进程 2832740 正在执行。</li>
+</ul>
+<p>下图表示 linux 当中进程的几种状态：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/03.webp" alt="" loading="lazy" /></p>
+<p>我们在来看一个多进程程序的例子：</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">func</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/* code */</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span>
+<span class="tok-p">}</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">tid</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">tid</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">func</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">  </span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序执行完成之后，ps 的输出结果如下：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>➜<span class="tok-w">  </span>pthreads<span class="tok-w"> </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,stat,command
+<span class="tok-w">    </span>PID<span class="tok-w">    </span>PPID<span class="tok-w"> </span>STAT<span class="tok-w"> </span>COMMAND
+<span class="tok-m">2782266</span><span class="tok-w">   </span><span class="tok-m">34624</span><span class="tok-w"> </span>Ss<span class="tok-w">   </span>/usr/bin/zsh
+<span class="tok-m">2840012</span><span class="tok-w"> </span><span class="tok-m">2782266</span><span class="tok-w"> </span>SNl<span class="tok-w">  </span>./sleep.out<span class="tok-w"> </span><span class="tok-c1"># 这个进程就是上面那个程序表示的进程</span>
+<span class="tok-m">2840037</span><span class="tok-w"> </span><span class="tok-m">2782266</span><span class="tok-w"> </span>R+<span class="tok-w">   </span>ps<span class="tok-w"> </span>-o<span class="tok-w"> </span>pid,ppid,stat,command
+</code></pre></div><p>我们可以看到这个进程的 <code>STAT</code> 当中还有一个 <code>l</code> 表示这是一个多进程的程序。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些常见的 ps 命令的使用方法，以及一些常用的输出，还有就是输出内容中比较重要的进程状态，能够很好的帮助我们实时去了解进程。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-06kill/"><span>较新</span>如何优雅的杀掉一个进程</a><a class="next" href="/posts/cscore-linux-04exitstatus/"><span>较旧</span>程序退出状态码</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#ps命令详解">ps命令详解</a></li>
+      <li class="toc-l3"><a href="#只输出跟当前shell有关的进程">只输出跟当前shell有关的进程</a></li>
+      <li class="toc-l3"><a href="#输出所有的进程">输出所有的进程</a></li>
+      <li class="toc-l3"><a href="#输出所有进程但是排除终端和session-leader">输出所有进程但是排除终端和session leader</a></li>
+      <li class="toc-l3"><a href="#查看正在运行的程序">查看正在运行的程序</a></li>
+      <li class="toc-l3"><a href="#查看当前用户的进程">查看当前用户的进程</a></li>
+      <li class="toc-l3"><a href="#查看具体某个进程的信息">查看具体某个进程的信息</a></li>
+      <li class="toc-l3"><a href="#输出内容携带用户名">输出内容携带用户名</a></li>
+      <li class="toc-l3"><a href="#查看所有与当前终端有关的进程">查看所有与当前终端有关的进程</a></li>
+      <li class="toc-l3"><a href="#一个我们非常熟悉的命令">一个我们非常熟悉的命令</a></li>
+      <li class="toc-l3"><a href="#指定ps命令输出的内容">指定ps命令输出的内容</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

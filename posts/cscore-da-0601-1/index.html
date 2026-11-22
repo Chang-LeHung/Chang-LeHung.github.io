@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01背包面试题系列（一） · Chang-LeHung</title>
+<meta name="description" content="题目描述—— 分割等和子集 给你一个 只包含正整数 的 非空 数组 nums 。请你判断是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。 示例 1： 复制 输入 ： nums = [ 1 , 5 , 11 , 5 ] 输出 ： true 解释 ： 数组可以分割成 [ 1 , 5 , 5 ">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>01背包面试题系列（一）</h1>
+      <p class="post-meta">
+        <time datetime="2022-11-05">2022-11-05</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/数据结构与算法/">数据结构与算法</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="题目描述分割等和子集">题目描述——<a href="https://leetcode.cn/problems/partition-equal-subset-sum/">分割等和子集</a></h2>
+<blockquote>
+<p>给你一个 <strong>只包含正整数</strong> 的 <strong>非空</strong> 数组 <code>nums</code> 。请你判断是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。</p>
+<p><strong>示例 1：</strong></p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">输入</span><span class="tok-err">：</span><span class="tok-n">nums</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-mi">11</span><span class="tok-p">,</span><span class="tok-mi">5</span><span class="tok-o">]</span>
+<span class="tok-n">输出</span><span class="tok-err">：</span><span class="tok-kc">true</span>
+<span class="tok-n">解释</span><span class="tok-err">：</span><span class="tok-n">数组可以分割成</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-n">和</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-mi">11</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-err">。</span>
+</code></pre></div><p><strong>示例 2：</strong></p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>输入：nums = [1,2,3,5]
+输出：false
+解释：数组不能分割成两个元素和相等的子集。
+</code></pre></div></blockquote>
+<h2 id="01背包动态规划求解">01背包动态规划求解</h2>
+<p>上面的问题乍一看好像是一个子集划分的问题，我们可能根据数据<code>nums</code>得到它的所有的子集，然后将所有的自己加起来看看是否存在一个子集的数据的和等于<code>nums</code>数组所有数据的和的一半，其实我们确实可以这样做，我们将在后文当中仔细探讨这个方法。</p>
+<p>那么我们改如何使用<strong>01背包</strong>去解决这个问题呢？我们首先先回顾一下<strong>01背包</strong>解决了什么问题：</p>
+<blockquote>
+<p>有 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi></mrow></math>件物品和一个容量是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>V</mi></mrow></math> 的背包。每件物品只能使用<code>一次</code>。第<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>i</mi></mrow></math>件物品的体积是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>v</mi><mi>i</mi></msub></mrow></math>，价值是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>w</mi><mi>i</mi></msub></mrow></math>。求解将哪些物品装入背包，可使这些物品的总体积不超过背包容量，且总价值最大。</p>
+</blockquote>
+<p><strong>01背包</strong>就是给定一定容量的背包，看他能够装入物品的最大的价值。那么我们该如何将上述问题转化成<strong>01背包</strong>呢？</p>
+<p>我们可以这样，将<code>nums</code>数组当中的数值变成物品对应的价值和体积，比如说<code>nums = [1, 2, 3]</code>，我们就可以分成三个物品，这三个物品的体积和价值分别是<code>1和1</code>、<code>2和2</code>和<code>3和3</code>，我们背包的容量为<code>V = (1 + 2 + 3) / 2</code>。我们将<code>nums</code>数组当中所有数据和的一半作为背包的容量，<code>nums</code>当中的数值就表示每一个物品的价值和体积，而且价值和体积都相等，如果我们能够恰好装满背包就说明，存在一种物品的组合他的和为<code>nums</code>数组当中数据的和的一半。</p>
+<p>那么我们该如何判断背包被恰好装满呢？我们知道背包问题求解的只是在背包容量一定的情况下，我们能够获取的最大的价值是多少，因此好像不能够判断背包是否装满！但是在上面转化的过程当中物品的体积和价值是相等的，因为我们可以根据我们获得的最大价值判断，如果我们最终得到的收益等于背包的容量，那么说明背包被填满了，也就是存在一种物品的组合我们能够获取的最大的价值等于数组当中数据和的一半。因为物品的价值和体积相等，因此把背包填满和获取最大价值是等价的。</p>
+<p>因此根据上面的分析，如果我们想用01背包去解决这个问题，我们可以将背包容量设置为<code>nums</code>数组当中数据和的一半，物品的个数为数组的长度，物品的价值和体积为数组当中对应位置的值，然后进行01背包求解即可。</p>
+<p>如果你还不是很了解01背包的话，可以先看<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247484416&amp;idx=1&amp;sn=d8aa70bc642c94a127ea67409808980f&amp;chksm=cf0c9809f87b111f2fb092adba83da7e5463a8f5eaa92914ddb975065428a1a80a7d6bc53f3a&amp;token=883596793&amp;lang=zh_CN#rd">这篇文章</a>，该文章主要从0开始介绍了01背包问题，从二维数组到滚动数组再到一维数组，优化过程层层递进，带你从原理到实战完全掌握01背包问题。</p>
+<p>因此我们的代码如下（一维数组优化）：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">canPartition</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">num</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">num</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">t</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-o">--</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Math</span><span class="tok-p">.</span><span class="tok-na">max</span><span class="tok-p">(</span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-o">]</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-o">[</span><span class="tok-n">i</span><span class="tok-o">]</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-o">[</span><span class="tok-n">t</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">t</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="子集划分求解">子集划分求解</h2>
+<p>我们知道任何一个集合的子集个数为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>，其中<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>表示集合当中数据的个数，比如说集合<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mrow><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn></mrow></mrow></math>有如下子集（4个）：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo stretchy="false">&#x0007B;</mo><mi>空</mi><mi>集</mi><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>1</mn><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>2</mn><mo stretchy="false">&#x0007D;</mo><mo>&#x0002C;</mo><mo stretchy="false">&#x0007B;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>2</mn><mo stretchy="false">&#x0007D;</mo></mrow></math></div><p>我们先思考一下<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>是怎么计算出来的！我们在生成子集的时候对于每一个数据都有选择和不选择两种情况，这其实就变成了一个排列组合问题。在上面的例子当中1可选可不选（2），2可选可不选（2），因此总的集合个数为4，那么如果有n个数据的集合那么自己个数就等于：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mn>2</mn><mo>&#x000D7;</mo><mn>2</mn><mo>&#x000D7;</mo><mn>2</mn><mo>&#x022EF;</mo><mo>&#x0003D;</mo><msup><mn>2</mn><mi>n</mi></msup></mrow></math></div><p>这个选择情况的划分如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/dsal/backtrace/01.webp" alt="" loading="lazy" /></p>
+<p><img src="/content/zh/images/cscore/images/dsal/backtrace/02.webp" alt="" loading="lazy" /></p>
+<p>而我们使用程序去计算一个集合的子集其实就是一个回溯的问题，分割等和子集的子集划分的代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Solution</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">canPartition</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">        </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">num</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">num</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 我们最终的目标就是找到一个自己的和等于这个数</span>
+<span class="tok-w">        </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">sum</span><span class="tok-w"> </span><span class="tok-o">/</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">backTrace</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/**</span>
+<span class="tok-cm">   * @param curIndex 表示当前遍历的数组的位置</span>
+<span class="tok-cm">   * @param curSum   当前集合所有数据的和</span>
+<span class="tok-cm">   * @param nums     待遍历的数组</span>
+<span class="tok-cm">   * @return</span>
+<span class="tok-cm">   */</span>
+<span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">backTrace</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curIndex</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这里是剪枝操作 如果当前的和已经大于目标值或者</span>
+<span class="tok-w">        </span><span class="tok-c1">// 遍历的下标超过数组的长度了就返回 false 表示</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这个分支没有找到一个集合，集合当中的数据之和等于 target</span>
+<span class="tok-w">        </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">target</span><span class="tok-w"> </span><span class="tok-o">||</span><span class="tok-w"> </span><span class="tok-n">curIndex</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">false</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 选择某个数据</span>
+<span class="tok-w">        </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-o">[</span><span class="tok-n">curIndex</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">backTrace</span><span class="tok-p">(</span><span class="tok-n">curIndex</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">))</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 不选择某个数据 对应这回溯的操作</span>
+<span class="tok-w">        </span><span class="tok-n">curSum</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-o">[</span><span class="tok-n">curIndex</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">backTrace</span><span class="tok-p">(</span><span class="tok-n">curIndex</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">curSum</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">nums</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>我们知道动态规划的时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mi>m</mi><mo stretchy="false">&#x00029;</mo></mrow></math>，其中<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>m</mi></mrow></math>表示<code>nums</code>数组的和的一半，<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>表示数组当中数据的个数，而这个使用生成子集的方法的话时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。因此如果你再<strong>LeetCode</strong>上提交这个代码会超时。</p>
+<h2 id="总结">总结</h2>
+<p>本文主要给大家介绍<strong>分割等和子集</strong>这个题目，这个题目的即可以使用动态规划进行求解也能使用回溯法进行求解，但是回溯法求解问题的时间复杂度太高。使用动态规划求解的方法还是比较抽象，可能需要大家花时间好好琢磨一下，希望大家有所收获，我是LeHung，我们下期再见！！！（记得<strong>点赞</strong>收藏哦！）</p>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-da-05/"><span>较新</span>深入剖析斐波拉契数列</a><a class="next" href="/posts/cscore-da-07/"><span>较旧</span>深入剖析前缀、中缀、后缀表达式以及表达式求值</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#题目描述分割等和子集">题目描述——分割等和子集</a></li>
+      <li class="toc-l2"><a href="#01背包动态规划求解">01背包动态规划求解</a></li>
+      <li class="toc-l2"><a href="#子集划分求解">子集划分求解</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

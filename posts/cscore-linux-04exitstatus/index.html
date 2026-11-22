@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>程序退出状态码 · Chang-LeHung</title>
+<meta name="description" content="前言 在本篇文章当中主要给大家介绍一个shell的小知识——状态码。这是当我们的程序退出的时候，子进程会将自己程序的退出码传递给父进程，有时候我们可以利用这一操作做一些进程退出之后的事情，比如当程序执行失败或者被某个信号杀死我们就可以了解到，然后做出对应的措施。 状态码简介 上图是一个zsh的截图，">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>程序退出状态码</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-23">2022-10-23</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在本篇文章当中主要给大家介绍一个shell的小知识——状态码。这是当我们的程序退出的时候，子进程会将自己程序的退出码传递给父进程，有时候我们可以利用这一操作做一些进程退出之后的事情，比如当程序执行失败或者被某个信号杀死我们就可以了解到，然后做出对应的措施。</p>
+<h2 id="状态码简介">状态码简介</h2>
+<p><img src="/content/zh/images/cscore/images/linux/command/29.webp" alt="" loading="lazy" /></p>
+<p>上图是一个zsh的截图，当我们执行命令<code>asdsad</code>之后，因为没有这个命令，所以zsh（类似于bash的一种shell），输出没有找到这个命令，但是我们发现图中箭头➡️由绿色变成红色，表示程序不是正常退出。现在有一个问题是，zsh是怎么知道程序不是正常退出的呢？其实就可以根据子进程退出的状态推断。在文章的最后我们用C语言实现一下，看看如果在父进程接收子进程的退出的状态。</p>
+<p>我们在命令行当中可以通过命令 <code>echo $?</code> 查看上一个进程退出时候的退出码，这里的上一个进程就是 ls 命令：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/32.webp" alt="" loading="lazy" /></p>
+<p>程序正常退出的时候退出码等于0。</p>
+<h2 id="退出码表">退出码表</h2>
+<table>
+<thead>
+<tr>
+<th>退出码</th>
+<th>含义</th>
+<th>例子</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>一般的错误</td>
+<td>除以0</td>
+<td>一般的除以0的错误，执行没有权限的操作</td>
+</tr>
+<tr>
+<td>2</td>
+<td>shell 内部操作失败</td>
+<td></td>
+<td>通常是shell操作时候的命令错误，文章后面有一个例子演示</td>
+</tr>
+<tr>
+<td>126</td>
+<td>执行不能够执行的文件</td>
+<td>/dev/random</td>
+<td>权限问题或者命令不能够执行</td>
+</tr>
+<tr>
+<td>127</td>
+<td>命令没有找到</td>
+<td>非法或者不存在的命令</td>
+<td>执行一个系统当中不存在的命令，可以通过设置PATH环境变量</td>
+</tr>
+<tr>
+<td>128+n</td>
+<td>错误的信号值</td>
+<td>Kill -9 PID</td>
+<td>杀死进程号为PID的进程，进程的退出码等于 128 + 9</td>
+</tr>
+<tr>
+<td>130</td>
+<td>ctrl+c 之后进程的返回值</td>
+<td></td>
+<td>和上一条一样ctrl+c的信号值等于2</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>退出码s不在范围之内</td>
+<td>exit(-1)</td>
+<td>如果退出码n不在0-255之内，那么程序退出之后的退出码为n&amp;255，并且取低8位作为最终的结果</td>
+</tr>
+</tbody>
+</table>
+<h2 id="实例说明">实例说明</h2>
+<h3 id="退出码1">退出码——1</h3>
+<h4 id="除以0">除以0</h4>
+<p><img src="/content/zh/images/cscore/images/linux/command/30.webp" alt="30" loading="lazy" /></p>
+<h4 id="执行没有权限的操作">执行没有权限的操作</h4>
+<p><img src="/content/zh/images/cscore/images/linux/command/31.webp" alt="30" loading="lazy" /></p>
+<p>上面直接进入root用户的目录，因为没有权限，查看进程的退出码等于1。</p>
+<h3 id="shell内部操作失败退出码2">shell内部操作失败——退出码2</h3>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">a</span><span class="tok-o">=</span><span class="tok-m">1</span>
+<span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-o">[</span><span class="tok-w"> </span><span class="tok-nv">$a</span><span class="tok-w"> </span>-eq<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-o">]</span>
+<span class="tok-k">then</span>
+<span class="tok-w">  </span><span class="tok-nb">echo</span><span class="tok-w"> </span>hello<span class="tok-w"> </span>world
+</code></pre></div><p>比如对于上面的shell脚本是有语法错误的正确的语法还需要在最后加上fi，现在我们执行上面的脚本查看结果：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/33.webp" alt="30" loading="lazy" /></p>
+<h3 id="退出码126">退出码126</h3>
+<p>当因为权限问题或者命令不可以执行那么进程的退出码就是126:</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/34.webp" alt="30" loading="lazy" /></p>
+<h3 id="命令没有找到退出码127">命令没有找到——退出码127</h3>
+<p><img src="/content/zh/images/cscore/images/linux/command/35.webp" alt="30" loading="lazy" /></p>
+<h3 id="信号值128n信号对应的数值">信号值——128+n(信号对应的数值)</h3>
+<p>我们可以使用<code>kil -l </code>命令查看 linux 操作系统当中信号以及对应的数值：</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGHUP<span class="tok-w">	 </span><span class="tok-m">2</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGINT<span class="tok-w">	 </span><span class="tok-m">3</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGQUIT<span class="tok-w">	 </span><span class="tok-m">4</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGILL<span class="tok-w">	 </span><span class="tok-m">5</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGTRAP
+<span class="tok-w"> </span><span class="tok-m">6</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGABRT<span class="tok-w">	 </span><span class="tok-m">7</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGBUS<span class="tok-w">	 </span><span class="tok-m">8</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGFPE<span class="tok-w">	 </span><span class="tok-m">9</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGKILL<span class="tok-w">	</span><span class="tok-m">10</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGUSR1
+<span class="tok-m">11</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGSEGV<span class="tok-w">	</span><span class="tok-m">12</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGUSR2<span class="tok-w">	</span><span class="tok-m">13</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGPIPE<span class="tok-w">	</span><span class="tok-m">14</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGALRM<span class="tok-w">	</span><span class="tok-m">15</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGTERM
+<span class="tok-m">16</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGSTKFLT<span class="tok-w">	</span><span class="tok-m">17</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGCHLD<span class="tok-w">	</span><span class="tok-m">18</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGCONT<span class="tok-w">	</span><span class="tok-m">19</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGSTOP<span class="tok-w">	</span><span class="tok-m">20</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGTSTP
+<span class="tok-m">21</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGTTIN<span class="tok-w">	</span><span class="tok-m">22</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGTTOU<span class="tok-w">	</span><span class="tok-m">23</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGURG<span class="tok-w">	</span><span class="tok-m">24</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGXCPU<span class="tok-w">	</span><span class="tok-m">25</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGXFSZ
+<span class="tok-m">26</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGVTALRM<span class="tok-w">	</span><span class="tok-m">27</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGPROF<span class="tok-w">	</span><span class="tok-m">28</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGWINCH<span class="tok-w">	</span><span class="tok-m">29</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGIO<span class="tok-w">	</span><span class="tok-m">30</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGPWR
+<span class="tok-m">31</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGSYS<span class="tok-w">	</span><span class="tok-m">34</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN<span class="tok-w">	</span><span class="tok-m">35</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+1<span class="tok-w">	</span><span class="tok-m">36</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+2<span class="tok-w">	</span><span class="tok-m">37</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+3
+<span class="tok-m">38</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+4<span class="tok-w">	</span><span class="tok-m">39</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+5<span class="tok-w">	</span><span class="tok-m">40</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+6<span class="tok-w">	</span><span class="tok-m">41</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+7<span class="tok-w">	</span><span class="tok-m">42</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+8
+<span class="tok-m">43</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+9<span class="tok-w">	</span><span class="tok-m">44</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+10<span class="tok-w">	</span><span class="tok-m">45</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+11<span class="tok-w">	</span><span class="tok-m">46</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+12<span class="tok-w">	</span><span class="tok-m">47</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+13
+<span class="tok-m">48</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+14<span class="tok-w">	</span><span class="tok-m">49</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMIN+15<span class="tok-w">	</span><span class="tok-m">50</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-14<span class="tok-w">	</span><span class="tok-m">51</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-13<span class="tok-w">	</span><span class="tok-m">52</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-12
+<span class="tok-m">53</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-11<span class="tok-w">	</span><span class="tok-m">54</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-10<span class="tok-w">	</span><span class="tok-m">55</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-9<span class="tok-w">	</span><span class="tok-m">56</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-8<span class="tok-w">	</span><span class="tok-m">57</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-7
+<span class="tok-m">58</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-6<span class="tok-w">	</span><span class="tok-m">59</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-5<span class="tok-w">	</span><span class="tok-m">60</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-4<span class="tok-w">	</span><span class="tok-m">61</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-3<span class="tok-w">	</span><span class="tok-m">62</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-2
+<span class="tok-m">63</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX-1<span class="tok-w">	</span><span class="tok-m">64</span><span class="tok-o">)</span><span class="tok-w"> </span>SIGRTMAX
+</code></pre></div><p>当我们在命令行使用ctrl+c中断程序的执行的时候，这个正在执行的进程就会接受到SIGINT信号，根据上文这个信号对应的数值为2，因此程序的退出码等于130（128 + 2）。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/36.webp" alt="30" loading="lazy" /></p>
+<p>下面是一个通过kill命令发送对应的信号的例子：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/37.webp" alt="30" loading="lazy" /></p>
+<p>可以看到的程序的退出码是符号我们的预期的。</p>
+<h3 id="不在范围内不的退出码">不在范围内不的退出码</h3>
+<p>不在范围内（0-255）的退出码，需要和 0xff 进行 &amp; 操作，得到的结果作为无符号数作为最终的程序的退出码！</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/38.webp" alt="30" loading="lazy" /></p>
+<p>在上面的例子当中退出码256的二进制表示 1_0000_0000 他和 255（二进制表示为1111_1111）进行与操作得到的结果为1_0000_000，低8位等于0000_0000，因此最终的退出码等于0。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/39.webp" alt="30" loading="lazy" /></p>
+<p>在上面的图当中-1的二进制表示等于1111_1111 因此最后得到的退出码等于1111_1111 = 255。</p>
+<h2 id="cpython语言获取进程退出的状态码">C/Python语言获取进程退出的状态码</h2>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;unistd.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/types.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;sys/wait.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-k">if</span><span class="tok-p">(</span><span class="tok-n">fork</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w">  </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">_exit</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span><span class="tok-w">  </span><span class="tok-c1">// 子进程执行</span>
+<span class="tok-w">  </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 父进程执行</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">status</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">wait</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">status</span><span class="tok-p">);</span><span class="tok-w">         </span><span class="tok-c1">// WEXITSTATUS 这个宏就是获取子进程退出时候的退出码</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"status = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">WEXITSTATUS</span><span class="tok-p">(</span><span class="tok-n">status</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-p">}</span><span class="tok-w"> </span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中父进程执行的 wait 函数就是等待子进程的状态变化，当子进程退出的时候 wait 函数会返回，同时将子进程一些状态信息保存在 status 当中，然后我们就可以子进程传递给父进程最后的信息啦。其中 WEXITSTATUS 这个宏就是获取子进程退出时候的退出码！对应的 python 实现如下图所示：</p>
+<div class="code-block" data-lang="py"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">os</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">sys</span>
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">pid</span> <span class="tok-o">=</span> <span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">fork</span><span class="tok-p">()</span>
+    <span class="tok-k">if</span> <span class="tok-n">pid</span> <span class="tok-o">==</span> <span class="tok-mi">0</span><span class="tok-p">:</span>
+        <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+    <span class="tok-k">else</span><span class="tok-p">:</span>
+        <span class="tok-n">pid</span><span class="tok-p">,</span> <span class="tok-n">status</span> <span class="tok-o">=</span> <span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">wait</span><span class="tok-p">()</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">os</span><span class="tok-o">.</span><span class="tok-n">WEXITSTATUS</span><span class="tok-p">(</span><span class="tok-n">status</span><span class="tok-p">))</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了一些常见的程序退出的状态码！并且给出一下例子帮助大家仔细理解，并且使用C语言和python语言实现获取子进程退出时候的退出状态码。</p>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-05ps/"><span>较新</span>这才是使用ps命令的正确姿势</a><a class="next" href="/posts/cscore-concurrency-18threadpoolmoreclosejdk/"><span>较旧</span>自己动手写线程池——向JDK线程池进发</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#状态码简介">状态码简介</a></li>
+      <li class="toc-l2"><a href="#退出码表">退出码表</a></li>
+      <li class="toc-l2"><a href="#实例说明">实例说明</a></li>
+      <li class="toc-l3"><a href="#退出码1">退出码——1</a></li>
+      <li class="toc-l3"><a href="#shell内部操作失败退出码2">shell内部操作失败——退出码2</a></li>
+      <li class="toc-l3"><a href="#退出码126">退出码126</a></li>
+      <li class="toc-l3"><a href="#命令没有找到退出码127">命令没有找到——退出码127</a></li>
+      <li class="toc-l3"><a href="#信号值128n信号对应的数值">信号值——128+n(信号对应的数值)</a></li>
+      <li class="toc-l3"><a href="#不在范围内不的退出码">不在范围内不的退出码</a></li>
+      <li class="toc-l2"><a href="#cpython语言获取进程退出的状态码">C/Python语言获取进程退出的状态码</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

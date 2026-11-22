@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>标签：并发编程 · Chang-LeHung</title>
+<meta name="description" content="Chang-LeHung（牧牛的铃铛）的个人站点：编程语言、虚拟机与编译器，以及 LLM agent 运行时与本地优先知识工具。">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/tags/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/" aria-current="page">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/tags/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="shell">
+  <h1 class="page-title">标签：并发编程</h1>
+  <p class="page-sub">35 篇 · <a href="/tags/">全部标签</a></p>
+  <ul class="entries">
+    <li>
+      <time datetime="2023-03-06">2023-03-06</time>
+      <a href="/posts/cscore-concurrency-14task/">OpenMP task construct 实现原理以及源码分析</a>
+    </li>
+    <li>
+      <time datetime="2023-02-17">2023-02-17</time>
+      <a href="/posts/cscore-concurrency-13seciton/">OpenMP Sections Construct 实现原理以及源码分析</a>
+    </li>
+    <li>
+      <time datetime="2023-02-14">2023-02-14</time>
+      <a href="/posts/cscore-concurrency-12guided/">OpenMP For Construct guided 调度方式实现原理和源码分析</a>
+    </li>
+    <li>
+      <time datetime="2023-02-03">2023-02-03</time>
+      <a href="/posts/cscore-concurrency-11for-dynamic/">OpenMP For Construct dynamic 调度方式实现原理和源码分析</a>
+    </li>
+    <li>
+      <time datetime="2023-01-30">2023-01-30</time>
+      <a href="/posts/cscore-concurrency-10sync/">OpenMP 线程同步 Construct 实现原理以及源码分析（下）</a>
+    </li>
+    <li>
+      <time datetime="2023-01-27">2023-01-27</time>
+      <a href="/posts/cscore-concurrency-09sync/">OpenMP 线程同步 Construct 实现原理以及源码分析（上）</a>
+    </li>
+    <li>
+      <time datetime="2023-01-25">2023-01-25</time>
+      <a href="/posts/cscore-concurrency-08parallel/">OpenMP Parallel Construct 实现原理与源码分析</a>
+    </li>
+    <li>
+      <time datetime="2023-01-20">2023-01-20</time>
+      <a href="/posts/cscore-concurrency-05environment/">OpenMP 环境变量使用总结</a>
+    </li>
+    <li>
+      <time datetime="2023-01-20">2023-01-20</time>
+      <a href="/posts/cscore-concurrency-06sync/">深入理解 OpenMP 线程同步机制</a>
+    </li>
+    <li>
+      <time datetime="2023-01-20">2023-01-20</time>
+      <a href="/posts/cscore-concurrency-07atomic/">OpenMP 原子指令设计与实现</a>
+    </li>
+    <li>
+      <time datetime="2023-01-16">2023-01-16</time>
+      <a href="/posts/cscore-concurrency-04runtime2/">Openmp Runtime 库函数汇总（下）——深入剖析锁🔒原理与实现</a>
+    </li>
+    <li>
+      <time datetime="2023-01-15">2023-01-15</time>
+      <a href="/posts/cscore-concurrency-03runtime1/">Openmp Runtime 库函数汇总（上）</a>
+    </li>
+    <li>
+      <time datetime="2022-11-18">2022-11-18</time>
+      <a href="/posts/cscore-concurrency-03pthread/">Pthread 并发编程（三）——深入理解线程取消机制</a>
+    </li>
+    <li>
+      <time datetime="2022-11-14">2022-11-14</time>
+      <a href="/posts/cscore-concurrency-02pthread/">Pthread 并发编程（二）——自底向上深入理解线程</a>
+    </li>
+    <li>
+      <time datetime="2022-11-09">2022-11-09</time>
+      <a href="/posts/cscore-concurrency-02openmp/">OpenMP 教程（一）——OpenMP 当中的 reduction 子句</a>
+    </li>
+    <li>
+      <time datetime="2022-11-02">2022-11-02</time>
+      <a href="/posts/cscore-concurrency-01pthread/">Pthread 并发编程（一）——深入剖析线程基本元素和状态</a>
+    </li>
+    <li>
+      <time datetime="2022-10-29">2022-10-29</time>
+      <a href="/posts/cscore-concurrency-01introduction/">OpenMP 入门</a>
+    </li>
+    <li>
+      <time datetime="2022-10-21">2022-10-21</time>
+      <a href="/posts/cscore-concurrency-18threadpoolmoreclosejdk/">自己动手写线程池——向JDK线程池进发</a>
+    </li>
+    <li>
+      <time datetime="2022-10-18">2022-10-18</time>
+      <a href="/posts/cscore-concurrency-17threadpoolimplementation/">自己动手写乞丐版线程池</a>
+    </li>
+    <li>
+      <time datetime="2022-10-16">2022-10-16</time>
+      <a href="/posts/cscore-concurrency-16retalkingthreadpool/">再谈线程池——深入剖析线程池的前世今生</a>
+    </li>
+    <li>
+      <time datetime="2022-09-19">2022-09-19</time>
+      <a href="/posts/cscore-concurrency-14threadpool/">彻底了解线程池的原理——40行从零开始自己写线程池</a>
+    </li>
+    <li>
+      <time datetime="2022-09-01">2022-09-01</time>
+      <a href="/posts/cscore-concurrency-15threadpoolv2/">彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor</a>
+    </li>
+    <li>
+      <time datetime="2022-08-16">2022-08-16</time>
+      <a href="/posts/cscore-concurrency-13locksupport/">60行自己动手写LockSupport是什么体验？</a>
+    </li>
+    <li>
+      <time datetime="2022-08-15">2022-08-15</time>
+      <a href="/posts/cscore-concurrency-12blockingqueuesrc/">JDK数组阻塞队列源码深入剖析</a>
+    </li>
+    <li>
+      <time datetime="2022-08-14">2022-08-14</time>
+      <a href="/posts/cscore-concurrency-11blockingqueue/">从零开始自己动手写阻塞队列</a>
+    </li>
+    <li>
+      <time datetime="2022-08-12">2022-08-12</time>
+      <a href="/posts/cscore-concurrency-10spinlock/">从零开始自己动手写自旋锁</a>
+    </li>
+    <li>
+      <time datetime="2022-08-11">2022-08-11</time>
+      <a href="/posts/cscore-concurrency-09synchronized/">Synchronized锁升级原理与过程深入剖析</a>
+    </li>
+    <li>
+      <time datetime="2022-08-08">2022-08-08</time>
+      <a href="/posts/cscore-concurrency-08synchronizedusage/">深入学习Synchronized各种使用方法</a>
+    </li>
+    <li>
+      <time datetime="2022-08-06">2022-08-06</time>
+      <a href="/posts/cscore-concurrency-07futuretasksrc/">FutureTask源码深度剖析</a>
+    </li>
+    <li>
+      <time datetime="2022-08-05">2022-08-05</time>
+      <a href="/posts/cscore-concurrency-05falsesharing/">并发刺客（False Sharing）——并发程序的隐藏杀手</a>
+    </li>
+    <li>
+      <time datetime="2022-08-05">2022-08-05</time>
+      <a href="/posts/cscore-concurrency-06futuretask/">60行自己动手写FutureTask</a>
+    </li>
+    <li>
+      <time datetime="2022-08-01">2022-08-01</time>
+      <a href="/posts/cscore-concurrency-04volatile/">万字长文：从计算机本源深入探寻volatile和Java内存模型</a>
+    </li>
+    <li>
+      <time datetime="2022-07-22">2022-07-22</time>
+      <a href="/posts/cscore-concurrency-03/">30行自己写并发工具类(Semaphore, CyclicBarrier, CountDownLatch)是什么体验？</a>
+    </li>
+    <li>
+      <time datetime="2022-07-21">2022-07-21</time>
+      <a href="/posts/cscore-concurrency-02/">并发程序的噩梦——数据竞争</a>
+    </li>
+    <li>
+      <time datetime="2022-07-19">2022-07-19</time>
+      <a href="/posts/cscore-concurrency-01-java/">并发开篇——带你从0到1建立并发知识体系的基石</a>
+    </li>
+  </ul>
+</div>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

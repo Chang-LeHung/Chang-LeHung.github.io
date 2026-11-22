@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linux命令系列之ls——原来最简单的ls这么复杂 · Chang-LeHung</title>
+<meta name="description" content="ls命令应该是我们最常用的命令之一了，但是我们可能容易忽略那些看起来最简单的东西。 简介 ls命令的使用格式如下 复制 ls [ 选项 ] [ 具体的文件 ] # [] 表示可选 直接在命令行输入 ls 将当前目录下的列出当前目录下的文件和目录。 复制 $ls LICENSE README.md h">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>Linux命令系列之ls——原来最简单的ls这么复杂</h1>
+      <p class="post-meta">
+        <time datetime="2022-10-07">2022-10-07</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/linux/">Linux</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>ls命令应该是我们最常用的命令之一了，但是我们可能容易忽略那些看起来最简单的东西。</p>
+<h2 id="简介">简介</h2>
+<p>ls命令的使用格式如下</p>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ls<span class="tok-w"> </span><span class="tok-o">[</span>选项<span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">[</span>具体的文件<span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-c1"># [] 表示可选</span>
+</code></pre></div><ul>
+<li>直接在命令行输入<code>ls</code>将当前目录下的列出当前目录下的文件和目录。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ls</span>
+LICENSE<span class="tok-w">  </span>README.md<span class="tok-w">  </span>hello.c
+</code></pre></div><ul>
+<li>也可以指定具体的目录和文件</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ls</span><span class="tok-w"> </span>/
+bin<span class="tok-w">   </span>dev<span class="tok-w">  </span>home<span class="tok-w">  </span>lib32<span class="tok-w">  </span>libx32<span class="tok-w">  </span>mnt<span class="tok-w">  </span>proc<span class="tok-w">  </span>run<span class="tok-w">   </span>srv<span class="tok-w">  </span>tmp<span class="tok-w">  </span>var
+boot<span class="tok-w">  </span>etc<span class="tok-w">  </span>lib<span class="tok-w">   </span>lib64<span class="tok-w">  </span>media<span class="tok-w">   </span>opt<span class="tok-w">  </span>root<span class="tok-w">  </span>sbin<span class="tok-w">  </span>sys<span class="tok-w">  </span>usr
+</code></pre></div><ul>
+<li>展示隐藏文件（所谓隐藏文件就是以<code>.</code>开头的目录或者文件），增加<code>-a</code>选项。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ls</span><span class="tok-w"> </span>-a
+.<span class="tok-w">  </span>..<span class="tok-w">  </span>.git<span class="tok-w">  </span>LICENSE<span class="tok-w">  </span>README.md<span class="tok-w">  </span>hello.c<span class="tok-w"> </span><span class="tok-c1"># . 表示当前目录 .. 表示上一级目录</span>
+</code></pre></div><ul>
+<li>展示文件的详细信息。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ls</span><span class="tok-w"> </span>-al
+total<span class="tok-w"> </span><span class="tok-m">44</span>
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">6</span><span class="tok-w"> </span><span class="tok-m">04</span>:20<span class="tok-w"> </span>.
+drwx------<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:16<span class="tok-w"> </span>..
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">8</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>.git
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w"> </span><span class="tok-m">18027</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>LICENSE
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">   </span><span class="tok-m">210</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>README.md
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>hello.c
+</code></pre></div><h2 id="详细信息说明">详细信息说明</h2>
+<p>我们现在来仔细分析一下<code>ls</code>输出结果：</p>
+<p>第一行 <code>total 44</code>，表示这个目录下面所有的文件的大小总和，单位是<code>KiB</code>。</p>
+<p>然后是接下来的每一行，每一行的开头都有10个字符，他们的含义具体如下：</p>
+<h3 id="文件类型说明">文件类型说明</h3>
+<p>第一个字符，有的是<code>d</code>, 有的是<code>-</code>，在linux系统当中，这第一个字符表示文件的类型，他有如下几种类型：</p>
+<ul>
+<li><code>d</code>，表示目录，比如说上面的<code>.</code>当前目录，<code>..</code>上一级的目录。</li>
+<li><code>-</code>，表示一般的文件，比如说上面的<code>hello.c</code>.</li>
+<li><code>b</code>，表示块设备，比如我们的磁盘就是一种块设备，他们的这个位置都是<code>b</code>。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ls</span><span class="tok-w"> </span>-al<span class="tok-w"> </span>/dev/<span class="tok-w"> </span><span class="tok-p">|</span><span class="tok-w"> </span>grep<span class="tok-w"> </span>sda
+brw-rw----<span class="tok-w">  </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>disk<span class="tok-w">      </span><span class="tok-m">8</span>,<span class="tok-w">   </span><span class="tok-m">0</span><span class="tok-w"> </span>Apr<span class="tok-w"> </span><span class="tok-m">30</span><span class="tok-w"> </span><span class="tok-m">23</span>:16<span class="tok-w"> </span>sda
+brw-rw----<span class="tok-w">  </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>disk<span class="tok-w">      </span><span class="tok-m">8</span>,<span class="tok-w">   </span><span class="tok-m">1</span><span class="tok-w"> </span>Apr<span class="tok-w"> </span><span class="tok-m">30</span><span class="tok-w"> </span><span class="tok-m">23</span>:16<span class="tok-w"> </span>sda1
+brw-rw----<span class="tok-w">  </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>disk<span class="tok-w">      </span><span class="tok-m">8</span>,<span class="tok-w">   </span><span class="tok-m">2</span><span class="tok-w"> </span>Apr<span class="tok-w"> </span><span class="tok-m">30</span><span class="tok-w"> </span><span class="tok-m">23</span>:16<span class="tok-w"> </span>sda2
+brw-rw----<span class="tok-w">  </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>disk<span class="tok-w">      </span><span class="tok-m">8</span>,<span class="tok-w">   </span><span class="tok-m">3</span><span class="tok-w"> </span>Apr<span class="tok-w"> </span><span class="tok-m">30</span><span class="tok-w"> </span><span class="tok-m">23</span>:16<span class="tok-w"> </span>sda3
+</code></pre></div><ul>
+<li><code>l</code>，表示一个符号链接文件，也叫做软链接。比如我们创建一个软链接文件，并且查看它，软链接就相当于windows中的快捷方式，它并不真正的去存储数据，简单说来只是存储来一个指向一个文件的链接。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$ln</span><span class="tok-w"> </span>-s<span class="tok-w"> </span>hello.c<span class="tok-w"> </span>softlink.c
+<span class="tok-nv">$ls</span><span class="tok-w"> </span>-al
+total<span class="tok-w"> </span><span class="tok-m">52</span>
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:39<span class="tok-w"> </span>.
+drwx------<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:33<span class="tok-w"> </span>..
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">8</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>.git
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w"> </span><span class="tok-m">18027</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>LICENSE
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">   </span><span class="tok-m">210</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>README.md
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>copy.c
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>dcopy.c
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>hello.c
+lrwxrwxrwx<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">     </span><span class="tok-m">7</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:39<span class="tok-w"> </span>softlink.c<span class="tok-w"> </span>-&gt;<span class="tok-w"> </span>hello.c<span class="tok-w"> </span><span class="tok-c1"># 这里就表示是软链接</span>
+</code></pre></div><ul>
+<li><code>p</code>，表示一个管道，我们在进行多进程通信的时候可能需要使用到这个设备文件。比如我们创建一个具体的管道：</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$mkfifo</span><span class="tok-w"> </span><span class="tok-nb">test</span>
+<span class="tok-nv">$ll</span>
+total<span class="tok-w"> </span><span class="tok-m">52</span>
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">05</span>:06<span class="tok-w"> </span>./
+drwx------<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:40<span class="tok-w"> </span>../
+drwxr-xr-x<span class="tok-w"> </span><span class="tok-m">8</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">  </span><span class="tok-m">4096</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>.git/
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w"> </span><span class="tok-m">18027</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>LICENSE
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">   </span><span class="tok-m">210</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:28<span class="tok-w"> </span>README.md
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>copy.c
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>dcopy.c
+-rw-r--r--<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">    </span><span class="tok-m">72</span><span class="tok-w"> </span>Aug<span class="tok-w"> </span><span class="tok-m">26</span><span class="tok-w"> </span><span class="tok-m">15</span>:32<span class="tok-w"> </span>hello.c
+lrwxrwxrwx<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">     </span><span class="tok-m">7</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">03</span>:39<span class="tok-w"> </span>softlink.c<span class="tok-w"> </span>-&gt;<span class="tok-w"> </span>hello.c
+prw-r--r--<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-w"> </span>root<span class="tok-w"> </span>root<span class="tok-w">     </span><span class="tok-m">0</span><span class="tok-w"> </span>Oct<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w"> </span><span class="tok-m">05</span>:06<span class="tok-w"> </span><span class="tok-nb">test</span><span class="tok-w"> </span><span class="tok-c1"># 这里就是我么你创建的管道</span>
+</code></pre></div><ul>
+<li><code>s</code>，这个表示一个套接字，用于网络通信。</li>
+</ul>
+<h3 id="权限说明">权限说明</h3>
+<p>对于后面9个字符来说，是用于表示文件的相关权限的。对于每一种文件来说，它主要有三个权限，读、写和执行，我们很容易理解这三种权限，对于一个文件来说我们当然是想要读和写的，对于有的文件来说我们希望他是可执行的。我们稍后具体具一个例子，我们先来看这个9个位置分表表示的含义。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/15.webp" alt="" loading="lazy" /></p>
+<p>在这9个位置的字符当中如果是用<code>-</code>表示，则说明没有对应的权限，如果是用对应的<code>r</code>,<code>w</code>,<code>x</code>表示，则说明有对应的权限。这9个字符每三个字符是一组，第一组表示文件的作者的权限，第二组表示作者所在组内的其他人的权限，第三组表示其他人的权限，也就是除了作者和作者所在的组之外的其他人的权限。</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/16.webp" alt="" loading="lazy" /></p>
+<p>比如在上图当中有一个可执行文件a.out，但是当我们使用chmod命令将他的所有的可执行权限都删掉的时候他就不可以被执行了，程序输出的结果表示没有权限。在没有修改之前，作者、组和其他人的权限为<code>-rwxr-xr-x</code>，所有的这些人都有可执行的权限。但是当执行命令<code>chmod -x a.out</code>之后去除了所有人的可执行权限之后，再想执行a.out就会报错了，表示权限不够，如果我们还想执行a.out的话就需要将权限重新加回去：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/17.webp" alt="" loading="lazy" /></p>
+<p>上面主要谈到了关于权限的问题，我们现在来好好谈一谈chmod命令，这条命令主要是用来修改文件的权限的，比如上面那样。在chmod当中我们可以有如下的几种方式去修改文件的权限：</p>
+<ul>
+<li>直接通过<code>+r</code>，<code>+w</code>，<code>+x</code>和<code>-r</code>，<code>-w</code>，<code>-x</code>去修改三个不同的位置的权限，具体如下面这个例子所示。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/linux/command/18.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>除此之外我们还可以指定特定的人或者组。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/linux/command/19.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>在上面的例子当中我们还使用数组去表示权限，因为不管是那中类型的用户都有三种权限，每一种权限有具有两种状态，有这个权限和没有这个权限。那么每一个位置都可以使用一个二进制位进行表示，当二进制位为1的时候就说明有这个权限，为0的时候就没有这个权限。那么三个二进制位就表示一类用户（作者、组和其他），因此每一个用户的权限我们可以用三个二进制数进行表示，比如在上图当中的<code>chmod 746 hello.c</code>这条命令的输出结果和下图当中是相互对应的，打击可以仔细对照的思考一下。</li>
+</ul>
+<p><img src="/content/zh/images/cscore/images/linux/command/20.webp" alt="" loading="lazy" /></p>
+<h3 id="其他说明">其他说明</h3>
+<p>至此我们已经完成了<code>ls</code>输出的第一步分析，接下来我们来看第二行，第二行输出的数据是文件的链接的数目。对于目录来说这个链接的数目就是子目录的数目，对于文件来说就是硬链接的数量。对于一个新创建的文件来说硬链接的数目为1，我们可以是使用ln命令去增加一个文件的硬链接的数量，比如下图</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/21.webp" alt="" loading="lazy" /></p>
+<p>硬链接和软链接的主要区别就是，软链接不会影响链接的数量，他只是指向一个文件，而硬链接不一样，他会增加一个文件链接的数量，当我们删除一个文件的时候事实上并不是直接将这个文件从磁盘当中删除，而是将这个文件的链接数减去一，当这个链接数等于0的时候才会删除这个文件，而删除一个软链接是不会影响链接的数量的，他只是在被发现是软链接的时候去读它指向的那个文件的内容。</p>
+<p>第三列和第四列主要是用户名和用户所在的组的组名。第五列是文件的大小，单位是Byte。后面三列是文件上一次修改时间分别对应月、日、分秒，最后一列则是文件名。</p>
+<h2 id="彩蛋">彩蛋</h2>
+<ul>
+<li>我们可以使用stat命令去查看一个文件详细的元数据信息，这些信息是存储在文件的inode信息里面的。</li>
+</ul>
+<div class="code-block" data-lang="shell"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-nv">$stat</span><span class="tok-w"> </span>hello.c<span class="tok-w"> </span>
+<span class="tok-w">  </span>File:<span class="tok-w"> </span>hello.c
+<span class="tok-w">  </span>Size:<span class="tok-w"> </span><span class="tok-m">72</span><span class="tok-w">        	</span>Blocks:<span class="tok-w"> </span><span class="tok-m">8</span><span class="tok-w">          </span>IO<span class="tok-w"> </span>Block:<span class="tok-w"> </span><span class="tok-m">4096</span><span class="tok-w">   </span>regular<span class="tok-w"> </span>file
+Device:<span class="tok-w"> </span>91h/145d<span class="tok-w">	</span>Inode:<span class="tok-w"> </span><span class="tok-m">1577767</span><span class="tok-w">     </span>Links:<span class="tok-w"> </span><span class="tok-m">3</span>
+Access:<span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-m">0644</span>/-rw-r--r--<span class="tok-o">)</span><span class="tok-w">  </span>Uid:<span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-w">    </span><span class="tok-m">0</span>/<span class="tok-w">    </span>root<span class="tok-o">)</span><span class="tok-w">   </span>Gid:<span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-w">    </span><span class="tok-m">0</span>/<span class="tok-w">    </span>root<span class="tok-o">)</span>
+Access:<span class="tok-w"> </span><span class="tok-m">2022</span>-10-07<span class="tok-w"> </span><span class="tok-m">05</span>:41:32.685021010<span class="tok-w"> </span>+0000
+Modify:<span class="tok-w"> </span><span class="tok-m">2022</span>-10-07<span class="tok-w"> </span><span class="tok-m">05</span>:41:27.547021008<span class="tok-w"> </span>+0000
+Change:<span class="tok-w"> </span><span class="tok-m">2022</span>-10-07<span class="tok-w"> </span><span class="tok-m">05</span>:41:27.552021008<span class="tok-w"> </span>+0000
+<span class="tok-w"> </span>Birth:<span class="tok-w"> </span><span class="tok-m">2022</span>-08-26<span class="tok-w"> </span><span class="tok-m">15</span>:32:43.726183003<span class="tok-w"> </span>+0000<span class="tok-w"> </span>
+</code></pre></div><p>对应的信息如下：</p>
+<p><img src="/content/zh/images/cscore/images/linux/command/23.webp" alt="" loading="lazy" /></p>
+<ul>
+<li>
+<p>ls -R 递归列出子目录当中的文件。</p>
+</li>
+<li>
+<p>ls -S 根据文件大小排序</p>
+</li>
+<li>
+<p>ls - t 根据最后一次修改时间排序。</p>
+</li>
+<li>
+<p>ls -r 逆序排列。</p>
+</li>
+</ul>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-linux-01staticloader/"><span>较新</span>静态加载器</a><a class="next" href="/posts/cscore-linux-01top/"><span>较旧</span>Linux命令系列之top——里面藏着很多鲜为人知的宝藏知识</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#简介">简介</a></li>
+      <li class="toc-l2"><a href="#详细信息说明">详细信息说明</a></li>
+      <li class="toc-l3"><a href="#文件类型说明">文件类型说明</a></li>
+      <li class="toc-l3"><a href="#权限说明">权限说明</a></li>
+      <li class="toc-l3"><a href="#其他说明">其他说明</a></li>
+      <li class="toc-l2"><a href="#彩蛋">彩蛋</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

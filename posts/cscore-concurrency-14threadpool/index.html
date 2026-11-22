@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>彻底了解线程池的原理——40行从零开始自己写线程池 · Chang-LeHung</title>
+<meta name="description" content="前言 在我们的日常的编程当中，并发是始终离不开的主题，而在并发多线程当中，线程池又是一个不可规避的问题。多线程可以提高我们并发程序的效率，可以让我们不去频繁的申请和释放线程，这是一个很大的花销，而在线程池当中就不需要去频繁的申请线程，他的主要原理是申请完线程之后并不中断，而是不断的去队列当中领取任务">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>彻底了解线程池的原理——40行从零开始自己写线程池</h1>
+      <p class="post-meta">
+        <time datetime="2022-09-19">2022-09-19</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>在我们的日常的编程当中，并发是始终离不开的主题，而在并发多线程当中，线程池又是一个不可规避的问题。多线程可以提高我们并发程序的效率，可以让我们不去频繁的申请和释放线程，这是一个很大的花销，而在线程池当中就不需要去频繁的申请线程，他的主要原理是申请完线程之后并不中断，而是不断的去队列当中领取任务，然后执行，反复这样的操作。在本篇文章当中我们主要是介绍线程池的原理，因此我们会自己写一个非常非常简单的线程池，主要帮助大家理解线程池的核心原理！！！</p>
+<h2 id="线程池给我们提供的功能">线程池给我们提供的功能</h2>
+<p>我们首先来看一个使用线程池的例子：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ExecutorService</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.Executors</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Demo01</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ExecutorService</span><span class="tok-w"> </span><span class="tok-n">pool</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Executors</span><span class="tok-p">.</span><span class="tok-na">newFixedThreadPool</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">pool</span><span class="tok-p">.</span><span class="tok-na">execute</span><span class="tok-p">(</span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-nd">@Override</span>
+<span class="tok-w">        </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">" print "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的例子当中，我们使用<code>Executors.newFixedThreadPool</code>去生成来一个固定线程数目的线程池，在上面的代码当中我们是使用5个线程，然后通过<code>execute</code>方法不断的去向线程池当中提交任务，大致流程如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/54.webp" alt="" loading="lazy" /></p>
+<p>线程池通过<code>execute</code>函数不断的往线程池当中的任务队列加入任务，而线程池当中的线程会不断的从任务队列当中取出任务，然后进行执行，然后继续取任务，继续执行....，线程的执行过程如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kc">true</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">taskQueue</span><span class="tok-p">.</span><span class="tok-na">take</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 从任务队列当中取出任务</span>
+<span class="tok-w">  </span><span class="tok-n">runnable</span><span class="tok-p">.</span><span class="tok-na">run</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 执行任务</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>根据上面所谈到的内容，现在我们的需求很清晰了，首先我们需要有一个队列去存储我们所需要的任务，然后需要开启多个线程不断的去任务队列当中取出任务，然后进行执行，然后重复取任务执行任务的操作。</p>
+<h2 id="工具介绍">工具介绍</h2>
+<p>在我们前面提到的线程池实现的原理当中有一个非常重要的数据结构，就是<code>ArrayBlockingQueue</code>阻塞队列，它是一个并发安全的数据结构，我们首先先简单介绍一下这个数据结构的使用方法。（如果你想深入了解阻塞队列的实现原理，可以参考这篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486596&amp;idx=1&amp;sn=43b09e72333f1561c3cc77aad26b2a1d&amp;chksm=cf0c908df87b199ba77bb0dc9db95bf360dacfd1986d4d1c007154312cef6a25750b58c38bdb&amp;token=2045951226&amp;lang=zh_CN#rd">JDK数组阻塞队列源码剖析</a>）</p>
+<p>我们主要用的是<code>ArrayBlockingQueue</code>的下面两个方法：</p>
+<ul>
+<li><code>put</code>函数，这个函数是往线程当中加入数据的。我们需要了解的是，如果一个线程调用了这个函数往队列当中加入数据，如果此时队列已经满了则线程需要被挂起，如果没有满则需要将数据加入到队列当中，也就是将数据存储到数组当中。</li>
+<li><code>take</code>函数，从队列当中取出数据，但是当队列为空的时候需要将调用这个方法的线程阻塞。当队列当中有数据的时候，就可以从队列当中取出数据。</li>
+<li>需要注意的是，如果一个线程被上面两个任何一个线程阻塞之后，可以调用对应线程的<code>interrupt</code>方法终止线程的执行，同时还会抛出一个异常。</li>
+</ul>
+<p>下面是一份测试代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ArrayBlockingQueue</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.TimeUnit</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">QueueTest</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">queue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Integer</span><span class="tok-o">&gt;</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 队列的容量为5</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">queue</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"数据 "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-s">"被加入到队列当中"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">          </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"出现了中断异常"</span><span class="tok-p">);</span>
+<span class="tok-w">          </span><span class="tok-c1">// 如果出现中断异常 则退出 线程就不会一直在 put 方法被挂起了</span>
+<span class="tok-w">          </span><span class="tok-k">return</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span><span class="tok-k">finally</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">TimeUnit</span><span class="tok-p">.</span><span class="tok-na">SECONDS</span><span class="tok-p">.</span><span class="tok-na">sleep</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">thread</span><span class="tok-p">.</span><span class="tok-na">interrupt</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码输出结果：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>数据 0被加入到队列当中
+数据 1被加入到队列当中
+数据 2被加入到队列当中
+数据 3被加入到队列当中
+数据 4被加入到队列当中
+出现了中断异常
+</code></pre></div><p>上面代码的执行顺序是：</p>
+<p>线程<code>thread</code>会将0-4这5个数据加入到队列当中，但是在加入第6个数据的时候，阻塞队列已经满了，因此在加入数据的时候线程<code>thread</code>会被阻塞，然后主线程在休息一秒之后中断了线程<code>thread</code>，然后线程<code>thread</code>发生了中断异常，然后被捕获进入<code>catch</code>代码块，然后函数返回，线程<code>thread</code>就不会一直被阻塞了，这一点在我们后面写线程池非常重要！！！</p>
+<h2 id="worker设计">Worker设计</h2>
+<p>在前文当中我们已经提到了我们的线程需要不断的去任务队列里面取出任务然后执行，我们设计一个<code>Worker</code>类去做这件事！</p>
+<ul>
+<li>首先在类当中肯定需要有一个线程池的任务队列，因为<code>worker</code>需要不断的从阻塞队列当中取出任务进行执行。</li>
+<li>我们用一个<code>isStopped</code>变量表示线程是否需要终止了，也就是线程池是否需要关闭，如果线程池需要关闭了，那么线程也应该停止了。</li>
+<li>我们还需要有一个变量记录执行任务的线程，因为当我们需要关闭线程池的时候需要等待任务队列当中所有的任务执行完成，那么当所有的任务都执行执行完成的时候，队列肯定是空的，而如果这个时候有线程还去取任务，那么肯定会被阻塞，前面已经提到了<code>ArrayBlockingQueue</code>的使用方法了，我们可以使用这个线程的<code>interrupt</code>的方法去中断这个线程的执行，这个线程会出现异常，然后这个线程捕获这个异常就可以退出了，因此我们需要知道对那个线程执行<code>interrupt</code>方法！</li>
+</ul>
+<p><code>Worker</code>实现的代码如下：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ArrayBlockingQueue</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Worker</span><span class="tok-w"> </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// 用于保存任务的队列</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Runnable</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-c1">// 线程的状态 是否终止</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-n">isStopped</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// 保存执行 run 方法的线程</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">thisThread</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">Worker</span><span class="tok-p">(</span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Runnable</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个参数是线程池当中传入的</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">tasks</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-nd">@Override</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">thisThread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">isStopped</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">task</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tasks</span><span class="tok-p">.</span><span class="tok-na">take</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-n">task</span><span class="tok-p">.</span><span class="tok-na">run</span><span class="tok-p">();</span>
+<span class="tok-w">      </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// do nothing</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">	</span><span class="tok-c1">// 注意是其他线程调用这个方法 同时需要注意是 thisThread 这个线程在执行上面的 run 方法</span>
+<span class="tok-w">  </span><span class="tok-c1">// 其他线程调用 thisThread 的 interrupt 方法之后 thisThread 会出现异常 然后就不会一直阻塞了</span>
+<span class="tok-w">  </span><span class="tok-c1">// 会判断 isStopped 是否为 true 如果为 true 的话就可以退出 while 循环了</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">stop</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">isStopped</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">true</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">thisThread</span><span class="tok-p">.</span><span class="tok-na">interrupt</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 中断线程 thisThread</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">isStopped</span><span class="tok-p">(){</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">isStopped</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="线程池设计">线程池设计</h2>
+<ul>
+<li>首先线程池需要可以指定有多少个线程，阻塞队列的最大长度，因此我们需要有这两个参数。</li>
+<li>线程池肯定需要有一个队列去存放通过<code>submit</code>函数提交的任务。</li>
+<li>需要有一个变量存储所有的woker，因为线程池关闭的时候需要将这些worker都停下来，也就是调用worker的stop方法。</li>
+<li>需要有一个<code>shutDown</code>函数表示关闭线程池。</li>
+<li>需要有一个函数能够停止所有线程的执行，因为关闭线程池就是让所有线程的工作停下来。</li>
+</ul>
+<p>线程池实现代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.ArrayList</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.concurrent.ArrayBlockingQueue</span><span class="tok-p">;</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">MyFixedThreadPool</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 用于存储任务的阻塞队列</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;</span><span class="tok-n">Runnable</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">taskQueue</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// 保存线程池当中所有的线程</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;</span><span class="tok-n">Worker</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">threadLists</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// 线程池是否关闭</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-n">isShutDown</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-c1">// 线程池当中的线程数目</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numThread</span><span class="tok-p">;</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyFixedThreadPool</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">(</span><span class="tok-n">Runtime</span><span class="tok-p">.</span><span class="tok-na">getRuntime</span><span class="tok-p">().</span><span class="tok-na">availableProcessors</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1024</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-nf">MyFixedThreadPool</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">numThread</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">maxTaskNumber</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">this</span><span class="tok-p">.</span><span class="tok-na">numThread</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">numThread</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">taskQueue</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayBlockingQueue</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">(</span><span class="tok-n">maxTaskNumber</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 创建阻塞队列</span>
+<span class="tok-w">    </span><span class="tok-n">threadLists</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">ArrayList</span><span class="tok-o">&lt;&gt;</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将所有的 worker 都保存下来</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">numThread</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">Worker</span><span class="tok-w"> </span><span class="tok-n">worker</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Worker</span><span class="tok-p">(</span><span class="tok-n">taskQueue</span><span class="tok-p">);</span>
+<span class="tok-w">      </span><span class="tok-n">threadLists</span><span class="tok-p">.</span><span class="tok-na">add</span><span class="tok-p">(</span><span class="tok-n">worker</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">threadLists</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(</span><span class="tok-n">threadLists</span><span class="tok-p">.</span><span class="tok-na">get</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">),</span>
+<span class="tok-w">              </span><span class="tok-s">"ThreadPool-Thread-"</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">).</span><span class="tok-na">start</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 让worker开始工作</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-w">	</span>
+<span class="tok-w">  </span><span class="tok-c1">// 停止所有的 worker 这个只在线程池要关闭的时候才会调用</span>
+<span class="tok-w">  </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">stopAllThread</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Worker</span><span class="tok-w"> </span><span class="tok-n">worker</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">threadLists</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">worker</span><span class="tok-p">.</span><span class="tok-na">stop</span><span class="tok-p">();</span><span class="tok-w"> </span><span class="tok-c1">// 调用 worker 的 stop 方法 让正在执行 worker 当中 run 方法的线程停止执行</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">shutDown</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 等待任务队列当中的任务执行完成</span>
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">taskQueue</span><span class="tok-p">.</span><span class="tok-na">size</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-c1">// 如果队列当中还有任务 则让出 CPU 的使用权</span>
+<span class="tok-w">      </span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">yield</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 在所有的任务都被执行完成之后 停止所有线程的执行</span>
+<span class="tok-w">    </span><span class="tok-n">stopAllThread</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">submit</span><span class="tok-p">(</span><span class="tok-n">Runnable</span><span class="tok-w"> </span><span class="tok-n">runnable</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">try</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">taskQueue</span><span class="tok-p">.</span><span class="tok-na">put</span><span class="tok-p">(</span><span class="tok-n">runnable</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 如果任务队列满了， 调用这个方法的线程会被阻塞</span>
+<span class="tok-w">    </span><span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-k">catch</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">e</span><span class="tok-p">.</span><span class="tok-na">printStackTrace</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>测试代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">Test</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">MyFixedThreadPool</span><span class="tok-w"> </span><span class="tok-n">pool</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">MyFixedThreadPool</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">1024</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 开启5个线程 任务队列当中最多只能存1024个任务</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">1000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-n">pool</span><span class="tok-p">.</span><span class="tok-na">submit</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">Thread</span><span class="tok-p">.</span><span class="tok-na">currentThread</span><span class="tok-p">().</span><span class="tok-na">getName</span><span class="tok-p">());</span><span class="tok-w"> </span><span class="tok-c1">// 提交的任务就是打印线程自己的名字</span>
+<span class="tok-w">      </span><span class="tok-p">});</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">pool</span><span class="tok-p">.</span><span class="tok-na">shutDown</span><span class="tok-p">();</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码是可以正常执行并且结束的，这个输出太长了这里只列出部分输出结果：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>ThreadPool-Thread-0
+ThreadPool-Thread-4
+ThreadPool-Thread-0
+ThreadPool-Thread-1
+ThreadPool-Thread-3
+ThreadPool-Thread-1
+ThreadPool-Thread-3
+ThreadPool-Thread-3
+ThreadPool-Thread-3
+ThreadPool-Thread-3
+ThreadPool-Thread-3
+ThreadPool-Thread-2
+ThreadPool-Thread-3
+ThreadPool-Thread-2
+ThreadPool-Thread-1
+ThreadPool-Thread-0
+ThreadPool-Thread-0
+ThreadPool-Thread-0
+ThreadPool-Thread-1
+ThreadPool-Thread-4
+</code></pre></div><p>从上面的输出我们可以看见线程池当中只有5个线程，这5个线程在不断从队列当中取出任务然后执行，因为我们可以看到同一个线程的名字输出了多次。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要介绍了线程池的原理，以及我们应该去如何设计一个线程池，同时也介绍了在阻塞队列当中一个非常重要的数据结构<code>ArrayBlockingQueue</code>的使用方法。</p>
+<ul>
+<li>线程池当中有一个阻塞队列去存放所有被提交到线程池当中的任务。</li>
+<li>所有的<code>Worker</code>会不断的从任务队列当中取出任务然后执行。</li>
+<li>线程池的<code>shutDown</code>方法其实比较难思考该怎么实现的，首先在我们真正关闭线程池之前需要将任务队列当中所有的任务执行完成，然后将所有的线程停下来。</li>
+<li>在所有的任务执行完成之后，可能有的线程就会阻塞在<code>take</code>方法上（从队列当中取数据的方法，如果队列为空线程会阻塞），好在<code>ArrayBlockingQueue</code>在实现的时候就考虑到了这个问题，只需要其他线程调用了这个被阻塞线程的<code>interrupt</code>方法的话，线程就可以通过捕获异常恢复执行，然后判断<code>isStopped</code>，如果需要停止了就跳出<code>while</code>循环，这样的话我们就可以完成所有线程的停止操作了。</li>
+</ul>
+<hr />
+<p>以上就是本篇文章的所有内容了，我是<strong>LeHung</strong>，我们下期再见！！！更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-tools-git/"><span>较新</span>git</a><a class="next" href="/posts/cscore-concurrency-15threadpoolv2/"><span>较旧</span>彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#线程池给我们提供的功能">线程池给我们提供的功能</a></li>
+      <li class="toc-l2"><a href="#工具介绍">工具介绍</a></li>
+      <li class="toc-l2"><a href="#worker设计">Worker设计</a></li>
+      <li class="toc-l2"><a href="#线程池设计">线程池设计</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

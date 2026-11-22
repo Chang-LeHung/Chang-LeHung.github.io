@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>并发刺客（False Sharing）——并发程序的隐藏杀手 · Chang-LeHung</title>
+<meta name="description" content="前言 前段时间在各种社交平台“雪糕刺客”这个词比较火，简单的来说就是雪糕的价格非常高！其实在并发程序当中也有一个刺客，如果在写并发程序的时候不注意不小心，这个刺客很可能会拖累我们的并发程序，让我们并发程序执行的效率变低，让并发程序付出很大的代价，这和“雪糕刺客”当中的“刺客”的含义是一致的。这个并发">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>并发刺客（False Sharing）——并发程序的隐藏杀手</h1>
+      <p class="post-meta">
+        <time datetime="2022-08-05">2022-08-05</time>
+        <span class="sep">·</span>8 分钟        <span class="sep">·</span><a class="taglink" href="/tags/并发编程/">并发编程</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="前言">前言</h2>
+<p>前段时间在各种社交平台“雪糕刺客”这个词比较火，简单的来说就是雪糕的价格非常高！其实在并发程序当中也有一个刺客，如果在写并发程序的时候不注意不小心，这个刺客很可能会拖累我们的并发程序，让我们并发程序执行的效率变低，让并发程序付出很大的代价，这和“雪糕刺客”当中的“刺客”的含义是一致的。这个并发程序当中的刺客就是——假共享（False Sharing）。</p>
+<h2 id="假共享false-sharing">假共享（False Sharing）</h2>
+<h3 id="缓存行">缓存行</h3>
+<p>当CPU从更慢级别的缓存读取数据的时候（三级Cache会从内存当中读取数据，二级缓存会从三级缓存当中读取数据，一级缓存会从二级缓存当中读取数据，缓存级别越低执行速度越快），CPU并不是一个字节一个字节的读取的，而是一次会读取一块数据，然后将这个数据缓存到CPU当中，而这一块数据就叫做<strong>缓存行</strong>。有一种缓存行的大小就是64字节，那么我们为什么会做这种优化呢？这是因为<strong>局部性原理</strong>，所谓局部性原理简单说来就是，当时使用一个数据的时候，它附近的数据在未来的一段时间你也很可能用到，比如说我们遍历数组，我们通常从前往后进行遍历，比如我们数组当中的数据大小是8个字节，如果我们的缓存行是64个字节的话，那么一个缓存行就可以缓存8个数据，那么我们在遍历第一个数据的时候将这8个数据加载进入缓存行，那么我们在遍历未来7个数据的时候都不需要再从内存当中拿数据，直接从缓存当中拿就行，这就可以节约程序执行的时间。</p>
+<h3 id="假共享">假共享</h3>
+<p>当两个线程在CPU上两个不同的核心上执行代码的时候，如果这两个线程使用了同一个缓存行C，而且对这个缓存行当中两个不同的变量进行写操作，比如线程A对变量a进行写操作，线程B对变量b进行写操作。而由于缓存一致性（Cache coherence）协议的存在，如果其中A线程对缓存行C中变量a进行了写操作的话，为了保证各个CPU核心的数据一致（也就是说两个CPU核心看到了a的值是一样的，因为a的值已经发生变化了，需要让另外的CPU核心知道，不然另外的CPU核心使用的就是旧的值，那么程序结果就不对了），其他核心的这个缓存行就会失效，如果他还想使用这个缓存行的话就需要重新三级Cache加载，如果数据不存在三级Cache当中的话，就会从内存当中加载，而这个重新加载的过程就会很拖累程序的执行效率，而事实上线程A写的是变量a，线程B写的是变量b，他们并没有真正的有共享的数据，只是他们需要的数据在同一个缓存行当中，因此称这种现象叫做<strong>假共享（False Sharing）</strong>。</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/35.webp" alt="" loading="lazy" /></p>
+<p>上面我们谈到了，当缓存行失效的时候会从三级Cache或者内存当中加载，而多个不同的CPU核心是共享三级Cache的（上图当中已经显示出来了），其中一个CPU核心更新了数据，会把数据刷新到三级Cache或者内存当中，因此这个时候其他的CPU核心去加载数据的时候就是新值了。</p>
+<p>上面谈到的关于CPU的缓存一致性（Cache coherence）的内容还是比较少的，如果你想深入了解缓存一致性（Cache coherence）和缓存一致性协议可以仔细去看<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247486127&amp;idx=1&amp;sn=29d6079f6f26bd82633ec611feb3da85&amp;chksm=cf0c96a6f87b1fb006e2f108879a0066aeb14e4bf5a4a9e2a83057a084dd2dfa2c257a813399&amp;token=302443384&amp;lang=zh_CN#rd">这篇文章</a>。</p>
+<p>我们再来举一个更加具体的例子：</p>
+<p>假设在内存当中，变量a和变量b都占四个字节，而且他们的内存地址是连续且相邻的，现在有两个线程A和B，线程A要不断的对变量a进行+1操作，线程B需要不断的对变量进行+1操作，现在这个两个数据所在的缓存行已经被缓存到三级缓存了。</p>
+<ul>
+<li>线程A从三级缓存当中将数据加载到二级缓存和一级缓存然后在CPU- Core0当中执行代码，线程B从三级缓存将数据加载到二级缓存和一级缓存然后在CPU- Core1当中执行代码。</li>
+<li>线程A不断的执行a += 1，因为线程B缓存的缓存行当中包含数据a，线程A在修改a的值之后，就会在总线上发送消息，让其他处理器当中含有变量a的缓存行失效，在处理器将缓存行失效之后，就会在总线上发送消息，表示缓存行已经失效，线程A所在的CPU- Core0收到消息之后将更新后的数据刷新到三级Cache。</li>
+<li>这个时候线程B所在的CPU-Core1当中含有a的缓存行已经失效，因为变量b和变量a在同一个缓存行，现在线程B想对变量b进行加一操作，但是在一级和二级缓存当中已经没有了，它需要三级缓存当中加载这个缓存行，如果三级缓存当中没有就需要去内存当中加载。</li>
+<li>仔细分析上面的过程你就会发现线程B并没有对变量a有什么操作，但是它需要的缓存行就失效了，虽然和线程B共享需要同一个内容的缓存行，但是他们之间并没有真正共享数据，所以这种现象叫做假共享。</li>
+</ul>
+<h2 id="java代码复现假共享">Java代码复现假共享</h2>
+<h3 id="复现假共享">复现假共享</h3>
+<p>下面是两个线程不断对两个变量执行++操作的代码：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Data</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FalseSharing</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Data</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Data</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">A</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"A"</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">B</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"B"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"花费时间为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的代码比较简单，这里就不进行说明了，上面的代码在我的笔记本上的执行时间大约是<strong>17秒</strong>。</p>
+<p>上面的代码变量a和变量b在内存当中的位置是相邻的，他们在被CPU加载之后会在同一个缓存行当中，因此会存在假共享的问题，程序的执行时间会变长。</p>
+<p>下面的代码是优化过后的代码，在变量a前面和后面分别加入56个字节的数据，再加上a的8个字节（long类型是8个字节），这样a前后加上a的数据有64个字节，而现在主流的缓存行是64个字节，够一个缓存行的大小，因为数据a和数据b就不会在同一个缓存行当中，因此就不会存在<strong>假共享</strong>的问题了。而下面的代码在我笔记本当中执行的时间大约为<strong>5秒</strong>。这就足以看出<strong>假共享</strong>会对程序的执行带来多大影响了。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Data</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a4</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a6</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">a7</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b1</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b2</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b3</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b4</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b5</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b6</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b7</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FalseSharing</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Data</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Data</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">A</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"A"</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">B</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"B"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"花费时间为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h3 id="jdk解决假共享">JDK解决假共享</h3>
+<p>为了解决<strong>假共享</strong>的问题，JDK为我们提供了一个注解<code>@Contened</code>解决假共享的问题。</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">sun.misc.Contended</span><span class="tok-p">;</span>
+
+<span class="tok-kd">class</span> <span class="tok-nc">Data</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-c1">//  public volatile long a1, a2, a3, a4, a5, a6, a7;</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-c1">//  public volatile long b1, b2, b3, b4, b5, b6, b7;</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FalseSharing</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Data</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Data</span><span class="tok-p">();</span>
+
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">A</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"A"</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-n">B</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-p">(()</span><span class="tok-w"> </span><span class="tok-o">-&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">      </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w">  </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">500_000_000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">      </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">},</span><span class="tok-w"> </span><span class="tok-s">"B"</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">start</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">A</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">B</span><span class="tok-p">.</span><span class="tok-na">join</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">currentTimeMillis</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"花费时间为："</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">a</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">.</span><span class="tok-na">b</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码的执行时间也是5秒左右，和之前我们自己在变量的左右两边插入变量的效果是一样的，但是JDK提供的这个接口和我们自己实现的还是有所区别的。（**注意：**上面的代码是在JDK1.8下执行的，如果要想<code>@Contended</code>注解生效，你还需要在JVM参数上加入<code>-XX:-RestrictContended</code>，这样上面的代码才能生效否则是不能够生效的）</p>
+<ul>
+<li>
+<p>在我们自己解决假共享的代码当中，是在变量<code>a</code>的左右两边加入56个字节的其他变量，让他和变量<code>b</code>不在同一个缓存行当中。</p>
+</li>
+<li>
+<p>在JDK给我们提供的注解<code>@Contended</code>，是在被加注解的字段的右边加入一定数量的空字节，默认加入128空字节，那么变量<code>a</code>和变量<code>b</code>之间的内存地址大一点，最终不在同一个缓存行当中。这个字节数量可以使用JVM参数<code>-XX:ContendedPaddingWidth=64</code>，进行控制，比如这个是64个字节。</p>
+</li>
+<li>
+<p>除此之外<code>@Contended</code>注解还能够将变量进行分组：</p>
+</li>
+</ul>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Data</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"a"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"bc"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"bc"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在解析注解的时候会让同一组的变量在内存当中的位置相邻，不同的组之间会有一定数量的空字节，配置方式还是跟上面一样，默认每组之间空字节的数量为128。</p>
+<p>比如上面的变量在内存当中的逻辑布局详细布局如下：</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/36.webp" alt="" loading="lazy" /></p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code> OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)
+      4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
+      8     4        (object header)                           20 0a 06 00 (00100000 00001010 00000110 00000000) (395808)
+     12   132        (alignment/padding gap)                  
+    144     8   long Data.a                                    0
+    152   128        (alignment/padding gap)                  
+    280     8   long Data.b                                    0
+    288     8   long Data.c                                    0
+    296   128        (loss due to the next object alignment)
+Instance size: 424 bytes
+Space losses: 260 bytes internal + 128 bytes external = 388 bytes total
+</code></pre></div><p>上面的内容是通过下面代码打印的，你只要在pom文件当中引入包<code>jol</code>即可：</p>
+<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">org.openjdk.jol.info.ClassLayout</span><span class="tok-p">;</span>
+<span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">sun.misc.Contended</span><span class="tok-p">;</span>
+
+
+<span class="tok-kd">class</span> <span class="tok-nc">Data</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"a"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"bc"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-nd">@Contended</span><span class="tok-p">(</span><span class="tok-s">"bc"</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">volatile</span><span class="tok-w"> </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">FalseSharing</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-kd">throws</span><span class="tok-w"> </span><span class="tok-n">InterruptedException</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Data</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-n">Data</span><span class="tok-p">();</span>
+
+<span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">ClassLayout</span><span class="tok-p">.</span><span class="tok-na">parseInstance</span><span class="tok-p">(</span><span class="tok-n">data</span><span class="tok-p">).</span><span class="tok-na">toPrintable</span><span class="tok-p">());</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="从更低层次c语言看假共享">从更低层次C语言看假共享</h2>
+<p>前面我们是使用Java语言去验证<strong>假共享</strong>，在本小节当中我们通过一个C语言的多线程程序（使用pthread）去验证<strong>假共享</strong>。（下面的代码在类Unix系统都可以执行）</p>
+<div class="code-block" data-lang="C"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;pthread.h&gt;</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;time.h&gt;</span>
+
+<span class="tok-cp">#define CHOOSE </span><span class="tok-c1">// 这里定义了 CHOOSE 如果不想定义CHOOSE 则将这一行注释掉即可</span>
+
+<span class="tok-c1">// 定义一个全局变量</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">[</span><span class="tok-mi">1000</span><span class="tok-p">];</span>
+
+<span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-kt">void</span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-n">flag</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-c1">// 这个函数的作用就是不断的往 data 当中的某个数据进行加一操作</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">idx</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">((</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">flag</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">10000000000</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">data</span><span class="tok-p">[</span><span class="tok-n">idx</span><span class="tok-p">]</span><span class="tok-o">++</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_t</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
+<span class="tok-cp">#ifdef CHOOSE </span><span class="tok-c1">// 如果定义了 CHOOSE 则执行下面的代码 让两个线程操作的变量隔得远一点 让他们不在同一个缓存行当中</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">flag_a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">flag_b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"远离</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-cp">#else </span><span class="tok-c1">// 如果没有定义 让他们隔得近一点 也就是说让他们在同一个缓存行当中</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">flag_a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">flag_b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"临近</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span>
+<span class="tok-cp">#endif</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">add</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">flag_a</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 创建线程a 执行函数 add 传递参数 flag_a 并且启动</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_create</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">add</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">flag_b</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 创建线程b 执行函数 add 传递参数 flag_b 并且启动</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">time</span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 主线程等待线程a执行完成</span>
+<span class="tok-w">  </span><span class="tok-n">pthread_join</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 主线程等待线程b执行完成</span>
+<span class="tok-w">  </span><span class="tok-kt">long</span><span class="tok-w"> </span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">time</span><span class="tok-p">(</span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"data[0] = %d</span><span class="tok-se">\t</span><span class="tok-s"> data[1] = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">],</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]);</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"cost time = %ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">end</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-w"> </span><span class="tok-n">start</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面代码的输出结果如下图所示：</p>
+<p><img src="/content/zh/images/cscore/images/concurrency/37.webp" alt="" loading="lazy" /></p>
+<p>我们首先来解释一下上面<code>time</code>命令的输出：</p>
+<ul>
+<li><code>readl</code>：这个表示真实世界当中的墙钟时间，就是表示这个程序执行所花费的时间，这个秒单位和我们平常说的秒是一样的。</li>
+<li><code>user</code>：这个表示程序在用户态执行的CPU时间，CPU时间和真实时间是不一样的，这里需要注意区分，这里的秒和我们平常的秒是不一样的。</li>
+<li><code>sys</code>：这个表示程序在内核态执行所花费的CPU时间。</li>
+</ul>
+<p>从上面程序的输出结果我们可以很明显的看出来当操作的两个整型变量相隔距离远的时候，也就是不在同一个缓存行的时候，程序执行的速度是比数据隔得近在同一个缓存行的时候快得多，这也从侧面显示了<strong>假共享</strong>很大程度的降低了程序执行的效率。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要讨论了以下内容：</p>
+<ul>
+<li>当多个线程操作同一个缓存行当中的多个不同的变量时，虽然他们事实上没有对数据进行共享，但是他们对同一个缓存行当中的数据进行修改，而由于缓存一致性协议的存在会导致程序执行的效率降低，这种现象叫做<strong>假共享</strong>。</li>
+<li>在Java程序当中我们如果想让多个变量不在同一个缓存行当中的话，我们可以在变量的旁边通过增加其他变量的方式让多个不同的变量不在同一个缓存行。</li>
+<li>JDK也为我们提供了<code>Contended</code>注解可以在字段的后面通过增加空字节的方式让多个数据不在同一个缓存行，而且你需要在JVM参数当中加入<code>-XX:-RestrictContended</code>，同时你可以通过JVM参数<code>-XX:ContendedPaddingWidth=64</code>调整空字节的数目。JDK8之后注解<code>Contended</code>在JDK当中的位置有所变化，大家可以查询一下。</li>
+<li>我们也是用了C语言的API去测试了假共享，事实上在Java虚拟机当中底层的线程也是通过调用<code>pthread_create</code>进行创建的。</li>
+</ul>
+<hr />
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：<strong>一无是处的研究僧</strong>，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+<p><img src="https://img2022.cnblogs.com/blog/2519003/202207/2519003-20220703200459566-1837431658.jpg" alt="" loading="lazy" /></p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cscore-concurrency-07futuretasksrc/"><span>较新</span>FutureTask源码深度剖析</a><a class="next" href="/posts/cscore-concurrency-06futuretask/"><span>较旧</span>60行自己动手写FutureTask</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#前言">前言</a></li>
+      <li class="toc-l2"><a href="#假共享false-sharing">假共享（False Sharing）</a></li>
+      <li class="toc-l3"><a href="#缓存行">缓存行</a></li>
+      <li class="toc-l3"><a href="#假共享">假共享</a></li>
+      <li class="toc-l2"><a href="#java代码复现假共享">Java代码复现假共享</a></li>
+      <li class="toc-l3"><a href="#复现假共享">复现假共享</a></li>
+      <li class="toc-l3"><a href="#jdk解决假共享">JDK解决假共享</a></li>
+      <li class="toc-l2"><a href="#从更低层次c语言看假共享">从更低层次C语言看假共享</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>
