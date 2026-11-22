@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 632 242" role="img" aria-label=".pyc 文件头的布局：type 字段在前，其后是 PyObject 的序列化内容" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect x="105" y="68" width="89" height="88" fill="#fbe7cf" stroke="#ce9d35" stroke-width="1.5"/>
+  <rect x="194" y="68" width="355" height="88" fill="#d9e7d6" stroke="#8cb26e" stroke-width="1.5"/>
+
+  <g font-size="40" text-anchor="middle">
+    <text x="149" y="123">type</text>
+    <text x="372" y="125">PyObject</text>
+  </g>
+</svg>

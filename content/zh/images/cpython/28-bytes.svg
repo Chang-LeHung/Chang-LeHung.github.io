@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 560" role="img" aria-label="PyBytesObject 的结构体布局：前三个字段组成 PyVarObject，ob_hash 之后是变长的 ob_sval 数组，ob_size 指向数组末尾" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="644" height="560">
+  <defs>
+    <marker id="arrow-28bytes" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="316" y="45" font-size="19" text-anchor="middle">PyBytesObject</text>
+
+  <!-- 九个字段 -->
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dbe7fb">
+    <rect x="220" y="62" width="192" height="48"/>
+    <rect x="220" y="112" width="192" height="48"/>
+  </g>
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="220" y="162" width="192" height="48"/>
+    <rect x="220" y="212" width="192" height="48"/>
+  </g>
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="220" y="262" width="192" height="48"/>
+    <rect x="220" y="312" width="192" height="48"/>
+    <rect x="220" y="362" width="192" height="48"/>
+    <rect x="220" y="412" width="192" height="48"/>
+    <rect x="220" y="462" width="192" height="48"/>
+  </g>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="316" y="92">Py_ssize_t ob_refcnt</text>
+    <text x="316" y="142">_typeobject *ob_type</text>
+    <text x="316" y="192">Py_ssize_t ob_size</text>
+    <text x="316" y="242">Py_hash_t ob_hash</text>
+    <text x="316" y="292">char ob_sval[0]</text>
+    <text x="316" y="342">char ob_sval[1]</text>
+    <text x="316" y="392">char ob_sval[2]</text>
+    <text x="316" y="442">......</text>
+    <text x="316" y="492">char ob_sval[size]</text>
+  </g>
+
+  <!-- 左侧花括号：前三个字段是 PyVarObject -->
+  <path d="M206 62 Q 192 62 192 84 V 115 Q 192 136 176 136 Q 192 136 192 157 V 188 Q 192 210 206 210"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="35" y="143" font-size="18">PyVarObject</text>
+
+  <!-- 右侧上方花括号：前两个字段是 PyObject -->
+  <path d="M424 62 Q 438 62 438 76 V 97 Q 438 111 452 111 Q 438 111 438 125 V 146 Q 438 160 424 160"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="468" y="118" font-size="18">PyObject</text>
+
+  <!-- 右侧下方花括号：整段变长数组，箭头指向它的尖 -->
+  <path d="M452 262 Q 438 262 438 284 V 366 Q 438 386 420 386 Q 438 386 438 406 V 488 Q 438 510 452 510"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <!-- ob_size 指向数组末尾 -->
+  <path d="M420 186 C 490 196, 560 250, 550 318 C 542 366, 478 386, 430 386"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-28bytes)"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1054 672" role="img" aria-label="函数调用栈的示意图：左边是带有 decorator 函数的栈，右边是入栈与出栈的方向，栈自栈底向栈顶生长" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <!-- 左栈 -->
+    <rect x="121" y="57" width="180" height="577"/>
+    <path d="M121 544 H301"/>
+    <!-- 栈内向上生长的空心箭头 -->
+    <path d="M205 180 L176 221 H194 V400 H216 V221 H234 Z" fill="#fff"/>
+    <!-- 栈顶到底的细箭头 -->
+    <path d="M48 588 V108"/>
+    <path d="M48 88 L40 106 H56 Z" fill="#fff"/>
+  </g>
+
+  <g font-size="24">
+    <text x="24" y="71">栈顶</text>
+    <text x="24" y="626">栈底</text>
+    <text x="129" y="599">decorator 函数</text>
+  </g>
+
+  <!-- 指向右边的空心箭头 -->
+  <path d="M349 379 H487 V355 L520 390 L487 421 V400 H349 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <rect x="618" y="46" width="180" height="577"/>
+    <path d="M544 577 V98"/>
+    <path d="M544 80 L537 98 H552 Z" fill="#fff"/>
+  </g>
+  <g font-size="24">
+    <text x="522" y="61">栈顶</text>
+    <text x="522" y="615">栈底</text>
+  </g>
+
+  <!-- 入栈、出栈 -->
+  <path d="M868 48 L841 82 H857 V142 H879 V82 H895 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <path d="M868 286 L837 245 H857 V198 H879 V245 H898 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <g font-size="24">
+    <text x="958" y="101">入栈</text>
+    <text x="966" y="235">出栈</text>
+  </g>
+</svg>

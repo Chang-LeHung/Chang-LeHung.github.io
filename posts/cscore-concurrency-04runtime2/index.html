@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Openmp Runtime 库函数汇总（下）——深入剖析锁🔒原理与实现 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要给大家介绍一下 OpenMP 当中经常使用到的锁并且仔细分析它其中的内部原理！在 OpenMP 当中主要有两种类型的锁，一个是 omp_lock_t 另外一个是 omp_nest_lock_t，这两个锁的主要区别就是后者是一个可重入锁，所谓可冲入锁就是一旦一个线程已经拿到这个">
+<meta property="og:title" content="Openmp Runtime 库函数汇总（下）——深入剖析锁🔒原理与实现">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -592,6 +593,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-07atomic/"><span>较新</span>OpenMP 原子指令设计与实现</a><a class="next" href="/posts/cscore-concurrency-03runtime1/"><span>较旧</span>Openmp Runtime 库函数汇总（上）</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

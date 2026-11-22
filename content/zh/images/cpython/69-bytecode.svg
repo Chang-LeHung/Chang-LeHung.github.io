@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 380" role="img" aria-label="执行 print(*range(3)) 时的栈内容：自栈底向上依次是 range 迭代器、print、0，顶部一格空着" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g stroke-width="1.5">
+    <rect x="144" y="56" width="196" height="46" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="144" y="104" width="196" height="68" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="144" y="175" width="196" height="68" fill="#fbe7cf" stroke="#ce9d35"/>
+    <rect x="144" y="247" width="196" height="68" fill="#f1d0cd" stroke="#b0605a"/>
+  </g>
+
+  <!-- 向上的箭头：空心箭头 + 竖线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M81.5 266 V82"/>
+    <path d="M81.5 63 L72 82 H91 Z" fill="#fff"/>
+  </g>
+
+  <text x="55" y="307" font-size="25">栈底</text>
+
+  <g font-size="34" text-anchor="middle">
+    <text x="242" y="150">0</text>
+    <text x="240" y="220">print</text>
+    <text x="241" y="291">range 迭代器</text>
+  </g>
+</svg>

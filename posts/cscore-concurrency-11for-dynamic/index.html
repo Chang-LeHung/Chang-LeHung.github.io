@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenMP For Construct dynamic 调度方式实现原理和源码分析 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要给大家介绍 OpenMp for construct 的实现原理，以及与他相关的动态库函数分析，与 for construct 非常相关的是循环的调度方式，在 OpenMP 当中一共有四种调调方式，auto, dynamic, guided, runtime, 在本篇文章当中">
+<meta property="og:title" content="OpenMP For Construct dynamic 调度方式实现原理和源码分析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -481,6 +482,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-12guided/"><span>较新</span>OpenMP For Construct guided 调度方式实现原理和源码分析</a><a class="next" href="/posts/cscore-concurrency-10sync/"><span>较旧</span>OpenMP 线程同步 Construct 实现原理以及源码分析（下）</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

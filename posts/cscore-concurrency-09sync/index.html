@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenMP 线程同步 Construct 实现原理以及源码分析（上） · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要给大家介绍在 OpenMP 当中使用的一些同步的 construct 的实现原理，如 master, single, critical 等等！并且会结合对应的汇编程序进行仔细的分析。（本篇文章的汇编程序分析基于 x86_86 平台） Flush Construct 首先先了解">
+<meta property="og:title" content="OpenMP 线程同步 Construct 实现原理以及源码分析（上）">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -386,6 +387,7 @@ Key<span class="tok-w"> </span>to<span class="tok-w"> </span>Flags:
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-10sync/"><span>较新</span>OpenMP 线程同步 Construct 实现原理以及源码分析（下）</a><a class="next" href="/posts/cscore-concurrency-08parallel/"><span>较旧</span>OpenMP Parallel Construct 实现原理与源码分析</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 609 276" role="img"
+     aria-label="栈底的一个格子保存着指向 code 对象的指针，该指针指向内存中存放 code 对象的位置"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-39-codeobject" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 调用栈 -->
+  <rect x="80" y="26" width="77" height="173" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <rect x="80" y="200" width="77" height="33" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="23" y="25" font-size="16">栈顶</text>
+  <text x="23" y="238" font-size="16">栈底</text>
+  <path d="M36 215 V38" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-39-codeobject)"/>
+
+  <!-- 内存 -->
+  <rect x="346" y="86" width="241" height="148" rx="18" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <text x="535" y="121" font-size="16">内存</text>
+  <rect x="381" y="106" width="60" height="32" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="411" y="128" font-size="16" text-anchor="middle">1</text>
+
+  <!-- 栈格里的指针 -->
+  <circle cx="116" cy="220" r="4" fill="#444"/>
+  <path d="M116 220 H255 V108 H377" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-39-codeobject)"/>
+</svg>

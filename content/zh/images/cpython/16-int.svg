@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 616 266" role="img" aria-label="Python 小整数的内存布局：ob_size 为 1，ob_digit 指向数字 10" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="616" height="266">
+  <defs>
+    <marker id="arrow-16-int" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结构体两格 -->
+  <rect x="65" y="47" width="221" height="83" fill="#d9e7d6" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="65" y="130" width="221" height="84" fill="#fdf2d0" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="176" y="97" font-size="34" text-anchor="middle">ob_size = 1</text>
+  <text x="176" y="183" font-size="34" text-anchor="middle">ob_digit</text>
+
+  <!-- 指向的数字 -->
+  <rect x="430" y="127" width="128" height="65" fill="#f1d0cd" stroke="#b85450" stroke-width="1.5"/>
+  <text x="494" y="170" font-size="36" text-anchor="middle">10</text>
+
+  <!-- 箭头：从 ob_digit 右侧折到数字格左上角 -->
+  <path d="M286 174 H357 V127 H422" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-16-int)"/>
+</svg>

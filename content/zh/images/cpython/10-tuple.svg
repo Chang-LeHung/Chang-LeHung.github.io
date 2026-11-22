@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1156 440" role="img" aria-label="PyTupleObject 的 ob_item 指针数组：每个 PyObject* 指向真实的数据，ob_item 是长度 1 的柔性数组" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-tuple10" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="57" y="29" width="57" height="57" fill="#f7d2a6" stroke="#a75d1a" stroke-width="1.5"/>
+  <text x="134" y="60" font-size="20">真实的数据</text>
+
+  <!-- 真实数据的方块 -->
+  <g fill="#f7d2a6" stroke="#a75d1a" stroke-width="1.5">
+    <rect x="379" y="105" width="57" height="57"/>
+    <rect x="473" y="105" width="57" height="57"/>
+    <rect x="567" y="105" width="57" height="57"/>
+    <rect x="661" y="105" width="57" height="57"/>
+    <rect x="755" y="105" width="57" height="57"/>
+    <rect x="849" y="105" width="57" height="57"/>
+    <rect x="943" y="105" width="57" height="57"/>
+    <rect x="1037" y="105" width="57" height="57"/>
+  </g>
+
+  <!-- 指针数组 -->
+  <g fill="#f7d5d0" stroke="#9f3f2e" stroke-width="1.5">
+    <rect x="361" y="230" width="93" height="39"/>
+    <rect x="455" y="230" width="93" height="39"/>
+    <rect x="549" y="230" width="93" height="39"/>
+    <rect x="643" y="230" width="93" height="39"/>
+    <rect x="737" y="230" width="93" height="39"/>
+    <rect x="831" y="230" width="93" height="39"/>
+    <rect x="925" y="230" width="93" height="39"/>
+    <rect x="1019" y="230" width="93" height="39"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="407" y="259">PyObject*</text>
+    <text x="501" y="259">PyObject*</text>
+    <text x="595" y="259">PyObject*</text>
+    <text x="689" y="259">PyObject*</text>
+    <text x="783" y="259">PyObject*</text>
+    <text x="877" y="259">PyObject*</text>
+    <text x="971" y="259">PyObject*</text>
+    <text x="1065" y="259">PyObject*</text>
+  </g>
+
+  <!-- 每个指针指向一个真实数据 -->
+  <g stroke="#000" stroke-width="1.5" marker-end="url(#arrow-tuple10)">
+    <path d="M407 229 V165"/>
+    <path d="M501 229 V165"/>
+    <path d="M595 229 V165"/>
+    <path d="M689 229 V165"/>
+    <path d="M783 229 V165"/>
+    <path d="M877 229 V165"/>
+    <path d="M971 229 V165"/>
+    <path d="M1065 229 V165"/>
+  </g>
+
+  <!-- 柔性数组注解 -->
+  <rect x="73" y="375" width="192" height="31" fill="#abdde2" stroke="#22737c" stroke-width="1.5"/>
+  <text x="83" y="400" font-size="20">PyObject *ob_item[1];</text>
+
+  <path d="M277 388 C320 386 361 345 361 274" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-tuple10)"/>
+</svg>

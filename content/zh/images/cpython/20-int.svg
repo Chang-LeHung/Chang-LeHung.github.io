@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 944 234" role="img" aria-label="小整数对象池的下标对照表：整数值 -5 到 256 依次对应下标 0 到 261" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="944" height="234">
+  <!-- 表格外框与内线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <rect x="130" y="33" width="758" height="161"/>
+    <line x1="130" y1="113.5" x2="888" y2="113.5"/>
+    <line x1="210" y1="33" x2="210" y2="194"/>
+    <line x1="290" y1="33" x2="290" y2="194"/>
+    <line x1="365" y1="33" x2="365" y2="194"/>
+    <line x1="445" y1="33" x2="445" y2="194"/>
+    <line x1="728" y1="33" x2="728" y2="194"/>
+    <line x1="808" y1="33" x2="808" y2="194"/>
+  </g>
+
+  <!-- 行标签 -->
+  <g font-size="30">
+    <text x="26" y="84">整数值</text>
+    <text x="46" y="166">下标</text>
+  </g>
+
+  <!-- 第一行：整数值 -->
+  <g font-size="38" text-anchor="middle">
+    <text x="170" y="86">-5</text>
+    <text x="250" y="86">-4</text>
+    <text x="327" y="86">-3</text>
+    <text x="405" y="86">-2</text>
+    <text x="566" y="86" letter-spacing="5">....</text>
+    <text x="768" y="86">255</text>
+    <text x="848" y="86">256</text>
+  </g>
+
+  <!-- 第二行：下标 -->
+  <g font-size="38" text-anchor="middle">
+    <text x="170" y="166">0</text>
+    <text x="250" y="166">1</text>
+    <text x="327" y="166">2</text>
+    <text x="405" y="166">3</text>
+    <text x="566" y="166" letter-spacing="5">....</text>
+    <text x="768" y="166">260</text>
+    <text x="848" y="166">261</text>
+  </g>
+</svg>

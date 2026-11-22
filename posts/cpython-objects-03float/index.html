@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 Python 虚拟机：浮点数（float）的实现原理及源码剖析 · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要分析在 cpython 虚拟机当中 float 类型的实现原理以及与他相关的一些源代码。 Float 数据结构 在 cpython 虚拟机当中浮点数类型的数据结构定义如下所示： 复制 typedef struct { PyObject_HEAD double ob_fval ; }">
+<meta property="og:title" content="深入理解 Python 虚拟机：浮点数（float）的实现原理及源码剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -71,8 +72,28 @@
 <span class="tok-w">    </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">ob_fval</span><span class="tok-p">;</span>
 <span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyFloatObject</span><span class="tok-p">;</span>
 </code></pre></div><p>上面的数据结构定义图示如下：</p>
-<p><img src="/content/zh/images/cpython/12-tuple.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 470" role="img" aria-label="PyFloatObject 的内存布局：ob_refcnt 与 ob_type 组成 PyObject，ob_fval 存放浮点数值" class="inline-svg">
+  <text x="300" y="52" text-anchor="middle" font-size="30">PyFloatObject</text>
+
+  <!-- 结构体：三格 -->
+  <g stroke="#32731e" stroke-width="1.5">
+    <rect x="92" y="96" width="408" height="86" fill="#3c8825"/>
+    <rect x="92" y="182" width="408" height="92" fill="#3c8825"/>
+    <rect x="92" y="274" width="408" height="92" fill="#d9e7d6"/>
+  </g>
+  <line x1="92" y1="182" x2="500" y2="182" stroke="#245c12" stroke-width="1.5"/>
+
+  <g fill="#ffffff" font-size="27">
+    <text x="126" y="151">Py_ssize_t ob_refcnt</text>
+    <text x="126" y="241">_typeobject *ob_type</text>
+  </g>
+  <text x="126" y="332" font-size="27">double ob_fval</text>
+
+  <!-- 花括号：包住前两格 -->
+  <path d="M552 118 q 22 0 22 24 v 34 q 0 20 16 22 q -16 2 -16 22 v 34 q 0 24 -22 24"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="640" y="262" font-size="29">PyObject</text>
+</svg></figure><ul>
 <li>在上面的数据结构当中最重要的一个字段就是 ob_fval，这个就是真实存储浮点数的地方。</li>
 <li>ob_refcnt 就是对象的引用计数。</li>
 <li>ob_type 就是对象的类型。</li>
@@ -191,6 +212,7 @@ float_mul(PyObject *v, PyObject *w)
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-objects-02tuple/"><span>较新</span>深入理解 Python 虚拟机：元组（tuple）的实现原理及源码剖析</a><a class="next" href="/posts/cpython-objects-04long/"><span>较旧</span>深入理解 Python 虚拟机：整型（int）的实现原理及源码剖析</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

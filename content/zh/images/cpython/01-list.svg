@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 437 366" role="img"
+     aria-label="PyListObject 的内存布局：外层是 PyListObject 结构体，内部按顺序排列 ob_refcnt、ob_type、ob_size、ob_item、allocated 五个字段"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 外层结构体 -->
+  <rect x="73" y="60" width="284" height="241" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="88" y="95" font-size="18">PyListObject</text>
+
+  <!-- 五个字段 -->
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="120" y="115" width="190" height="32"/>
+    <rect x="120" y="147" width="190" height="32"/>
+    <rect x="120" y="179" width="190" height="32"/>
+    <rect x="120" y="211" width="190" height="32"/>
+    <rect x="120" y="243" width="190" height="32"/>
+  </g>
+  <g font-size="16" text-anchor="middle">
+    <text x="215" y="137">Py_ssize_t ob_refcnt</text>
+    <text x="215" y="169">_typeobject *ob_type</text>
+    <text x="215" y="201">Py_ssize_t ob_size</text>
+    <text x="215" y="233">PyObject **ob_item;</text>
+    <text x="215" y="265">Py_ssize_t allocated</text>
+  </g>
+</svg>

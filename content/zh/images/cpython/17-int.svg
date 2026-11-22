@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 584 238" role="img"
+     aria-label="PyLongObject 存放小整数：ob_size 为 -1 表示只有一位，ob_digit 指向存放数值 10 的数组"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-17-int" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <rect x="56" y="24" width="217" height="84" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="56" y="108" width="217" height="84" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="423" y="107" width="122" height="61" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+
+  <text x="164" y="77" font-size="30" text-anchor="middle">ob_size = -1</text>
+  <text x="164" y="161" font-size="30" text-anchor="middle">ob_digit</text>
+  <text x="484" y="148" font-size="30" text-anchor="middle">10</text>
+
+  <path d="M273 150 H349 V106 H421" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-17-int)"/>
+</svg>

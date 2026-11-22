@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 python 虚拟机：字节码教程(2)——控制流是如何实现的？ · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要给大家分析 python 当中与控制流有关的字节码，通过对这部分字节码的了解，我们可以更加深入了解 python 字节码的执行过程和控制流实现原理。 控制流实现 控制流这部分代码主要涉及下面几条字节码指令，下面的所有字节码指令都会有一个参数： JUMP_FORWARD ，指令完整条">
+<meta property="og:title" content="深入理解 python 虚拟机：字节码教程(2)——控制流是如何实现的？">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -125,26 +126,138 @@
 <span class="tok-w">             </span><span class="tok-m">50</span><span class="tok-w"> </span>RETURN_VALUE
 </code></pre></div><p>我们现在来模拟一下上面的字节码执行过程，我们使用 counter 表示当前字节码的执行位置：</p>
 <p>在字节码还没开始执行之前，栈空间和 counter 的状态如下：</p>
-<p><img src="/content/zh/images/cpython/56-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>现在执行第一条字节码 LOAD_CONST，执行完之后 counter = 2，因为这条字节码占一个字节，参数栈一个字节，因此下次执行的字节码的位置在 bytecode 的低三个位置，对应的下标为 2，因此 counter = 2 。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 207 258" role="img" aria-label="调用栈示意：counter = 0 这一帧入栈，箭头指向栈顶，栈底悬空" class="inline-svg">
+  <defs>
+    <marker id="arrow-56bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="98" y="27" font-size="19" text-anchor="middle">counter = 0</text>
+  <rect x="74" y="53" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <path d="M39 212 V51" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-56bytecode)"/>
+  <text x="39" y="228" font-size="13" text-anchor="middle">栈底</text>
+</svg></figure><p>现在执行第一条字节码 LOAD_CONST，执行完之后 counter = 2，因为这条字节码占一个字节，参数栈一个字节，因此下次执行的字节码的位置在 bytecode 的低三个位置，对应的下标为 2，因此 counter = 2 。</p>
 <p><img src="/content/zh/images/cpython/57-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
 <p>现在执行第二条字节码 STORE_FAST，让 a 指向 1 ，同样的 STORE_FAST 操作码和操作数各占一个字节，因此执行完这条字节码之后栈空间没有数据，counter = 4 。</p>
-<p><img src="/content/zh/images/cpython/58-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>接下来 LOAD_FAST 将 a 指向的对象也就是 1 加载进入栈中，此时的 counter = 6，LOAD_CONST 将常量 1 加载进行入栈空间当中，此时 counter = 8，在执行完这两条指令之后，栈空间的变化如下图所示：</p>
-<p><img src="/content/zh/images/cpython/59-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>接下来的一条指令是 COMPARE_OP ，这个指令有一个参数表示比较的符号，这里是比较 a &gt; 1，并且会将比较的结果压入栈中，比较的结果是 false ，因为 COMPARE_OP 首先会将栈空间的两个输入弹出，因此在执行完这条指令之后栈空间和 counter 的值如下：</p>
-<p><img src="/content/zh/images/cpython/60-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>下面一条指令为 POP_JUMP_IF_FALSE，根据前面的字节码含义，这个字节码会将栈顶的 false 弹出，并且会进行跳转，并且将 counter 的值直接编程参数的值，这里他的参数是 22 ，因此 counter = 22，在执行完这条指令之后，结果如下：</p>
-<p><img src="/content/zh/images/cpython/61-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>因为现在已经跳转到了 22 ，因此接下来执行的指令为 LOAD_FAST，将变量 a 加载进入栈空间，LOAD_CONST 将常量 1 加载进入栈空间，在执行完这两条执行之后，变化情况如下：</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 261" role="img" aria-label="counter = 4 时的栈空间：栈为空，左侧竖直箭头标注栈底" class="inline-svg">
+  <defs>
+    <marker id="arrow-58" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="95.5" y="32" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 4</text>
+
+  <rect x="72" y="59" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <path d="M37.5 219 V 58" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-58)"/>
+  <text x="37" y="236" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>接下来 LOAD_FAST 将 a 指向的对象也就是 1 加载进入栈中，此时的 counter = 6，LOAD_CONST 将常量 1 加载进行入栈空间当中，此时 counter = 8，在执行完这两条指令之后，栈空间的变化如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193 270" role="img" aria-label="counter = 8 时的栈空间：栈底之上依次压入 1 与 a = 1 两格" class="inline-svg">
+  <defs>
+    <marker id="arrow-59" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="92.5" y="34" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 8</text>
+
+  <rect x="69" y="61" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="69" y1="179" x2="154" y2="179" stroke="#444" stroke-width="1.5"/>
+  <line x1="69" y1="210" x2="154" y2="210" stroke="#444" stroke-width="1.5"/>
+
+  <text x="111.5" y="200" font-size="15" text-anchor="middle" fill="#1a1a1a">1</text>
+  <text x="111" y="231" font-size="15" text-anchor="middle" fill="#1a1a1a">a = 1</text>
+
+  <path d="M34.5 218 V 57" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-59)"/>
+  <text x="34" y="238" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>接下来的一条指令是 COMPARE_OP ，这个指令有一个参数表示比较的符号，这里是比较 a &gt; 1，并且会将比较的结果压入栈中，比较的结果是 false ，因为 COMPARE_OP 首先会将栈空间的两个输入弹出，因此在执行完这条指令之后栈空间和 counter 的值如下：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 197 254" role="img" aria-label="counter = 22 时的栈空间：比较结果 False 已压入栈顶" class="inline-svg">
+  <defs>
+    <marker id="arrow-60" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="93.5" y="26" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 22</text>
+
+  <rect x="70" y="53" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="70" y1="202" x2="155" y2="202" stroke="#444" stroke-width="1.5"/>
+
+  <text x="112.5" y="223" font-size="15" text-anchor="middle" fill="#1a1a1a">False</text>
+
+  <path d="M35 211 V 51" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-60)"/>
+  <text x="35" y="230" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>下面一条指令为 POP_JUMP_IF_FALSE，根据前面的字节码含义，这个字节码会将栈顶的 false 弹出，并且会进行跳转，并且将 counter 的值直接编程参数的值，这里他的参数是 22 ，因此 counter = 22，在执行完这条指令之后，结果如下：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 263" role="img" aria-label="counter = 10 时的栈空间：False 被弹出，栈为空，左侧箭头标注栈底" class="inline-svg">
+  <defs>
+    <marker id="arrow-61" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="94.5" y="31" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 10</text>
+
+  <rect x="71" y="58" width="84" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <path d="M35.5 216 V 56" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-61)"/>
+  <text x="36" y="235" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>因为现在已经跳转到了 22 ，因此接下来执行的指令为 LOAD_FAST，将变量 a 加载进入栈空间，LOAD_CONST 将常量 1 加载进入栈空间，在执行完这两条执行之后，变化情况如下：</p>
 <p><img src="/content/zh/images/cpython/62-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
 <p>在次执行 POP_JUMP_IF_FALSE，这回的结果也是 false ，因此继续执行 POP_JUMP_IF_FALSE，这次的参数是 40，直接将 counter 的值设置成 40 。</p>
 <p><img src="/content/zh/images/cpython/63-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
 <p>接下来 LOAD_GLOBAL 加载一个全局变量 print 函数 counter 变成 42 ，LOAD_CONST 加载字符串 &quot;a == 1&quot; 进入栈空间，counter = 44，此时状态如下：</p>
-<p><img src="/content/zh/images/cpython/64-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>CALL_FUNCTION 这个字节码有一个参数，表示调用函数的参数的个数，这里是 1，因为 print 函数只有一个参数，然后输出字符串 &quot;a== 1&quot;，但是这里需要注意的是 print 函数会返回一个 None，因此执行完 CALL_FUNCTION 之后状态如下：</p>
-<p><img src="/content/zh/images/cpython/65-bytecode.svg" alt="56-bytecode" loading="lazy" /></p>
-<p>至此差不多上面的函数差不多执行完了，后面几条字节码很简单，就不再进行叙述了。</p>
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 265" role="img" aria-label="counter = 44 时的栈空间：栈中依次为字符串 &quot;a== 1&quot; 与函数 print" class="inline-svg">
+  <defs>
+    <marker id="arrow-64" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="93.5" y="34" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 44</text>
+
+  <rect x="70" y="61" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="70" y1="179" x2="155" y2="179" stroke="#444" stroke-width="1.5"/>
+  <line x1="70" y1="210" x2="155" y2="210" stroke="#444" stroke-width="1.5"/>
+
+  <text x="111" y="200" font-size="15" text-anchor="middle" fill="#1a1a1a">"a== 1"</text>
+  <text x="111.5" y="230" font-size="15" text-anchor="middle" fill="#1a1a1a">print</text>
+
+  <path d="M35.5 218 V 59" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-64)"/>
+  <text x="35" y="238" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>CALL_FUNCTION 这个字节码有一个参数，表示调用函数的参数的个数，这里是 1，因为 print 函数只有一个参数，然后输出字符串 &quot;a== 1&quot;，但是这里需要注意的是 print 函数会返回一个 None，因此执行完 CALL_FUNCTION 之后状态如下：</p>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 171 257" role="img" aria-label="counter = 46 时的栈空间：print 返回的 None 被压入栈顶" class="inline-svg">
+  <defs>
+    <marker id="arrow-65" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="81.5" y="27" font-size="19" text-anchor="middle" fill="#1a1a1a">counter = 46</text>
+
+  <rect x="58" y="54" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="58" y1="203" x2="143" y2="203" stroke="#444" stroke-width="1.5"/>
+
+  <text x="100.5" y="224" font-size="15" text-anchor="middle" fill="#1a1a1a">None</text>
+
+  <path d="M23.5 213 V 52" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-65)"/>
+  <text x="23" y="231" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
+</svg></figure><p>至此差不多上面的函数差不多执行完了，后面几条字节码很简单，就不再进行叙述了。</p>
 <h2 id="总结">总结</h2>
 <p>在 Python 中，控制流指令可以让解释器根据特定条件改变执行流程，实现循环、条件语句等基本语言结构。Python 中与控制流有关的字节码指令包括 JUMP_FORWARD、POP_JUMP_IF_TRUE、POP_JUMP_IF_FALSE、JUMP_IF_TRUE_OR_POP、JUMP_IF_FALSE_OR_POP 和 JUMP_ABSOLUTE 等。这些指令都有一个参数，主要是用来计算跳转的目标位置等。通过对这些指令的了解，我们可以更深入地理解 Python 字节码的执行过程和控制流实现原理。</p>
 <hr />
@@ -156,6 +269,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-pvm-04bytecode-tutorial/"><span>较新</span>深入理解 python 虚拟机：字节码教程(1)——原来装饰器是这样实现的</a><a class="next" href="/posts/cpython-pvm-06bytecode-tutorial/"><span>较旧</span>深入理解 python 虚拟机：字节码教程(3)——深入剖析循环实现原理</a>    </nav>
+
   </div>
 
 </article>

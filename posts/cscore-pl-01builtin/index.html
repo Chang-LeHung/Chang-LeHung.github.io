@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gcc 好玩的 builtin 函数 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要想给大家介绍一些在 gcc 编译器当中给我们提供的一些好玩的内嵌函数 (builtin function)🤣🤣🤣 。 __builtin_frame_address 使用内嵌函数实现 复制 __builtin_frame_address ( x ) // 其中 x 一个整数 ">
+<meta property="og:title" content="gcc 好玩的 builtin 函数">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -69,8 +70,87 @@
 <h3 id="使用内嵌函数实现">使用内嵌函数实现</h3>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">__builtin_frame_address</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-c1">// 其中 x 一个整数</span>
 </code></pre></div><p>这个函数主要是用于得到函数的栈帧的，更具体的来说是得到函数的 rbp （如果是 x86_64 的机器，在 32 位系统上就是 ebp）的值，也就是栈帧的栈底的值。</p>
-<p><img src="/content/zh/images/cscore/images/programming/03.svg" alt="03" loading="lazy" /></p>
-<p>我们现在使用一个例子来验证测试一下：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 818 803" role="img" aria-label="进程虚拟地址空间布局：从上到下依次是用户代码不可见的内核内存、运行期创建的用户栈（由 %esp 指向）、一段空白、内存映射的共享库区域、另一段空白、运行期由 malloc 创建的堆（brk 指向堆顶）、可执行文件载入的读写段与只读代码段，最下面是起始地址 0x400000 与 0" class="inline-svg">
+  <defs>
+    <marker id="arr03" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="818" height="803" fill="#fff"/>
+
+  <!-- 各段填充：灰=有内容，蓝=空白（未分配） -->
+  <rect x="141" y="44" width="369" height="57" fill="#e6e7e9"/>
+  <rect x="141" y="108" width="369" height="71" fill="#e6e7e9"/>
+  <rect x="141" y="182" width="369" height="86" fill="#8dd7f7"/>
+  <rect x="141" y="271" width="369" height="85" fill="#e6e7e9"/>
+  <rect x="141" y="359" width="369" height="94" fill="#8dd7f7"/>
+  <rect x="141" y="456" width="369" height="83" fill="#e6e7e9"/>
+  <rect x="141" y="542" width="369" height="80" fill="#e6e7e9"/>
+  <rect x="141" y="625" width="369" height="79" fill="#e6e7e9"/>
+  <rect x="141" y="707" width="369" height="55" fill="#8dd7f7"/>
+
+  <!-- 外框与分段线 -->
+  <rect x="139.5" y="43" width="372" height="720" fill="none" stroke="#000" stroke-width="3"/>
+  <rect x="140" y="101" width="371" height="6" fill="#000"/>
+  <g stroke="#000" stroke-width="3">
+    <line x1="140" y1="180" x2="511" y2="180"/>
+    <line x1="140" y1="269" x2="511" y2="269"/>
+    <line x1="140" y1="357" x2="511" y2="357"/>
+    <line x1="140" y1="453" x2="511" y2="453"/>
+    <line x1="140" y1="540" x2="511" y2="540"/>
+    <line x1="140" y1="623" x2="511" y2="623"/>
+    <line x1="140" y1="705" x2="511" y2="705"/>
+  </g>
+
+  <!-- 各段文字 -->
+  <g text-anchor="middle" font-size="28" fill="#000">
+    <text x="326" y="83">Kernel memory</text>
+    <text x="327" y="136">User stack</text>
+    <text x="326" y="166">(created at run time)</text>
+    <text x="327" y="310">Memory-mapped region for</text>
+    <text x="326" y="339">shared libraries</text>
+    <text x="327" y="492">Run-time heap</text>
+    <text x="326" y="522">(created by <tspan font-family="monospace" font-size="23">malloc</tspan>)</text>
+    <text x="327" y="575">Read/write segment</text>
+    <text x="326" y="605"><tspan font-family="monospace" font-size="23">(.data,.bss)</tspan></text>
+    <text x="327" y="654">Read-only code segment</text>
+    <text x="326" y="684"><tspan font-family="monospace" font-size="23">(.init,.text,.rodata)</tspan></text>
+  </g>
+
+  <!-- 左侧地址标注 -->
+  <text x="124" y="128" font-size="28" fill="#000" text-anchor="end">2<tspan font-size="17" dy="-10">48</tspan><tspan font-size="28" dy="10">−1</tspan></text>
+  <text x="125" y="712" font-size="28" fill="#000" text-anchor="end">0x400000</text>
+  <text x="124" y="757" font-size="16" fill="#000" text-anchor="end">0</text>
+
+  <!-- 右侧说明 -->
+  <path d="M536 93 V48" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arr03)"/>
+  <g font-size="28" fill="#000">
+    <text x="566" y="40">Memory</text>
+    <text x="566" y="68">invisible to</text>
+    <text x="566" y="96">user code</text>
+  </g>
+
+  <path d="M558 180 H525" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arr03)"/>
+  <text x="566" y="186" font-size="24" fill="#000" font-family="monospace">%esp</text>
+  <text x="636" y="186" font-size="28" fill="#000">(stack pointer)</text>
+
+  <path d="M558 452 H525" fill="none" stroke="#000" stroke-width="2" marker-end="url(#arr03)"/>
+  <text x="580" y="461" font-size="24" fill="#000" font-family="monospace">brk</text>
+
+  <path d="M533 554 Q543 554 543 566 V610 Q543 624 551 627 Q543 630 543 644 V667 Q543 679 533 679"
+        fill="none" stroke="#333" stroke-width="2"/>
+  <g font-size="28" fill="#000">
+    <text x="566" y="620">Loaded from the</text>
+    <text x="566" y="650">executable file</text>
+  </g>
+
+  <!-- 空白区里的双向箭头 -->
+  <path d="M325 185 V211" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr03)"/>
+  <path d="M325 264 V239" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr03)"/>
+  <path d="M325 446 V409" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arr03)"/>
+</svg></figure><p>我们现在使用一个例子来验证测试一下：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
 
 <span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">func_a</span><span class="tok-p">()</span>
@@ -489,6 +569,7 @@ In func_a main return address = 0x7fc5c57c90b3
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-linux-01jobcontrol/"><span>较新</span>你在终端启动的进程，最后都是什么下场？（上）</a><a class="next" href="/posts/cscore-concurrency-03pthread/"><span>较旧</span>Pthread 并发编程（三）——深入理解线程取消机制</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

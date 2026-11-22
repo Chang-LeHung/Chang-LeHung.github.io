@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 414 364" role="img" aria-label="PyDictObject 的内存布局：ob_refcnt 与 ob_type 组成 PyObject，另有 ma_used、ma_keys、ma_values 三格" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="414" height="364">
+  <text x="145" y="27" font-size="21" text-anchor="middle">PyDictObject</text>
+
+  <!-- PyObject 部分：两格蓝 -->
+  <rect x="49" y="41" width="192" height="100" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <line x1="49" y1="91" x2="241" y2="91" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <!-- PyDictObject 自己的字段：三格绿 -->
+  <rect x="49" y="141" width="192" height="201" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <line x1="49" y1="191" x2="241" y2="191" stroke="#82b366" stroke-width="1.5"/>
+  <line x1="49" y1="275" x2="241" y2="275" stroke="#82b366" stroke-width="1.5"/>
+
+  <g font-size="21" text-anchor="middle">
+    <text x="145" y="74">Py_ssize_t ob_refcnt</text>
+    <text x="145" y="124">_typeobject *ob_type</text>
+    <text x="145" y="173">Py_ssize_t ma_used</text>
+    <text x="145" y="226">PyDictKeysObject</text>
+    <text x="145" y="249">*ma_keys</text>
+    <text x="145" y="316">PyObject **ma_values</text>
+  </g>
+
+  <!-- 花括号：包住前两格 -->
+  <path d="M264 41 q11 0 11 11 v28 q0 8 7 10 q-7 2 -7 10 v28 q0 11 -11 11"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="316" y="100" font-size="22">PyObject</text>
+</svg>

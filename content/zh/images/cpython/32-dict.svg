@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1512 898" role="img"
+     aria-label="PyDictObject 的 ma_keys 指向 PyDictKeyEntry 数组，按 Hello 的哈希值 8 取模定位到 dk_entries[0]，该条目记录 me_hash、me_key 与 me_value"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-32-dict" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="112" y="153" font-size="25">PyDictObject</text>
+
+  <!-- PyDictObject -->
+  <g stroke-width="1.5">
+    <rect x="47" y="180" width="270" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="47" y="250" width="270" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="47" y="320" width="270" height="70" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="47" y="390" width="270" height="118" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="47" y="508" width="270" height="94" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="25">
+    <text x="64" y="224">Py_ssize_t ob_refcnt</text>
+    <text x="64" y="294">_typeobject *ob_type</text>
+    <text x="64" y="364">Py_ssize_t ma_used</text>
+    <text x="64" y="437">PyDictKeysObject</text>
+    <text x="64" y="464">*ma_keys</text>
+    <text x="64" y="564">PyObject **ma_values</text>
+  </g>
+
+  <!-- PyObject 花括号 -->
+  <path d="M374 180 q-25 0 -25 26 v33 q0 21 -18 23 q18 2 18 23 v33 q0 26 25 26"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="427" y="258" font-size="25">PyObject</text>
+
+  <!-- PyDictKeyEntry 数组 -->
+  <text x="829" y="58" font-size="25" text-anchor="middle">PyDictKeyEntry</text>
+  <g stroke-width="1.5">
+    <rect x="694" y="86" width="270" height="71" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="157" width="270" height="70" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="227" width="270" height="70" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="297" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="367" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="437" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="507" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="577" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="647" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="717" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="787" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+  <g font-size="25">
+    <text x="708" y="130">Py_ssize_t dk_refcnt</text>
+    <text x="708" y="200">Py_ssize_t dk_size</text>
+    <text x="708" y="270">Py_ssize_t dk_usable</text>
+  </g>
+  <g font-size="25" text-anchor="middle">
+    <text x="829" y="410">dk_entries[1]</text>
+    <text x="829" y="480">dk_entries[2]</text>
+    <text x="829" y="550">dk_entries[3]</text>
+    <text x="829" y="620">dk_entries[4]</text>
+    <text x="829" y="690">dk_entries[5]</text>
+    <text x="829" y="760">dk_entries[6]</text>
+    <text x="829" y="830">dk_entries[7]</text>
+  </g>
+
+  <!-- dk_entries[0] 里的条目 -->
+  <circle cx="830" cy="331" r="4.5" fill="#000000"/>
+  <text x="1252" y="117" font-size="23" text-anchor="middle">(hash("Hello")) = 8</text>
+  <text x="1252" y="147" font-size="23" text-anchor="middle">(hash("Hello")) % 8 = 0</text>
+  <g stroke-width="1.5">
+    <rect x="1195" y="240" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="1195" y="310" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="1195" y="380" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="25" text-anchor="middle">
+    <text x="1329" y="284">me_hash : 8</text>
+    <text x="1329" y="354">me_key : Hello</text>
+    <text x="1329" y="424">me_value : World</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M317 450 H570 V85 H690" marker-end="url(#arrow-32-dict)"/>
+    <path d="M834 331 H1018 V240 H1191" marker-end="url(#arrow-32-dict)"/>
+  </g>
+</svg>

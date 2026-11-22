@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>你真的懂01背包问题吗？01背包的这几问你能答出来吗？ · Chang-LeHung</title>
 <meta name="description" content="关于01背包的几个问题 背包问题的动态转移方程是怎么来的？ 你能解释背包问题的两个 for 循环的意义嘛？ 为什么需要两个 for 循环，一个循环行不行？ 01背包问题的 for 循环一定要从0开始吗？ 01背包滚动数组的优化原理是什么？ 01背包只用不用二维数组只用一位数组的依据是什么？ 这些问题">
+<meta property="og:title" content="你真的懂01背包问题吗？01背包的这几问你能答出来吗？">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -142,8 +143,65 @@
 <h2 id="01背包数据依赖问题分析">01背包数据依赖问题分析</h2>
 <p>在上文当中我们已经分析出来了我们的动态转移方程：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">&#x00028;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo>&#x02212;</mo><mi>v</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>w</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo stretchy="false">&#x00029;</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>大</mi><mi>于</mi><mi>等</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>d</mi><mi>p</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">[</mo><mi>j</mi><mo stretchy="false">]</mo><mi>，</mi><mi>如</mi><mi>果</mi><mi>背</mi><mi>包</mi><mi>的</mi><mi>容</mi><mi>量</mi><mi>小</mi><mi>于</mi><mi>物</mi><mi>品</mi><mi>i</mi><mi>占</mi><mi>的</mi><mi>体</mi><mi>积</mi></mrow></math></div><p>根据上面两个公式分析，我们知道要想解出<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - v[i]]</code>的值和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系如下图所示：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp21.svg" alt="" loading="lazy" /></p>
-<p>基于上面的数据依赖关系，我们知道我们如果想求<code>dp[N][V]</code>的值，首先要求出<code>dp</code>数组第<code>N - 1</code>行的所有的值，因为<code>dp[N][V]</code>依赖<code>dp[N - 1][V]</code>，而且可能依赖<code>dp[N - 1][i]</code>的值（<code>i</code>大于等于<code>0</code>，小于<code>V</code>），而<code>dp[N - 1][V]</code>又依赖<code>dp[N - 2][]V</code>......</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1065" height="426" fill="#ffffff"/>
+
+  <!-- 着色单元格 -->
+  <rect x="61.5" y="204.5" width="261" height="27.5" fill="#fad7ac"/>
+  <rect x="322.5" y="204.5" width="65" height="27.5" fill="#cdeb8b"/>
+  <rect x="322.5" y="232" width="65" height="27.5" fill="#b1ddf0"/>
+  <text x="354.5" y="254" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 表格线 -->
+  <g fill="none" stroke="#000000" stroke-width="1">
+    <path d="M 61.5 123.5 H 583.5 M 61.5 150.5 H 583.5 M 61.5 177.5 H 583.5
+             M 61.5 204.5 H 583.5 M 61.5 232 H 583.5 M 61.5 259.5 H 583.5
+             M 61.5 286.5 H 583.5 M 61.5 313.5 H 583.5 M 61.5 341 H 583.5
+             M 61.5 368 H 583.5"/>
+    <path d="M 61.5 123.5 V 368 M 126.5 123.5 V 368 M 192 123.5 V 368
+             M 257 123.5 V 368 M 322.5 123.5 V 368 M 387.5 123.5 V 368
+             M 453 123.5 V 368 M 518 123.5 V 368 M 583.5 123.5 V 368"/>
+  </g>
+
+  <!-- 依赖箭头（红色） -->
+  <g fill="none" stroke="#ff0000" stroke-width="1.5" stroke-dasharray="4 7">
+    <path d="M 198.5 82 V 160 H 224.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 94 130.5 H 290"/>
+    <path d="M 94 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 159.5 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 290 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+  </g>
+  <path d="M 408.5 80 V 130.5 H 355.5 V 205" fill="none" stroke="#ff0000"
+        stroke-width="1.5" marker-end="url(#arrow-dp21)"/>
+
+  <!-- 两个来源标注框 -->
+  <rect x="125" y="49" width="147" height="33" rx="8" fill="#ffcc99" stroke="#333333" stroke-width="1.5"/>
+  <text x="198.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j - w]</text>
+  <rect x="344" y="49" width="129" height="31" rx="8" fill="#cdeb8b" stroke="#333333" stroke-width="1.5"/>
+  <text x="408.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 图例 -->
+  <rect x="620" y="129" width="61" height="23" fill="#cce5ff" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="194" width="61" height="24" fill="#ffcc99" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="256" width="61" height="23" fill="#cdeb8b" stroke="#333333" stroke-width="1"/>
+
+  <text x="711" y="151" font-size="25" fill="#000000">表示待计算的数据</text>
+  <text x="715" y="213" font-size="25" fill="#000000">表示绿色框可能依赖的数据</text>
+  <text x="720" y="277" font-size="25" fill="#000000">表示蓝色框依赖的数据</text>
+  <text x="724" y="325" font-size="25" fill="#000000">表示被依赖的数据</text>
+  <text x="725" y="370" font-size="25" fill="#000000">表示可能被依赖的数据</text>
+
+  <path d="M 619 315.5 H 685" fill="none" stroke="#ff0000" stroke-width="2" marker-end="url(#arrow-dp21)"/>
+  <path d="M 619 359 H 686" fill="none" stroke="#ff0000" stroke-width="2"
+        stroke-dasharray="4 7" marker-end="url(#arrow-dp21)"/>
+</svg></figure><p>基于上面的数据依赖关系，我们知道我们如果想求<code>dp[N][V]</code>的值，首先要求出<code>dp</code>数组第<code>N - 1</code>行的所有的值，因为<code>dp[N][V]</code>依赖<code>dp[N - 1][V]</code>，而且可能依赖<code>dp[N - 1][i]</code>的值（<code>i</code>大于等于<code>0</code>，小于<code>V</code>），而<code>dp[N - 1][V]</code>又依赖<code>dp[N - 2][]V</code>......</p>
 <p>根据上面的分析过程，如果我们想计算出<code>dp[N][V]</code>的结果，那就需要从第<code>1</code>行开始往后计算，一直算到第<code>N</code>行，因此我们可以写出下面的代码：</p>
 <p><code>Java</code>版本：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Scanner</span><span class="tok-p">;</span>
@@ -219,8 +277,73 @@
 <span class="tok-w">	</span><span class="tok-n">cout</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-n">backpack</span><span class="tok-p">();</span>
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
-</code></pre></div><p><img src="/content/zh/images/dsal/dp/01-dp22.svg" alt="" loading="lazy" /></p>
-<p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
+</code></pre></div><figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp22" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+    <marker id="arrow-dp22b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="5.75" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1049" height="404" fill="#ffffff"/>
+
+  <!-- 着色单元格 -->
+  <rect x="49.5" y="188.5" width="261" height="27.5" fill="#fad7ac"/>
+  <rect x="310.5" y="188.5" width="65" height="27.5" fill="#cdeb8b"/>
+  <rect x="310.5" y="216" width="65" height="27.5" fill="#b1ddf0"/>
+
+  <!-- 表格线 -->
+  <g fill="none" stroke="#000000" stroke-width="1">
+    <path d="M 49.5 107.5 H 571.5 M 49.5 134.5 H 571.5 M 49.5 161.5 H 571.5
+             M 49.5 188.5 H 571.5 M 49.5 216 H 571.5 M 49.5 243.5 H 571.5
+             M 49.5 270.5 H 571.5 M 49.5 297.5 H 571.5 M 49.5 325 H 571.5
+             M 49.5 352 H 571.5"/>
+    <path d="M 49.5 107.5 V 352 M 114.5 107.5 V 352 M 180 107.5 V 352
+             M 245 107.5 V 352 M 310.5 107.5 V 352 M 375.5 107.5 V 352
+             M 441 107.5 V 352 M 506 107.5 V 352 M 571.5 107.5 V 352"/>
+  </g>
+
+  <!-- 依赖箭头（红色） -->
+  <g fill="none" stroke="#ff0000" stroke-width="1.5" stroke-dasharray="4 7">
+    <path d="M 186.5 66 V 144 H 212.5 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 82 114 H 278"/>
+    <path d="M 82 114 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 147.5 114 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 278 114 V 190" marker-end="url(#arrow-dp22)"/>
+  </g>
+  <path d="M 396.5 64 V 114 H 343 V 190" fill="none" stroke="#ff0000"
+        stroke-width="1.5" marker-end="url(#arrow-dp22)"/>
+
+  <!-- 两个来源标注框 -->
+  <rect x="113" y="33" width="147" height="33" rx="8" fill="#ffcc99" stroke="#333333" stroke-width="1.5"/>
+  <text x="186.5" y="58.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j - w]</text>
+  <rect x="332" y="33" width="129" height="31" rx="8" fill="#cdeb8b" stroke="#333333" stroke-width="1.5"/>
+  <text x="396.5" y="58.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 横向累加箭头 -->
+  <path d="M 571.5 229.5 H 49" fill="none" stroke="#000000" stroke-width="4"
+        stroke-dasharray="12 10" marker-end="url(#arrow-dp22b)"/>
+  <text x="349" y="238.5" font-size="23" letter-spacing="1.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 图例 -->
+  <rect x="608" y="113" width="61" height="23" fill="#cce5ff" stroke="#333333" stroke-width="1"/>
+  <rect x="608" y="178" width="61" height="24" fill="#ffcc99" stroke="#333333" stroke-width="1"/>
+  <rect x="608" y="240" width="61" height="23" fill="#cdeb8b" stroke="#333333" stroke-width="1"/>
+
+  <text x="699" y="135" font-size="25" fill="#000000">表示待计算的数据</text>
+  <text x="703" y="197" font-size="25" fill="#000000">表示绿色框可能依赖的数据</text>
+  <text x="708" y="261" font-size="25" fill="#000000">表示蓝色框依赖的数据</text>
+  <text x="712" y="309" font-size="25" fill="#000000">表示被依赖的数据</text>
+  <text x="713" y="354" font-size="25" fill="#000000">表示可能被依赖的数据</text>
+
+  <path d="M 607 299.5 H 673" fill="none" stroke="#ff0000" stroke-width="2" marker-end="url(#arrow-dp22)"/>
+  <path d="M 607 343.5 H 674" fill="none" stroke="#ff0000" stroke-width="2"
+        stroke-dasharray="4 7" marker-end="url(#arrow-dp22)"/>
+</svg></figure><p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
 <p>因此下面的代码也是正确的：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-o">[][]</span><span class="tok-w"> </span><span class="tok-n">dp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-k">new</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[</span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">][</span><span class="tok-n">V</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-o">]</span><span class="tok-p">;</span>
@@ -318,14 +441,92 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - v[i]] + w[i], dp[i - 1][j])</code>我们知道，第<code>i</code>行的第<code>j</code>个数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破坏动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp23.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" class="inline-svg">
+  <rect x="0" y="0" width="914" height="358" fill="#ffffff"/>
+
+  <text x="434.5" y="53" font-size="21.5" fill="#000000" text-anchor="middle">一维数组优化</text>
+  <text x="39" y="124" font-size="21.5" fill="#000000">初始化的数组</text>
+
+  <!-- 初始化的数组：6 个黄色格 + 2 个绿色格 -->
+  <g stroke="#b09500" stroke-width="1.5" fill="#e3c800">
+    <rect x="201" y="101" width="65.25" height="29"/>
+    <rect x="266.25" y="101" width="65.25" height="29"/>
+    <rect x="331.5" y="101" width="65.25" height="29"/>
+    <rect x="396.75" y="101" width="65.25" height="29"/>
+    <rect x="462" y="101" width="65.25" height="29"/>
+    <rect x="527.25" y="101" width="65.25" height="29"/>
+  </g>
+  <g stroke="#005700" stroke-width="1.5" fill="#008a00">
+    <rect x="592.5" y="101" width="65.25" height="29"/>
+    <rect x="657.75" y="101" width="65.25" height="29"/>
+  </g>
+
+  <!-- 待计算的虚线数组 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5" stroke-dasharray="4 6">
+    <rect x="201" y="171" width="65.25" height="27"/>
+    <rect x="266.25" y="171" width="65.25" height="27"/>
+    <rect x="331.5" y="171" width="65.25" height="27"/>
+    <rect x="396.75" y="171" width="65.25" height="27"/>
+    <rect x="462" y="171" width="65.25" height="27"/>
+    <rect x="592.5" y="171" width="65.25" height="27"/>
+    <rect x="657.75" y="171" width="65.25" height="27"/>
+  </g>
+  <rect x="527.25" y="171" width="65.25" height="27" fill="#fa6800"
+        stroke="#c73500" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <text x="561.5" y="194" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 省略的部分 -->
+  <rect x="201" y="234" width="67" height="28" fill="#fa6800"
+        stroke="#c73500" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <text x="103" y="306" font-size="21.5" fill="#000000">计算虚线橙色框的结果的时候，他只依赖黄色框的数据，不依赖绿色框的数据</text>
+</svg></figure><ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp24.svg" alt="" loading="lazy" /></p>
-<p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp25.svg" alt="" loading="lazy" /></p>
-<h2 id="问题答案">问题答案</h2>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" class="inline-svg">
+  <rect x="0" y="0" width="636" height="239" fill="#ffffff"/>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="55" y="48.5" width="65.25" height="27"/>
+    <rect x="120.25" y="48.5" width="65.25" height="27"/>
+    <rect x="185.5" y="48.5" width="65.25" height="27"/>
+    <rect x="250.75" y="48.5" width="65.25" height="27"/>
+  </g>
+  <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">
+    <rect x="316" y="48.5" width="65.25" height="27"/>
+    <rect x="381.25" y="48.5" width="65.25" height="27"/>
+    <rect x="446.5" y="48.5" width="65.25" height="27"/>
+    <rect x="511.75" y="48.5" width="65.25" height="27"/>
+  </g>
+
+  <rect x="54.5" y="110.5" width="65" height="26.5" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="149" y="134" font-size="21" fill="#000000">表示第i - 1行的状态</text>
+
+  <rect x="54.5" y="175.5" width="65" height="26.5" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="146" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
+</svg></figure><p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" class="inline-svg">
+  <rect x="0" y="0" width="661" height="257" fill="#ffffff"/>
+
+  <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">
+    <rect x="72" y="49.5" width="65.31" height="27"/>
+    <rect x="137.31" y="49.5" width="65.31" height="27"/>
+    <rect x="202.62" y="49.5" width="65.31" height="27"/>
+    <rect x="267.94" y="49.5" width="65.31" height="27"/>
+    <rect x="333.25" y="49.5" width="65.31" height="27"/>
+  </g>
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="398.56" y="49.5" width="65.31" height="27"/>
+    <rect x="463.88" y="49.5" width="65.31" height="27"/>
+    <rect x="529.19" y="49.5" width="65.31" height="27"/>
+  </g>
+
+  <rect x="72" y="111" width="66" height="27" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="167" y="134" font-size="21" fill="#000000">表示第i - 1行的状态</text>
+
+  <rect x="72" y="176" width="66" height="27" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="164" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
+</svg></figure><h2 id="问题答案">问题答案</h2>
 <p>如果你已经看懂上面所谈论到的内容的话，关于前面的几个问题相信你已经有了答案。上面那些问题最终涉及到的就是01背包问题的动态转移方程了，我们在写代码的时候一定不能破坏动态转移方程，也就是要满足动态转移方程的依赖关系，即第<code>i</code>行的第<code>j</code>个数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。</p>
 <ul>
 <li>背包问题的两个<code>for</code>循环的意义：
@@ -353,6 +554,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-da-01combinations/"><span>较新</span>通过组合问题看透回溯法</a><a class="next" href="/posts/cscore-da-02combinations/"><span>较旧</span>组合总和</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 609 262" role="img" aria-label="栈的示意：栈顶在上、栈底在下，右侧的内存里放着数字 1 和 2" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="609" height="262">
+  <defs>
+    <marker id="arrow-42-codeobject" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="22" y="29" font-size="20">栈顶</text>
+  <text x="22" y="238" font-size="20">栈底</text>
+
+  <!-- 自下而上的栈指针 -->
+  <path d="M42 232 V38" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-42-codeobject)"/>
+
+  <!-- 栈本体 -->
+  <rect x="81" y="25" width="77" height="204" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 内存 -->
+  <rect x="347" y="82" width="236" height="148" rx="34" ry="34" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="526" y="120" font-size="22">内存</text>
+  <rect x="382" y="105" width="64" height="32" fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5"/>
+  <rect x="382" y="163" width="64" height="32" fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5"/>
+  <text x="414" y="128" font-size="19" text-anchor="middle">1</text>
+  <text x="414" y="186" font-size="19" text-anchor="middle">2</text>
+</svg>

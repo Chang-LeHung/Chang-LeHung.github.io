@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1691 476" role="img" aria-label="四个 FrameObject 用 f_back 串成调用链：每个栈帧里 f_stacktop、f_valuestack 都指向自己的 stack 区域" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1691" height="476">
+  <defs>
+    <marker id="arrow-72frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="103" y="70" width="191" height="45"/>
+    <rect x="103" y="115" width="191" height="45"/>
+    <rect x="103" y="160" width="191" height="45"/>
+  </g>
+  <rect x="103" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="103" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="103" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="103" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="18" text-anchor="middle">
+    <text x="199" y="98">f_back</text>
+    <text x="199" y="143">f_stacktop</text>
+    <text x="199" y="188">f_valuestack</text>
+    <text x="199" y="233">f_localsplus</text>
+    <text x="199" y="278">cells</text>
+    <text x="199" y="323">frees</text>
+    <text x="199" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="133" cy="92" r="4"/>
+    <circle cx="129" cy="137" r="4"/>
+    <circle cx="267" cy="182" r="4"/>
+  </g>
+  <path d="M101 70 Q 87 70 87 92 V 116 Q 87 137 65 137 Q 87 137 87 158 V 188 Q 87 205 101 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M65 140 C 42 175, 46 320, 60 344 C 68 358, 82 362, 99 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M267 182 C 331 190, 373 240, 361 302 C 351 340, 309 360, 298 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第二列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="546" y="70" width="191" height="45"/>
+    <rect x="546" y="115" width="191" height="45"/>
+    <rect x="546" y="160" width="191" height="45"/>
+  </g>
+  <rect x="546" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="546" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="546" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="546" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="18" text-anchor="middle">
+    <text x="642" y="98">f_back</text>
+    <text x="642" y="143">f_stacktop</text>
+    <text x="642" y="188">f_valuestack</text>
+    <text x="642" y="233">f_localsplus</text>
+    <text x="642" y="278">cells</text>
+    <text x="642" y="323">frees</text>
+    <text x="642" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="576" cy="92" r="4"/>
+    <circle cx="572" cy="137" r="4"/>
+    <circle cx="710" cy="182" r="4"/>
+  </g>
+  <path d="M544 70 Q 530 70 530 92 V 116 Q 530 137 508 137 Q 530 137 530 158 V 188 Q 530 205 544 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M508 140 C 485 175, 489 320, 503 344 C 511 358, 525 362, 542 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M710 182 C 774 190, 816 240, 804 302 C 794 340, 752 360, 741 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第三列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="971" y="70" width="191" height="45"/>
+    <rect x="971" y="115" width="191" height="45"/>
+    <rect x="971" y="160" width="191" height="45"/>
+  </g>
+  <rect x="971" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="971" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="971" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="971" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="18" text-anchor="middle">
+    <text x="1067" y="98">f_back</text>
+    <text x="1067" y="143">f_stacktop</text>
+    <text x="1067" y="188">f_valuestack</text>
+    <text x="1067" y="233">f_localsplus</text>
+    <text x="1067" y="278">cells</text>
+    <text x="1067" y="323">frees</text>
+    <text x="1067" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="1001" cy="92" r="4"/>
+    <circle cx="997" cy="137" r="4"/>
+    <circle cx="1135" cy="182" r="4"/>
+  </g>
+  <path d="M969 70 Q 955 70 955 92 V 116 Q 955 137 933 137 Q 955 137 955 158 V 188 Q 955 205 969 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M933 140 C 910 175, 914 320, 928 344 C 936 358, 950 362, 967 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M1135 182 C 1199 190, 1241 240, 1229 302 C 1219 340, 1177 360, 1166 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第四列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="1396" y="70" width="191" height="45"/>
+    <rect x="1396" y="115" width="191" height="45"/>
+    <rect x="1396" y="160" width="191" height="45"/>
+  </g>
+  <rect x="1396" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="1396" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="1396" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="1396" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="18" text-anchor="middle">
+    <text x="1492" y="98">f_back</text>
+    <text x="1492" y="143">f_stacktop</text>
+    <text x="1492" y="188">f_valuestack</text>
+    <text x="1492" y="233">f_localsplus</text>
+    <text x="1492" y="278">cells</text>
+    <text x="1492" y="323">frees</text>
+    <text x="1492" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="1426" cy="92" r="4"/>
+    <circle cx="1422" cy="137" r="4"/>
+    <circle cx="1560" cy="182" r="4"/>
+  </g>
+  <path d="M1394 70 Q 1380 70 1380 92 V 116 Q 1380 137 1358 137 Q 1380 137 1380 158 V 188 Q 1380 205 1394 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M1358 140 C 1335 175, 1339 320, 1353 344 C 1361 358, 1375 362, 1392 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M1560 182 C 1624 190, 1666 240, 1654 302 C 1644 340, 1602 360, 1591 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- f_back 指向上一个栈帧 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)">
+    <path d="M576 92 V 47 H 292 V 66"/>
+    <path d="M1001 92 V 47 H 735 V 66"/>
+    <path d="M1426 92 V 47 H 1160 V 66"/>
+  </g>
+
+  <g font-size="17" text-anchor="middle">
+    <text x="423" y="143">FrameObject(partial)</text>
+    <text x="848" y="143">FrameObject(partial)</text>
+    <text x="1273" y="143">FrameObject(partial)</text>
+  </g>
+</svg>

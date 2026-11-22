@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 python 虚拟机：描述器实现原理与源码分析 · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要给大家介绍描述器背后的实现原理，通过分析 cpython 对应的源代码了解与描述器相关的字节码的指令，我们就可以真正了解到描述器背后的原理！ 从字节码角度看描述器 在前面的内容当中我们已经详细分析了描述器的使用和其相关的应用，我们通常使用描述器都是将其作为类的一个类属性使用，而使用">
+<meta property="og:title" content="深入理解 python 虚拟机：描述器实现原理与源码分析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -326,6 +327,7 @@ Type<span class="tok-w"> </span><span class="tok-s2">"help"</span>,<span class="
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-obsy-02application/"><span>较新</span>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</a><a class="next" href="/posts/cpython-obsy-05magicmethod/"><span>较旧</span>魔术方法之数学计算</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

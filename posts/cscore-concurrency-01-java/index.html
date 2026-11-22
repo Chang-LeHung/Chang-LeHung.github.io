@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>并发开篇——带你从0到1建立并发知识体系的基石 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要跟大家介绍并发的基础知识，从最基本的问题出发层层深入，帮助大家了解并发知识，并且打好并发的基础，为后面深入学习并发提供保证。本篇文章的篇章结构如下： 并发的需求 我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况">
+<meta property="og:title" content="并发开篇——带你从0到1建立并发知识体系的基石">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -71,8 +72,65 @@
 <li>我们常用的软件就可能会有这种需求，对于一种软件我们可能有多重需求，程序可能一边在运行一边在后台更新，因此在很多情况下对于一个进程或者一个任务来说可能想要同时执行两个不同的子任务，因此就需要在一个进程当中产生多个子线程，不同的线程执行不同的任务。</li>
 <li>现在的机器的CPU核心个数一般都有很多个，比如现在一般的电脑都会有4个CPU，而每一个CPU在同一个时刻都可以执行一个任务，因此为了充分利用CPU的计算资源，我们可以让这多个CPU同时执行不同的任务，让他们同时工作起来，而不是空闲没有事可做。</li>
 </ul>
-<p><img src="/content/zh/images/cscore/images/concurrency/01.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 542" role="img" aria-label="四个线程汇合后由操作系统分配到四个 CPU 上执行" class="inline-svg">
+  <defs>
+    <marker id="arrow-c01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 线程圆圈 -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <circle cx="129" cy="77" r="43"/>
+    <circle cx="356" cy="77" r="43"/>
+    <circle cx="595" cy="77" r="43"/>
+    <circle cx="802" cy="77" r="43"/>
+  </g>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="129" y="84">线程1</text>
+    <text x="356" y="84">线程2</text>
+    <text x="595" y="84">线程3</text>
+    <text x="802" y="84">线程4</text>
+  </g>
+
+  <!-- 汇合线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M129 120 V154 H802 V120"/>
+    <path d="M356 120 V154"/>
+    <path d="M595 120 V154"/>
+    <path d="M470 154 V186" marker-end="url(#arrow-c01)"/>
+  </g>
+
+  <!-- 操作系统处理框 -->
+  <rect x="261" y="190" width="424" height="116" rx="10" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="473" y="241">操作系统将不同的线程或者进程放在不同</text>
+    <text x="473" y="269">的CPU上进行执行</text>
+  </g>
+
+  <!-- 分配到 CPU -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M348 306 C348 372 145 356 145 410" marker-end="url(#arrow-c01)"/>
+    <path d="M452 306 C452 374 370 358 370 410" marker-end="url(#arrow-c01)"/>
+    <path d="M515 306 C515 374 578 358 578 410" marker-end="url(#arrow-c01)"/>
+    <path d="M600 306 C600 372 787 356 787 410" marker-end="url(#arrow-c01)"/>
+  </g>
+
+  <!-- CPU 框 -->
+  <g fill="#fad7ac" stroke="#b56707" stroke-width="1.5">
+    <rect x="78" y="418" width="134" height="58" rx="6"/>
+    <rect x="303" y="418" width="134" height="58" rx="6"/>
+    <rect x="512" y="418" width="133" height="58" rx="6"/>
+    <rect x="721" y="418" width="133" height="58" rx="6"/>
+  </g>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="145" y="455">CPU 0</text>
+    <text x="370" y="455">CPU 1</text>
+    <text x="578" y="455">CPU 2</text>
+    <text x="787" y="455">CPU 3</text>
+  </g>
+</svg></figure><ul>
 <li>还有就是在科学计算和高性能计算领域有这样的需求，比如矩阵计算，如果一个线程进行计算的话需要很长的时间，那么我们就可能使用多核的优势，让多个CPU同时进行计算，这样一个计算任务的计算时间就会比之前少很多，比如一个任务单线程的计算时间为24小时，如果我们有24个CPU核心，那么我们的计算任务可能在1-2小时就计算完成了，可以节约非常多的时间。</li>
 </ul>
 <h2 id="并发的基础概念">并发的基础概念</h2>
@@ -207,14 +265,109 @@
 <span class="tok-n">Thread</span><span class="tok-o">-</span><span class="tok-mi">0</span>
 <span class="tok-n">main</span>
 </code></pre></div><p>上面代码的执行流程大致如下图所示：</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/08.svg" alt="" loading="lazy" /></p>
-<p>我们需要知道的一点是<code>thread.join()</code>这条语句是主线程执行的，它的主要功能就是等待线程<code>thread</code>执行完成，只有<code>thread</code>执行完成之后主线程才会继续执行<code>thread.join()</code>后面的语句。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 905 530" role="img" aria-label="主线程分出一个子线程并等待它执行完毕后继续向下执行" class="inline-svg">
+  <defs>
+    <marker id="arrow-c08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <!-- 主线程的生命线 -->
+    <path d="M181 53 V520" marker-end="url(#arrow-c08)"/>
+    <!-- 子线程的执行区间 -->
+    <path d="M181 115 H597 V373 H184" marker-end="url(#arrow-c08)"/>
+  </g>
+
+  <g fill="#111">
+    <text x="152" y="38" font-size="22">主线程</text>
+    <text x="200" y="95" font-size="20">分出一个子线程，new Thread(...)</text>
+    <text x="348" y="215" font-size="19">System.out.println(Thread.currentThread().getName());</text>
+    <text x="128" y="385" font-size="21">join</text>
+    <text x="80" y="444" font-size="19">System.out.println(Thread.currentThread().getName());</text>
+  </g>
+</svg></figure><p>我们需要知道的一点是<code>thread.join()</code>这条语句是主线程执行的，它的主要功能就是等待线程<code>thread</code>执行完成，只有<code>thread</code>执行完成之后主线程才会继续执行<code>thread.join()</code>后面的语句。</p>
 <h2 id="第一个并发任务求x2的积分">第一个并发任务——求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分</h2>
 <p>接下来我们用一个例子去具体体会并发带来的效果提升。我们的这个例子就是求函数的积分，我们的函数为最简单的二次函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>，当然我们就积分（下图当中的阴影部分）完全可以根据公式进行求解（如果你不懂积分也没有关系，下文我们会把这个函数写出来，不会影响你对并发的理解）：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/04.svg" alt="" loading="lazy" /></p>
-<p>但是我们用程序去求解的时候并不是采用上面的方法，而是使用微元法：</p>
-<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><p><img src="/content/zh/images/cscore/images/concurrency/06.svg" alt="" loading="lazy" /></p>
-<p>下面我们用一个单线程先写出求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>积分的代码：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mn>3</mn></mrow></mfrac><msup><mi>x</mi><mn>3</mn></msup><mo>&#x0002B;</mo><mi>C</mi></mrow></math></div><figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" class="inline-svg">
+  <!-- 绘图区 -->
+  <rect x="59" y="52" width="696" height="452" fill="#eaeaf2"/>
+
+  <!-- 曲线下方的面积 -->
+  <path d="M90 503 L105.9 502.7 L121.7 501.9 L137.6 500.6 L153.5 498.7 L169.3 496.3 L185.2 493.3 L201.1 489.9 L217 485.8 L232.8 481.3 L248.7 476.2 L264.6 470.5 L280.4 464.4 L296.3 457.7 L312.2 450.4 L328 442.7 L343.9 434.3 L359.8 425.5 L375.7 416.1 L391.5 406.2 L407.4 395.7 L423.3 384.7 L439.1 373.2 L455 361.1 L470.9 348.5 L486.8 335.4 L502.6 321.7 L518.5 307.5 L534.4 292.7 L550.2 277.4 L566.1 261.6 L582 245.3 L597.8 228.4 L613.7 210.9 L619 205 L619 503 Z"
+        fill="#e6e6e6"/>
+
+  <!-- x=0 与 x=10 两条竖线 -->
+  <path d="M90 52 V503" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <path d="M618.5 52 V503" stroke="#9a9a9a" stroke-width="1.5" fill="none"/>
+
+  <!-- y = x^2 曲线 -->
+  <path d="M90 503 L105.9 502.7 L121.7 501.9 L137.6 500.6 L153.5 498.7 L169.3 496.3 L185.2 493.3 L201.1 489.9 L217 485.8 L232.8 481.3 L248.7 476.2 L264.6 470.5 L280.4 464.4 L296.3 457.7 L312.2 450.4 L328 442.7 L343.9 434.3 L359.8 425.5 L375.7 416.1 L391.5 406.2 L407.4 395.7 L423.3 384.7 L439.1 373.2 L455 361.1 L470.9 348.5 L486.8 335.4 L502.6 321.7 L518.5 307.5 L534.4 292.7 L550.2 277.4 L566.1 261.6 L582 245.3 L597.8 228.4 L613.7 210.9 L629.6 193 L645.4 174.5 L661.3 155.4 L677.2 135.8 L693.1 115.7 L708.9 95.1 L724.8 73.9"
+        fill="none" stroke="#c44e52" stroke-width="3"/>
+
+  <!-- 坐标标签 -->
+  <g fill="#262626">
+    <text x="34" y="44" font-size="24" font-style="italic">y</text>
+    <text x="750" y="542" font-size="22" font-style="italic" text-anchor="middle">x</text>
+    <text x="90" y="532" font-size="21" text-anchor="middle">0</text>
+    <text x="619" y="530" font-size="21" text-anchor="middle">10</text>
+  </g>
+
+  <!-- y = x^2 -->
+  <g fill="#262626">
+    <text x="572" y="150" font-size="26" font-style="italic">y</text>
+    <text x="590" y="150" font-size="26">=</text>
+    <text x="612" y="150" font-size="26" font-style="italic">x</text>
+    <text x="628" y="131" font-size="17" font-style="italic">2</text>
+  </g>
+
+  <!-- 积分式 -->
+  <g fill="#262626">
+    <text x="398" y="492" font-size="46">∫</text>
+    <text x="424" y="453" font-size="15">10</text>
+    <text x="428" y="492" font-size="15">0</text>
+    <text x="442" y="482" font-size="26" font-style="italic">x</text>
+    <text x="458" y="466" font-size="17" font-style="italic">2</text>
+    <text x="472" y="482" font-size="26" font-style="italic">dx</text>
+  </g>
+</svg></figure><p>但是我们用程序去求解的时候并不是采用上面的方法，而是使用微元法：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msubsup><mo>&#x0222B;</mo><mn>0</mn><mrow><mn>10</mn></mrow></msubsup><msup><mi>x</mi><mn>2</mn></msup><mi>&#x00064;</mi><mi>x</mi><mo>&#x0003D;</mo><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mn>1000000</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>i</mi><mo>&#x0002A;</mo><mn>0.00001</mn><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo>&#x0002A;</mo><mn>0.00001</mn></mrow></math></div><figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 583" role="img" aria-label="函数 y 等于 x 平方的曲线，0 到 10 之间用一列竖线表示积分求和" class="inline-svg">
+  <!-- 绘图区 -->
+  <rect x="77" y="49" width="696" height="452" fill="#eaeaf2"/>
+
+  <!-- 曲线下方的面积 -->
+  <path d="M108 500 L123.8 499.7 L139.6 498.9 L155.3 497.6 L171.1 495.7 L186.9 493.3 L202.7 490.3 L218.5 486.9 L234.2 482.8 L250 478.3 L265.8 473.2 L281.6 467.5 L297.4 461.4 L313.1 454.7 L328.9 447.4 L344.7 439.7 L360.5 431.3 L376.3 422.5 L392 413.1 L407.8 403.2 L423.6 392.7 L439.4 381.7 L455.2 370.2 L470.9 358.1 L486.7 345.5 L502.5 332.4 L518.3 318.7 L534.1 304.5 L549.8 289.7 L565.6 274.4 L581.4 258.6 L597.2 242.3 L613 225.4 L628.7 207.9 L634 202 L634 500 Z"
+        fill="#e6e6e6"/>
+
+  <!-- 一列竖直细线 -->
+  <path d="M106.7 500 V500.0 M119.9 500 V499.8 M133.1 500 V499.3 M146.3 500 V498.4 M159.5 500 V497.1 M172.7 500 V495.5 M185.9 500 V493.5 M199.1 500 V491.1 M212.3 500 V488.3 M225.5 500 V485.1 M238.7 500 V481.6 M251.9 500 V477.7 M265.1 500 V473.4 M278.3 500 V468.8 M291.5 500 V463.7 M304.7 500 V458.3 M317.9 500 V452.5 M331.1 500 V446.4 M344.3 500 V439.9 M357.5 500 V433.0 M370.7 500 V425.7 M383.9 500 V418.0 M397.1 500 V410.0 M410.3 500 V401.6 M423.5 500 V392.8 M436.7 500 V383.6 M449.9 500 V374.1 M463.1 500 V364.2 M476.3 500 V353.9 M489.5 500 V343.2 M502.7 500 V332.2 M515.9 500 V320.8 M529.1 500 V309.0 M542.3 500 V296.8 M555.5 500 V284.3 M568.7 500 V271.4 M581.9 500 V258.1 M595.1 500 V244.4 M608.3 500 V230.4 M621.5 500 V216.0"
+        fill="none" stroke="#4c72b0" stroke-width="2.5"/>
+
+  <!-- x=0 与 x=10 两条竖线 -->
+  <path d="M108 49 V500" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <path d="M635.5 49 V500" stroke="#9a9a9a" stroke-width="1.5" fill="none"/>
+
+  <!-- y = x^2 曲线 -->
+  <path d="M108 500 L123.8 499.7 L139.6 498.9 L155.3 497.6 L171.1 495.7 L186.9 493.3 L202.7 490.3 L218.5 486.9 L234.2 482.8 L250 478.3 L265.8 473.2 L281.6 467.5 L297.4 461.4 L313.1 454.7 L328.9 447.4 L344.7 439.7 L360.5 431.3 L376.3 422.5 L392 413.1 L407.8 403.2 L423.6 392.7 L439.4 381.7 L455.2 370.2 L470.9 358.1 L486.7 345.5 L502.5 332.4 L518.3 318.7 L534.1 304.5 L549.8 289.7 L565.6 274.4 L581.4 258.6 L597.2 242.3 L613 225.4 L628.7 207.9 L644.5 190 L660.3 171.5 L676.1 152.4 L691.9 132.8 L707.6 112.7 L723.4 92.1 L739.2 70.9"
+        fill="none" stroke="#c44e52" stroke-width="3"/>
+
+  <!-- 坐标标签 -->
+  <g fill="#262626">
+    <text x="34" y="41" font-size="24" font-style="italic">y</text>
+    <text x="768" y="540" font-size="22" font-style="italic" text-anchor="middle">x</text>
+    <text x="108" y="530" font-size="21" text-anchor="middle">0</text>
+    <text x="635" y="528" font-size="21" text-anchor="middle">10</text>
+  </g>
+
+  <!-- y = x^2 -->
+  <g fill="#262626">
+    <text x="587" y="142" font-size="26" font-style="italic">y</text>
+    <text x="605" y="142" font-size="26">=</text>
+    <text x="629" y="142" font-size="26" font-style="italic">x</text>
+    <text x="645" y="123" font-size="17" font-style="italic">2</text>
+  </g>
+</svg></figure><p>下面我们用一个单线程先写出求<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>积分的代码：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">X2</span><span class="tok-w"> </span><span class="tok-p">{</span>
 
 <span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-nf">x2integral</span><span class="tok-p">(</span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -253,8 +406,81 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>从上面的结果来看计算区间<code>[0, 10000]</code>之间的积分结果且<code>delta = 0.000001</code>，现在假设我们使用<code>8</code>个线程来做这件事，我们改如何去规划呢？</p>
 <p>因为我们是采用<code>8</code>个线程来做这件事儿，因此我们可以将这个区间分成<code>8</code>段，每个线程去执行一小段，最终我们将每一个小段的结果加起来就行，整个过程大致如下。</p>
-<p><img src="/content/zh/images/cscore/images/concurrency/10.svg" alt="" loading="lazy" /></p>
-<p>首先我们先定义一个继承<code>Thread</code>的类（因为我们要进行多线程计算，所以要继承这个类）去计算区间<code>[a, b]</code>之间的函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 661" role="img" aria-label="启动八个线程分别计算不同区间的结果，最后把结果加起来" class="inline-svg">
+  <defs>
+    <marker id="arrow-c10" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 分发到八个线程 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M196 336 L410 53" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 126" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 198" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 268" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 383" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 452" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 523" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 594" marker-end="url(#arrow-c10)"/>
+  </g>
+  <!-- 结果汇总 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M503 53 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 126 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 198 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 268 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 383 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 452 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 523 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 594 L845 334" marker-end="url(#arrow-c10)"/>
+  </g>
+
+  <!-- 八个线程框 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="414" y="30" width="89" height="46" rx="6"/>
+    <rect x="414" y="103" width="89" height="46" rx="6"/>
+    <rect x="414" y="175" width="89" height="46" rx="6"/>
+    <rect x="414" y="245" width="89" height="46" rx="6"/>
+    <rect x="414" y="360" width="89" height="46" rx="6"/>
+    <rect x="414" y="429" width="89" height="46" rx="6"/>
+    <rect x="414" y="500" width="89" height="46" rx="6"/>
+    <rect x="414" y="571" width="89" height="46" rx="6"/>
+  </g>
+  <g font-size="22" fill="#111">
+    <text x="421" y="61">Thread-1</text>
+    <text x="421" y="134">Thread-2</text>
+    <text x="421" y="206">Thread-3</text>
+    <text x="421" y="276">Thread-4</text>
+    <text x="421" y="391">Thread-5</text>
+    <text x="421" y="460">Thread-6</text>
+    <text x="421" y="531">Thread-7</text>
+    <text x="421" y="602">Thread-8</text>
+  </g>
+
+  <!-- 计算区间说明 -->
+  <g font-size="20" fill="#111">
+    <text x="518" y="64">计算区间为[0, 1250]</text>
+    <text x="518" y="137">计算区间为[1250, 2500]</text>
+    <text x="518" y="209">计算区间为[2500, 3750]</text>
+    <text x="518" y="279">计算区间为[3750, 5000]</text>
+    <text x="518" y="394">计算区间为[5000, 6250]</text>
+    <text x="518" y="463">计算区间为[6250, 7500]</text>
+    <text x="518" y="534">计算区间为[7500, 8750]</text>
+    <text x="518" y="605">计算区间为[8750, 10000]</text>
+  </g>
+
+  <!-- 起止两端的框 -->
+  <rect x="47" y="297" width="151" height="75" rx="10" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="122" y="343" font-size="23" fill="#111" text-anchor="middle">启动八个线程</text>
+
+  <rect x="849" y="297" width="151" height="75" rx="10" fill="#fad7ac" stroke="#b56707" stroke-width="1.5"/>
+  <g font-size="22" fill="#111" text-anchor="middle">
+    <text x="924" y="326">将计算的结果</text>
+    <text x="924" y="353">加起来</text>
+  </g>
+</svg></figure><p>首先我们先定义一个继承<code>Thread</code>的类（因为我们要进行多线程计算，所以要继承这个类）去计算区间<code>[a, b]</code>之间的函数<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>x</mi><mn>2</mn></msup></mrow></math>的积分：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">ThreadX2</span><span class="tok-w"> </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">Thread</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kt">double</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span>
@@ -419,6 +645,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-02/"><span>较新</span>并发程序的噩梦——数据竞争</a><a class="next" href="/posts/cscore-container-09-arrayqueue/"><span>较旧</span>深入剖析（JDK）ArrayQueue源码</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1297 322" role="img"
+     aria-label="PyListObject 的 ob_item 指向 PyObject* 数组，数组元素分别指向整数 1、整数 2、列表 [1, 2] 和元组 (1,2)；右侧是同一结构反向排列的对照"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-08-list" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- ============ 左图：结构体 -> 指针数组 -> 元素 ============ -->
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="26" y="78" width="193" height="32"/>
+    <rect x="26" y="110" width="193" height="32"/>
+    <rect x="26" y="142" width="193" height="32"/>
+    <rect x="26" y="174" width="193" height="32"/>
+    <rect x="26" y="206" width="193" height="32"/>
+  </g>
+  <g font-size="16">
+    <text x="38" y="100">Py_ssize_t ob_refcnt</text>
+    <text x="38" y="132">_typeobject *ob_type</text>
+    <text x="38" y="164">Py_ssize_t ob_size</text>
+    <text x="38" y="196">PyObject **ob_item;</text>
+    <text x="38" y="228">Py_ssize_t allocated</text>
+  </g>
+
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="352" y="68" width="93" height="39"/>
+    <rect x="352" y="107" width="93" height="39"/>
+    <rect x="352" y="146" width="93" height="39"/>
+    <rect x="352" y="185" width="93" height="39"/>
+  </g>
+  <g font-size="16">
+    <text x="360" y="94">PyObject*</text>
+    <text x="360" y="133">PyObject*</text>
+    <text x="360" y="172">PyObject*</text>
+    <text x="360" y="211">PyObject*</text>
+  </g>
+
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <rect x="530" y="40" width="72" height="39"/>
+    <rect x="530" y="105" width="72" height="39"/>
+    <rect x="530" y="184" width="72" height="39"/>
+    <rect x="530" y="257" width="72" height="39"/>
+  </g>
+  <g font-size="16" text-anchor="middle">
+    <text x="566" y="66">1</text>
+    <text x="566" y="131">2</text>
+    <text x="566" y="210">[1, 2]</text>
+    <text x="566" y="283">(1,2)</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M220 180 H259 V66 H348" marker-end="url(#arrow-08-list)"/>
+    <path d="M445 87 H487 V50 H526" marker-end="url(#arrow-08-list)"/>
+    <path d="M445 126 H526" marker-end="url(#arrow-08-list)"/>
+    <path d="M445 165 H465 V206 H526" marker-end="url(#arrow-08-list)"/>
+    <path d="M400 226 V276 H526" marker-end="url(#arrow-08-list)"/>
+  </g>
+
+  <!-- ============ 右图：同样的关系，指针列在右、元素在左 ============ -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="913" y="89" width="93" height="39.5"/>
+    <rect x="913" y="128.5" width="93" height="39.5"/>
+    <rect x="913" y="168" width="93" height="39.5"/>
+    <rect x="913" y="207.5" width="93" height="39.5"/>
+  </g>
+  <g font-size="16">
+    <text x="921" y="115">PyObject*</text>
+    <text x="921" y="155">PyObject*</text>
+    <text x="921" y="194">PyObject*</text>
+    <text x="921" y="234">PyObject*</text>
+  </g>
+
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="1081" y="86" width="191" height="32"/>
+    <rect x="1081" y="118" width="191" height="32"/>
+    <rect x="1081" y="150" width="191" height="32"/>
+    <rect x="1081" y="182" width="191" height="32"/>
+    <rect x="1081" y="214" width="191" height="32"/>
+  </g>
+  <g font-size="16">
+    <text x="1092" y="108">Py_ssize_t ob_refcnt</text>
+    <text x="1092" y="140">_typeobject *ob_type</text>
+    <text x="1092" y="172">Py_ssize_t ob_size</text>
+    <text x="1092" y="204">PyObject **ob_item;</text>
+    <text x="1092" y="236">Py_ssize_t allocated</text>
+  </g>
+
+  <g fill="#ffffff" stroke="#444" stroke-width="1.5">
+    <rect x="703" y="31" width="72" height="38"/>
+    <rect x="703" y="96" width="72" height="38"/>
+    <rect x="703" y="175" width="72" height="38"/>
+    <rect x="703" y="248" width="72" height="38"/>
+  </g>
+  <g font-size="16" text-anchor="middle">
+    <text x="739" y="56">1</text>
+    <text x="739" y="121">2</text>
+    <text x="739" y="200">[1, 2]</text>
+    <text x="739" y="273">(1,2)</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M1081 100 H1044 V67 H1007 V86" marker-end="url(#arrow-08-list)"/>
+    <path d="M913 108 H843 V50 H777" marker-end="url(#arrow-08-list)"/>
+    <path d="M913 148 H737 V134" marker-end="url(#arrow-08-list)"/>
+    <path d="M913 188 H840 V182 H777" marker-end="url(#arrow-08-list)"/>
+    <path d="M913 229 H843 V266 H777" marker-end="url(#arrow-08-list)"/>
+  </g>
+</svg>

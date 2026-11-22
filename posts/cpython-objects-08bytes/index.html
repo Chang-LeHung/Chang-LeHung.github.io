@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 Python 虚拟机：字节（bytes）的实现原理及源码剖析 · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要给大家介绍在 cpython 内部，bytes 的实现原理、内存布局以及与 bytes 相关的一个比较重要的优化点—— bytes 的拼接。 数据结构 复制 typedef struct { PyObject_VAR_HEAD Py_hash_t ob_shash ; char o">
+<meta property="og:title" content="深入理解 Python 虚拟机：字节（bytes）的实现原理及源码剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -439,6 +440,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-new-314/"><span>较新</span>Python 3.14 新特性</a><a class="next" href="/posts/cpython-obsy-04mro/"><span>较旧</span>深入理解 python 虚拟机：多继承与 mro</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

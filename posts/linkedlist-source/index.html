@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LinkedList源码深度剖析 · Chang-LeHung</title>
-<meta name="description" content="LinkedList继承体系 首先先直观的看一下 LinedList 的继承体系和实现的接口 复制 public class LinkedList &lt; E &gt; extends AbstractSequentialList &lt; E &gt; implements List &lt; E &gt; , Deque &lt; E">
+<meta name="description" content="LinkedList继承体系 首先先直观的看一下 LinedList 的继承体系和实现的接口 I I I I I I C C C C C Iterable Collection AbstractCollection List Queue AbstractList Deque Cloneable Ab">
+<meta property="og:title" content="LinkedList源码深度剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -65,8 +66,113 @@
     <div class="prose">
       <h2 id="linkedlist继承体系">LinkedList继承体系</h2>
 <p>首先先直观的看一下<code>LinedList</code>的继承体系和实现的接口</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist01.svg" alt="" loading="lazy" /></p>
-<div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 587" role="img" aria-label="LinkedList 的继承体系：Collection 继承 Iterable，AbstractCollection、List、Queue 实现 Collection，LinkedList 位于最底部" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist01-g" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#56804c"/>
+    </marker>
+    <marker id="arrow-linkedlist01-b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4f89d4"/>
+    </marker>
+    <g id="impl-linkedlist01">
+      <rect x="0" y="0" width="11" height="11" rx="2" fill="none" stroke="#579141" stroke-width="1"/>
+      <path d="M5.5 9 V3.5 M5.5 3.5 L3 6 M5.5 3.5 L8 6" fill="none" stroke="#579141" stroke-width="1.4"/>
+    </g>
+  </defs>
+
+  <rect x="0" y="0" width="768" height="587" fill="#282a36"/>
+
+  <!-- 类与接口 -->
+  <g stroke="#5a5b5f" stroke-width="1.5" fill="#3c3c3c">
+    <rect x="380" y="35" width="123" height="54" rx="2"/>
+    <rect x="370" y="126" width="146" height="54" rx="2"/>
+    <rect x="158" y="218" width="224" height="54" rx="2"/>
+    <rect x="399" y="218" width="82" height="54" rx="2"/>
+    <rect x="497" y="218" width="91" height="54" rx="2"/>
+    <rect x="227" y="317" width="165" height="54" rx="2"/>
+    <rect x="497" y="317" width="91" height="54" rx="2"/>
+    <rect x="20" y="405" width="138" height="58" rx="2"/>
+    <rect x="175" y="405" width="269" height="58" rx="2"/>
+    <rect x="543" y="405" width="173" height="58" rx="2"/>
+    <rect x="388" y="501" width="144" height="52" rx="2"/>
+  </g>
+
+  <!-- 类名分隔线 -->
+  <path stroke="#5a5b5f" stroke-width="1"
+        d="M380 63 H503 M370 154 H516 M158 246 H382 M399 246 H481 M497 246 H588
+           M227 345 H392 M497 345 H588 M20 433 H158 M175 433 H444 M543 433 H716
+           M388 529 H532"/>
+
+  <!-- 接口图标 I -->
+  <g fill="#579141" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="392" cy="49" r="7"/><text x="392" y="52" fill="#282a36">I</text>
+    <circle cx="382" cy="140" r="7"/><text x="382" y="143" fill="#282a36">I</text>
+    <circle cx="411" cy="232" r="7"/><text x="411" y="235" fill="#282a36">I</text>
+    <circle cx="509" cy="232" r="7"/><text x="509" y="235" fill="#282a36">I</text>
+    <circle cx="32" cy="419" r="7"/><text x="32" y="422" fill="#282a36">I</text>
+    <circle cx="555" cy="419" r="7"/><text x="555" y="422" fill="#282a36">I</text>
+  </g>
+  <!-- 类图标 C -->
+  <g fill="#3e859e" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="239" cy="331" r="7"/><text x="239" y="334" fill="#282a36">C</text>
+    <circle cx="170" cy="232" r="7"/><text x="170" y="235" fill="#282a36">C</text>
+    <circle cx="509" cy="331" r="7"/><text x="509" y="334" fill="#282a36">C</text>
+    <circle cx="187" cy="419" r="7"/><text x="187" y="422" fill="#282a36">C</text>
+    <circle cx="400" cy="515" r="7"/><text x="400" y="518" fill="#282a36">C</text>
+  </g>
+
+  <!-- 已实现标记 -->
+  <use href="#impl-linkedlist01" x="402" y="43"/>
+  <use href="#impl-linkedlist01" x="392" y="134"/>
+  <use href="#impl-linkedlist01" x="180" y="226"/>
+  <use href="#impl-linkedlist01" x="421" y="226"/>
+  <use href="#impl-linkedlist01" x="519" y="226"/>
+  <use href="#impl-linkedlist01" x="249" y="325"/>
+  <use href="#impl-linkedlist01" x="519" y="325"/>
+  <use href="#impl-linkedlist01" x="42" y="413"/>
+  <use href="#impl-linkedlist01" x="197" y="413"/>
+  <use href="#impl-linkedlist01" x="565" y="413"/>
+  <use href="#impl-linkedlist01" x="410" y="509"/>
+
+  <g font-size="16" fill="#f0f0f0">
+    <text x="416" y="55">Iterable</text>
+    <text x="406" y="146">Collection</text>
+    <text x="194" y="238">AbstractCollection</text>
+    <text x="435" y="238">List</text>
+    <text x="533" y="238">Queue</text>
+    <text x="263" y="337">AbstractList</text>
+    <text x="533" y="337">Deque</text>
+    <text x="56" y="425">Cloneable</text>
+    <text x="207" y="425">AbstractSequentialList</text>
+    <text x="579" y="425">Serializable</text>
+    <text x="424" y="521">LinkedList</text>
+  </g>
+
+  <!-- 绿色实线：extends -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5">
+    <path d="M442 126 V91" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M442 218 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M543 218 V198 H490 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M543 317 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+  </g>
+  <!-- 绿色虚线：implements -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5" stroke-dasharray="5 4">
+    <path d="M268 218 V198 H393 V182" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M354 317 V294 H419 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M460 501 V274" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M400 501 V477 H88 V465" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M489 501 V477 H542 V371" marker-end="url(#arrow-linkedlist01-g)"/>
+    <path d="M520 501 V486 H634 V465" marker-end="url(#arrow-linkedlist01-g)"/>
+  </g>
+  <!-- 蓝色实线 -->
+  <g fill="none" stroke="#4f89d4" stroke-width="1.5">
+    <path d="M271 317 V274" marker-end="url(#arrow-linkedlist01-b)"/>
+    <path d="M310 405 V373" marker-end="url(#arrow-linkedlist01-b)"/>
+    <path d="M431 501 V477 H310 V465" marker-end="url(#arrow-linkedlist01-b)"/>
+  </g>
+</svg></figure><div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">LinkedList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
 <span class="tok-w">    </span><span class="tok-kd">extends</span><span class="tok-w"> </span><span class="tok-n">AbstractSequentialList</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span>
 <span class="tok-w">    </span><span class="tok-kd">implements</span><span class="tok-w"> </span><span class="tok-n">List</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Deque</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Cloneable</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">java</span><span class="tok-p">.</span><span class="tok-na">io</span><span class="tok-p">.</span><span class="tok-na">Serializable</span>
 </code></pre></div><ul>
@@ -110,8 +216,79 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>根据上面的字段分析，<code>LinkedList</code>内部结构主要如下：</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist03.svg" alt="" loading="lazy" /></p>
-<p>链表当中有<code>first</code>和<code>last</code>字段主要指向链表当中第一个节点和最后一个节点，如果链表当中没有节点，那么他们都是<code>null</code>，如果链表当中有一个节点他们指向同一个节点，如果链表中节点个数大于2，他们分别指向第一个节点和最后一个节点。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 886 343" role="img" aria-label="四个节点首尾相接，prev 指针向左、next 指针向右，first 指向第一个节点，last 指向最后一个节点" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist03" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 四个节点：item / prev / next 三格 -->
+  <g stroke-width="1.5">
+    <g>
+      <rect x="137" y="47" width="80" height="37" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="137" y="84" width="80" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="137" y="121" width="80" height="37" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="311" y="47" width="80" height="37" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="311" y="84" width="80" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="311" y="121" width="80" height="37" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="485" y="47" width="80" height="37" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="485" y="84" width="80" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="485" y="121" width="80" height="37" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="659" y="47" width="80" height="37" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="659" y="84" width="80" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="659" y="121" width="80" height="37" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="15" fill="#000" text-anchor="middle">
+    <text x="177" y="71">item</text>
+    <text x="177" y="108">prev</text>
+    <text x="177" y="145">next</text>
+    <text x="351" y="71">item</text>
+    <text x="351" y="108">prev</text>
+    <text x="351" y="145">next</text>
+    <text x="525" y="71">item</text>
+    <text x="525" y="108">prev</text>
+    <text x="525" y="145">next</text>
+    <text x="699" y="71">item</text>
+    <text x="699" y="108">prev</text>
+    <text x="699" y="145">next</text>
+  </g>
+
+  <!-- first / last -->
+  <g stroke-width="1.5">
+    <rect x="126" y="236" width="99" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+    <rect x="648" y="236" width="99" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+  </g>
+  <g font-size="15" fill="#000" text-anchor="middle">
+    <text x="175" y="272">first</text>
+    <text x="697" y="272">last</text>
+  </g>
+
+  <!-- 指针连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M309 102 H220" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M483 102 H394" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M657 102 H568" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M136 102 H93" marker-end="url(#arrow-linkedlist03)"/>
+
+    <path d="M218 139 H306" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M392 139 H480" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M566 139 H654" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M739 139 H793" marker-end="url(#arrow-linkedlist03)"/>
+
+    <path d="M175 236 V159" marker-end="url(#arrow-linkedlist03)"/>
+    <path d="M698 236 V159" marker-end="url(#arrow-linkedlist03)"/>
+  </g>
+</svg></figure><p>链表当中有<code>first</code>和<code>last</code>字段主要指向链表当中第一个节点和最后一个节点，如果链表当中没有节点，那么他们都是<code>null</code>，如果链表当中有一个节点他们指向同一个节点，如果链表中节点个数大于2，他们分别指向第一个节点和最后一个节点。</p>
 <h2 id="linkedlist重要方法">LinkedList重要方法</h2>
 <ul>
 <li><code>add</code>方法，这个方法主要是向链表尾部增加一个元素，作用和 <code>linkLast </code>一致。</li>
@@ -338,10 +515,232 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>整个过程如下图所示：</p>
 <p>进行插入之前：</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist06.svg" alt="" loading="lazy" /></p>
-<p>插入之后：</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist09.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 970 505" role="img" aria-label="五个节点用 prev 与 next 双向串联，first 与 last 分别指向首尾节点，下方是准备加入链表的集合数据" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist06" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 五个节点：item / prev / next 三格 -->
+  <g stroke-width="1.5">
+    <g>
+      <rect x="93" y="99" width="83" height="38" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="93" y="137" width="83" height="36" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="93" y="173" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="267" y="99" width="83" height="38" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="267" y="137" width="83" height="36" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="267" y="173" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="443" y="99" width="83" height="38" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="443" y="137" width="83" height="36" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="443" y="173" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="617" y="99" width="83" height="38" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="617" y="137" width="83" height="36" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="617" y="173" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="791" y="99" width="83" height="38" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="791" y="137" width="83" height="36" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="791" y="173" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="134" y="123">item</text>
+    <text x="134" y="160">prev</text>
+    <text x="134" y="197">next</text>
+    <text x="308" y="123">item</text>
+    <text x="308" y="160">prev</text>
+    <text x="308" y="197">next</text>
+    <text x="484" y="123">item</text>
+    <text x="484" y="160">prev</text>
+    <text x="484" y="197">next</text>
+    <text x="658" y="123">item</text>
+    <text x="658" y="160">prev</text>
+    <text x="658" y="197">next</text>
+    <text x="832" y="123">item</text>
+    <text x="832" y="160">prev</text>
+    <text x="832" y="197">next</text>
+  </g>
+
+  <!-- first / last -->
+  <g stroke-width="1.5">
+    <rect x="86" y="289" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+    <rect x="784" y="289" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="134" y="324">first</text>
+    <text x="832" y="324">last</text>
+  </g>
+
+  <!-- 指针连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M266 155 H180" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M442 155 H354" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M616 155 H528" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M790 155 H702" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M93 155 H50" marker-end="url(#arrow-linkedlist06)"/>
+
+    <path d="M176 192 H263" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M350 192 H439" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M526 192 H613" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M700 192 H787" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M874 192 H928" marker-end="url(#arrow-linkedlist06)"/>
+
+    <path d="M134 289 V214" marker-end="url(#arrow-linkedlist06)"/>
+    <path d="M832 289 V214" marker-end="url(#arrow-linkedlist06)"/>
+  </g>
+
+  <!-- index 指示 -->
+  <text x="494" y="60" font-size="23" fill="#000" text-anchor="middle">这里是index对应的节点</text>
+  <path d="M480 68 V96" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-linkedlist06)"/>
+
+  <!-- 集合数据 -->
+  <text x="441" y="362" font-size="23" fill="#000" text-anchor="middle">准备加入到链表当中的集合数据</text>
+  <rect x="269" y="394" width="327" height="72" rx="15" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <g stroke-width="1.5">
+    <rect x="303" y="411" width="79" height="38" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="477" y="411" width="79" height="38" fill="#fff2cc" stroke="#d6b656"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="342" y="436">item</text>
+    <text x="516" y="436">item</text>
+  </g>
+</svg></figure><p>插入之后：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 953 606" role="img" aria-label="五个节点组成的链表，下方粉色圆角框内是两个新节点，品红虚线箭头表示把它们插入链表后 prev 与 next 指针的重新指向" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist09" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-linkedlist09-m" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff3f9f"/>
+    </marker>
+  </defs>
+
+  <!-- 链表中已有的五个节点 -->
+  <g stroke-width="1.5">
+    <g>
+      <rect x="74" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="74" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="74" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="248" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="248" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="248" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="424" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="424" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="424" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="598" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="598" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="598" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="772" y="80" width="83" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="772" y="119" width="83" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="772" y="156" width="83" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="115" y="107">item</text>
+    <text x="115" y="145">prev</text>
+    <text x="115" y="183">next</text>
+    <text x="289" y="107">item</text>
+    <text x="289" y="145">prev</text>
+    <text x="289" y="183">next</text>
+    <text x="465" y="107">item</text>
+    <text x="465" y="145">prev</text>
+    <text x="465" y="183">next</text>
+    <text x="639" y="107">item</text>
+    <text x="639" y="145">prev</text>
+    <text x="639" y="183">next</text>
+    <text x="813" y="107">item</text>
+    <text x="813" y="145">prev</text>
+    <text x="813" y="183">next</text>
+  </g>
+
+  <!-- first / last -->
+  <g stroke-width="1.5">
+    <rect x="67" y="270" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+    <rect x="765" y="270" width="97" height="58" rx="6" fill="#b1ddf0" stroke="#6fb1ce"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="115" y="305">first</text>
+    <text x="813" y="305">last</text>
+  </g>
+
+  <!-- 原有指针 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M247 137 H161" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M423 137 H336" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M597 137 H511" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M771 137 H686" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M73 137 H33" marker-end="url(#arrow-linkedlist09)"/>
+
+    <path d="M157 175 H244" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M331 175 H420" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M507 175 H594" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M681 175 H768" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M855 175 H908" marker-end="url(#arrow-linkedlist09)"/>
+
+    <path d="M115 270 V199" marker-end="url(#arrow-linkedlist09)"/>
+    <path d="M813 270 V199" marker-end="url(#arrow-linkedlist09)"/>
+  </g>
+
+  <!-- index 指示 -->
+  <text x="475" y="41" font-size="23" fill="#000" text-anchor="middle">这里是index对应的节点</text>
+  <path d="M460 50 V77" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-linkedlist09)"/>
+
+  <!-- 集合数据 -->
+  <rect x="164" y="375" width="501" height="146" rx="15" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <g stroke-width="1.5">
+    <g>
+      <rect x="283" y="392" width="81" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="283" y="431" width="81" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="283" y="468" width="81" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+    <g>
+      <rect x="457" y="392" width="81" height="39" fill="#fff2cc" stroke="#d6b656"/>
+      <rect x="457" y="431" width="81" height="37" fill="#f8cecc" stroke="#b85450"/>
+      <rect x="457" y="468" width="81" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    </g>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="323" y="419">item</text>
+    <text x="323" y="455">prev</text>
+    <text x="323" y="493">next</text>
+    <text x="497" y="419">item</text>
+    <text x="497" y="455">prev</text>
+    <text x="497" y="493">next</text>
+  </g>
+
+  <!-- 新节点的 prev / next 重新指向（品红虚线） -->
+  <g fill="none" stroke="#ff3f9f" stroke-width="1.5" stroke-dasharray="6 4">
+    <path d="M289 194 V487 H280" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M281 449 H253 V295 H357 V137 H334" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M540 449 H567 V293 H397 V137 H421" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M539 487 H681 V331 H465 V199" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M456 449 H367" marker-end="url(#arrow-linkedlist09-m)"/>
+    <path d="M364 487 H454" marker-end="url(#arrow-linkedlist09-m)"/>
+  </g>
+
+  <text x="402" y="567" font-size="23" fill="#000" text-anchor="middle">将集合中的数据变成节点，再进行连接</text>
+</svg></figure><ul>
 <li><code>set</code>方法，更新某个下标的数据<code>item</code></li>
 </ul>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">	</span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -389,8 +788,116 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们可以看到如果对象不为 <code>null</code> 最终是调用对象的<code>toString</code>方法得到的字符串。<strong>因此当打印一个对象的时候，最终会打印这个对象的<code>toString</code>方法返回的字符串</strong>。</p>
 <p>我们在<code>LinkedList</code>类中搜索<code>toString</code>方法，发现这个方法是存在于<code>AbstractCollection</code>类当中，也就是下面这个类，<code>LinkedList</code>继承于它：</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist10.svg" alt="" loading="lazy" /></p>
-<p><code>toString</code>方法的源代码如下所示：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 907 642" role="img" aria-label="LinkedList 的继承体系，其中 AbstractCollection 被红色圆角框圈出，作为重点" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist10-g" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#56804c"/>
+    </marker>
+    <marker id="arrow-linkedlist10-b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4f89d4"/>
+    </marker>
+    <g id="impl-linkedlist10">
+      <rect x="0" y="0" width="11" height="11" rx="2" fill="none" stroke="#579141" stroke-width="1"/>
+      <path d="M5.5 9 V3.5 M5.5 3.5 L3 6 M5.5 3.5 L8 6" fill="none" stroke="#579141" stroke-width="1.4"/>
+    </g>
+  </defs>
+
+  <rect x="0" y="0" width="907" height="642" fill="#282a36"/>
+
+  <!-- 类与接口 -->
+  <g stroke="#5a5b5f" stroke-width="1.5" fill="#3c3c3c">
+    <rect x="323" y="57" width="125" height="51" rx="2"/>
+    <rect x="313" y="150" width="142" height="52" rx="2"/>
+    <rect x="100" y="244" width="230" height="51" rx="2"/>
+    <rect x="348" y="244" width="82" height="51" rx="2"/>
+    <rect x="447" y="244" width="92" height="51" rx="2"/>
+    <rect x="174" y="337" width="166" height="52" rx="2"/>
+    <rect x="447" y="337" width="92" height="52" rx="2"/>
+    <rect x="121" y="431" width="272" height="52" rx="2"/>
+    <rect x="502" y="431" width="167" height="52" rx="2"/>
+    <rect x="686" y="431" width="135" height="52" rx="2"/>
+    <rect x="423" y="527" width="146" height="51" rx="2"/>
+  </g>
+
+  <!-- 类名分隔线 -->
+  <path stroke="#5a5b5f" stroke-width="1"
+        d="M323 84 H448 M313 177 H455 M100 271 H330 M348 271 H430 M447 271 H539
+           M174 364 H340 M447 364 H539 M121 458 H393 M502 458 H669 M686 458 H821
+           M423 554 H569"/>
+
+  <!-- 接口图标 I -->
+  <g fill="#579141" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="335" cy="71" r="7"/><text x="335" y="74" fill="#282a36">I</text>
+    <circle cx="325" cy="164" r="7"/><text x="325" y="167" fill="#282a36">I</text>
+    <circle cx="360" cy="258" r="7"/><text x="360" y="261" fill="#282a36">I</text>
+    <circle cx="459" cy="258" r="7"/><text x="459" y="261" fill="#282a36">I</text>
+    <circle cx="514" cy="445" r="7"/><text x="514" y="448" fill="#282a36">I</text>
+    <circle cx="698" cy="445" r="7"/><text x="698" y="448" fill="#282a36">I</text>
+  </g>
+  <!-- 类图标 C -->
+  <g fill="#3e859e" text-anchor="middle" font-size="9" font-weight="bold">
+    <circle cx="112" cy="258" r="7"/><text x="112" y="261" fill="#282a36">C</text>
+    <circle cx="186" cy="351" r="7"/><text x="186" y="354" fill="#282a36">C</text>
+    <circle cx="459" cy="351" r="7"/><text x="459" y="354" fill="#282a36">C</text>
+    <circle cx="133" cy="445" r="7"/><text x="133" y="448" fill="#282a36">C</text>
+    <circle cx="435" cy="541" r="7"/><text x="435" y="544" fill="#282a36">C</text>
+  </g>
+
+  <!-- 已实现标记 -->
+  <use href="#impl-linkedlist10" x="345" y="65"/>
+  <use href="#impl-linkedlist10" x="335" y="158"/>
+  <use href="#impl-linkedlist10" x="122" y="252"/>
+  <use href="#impl-linkedlist10" x="370" y="252"/>
+  <use href="#impl-linkedlist10" x="469" y="252"/>
+  <use href="#impl-linkedlist10" x="196" y="345"/>
+  <use href="#impl-linkedlist10" x="469" y="345"/>
+  <use href="#impl-linkedlist10" x="143" y="439"/>
+  <use href="#impl-linkedlist10" x="524" y="439"/>
+  <use href="#impl-linkedlist10" x="708" y="439"/>
+  <use href="#impl-linkedlist10" x="445" y="535"/>
+
+  <g font-size="16" fill="#f0f0f0">
+    <text x="360" y="77">Iterable</text>
+    <text x="350" y="170">Collection</text>
+    <text x="137" y="264">AbstractCollection</text>
+    <text x="385" y="264">List</text>
+    <text x="484" y="264">Queue</text>
+    <text x="211" y="357">AbstractList</text>
+    <text x="484" y="357">Deque</text>
+    <text x="158" y="451">AbstractSequentialList</text>
+    <text x="539" y="451">Serializable</text>
+    <text x="723" y="451">Cloneable</text>
+    <text x="460" y="547">LinkedList</text>
+  </g>
+
+  <!-- 绿色实线：extends -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5">
+    <path d="M385 150 V111" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M387 244 V205" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M493 244 V225 H435 V205" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M493 337 V297" marker-end="url(#arrow-linkedlist10-g)"/>
+  </g>
+  <!-- 绿色虚线：implements -->
+  <g fill="none" stroke="#56804c" stroke-width="1.5" stroke-dasharray="5 4">
+    <path d="M215 244 V225 H337 V205" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M299 337 V315 H363 V297" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M466 527 V500 H409 V297" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M493 527 V391" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M525 527 V513 H585 V485" marker-end="url(#arrow-linkedlist10-g)"/>
+    <path d="M525 527 V513 H777 V485" marker-end="url(#arrow-linkedlist10-g)"/>
+  </g>
+  <!-- 蓝色实线 -->
+  <g fill="none" stroke="#4f89d4" stroke-width="1.5">
+    <path d="M215 337 V297" marker-end="url(#arrow-linkedlist10-b)"/>
+    <path d="M257 431 V391" marker-end="url(#arrow-linkedlist10-b)"/>
+    <path d="M438 527 V522 H257 V485" marker-end="url(#arrow-linkedlist10-b)"/>
+  </g>
+
+  <!-- 重点框 -->
+  <rect x="63" y="223" width="279" height="87" rx="10" fill="none" stroke="#fb3838" stroke-width="3.5"/>
+</svg></figure><p><code>toString</code>方法的源代码如下所示：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">String</span><span class="tok-w"> </span><span class="tok-nf">toString</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-c1">// 得到链表的迭代器</span>
 <span class="tok-w">        </span><span class="tok-n">Iterator</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-n">it</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">iterator</span><span class="tok-p">();</span>
@@ -424,8 +931,45 @@
 <span class="tok-c1">// false</span>
 <span class="tok-c1">// true</span>
 </code></pre></div><p>其中 <code>==</code> 比较的是两个对象的内存地址（也就是<code>s1</code>和<code>s2</code>指向的两个对象）是否相同，也就是<code>s1</code>和<code>s2</code>是否是同一个对象，<code>equals</code>比较的是两个字符串对象的内容是否相同（不同的类实现方式不一样可能有差异，字符串<code>String</code>实现方式是只要内容相同<code>equlas</code>方法就返回<code>true</code>，否则返回<code>false</code>），上述代码在内存当中的布局大致如下：</p>
-<p><img src="/content/zh/images/linkedlist/02-linkedlist11.svg" alt="" loading="lazy" /></p>
-<p><code>==</code>比较的是两个箭头指向的内容的内存地址是否一致，<code>equlas</code>根据具体的类的实现有所差异。</p>
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" class="inline-svg">
+  <defs>
+    <marker id="arrow-linkedlist11" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 堆区 -->
+  <rect x="375" y="77" width="336" height="260" rx="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="536" y="59" font-size="19" fill="#000" text-anchor="middle">Java虚拟机的堆区</text>
+
+  <!-- 栈区 -->
+  <text x="27" y="95" font-size="19" fill="#000">Java虚拟机的栈区</text>
+  <g stroke-width="1.5">
+    <rect x="65" y="124" width="81" height="33" fill="#ffffff" stroke="#000000"/>
+    <rect x="65" y="157" width="81" height="34" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="65" y="191" width="81" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="65" y="223" width="81" height="33" fill="#ffffff" stroke="#000000"/>
+  </g>
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="105" y="182">S2</text>
+    <text x="105" y="215">S1</text>
+  </g>
+
+  <!-- 堆中的两个对象 -->
+  <rect x="419" y="132" width="249" height="33" rx="6" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="431" y="205" width="238" height="33" rx="6" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="543" y="159">一无是处的研究僧</text>
+    <text x="550" y="232">一无是处的研究僧</text>
+  </g>
+
+  <!-- 引用 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M146 174 C 250 172, 300 148, 412 148" marker-end="url(#arrow-linkedlist11)"/>
+    <path d="M146 207 C 250 209, 320 221, 424 221" marker-end="url(#arrow-linkedlist11)"/>
+  </g>
+</svg></figure><p><code>==</code>比较的是两个箭头指向的内容的内存地址是否一致，<code>equlas</code>根据具体的类的实现有所差异。</p>
 <p>现在我们来看一下<code>LinkedList</code>类是如何实现<code>equlas</code>方法的，和<code>toString</code>方法一样，<code>equlas</code>方法也是在类<code>AbstractCollection</code>当中实现的。</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">    </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">equals</span><span class="tok-p">(</span><span class="tok-n">Object</span><span class="tok-w"> </span><span class="tok-n">o</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">o</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-k">this</span><span class="tok-p">)</span>
@@ -542,6 +1086,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/arraylist-design/"><span>较新</span>数组容器(ArrayList)设计与Java实现</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

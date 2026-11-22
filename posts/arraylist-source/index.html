@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ArrayList源码深度剖析 · Chang-LeHung</title>
 <meta name="description" content="本篇文章主要跟大家分析一下 ArrayList 的源代码。阅读本文你首先得对 ArrayList 有一些基本的了解，至少使用过它。如果你对 ArrayList 的一些基本使用还不太熟悉或者在阅读本文的时候感觉有点困难，你可以先阅读这篇文章 ArrayList设计与实现，自己动手写ArrayList ">
+<meta property="og:title" content="ArrayList源码深度剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -65,8 +66,140 @@
     <div class="prose">
       <p>本篇文章主要跟大家分析一下<code>ArrayList</code>的源代码。阅读本文你首先得对<code>ArrayList</code>有一些基本的了解，至少使用过它。如果你对<code>ArrayList</code>的一些基本使用还不太熟悉或者在阅读本文的时候感觉有点困难，你可以先阅读这篇文章<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483954&amp;idx=1&amp;sn=0671552fd0d33e0b07eab22f698ffaea&amp;chksm=cf0c9e3bf87b172d1e336d7533a79c536600518c085a4104f30667469992e797ff526c732563&amp;mpshare=1&amp;scene=23&amp;srcid=0706NTX8kMWtQryLVoqdqEYC&amp;sharer_sharetime=1657120181327&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">ArrayList设计与实现，自己动手写ArrayList</a>。</p>
 <h2 id="arraylist继承体系分析">ArrayList继承体系分析</h2>
-<p><img src="/content/zh/images/vector/03-array-10.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 991 628" role="img" aria-label="ArrayList 的类层次结构图：Iterable、Collection、AbstractCollection、List、AbstractList 与 ArrayList 的继承与实现关系" class="inline-svg">
+  <defs>
+    <marker id="arrow-array10-green" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#609350"/>
+    </marker>
+    <marker id="arrow-array10-blue" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#589df6"/>
+    </marker>
+  </defs>
+
+  <rect width="991" height="628" fill="#282a36"/>
+
+  <!-- 连线：绿实线=继承，绿虚线=实现，蓝线=当前高亮路径 -->
+  <g fill="none" stroke="#609350" stroke-width="1.5">
+    <path d="M800 165 V116" marker-end="url(#arrow-array10-green)"/>
+    <path d="M903 281 V256 H844 V232" marker-end="url(#arrow-array10-green)"/>
+  </g>
+  <g fill="none" stroke="#609350" stroke-width="1.5" stroke-dasharray="5 3">
+    <path d="M694 281 V256 H756 V232" marker-end="url(#arrow-array10-green)"/>
+    <path d="M795 397 V372 H878 V350" marker-end="url(#arrow-array10-green)"/>
+    <path d="M607 513 V493 H928 V350" marker-end="url(#arrow-array10-green)"/>
+    <path d="M541 513 V466" marker-end="url(#arrow-array10-green)"/>
+    <path d="M508 513 V483 H338 V466" marker-end="url(#arrow-array10-green)"/>
+    <path d="M475 513 V493 H116 V466" marker-end="url(#arrow-array10-green)"/>
+  </g>
+  <g fill="none" stroke="#589df6" stroke-width="1.5">
+    <path d="M694 397 V350" marker-end="url(#arrow-array10-blue)"/>
+    <path d="M574 513 V483 H744 V466" marker-end="url(#arrow-array10-blue)"/>
+  </g>
+
+  <!-- Iterable -->
+  <rect x="726" y="49" width="149" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="726.5" y="49.5" width="148" height="38" fill="#3c3c3c"/>
+  <g transform="translate(736,68.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="768" y="77" font-size="21" fill="#f8f8f2" font-family="monospace">Iterable</text>
+
+  <!-- Collection -->
+  <rect x="713" y="165" width="175" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="713.5" y="165.5" width="174" height="38" fill="#3c3c3c"/>
+  <g transform="translate(723,184.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="755" y="193" font-size="21" fill="#f8f8f2" font-family="monospace">Collection</text>
+
+  <!-- AbstractCollection -->
+  <rect x="555" y="281" width="277" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="555.5" y="281.5" width="276" height="38" fill="#3c3c3c"/>
+  <g transform="translate(568,300.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="597" y="309" font-size="21" fill="#f8f8f2" font-family="monospace">AbstractCollection</text>
+
+  <!-- List -->
+  <rect x="854" y="281" width="98" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="854.5" y="281.5" width="97" height="38" fill="#3c3c3c"/>
+  <g transform="translate(864,300.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="898" y="309" font-size="21" fill="#f8f8f2" font-family="monospace">List</text>
+
+  <!-- RandomAccess -->
+  <rect x="16" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="16.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(26,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="59" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">RandomAccess</text>
+
+  <!-- Serializable -->
+  <rect x="238" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="238.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(248,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="281" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">Serializable</text>
+
+  <!-- Cloneable -->
+  <rect x="460" y="397" width="162" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="460.5" y="397.5" width="161" height="38" fill="#3c3c3c"/>
+  <g transform="translate(470,416.5)">
+    <circle r="6.5" fill="#538540"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#3c3c3c" text-anchor="middle" font-family="monospace">I</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="503" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">Cloneable</text>
+
+  <!-- AbstractList -->
+  <rect x="644" y="397" width="200" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="644.5" y="397.5" width="199" height="38" fill="#3c3c3c"/>
+  <g transform="translate(657,416.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="686" y="425" font-size="21" fill="#f8f8f2" font-family="monospace">AbstractList</text>
+
+  <!-- ArrayList -->
+  <rect x="460" y="513" width="162" height="65" fill="#3c3f41" stroke="#787878"/>
+  <rect x="460.5" y="513.5" width="161" height="38" fill="#3c3c3c"/>
+  <g transform="translate(470,532.5)">
+    <rect x="-5" y="-5" width="12" height="12" rx="2.5" fill="#879299"/>
+    <rect x="-6" y="-6" width="12" height="12" rx="2.5" fill="#3e849c"/>
+    <text y="3" font-size="9" font-weight="bold" fill="#1c2b30" text-anchor="middle" font-family="monospace">C</text>
+    <path d="M11.5 -1 V-2.5 Q11.5 -3.5 12.5 -3.5 H13.5 Q14.5 -3.5 14.5 -2.5 V-1" fill="none" stroke="#579141" stroke-width="1"/>
+    <rect x="11.5" y="-1" width="6" height="5" fill="#579141"/>
+  </g>
+  <text x="502" y="540" font-size="21" fill="#f8f8f2" font-family="monospace">ArrayList</text>
+</svg></figure><ul>
 <li><code>RandomAccess</code>，这个接口的含义表示可以随机访问<code>ArrayList</code>当中的数据，拿什么是随机访问呢？随机访问就是表示我们可以在常量时间复杂度内访问数据，也就是时间复杂度是<code>O(1)</code>。因为在<code>ArrayList</code>当中我们使用的最基本的数据类型是<code>数组</code>，而数组是可以随机访问的，比如像下面这样。</li>
 </ul>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">(</span><span class="tok-n">String</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">args</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -78,8 +211,49 @@
 <span class="tok-w">    </span><span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-s">"data[5] = "</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">data</span><span class="tok-o">[</span><span class="tok-mi">5</span><span class="tok-o">]</span><span class="tok-p">);</span>
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><p>而链表是不可以随机访问的，比如说我们想通过下标访问链表当中的某个数据，需要从头结点或者尾节点开始遍历，直到遍历到下标对应的数据，比如下图中的单链表找到第3个数据，需要从头开始遍历，而这个时间复杂度为<code>O(n)</code>。</p>
-<p><img src="/content/zh/images/vector/01-%E9%93%BE%E8%A1%A808.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="由五个节点组成的链表，每个节点分为 data 和 next 两格，由箭头依次相连，最后一个 next 指向空" class="inline-svg">
+  <defs>
+    <marker id="arrow-node08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 五个节点：上格 data，下格 next -->
+  <g stroke-width="1.5">
+    <rect x="99" y="26" width="79" height="36" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="99" y="62" width="79" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="273" y="26" width="79" height="36" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="273" y="62" width="79" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="447" y="26" width="79" height="36" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="447" y="62" width="79" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="621" y="26" width="79" height="36" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="621" y="62" width="79" height="38" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="795" y="26" width="79" height="36" fill="#fff2cc" stroke="#d6b656"/>
+    <rect x="795" y="62" width="79" height="38" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+
+  <g font-size="20" fill="#000" text-anchor="middle">
+    <text x="138" y="50">data</text>
+    <text x="138" y="88">next</text>
+    <text x="312" y="50">data</text>
+    <text x="312" y="88">next</text>
+    <text x="486" y="50">data</text>
+    <text x="486" y="88">next</text>
+    <text x="660" y="50">data</text>
+    <text x="660" y="88">next</text>
+    <text x="834" y="50">data</text>
+    <text x="834" y="88">next</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M178 82 H272" marker-end="url(#arrow-node08)"/>
+    <path d="M352 82 H446" marker-end="url(#arrow-node08)"/>
+    <path d="M526 82 H620" marker-end="url(#arrow-node08)"/>
+    <path d="M700 82 H794" marker-end="url(#arrow-node08)"/>
+    <path d="M874 82 H934" marker-end="url(#arrow-node08)"/>
+  </g>
+</svg></figure><ul>
 <li><code>Serializable</code>，这个接口主要用于序列化，所谓序列化就是能将对象写入磁盘，反序列化就是能够将对象从磁盘当中读取出来，如果想序列化和反序列化<code>ArrayList</code>的实例对象就必须实现这个接口，如果没有实现这个接口，在实例化的时候程序执行会报错，比如下面就是一个序列化的例子。</li>
 </ul>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.io.*</span><span class="tok-p">;</span>
@@ -210,8 +384,59 @@
 <ul>
 <li><code>add</code>方法，这个方法用于往容器的末尾增加数据，也是<code>ArrayList</code>当中最核心的方法。他的主要工作流程如下图所示：</li>
 </ul>
-<p><img src="/content/zh/images/vector/03-array-05.svg" alt="" loading="lazy" /></p>
-<p>他首先调用函数<code>ensureCapacityInternal</code>确保<code>ArrayList</code>当中的数组长度能够满足需求，不然数组会报数组下标越界异常，<code>add</code>函数调用过程当中所涉及到的函数如下。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 649 596" role="img" aria-label="add 方法的扩容流程图：算出最小容量、与数组长度比较，需要扩容则扩容，最后把数据放进数组" class="inline-svg">
+  <defs>
+    <marker id="arrow-array05" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- add -->
+  <rect x="144" y="77" width="110" height="33" rx="5" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="199" y="101" font-size="18" fill="#000" text-anchor="middle">add</text>
+
+  <!-- 找到最小长度 -->
+  <rect x="96" y="153" width="204" height="72" rx="12" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <text x="198" y="184" font-size="18" fill="#000" text-anchor="middle">找到数组需要的最小长度</text>
+  <text x="198" y="206" font-size="18" fill="#000" text-anchor="middle">minCapacity</text>
+
+  <!-- 比较 minCapacity 与原数组长度 -->
+  <path d="M385 145 H597 L569 233 H357 Z" fill="#ffff88" stroke="#36393d" stroke-width="1.5"/>
+  <text x="482" y="186" font-size="18" fill="#000" text-anchor="middle">比较minCapacity</text>
+  <text x="477" y="207" font-size="18" fill="#000" text-anchor="middle">和原数组长度</text>
+
+  <!-- 是否需要扩容 -->
+  <path d="M171 297 L237 357 L171 417 L105 357 Z" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <text x="172" y="364" font-size="18" fill="#000" text-anchor="middle">是否需要扩容</text>
+
+  <!-- 进行数据扩容 -->
+  <rect x="327" y="314" width="177" height="87" rx="10" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <text x="416" y="364" font-size="18" fill="#000" text-anchor="middle">进行数据扩容</text>
+
+  <!-- 将数据存放到数组当中 -->
+  <rect x="68" y="509" width="207" height="34" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <text x="171" y="533" font-size="18" fill="#000" text-anchor="middle">将数据存放到数组当中</text>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M199 19 V76" marker-end="url(#arrow-array05)"/>
+    <path d="M199 111 V152" marker-end="url(#arrow-array05)"/>
+    <path d="M300 189 H369" marker-end="url(#arrow-array05)"/>
+    <path d="M477 233 C474.5 235.7 469.8 244.8 462 249
+             C454.2 253.2 442 255.8 430 258 C418 260.2 405 261 390 262
+             C375 263 358.3 263.5 340 264 C321.7 264.5 298.3 264.5 280 265
+             C261.7 265.5 243.3 266 230 267 C216.7 268 208.3 269.3 200 271
+             C191.7 272.7 184.7 274.7 180 277 C175.3 279.3 173.5 281.8 172 285
+             C170.5 288.2 171.2 294.2 171 296" marker-end="url(#arrow-array05)"/>
+    <path d="M237 357 H325" marker-end="url(#arrow-array05)"/>
+    <path d="M171 419 V508" marker-end="url(#arrow-array05)"/>
+    <path d="M415 401 V471 H171"/>
+  </g>
+
+  <text x="273" y="339" font-size="18" fill="#000" text-anchor="middle">是</text>
+  <text x="182" y="452" font-size="18" fill="#000" text-anchor="middle">否</text>
+</svg></figure><p>他首先调用函数<code>ensureCapacityInternal</code>确保<code>ArrayList</code>当中的数组长度能够满足需求，不然数组会报数组下标越界异常，<code>add</code>函数调用过程当中所涉及到的函数如下。</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kt">boolean</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">e</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-c1">// 这个函数的主要目的是确保 elementData 的容量有 size + 1</span>
 <span class="tok-w">    </span><span class="tok-c1">// 否则存储数据的时候数组就会越界</span>
@@ -270,8 +495,61 @@
 <span class="tok-w">    </span><span class="tok-n">MAX_ARRAY_SIZE</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>上述代码的调用流程如下：</p>
-<p><img src="/content/zh/images/vector/03-array-13.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 939 684" role="img" aria-label="ArrayList 添加元素的调用流程：add 依次调用 ensureCapacityInternal、calculateCapicity、ensureExplicitCapacity，需要扩容时调用 grow" class="inline-svg">
+  <defs>
+    <marker id="arrow-array13" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 三层容器 -->
+  <rect x="40" y="27" width="856" height="628" rx="95" fill="#cce5ff" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="64" y="105" width="805" height="523" rx="78" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="89" y="190" width="769" height="426" rx="62" fill="#ffcccc" stroke="#36393d" stroke-width="1.5"/>
+
+  <!-- 流程框 -->
+  <g fill="#ffcc99" stroke="#36393d" stroke-width="1.5">
+    <rect x="170" y="48" width="156" height="35" rx="8"/>
+    <rect x="104" y="136" width="288" height="36" rx="8"/>
+    <rect x="104" y="220" width="288" height="35" rx="8"/>
+    <rect x="104" y="311" width="288" height="35" rx="8"/>
+    <path d="M248 373 L322 416 L248 459 L174 416 Z" fill="#ffff88"/>
+    <rect x="407" y="501" width="155" height="35" rx="8"/>
+  </g>
+
+  <g font-size="21" fill="#000" text-anchor="middle">
+    <text x="248" y="73">add</text>
+    <text x="248" y="162">ensureCapacityInternal</text>
+    <text x="248" y="245">calculateCapicity</text>
+    <text x="248" y="336">ensureExplicitCapacity</text>
+    <text x="248" y="425">是否扩容</text>
+    <text x="485" y="526">grow</text>
+  </g>
+
+  <!-- 说明文字 -->
+  <g font-size="22" fill="#000">
+    <text x="362" y="70">往容器当中增加数据</text>
+    <text x="402" y="162">确保容器长度符合条件</text>
+    <text x="411" y="245">计算容器中数组的最小长度</text>
+    <text x="420" y="331">根据上个函数计算出的最小长度</text>
+    <text x="486" y="357">判断是否需要扩容</text>
+    <text x="499" y="461">是，则进行扩容，扩容之后进行返回</text>
+    <text x="261" y="498">否，直接返回</text>
+    <text x="322" y="579">扩容函数，将数组扩大为原数组的1.5倍</text>
+    <text x="322" y="605">并且将原数组的数据拷贝到新数组当中</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M248 83 V136" marker-end="url(#arrow-array13)"/>
+    <path d="M248 172 V220" marker-end="url(#arrow-array13)"/>
+    <path d="M248 255 V311" marker-end="url(#arrow-array13)"/>
+    <path d="M248 346 V374" marker-end="url(#arrow-array13)"/>
+    <path d="M248 460 V532" marker-end="url(#arrow-array13)"/>
+    <path d="M322 416 H484 V501" marker-end="url(#arrow-array13)"/>
+  </g>
+</svg></figure><ul>
 <li><code>get</code>函数，获取对应下标的数据。</li>
 </ul>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">get</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -344,8 +622,125 @@
 <span class="tok-w">                         </span><span class="tok-n">numMoved</span><span class="tok-p">);</span>
 <span class="tok-w">    </span><span class="tok-n">elementData</span><span class="tok-o">[--</span><span class="tok-n">size</span><span class="tok-o">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-kc">null</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// clear to let GC do its work</span>
 <span class="tok-p">}</span>
-</code></pre></div><p><img src="/content/zh/images/vector/03-array-08.svg" alt="" loading="lazy" /></p>
-<ul>
+</code></pre></div><figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 637 327" role="img" aria-label="数组删除元素的过程：先删掉下标 3 的数据，再把后面的数据依次往前移动一格" class="inline-svg">
+  <defs>
+    <marker id="arrow-array08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 数组一：待删除下标 3 的数据 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="70" y="15" width="548" height="38"/>
+    <path d="M70 34 H618"/>
+    <path d="M115.7 15 V53 M161.3 15 V53 M207 15 V53 M252.7 15 V53 M298.3 15 V53 M344 15 V53
+             M389.7 15 V53 M435.3 15 V53 M481 15 V53 M526.7 15 V53 M572.3 15 V53"/>
+  </g>
+  <g>
+    <rect x="71" y="16" width="181" height="17" fill="#ffcccc"/>
+    <rect x="253" y="16" width="364" height="17" fill="#cdeb8b"/>
+  </g>
+
+  <text x="23" y="29" font-size="13" fill="#000">数据</text>
+  <text x="23" y="48" font-size="13" fill="#000">下标</text>
+
+  <g font-size="13" fill="#000" text-anchor="middle">
+    <text x="92.8" y="48">0</text>
+    <text x="138.5" y="48">1</text>
+    <text x="184.2" y="48">2</text>
+    <text x="229.8" y="48">3</text>
+    <text x="275.5" y="48">4</text>
+    <text x="321.2" y="48">5</text>
+    <text x="366.8" y="48">6</text>
+    <text x="412.5" y="48">7</text>
+    <text x="458.2" y="48">8</text>
+    <text x="503.8" y="48">9</text>
+    <text x="549.5" y="48">10</text>
+    <text x="595.2" y="48">11</text>
+  </g>
+
+  <!-- 标注：待删除的数据 -->
+  <path d="M326 105 C321.7 104.8 309.5 104.8 300 104 C290.5 103.2 276.2 101.3 269 100
+           C261.8 98.7 261.3 98 257 96 C252.7 94 246.5 90.7 243 88
+           C239.5 85.3 237.8 82.7 236 80 C234.2 77.3 233 74.7 232 72
+           C231 69.3 230.3 67 230 64 C229.7 61 230 55.7 230 54"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-array08)"/>
+  <text x="327" y="110" font-size="15" fill="#000">待删除的数据</text>
+
+  <!-- 图例 -->
+  <rect x="460" y="74" width="45" height="19" fill="#cdeb8b" stroke="#36393d" stroke-width="1.5"/>
+  <rect x="519" y="74" width="45" height="19" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="575" y="89" font-size="13" fill="#000">有数据</text>
+  <rect x="518" y="106" width="46" height="18" fill="#fff" stroke="#36393d" stroke-width="1.5"/>
+  <text x="577" y="119" font-size="13" fill="#000">无数据</text>
+
+  <text x="247" y="145" font-size="15" fill="#000">先删除下标为3的数据</text>
+
+  <!-- 数组二：下标 3 空出来 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="72" y="159" width="548" height="38"/>
+    <path d="M72 178 H620"/>
+    <path d="M117.7 159 V197 M163.3 159 V197 M209 159 V197 M254.7 159 V197 M300.3 159 V197
+             M346 159 V197 M391.7 159 V197 M437.3 159 V197 M483 159 V197 M528.7 159 V197 M574.3 159 V197"/>
+  </g>
+  <g>
+    <rect x="73" y="160" width="136" height="17" fill="#ffcccc"/>
+    <rect x="255" y="160" width="364" height="17" fill="#cdeb8b"/>
+  </g>
+
+  <text x="25" y="173" font-size="13" fill="#000">数据</text>
+  <text x="25" y="193" font-size="13" fill="#000">下标</text>
+
+  <g font-size="13" fill="#000" text-anchor="middle">
+    <text x="94.8" y="193">0</text>
+    <text x="140.5" y="193">1</text>
+    <text x="186.2" y="193">2</text>
+    <text x="231.8" y="193">3</text>
+    <text x="277.5" y="193">4</text>
+    <text x="323.2" y="193">5</text>
+    <text x="368.8" y="193">6</text>
+    <text x="414.5" y="193">7</text>
+    <text x="460.2" y="193">8</text>
+    <text x="505.8" y="193">9</text>
+    <text x="551.5" y="193">10</text>
+    <text x="597.2" y="193">11</text>
+  </g>
+
+  <!-- 往前移动 -->
+  <path d="M407 224 H240 V215 L222 226 L240 236 V229 H407 Z" fill="#000"/>
+  <text x="225" y="256" font-size="15" fill="#000">将下标为3后面的数据往前移动</text>
+
+  <!-- 数组三：数据前移 -->
+  <g fill="none" stroke="#36393d" stroke-width="1.5">
+    <rect x="69" y="270" width="550" height="38"/>
+    <path d="M69 289 H619"/>
+    <path d="M114.8 270 V308 M160.7 270 V308 M206.5 270 V308 M252.3 270 V308 M298.2 270 V308
+             M344 270 V308 M389.8 270 V308 M435.7 270 V308 M481.5 270 V308 M527.3 270 V308 M573.2 270 V308"/>
+  </g>
+  <g>
+    <rect x="70" y="271" width="137" height="17" fill="#ffcccc"/>
+    <rect x="207" y="271" width="364" height="17" fill="#cdeb8b"/>
+  </g>
+
+  <text x="23" y="284" font-size="13" fill="#000">数据</text>
+  <text x="23" y="303" font-size="13" fill="#000">下标</text>
+
+  <g font-size="13" fill="#000" text-anchor="middle">
+    <text x="92.8" y="303">0</text>
+    <text x="138.7" y="303">1</text>
+    <text x="184.5" y="303">2</text>
+    <text x="230.3" y="303">3</text>
+    <text x="276.2" y="303">4</text>
+    <text x="322" y="303">5</text>
+    <text x="367.8" y="303">6</text>
+    <text x="413.7" y="303">7</text>
+    <text x="459.5" y="303">8</text>
+    <text x="505.3" y="303">9</text>
+    <text x="551.2" y="303">10</text>
+    <text x="597" y="303">11</text>
+  </g>
+</svg></figure><ul>
 <li><code>set</code>方法，这个方法主要是用于设置指定下标的数据，这个方法比较简单。</li>
 </ul>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-nf">set</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">index</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">element</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
@@ -492,8 +887,131 @@
 <span class="tok-w">    </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>整个拷贝过程如下如所示：</p>
-<p><img src="/content/zh/images/vector/03-array-14.svg" alt="" loading="lazy" /></p>
-<p>虽然发生了数组的拷贝，但是拷贝之后的数组中数据的指向并没有发生变化，也就是说两个数组指向的内容是一样的，如果一个数组改变了所指向的数据，另外一个数组当中的数据也会发生变化。比如下面的代码：</p>
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 933 633" role="img" aria-label="clone 方法里 elementData 数组的拷贝过程：上面的数组元素指向堆中的对象，下面的数组逐格复制这些引用" class="inline-svg">
+  <defs>
+    <marker id="arrow-array14" viewBox="0 0 10 10" refX="9.5" refY="5"
+             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-array14-blue" viewBox="0 0 10 10" refX="9.5" refY="5"
+             markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00f"/>
+    </marker>
+  </defs>
+
+  <!-- Java 堆区 -->
+  <text x="694" y="52" font-size="21" fill="#000" text-anchor="middle">Java堆区</text>
+  <rect x="518" y="76" width="352" height="242" rx="32" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <g fill="#008a00" stroke="#005700" stroke-width="1.5">
+    <circle cx="583.5" cy="116.5" r="20"/>
+    <circle cx="583.5" cy="176.5" r="20"/>
+    <circle cx="676.5" cy="174.5" r="20"/>
+    <circle cx="771.5" cy="209.5" r="20"/>
+  </g>
+
+  <!-- 图例 -->
+  <circle cx="84" cy="116.5" r="20" fill="#008a00" stroke="#005700" stroke-width="1.5"/>
+  <text x="136" y="128" font-size="21" fill="#000">Java堆中的对象</text>
+  <rect x="55" y="158" width="65" height="27" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="136" y="180" font-size="18" fill="#000">有数据</text>
+  <rect x="55" y="203" width="65" height="28" fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="136" y="223" font-size="18" fill="#000">无数据</text>
+
+  <!-- 数组一 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="117" y="357" width="774" height="54"/>
+    <path d="M117 384.5 H891"/>
+    <path d="M181.5 357 V411 M246 357 V411 M310.5 357 V411 M375 357 V411 M439.5 357 V411
+             M504 357 V411 M568.5 357 V411 M633 357 V411 M697.5 357 V411 M762 357 V411 M826.5 357 V411"/>
+  </g>
+  <rect x="118" y="358" width="256" height="26" fill="#f8cecc"/>
+
+  <text x="51" y="378" font-size="18" fill="#000">数据</text>
+  <text x="50" y="405" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="149.25" y="404">0</text>
+    <text x="213.75" y="404">1</text>
+    <text x="278.25" y="404">2</text>
+    <text x="342.75" y="404">3</text>
+    <text x="407.25" y="404">4</text>
+    <text x="471.75" y="404">5</text>
+    <text x="536.25" y="404">6</text>
+    <text x="600.75" y="404">7</text>
+    <text x="665.25" y="404">8</text>
+    <text x="729.75" y="404">9</text>
+    <text x="794.25" y="404">10</text>
+    <text x="858.75" y="404">11</text>
+  </g>
+
+  <!-- 数组元素指向堆中对象 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M149 357 C149.7 350 150.2 329.5 153 315 C155.8 300.5 157 287.5 166 270
+             C175 252.5 191 226.7 207 210 C223 193.3 232.5 183.3 262 170
+             C291.5 156.7 344.3 138.7 384 130 C423.7 121.3 470.7 120.3 500 118
+             C529.3 115.7 550 116.3 560 116" marker-end="url(#arrow-array14)"/>
+    <path d="M214 357 C214.7 350.8 213.5 334.5 218 320 C222.5 305.5 230 285 241 270
+             C252 255 258.8 243.3 284 230 C309.2 216.7 356 198.7 392 190
+             C428 181.3 472 180.3 500 178 C528 175.7 550 176.3 560 176"
+          marker-end="url(#arrow-array14)"/>
+    <path d="M279 357 C280.2 352.5 278.8 339.5 286 330 C293.2 320.5 301.8 308.3 322 300
+             C342.2 291.7 367.3 285.2 407 280 C446.7 274.8 524.2 272.3 560 269
+             C595.8 265.7 605.3 264.8 622 260 C638.7 255.2 651 250.7 660 240
+             C669 229.3 673.3 203.3 676 196" marker-end="url(#arrow-array14)"/>
+    <path d="M343 357 C345.3 352.5 348 337.8 357 330 C366 322.2 363.2 316.2 397 310
+             C430.8 303.8 517.8 296.3 560 293 C602.2 289.7 623.3 292.2 650 290
+             C676.7 287.8 701.3 285 720 280 C738.7 275 753.5 268 762 260
+             C770.5 252 769.5 236.7 771 232" marker-end="url(#arrow-array14)"/>
+  </g>
+
+  <!-- 往下复制 -->
+  <path d="M251 428 V498" fill="none" stroke="#000" stroke-width="2.5" marker-end="url(#arrow-array14)"/>
+  <text x="269" y="462" font-size="21" fill="#ff3333">clone</text>
+  <text x="325" y="462" font-size="21" fill="#000">方法当中</text>
+  <text x="415" y="462" font-size="21" fill="#000">存放数据的</text>
+  <text x="525" y="462" font-size="21" fill="#000">elementData</text>
+  <text x="651" y="462" font-size="21" fill="#000">数组的拷贝过程</text>
+
+  <!-- 数组二 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <rect x="116" y="515" width="258" height="54"/>
+    <path d="M116 542 H374"/>
+    <path d="M180.5 515 V569 M245 515 V569 M309.5 515 V569"/>
+  </g>
+  <rect x="117" y="516" width="256" height="26" fill="#f8cecc"/>
+
+  <text x="49" y="536" font-size="18" fill="#000">数据</text>
+  <text x="49" y="562" font-size="18" fill="#000">下标</text>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="148.25" y="562">0</text>
+    <text x="212.75" y="562">1</text>
+    <text x="277.25" y="562">2</text>
+    <text x="341.75" y="562">3</text>
+  </g>
+
+  <!-- 蓝色虚线：把引用复制过去 -->
+  <g fill="none" stroke="#00f" stroke-width="1.5" stroke-dasharray="4 4">
+    <path d="M148 512 C148.7 500 148 468 152 440 C156 412 163.8 371 172 344
+             C180.2 317 186.8 300.7 201 278 C215.2 255.3 233.8 228.5 257 208
+             C280.2 187.5 304.5 169.7 340 155 C375.5 140.3 433.3 126.5 470 120
+             C506.7 113.5 545 116.7 560 116" marker-end="url(#arrow-array14-blue)"/>
+    <path d="M212 512 C213.3 497.3 213.2 455.8 220 424 C226.8 392.2 240.3 347.8 253 321
+             C265.7 294.2 275.5 281.8 296 263 C316.5 244.2 343.7 221.8 376 208
+             C408.3 194.2 459.3 185.3 490 180 C520.7 174.7 548.3 176.7 560 176"
+          marker-end="url(#arrow-array14-blue)"/>
+    <path d="M277 512 C278.2 503.3 278.5 476.7 284 460 C289.5 443.3 298.7 425.3 310 412
+             C321.3 398.7 327.7 389.3 352 380 C376.3 370.7 423.7 361 456 356
+             C488.3 351 518.3 355.7 546 350 C573.7 344.3 602 336 622 322
+             C642 308 657 287 666 266 C675 245 674.3 207.7 676 196"
+          marker-end="url(#arrow-array14-blue)"/>
+    <path d="M341 512 C342.7 503.3 344 475.7 351 460 C358 444.3 368.5 430 383 418
+             C397.5 406 409.5 395.5 438 388 C466.5 380.5 519.7 376.7 554 373
+             C588.3 369.3 616.3 371.8 644 366 C671.7 360.2 700.5 350.3 720 338
+             C739.5 325.7 752.5 309.7 761 292 C769.5 274.3 769.3 242 771 232"
+          marker-end="url(#arrow-array14-blue)"/>
+  </g>
+</svg></figure><p>虽然发生了数组的拷贝，但是拷贝之后的数组中数据的指向并没有发生变化，也就是说两个数组指向的内容是一样的，如果一个数组改变了所指向的数据，另外一个数组当中的数据也会发生变化。比如下面的代码：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">package</span><span class="tok-w"> </span><span class="tok-nn">makeyourowncontainer.test</span><span class="tok-p">;</span>
 
 <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.ArrayList</span><span class="tok-p">;</span>
@@ -661,8 +1179,54 @@
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>m</mi><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><munderover><mo>&#x02211;</mo><mrow><mi>i</mi><mo>&#x0003D;</mo><mn>0</mn></mrow><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></munderover><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x02212;</mo><mi>i</mi><mo stretchy="false">&#x00029;</mo><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mi>n</mi><mo>&#x02212;</mo><mn>1</mn><mo>&#x0002B;</mo><mo>&#x022EF;</mo><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mn>1</mn></mrow><mrow><mi>n</mi></mrow></mfrac><mover><mrow><mfrac><mrow><mi>n</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow><mrow><mn>2</mn></mrow></mfrac></mrow><mo>&#x002D9;</mo></mover><mspace linebreak="newline" /><mo>&#x0003D;</mo><mfrac><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math></div><p>根据上面的分析我们知道，时间复杂度为<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mfrac><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac><mo stretchy="false">&#x00029;</mo></mrow></math> = <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><mi>n</mi><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
 <h3 id="扩容机制">扩容机制</h3>
 <p>还记的我们在<a href="https://mp.weixin.qq.com/s?__biz=Mzg3ODgyNDgwNg==&amp;mid=2247483954&amp;idx=1&amp;sn=0671552fd0d33e0b07eab22f698ffaea&amp;chksm=cf0c9e3bf87b172d1e336d7533a79c536600518c085a4104f30667469992e797ff526c732563&amp;mpshare=1&amp;scene=23&amp;srcid=0706NTX8kMWtQryLVoqdqEYC&amp;sharer_sharetime=1657120181327&amp;sharer_shareid=236a49567847c05f78e6b440ce6dabff#rd">ArrayList设计与实现，自己动手写ArrayList</a>当中自己实现<code>ArrayList</code>使用的扩容机制吗？我们自己的扩容机制为扩容为原来长度的两倍，而<code>ArrayList</code>当中的扩容机制为扩容为原来的1.5倍。</p>
-<p><img src="/content/zh/images/vector/03-array-15.svg" alt="" loading="lazy" /></p>
-<p>假设我们在使用<code>ArrayList</code>的时候没有指定初始化的时候数组的长度，也就是说初始长度为<code>ArrayList</code>的默认长度也就是10。那么当我们不停地往容器当中增加数据，扩容导致的数组长度的变化如上图所示，横轴表示扩容次数，纵轴表示数组长度，蓝色的扩容为原数组长度的1.5倍，另外一条是2倍。我们很清晰的发现扩容为原来的<code>2倍</code>在后期的数组长度将会远大于扩容<code>1.5倍</code>。这很可能会导致我们会浪费很大的数组空间，比如说刚好加入最后一个数据的时候导致<code>ArrayList</code>进行扩容操作，这可能是<code>ArrayList</code>在设计时候的考量。</p>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848 533" role="img" aria-label="扩容倍数对比折线图：1.5 倍与 2 倍增长随元素个数增加后的容量差距" class="inline-svg">
+  <rect width="848" height="533" fill="#fff"/>
+
+  <!-- 绘图区 -->
+  <rect x="106" y="22" width="694" height="450" fill="#eaeaf2"/>
+
+  <!-- 网格线 -->
+  <g stroke="#fff" stroke-width="1.5">
+    <path d="M136.5 22 V472 M277 22 V472 M418 22 V472 M558.5 22 V472 M699 22 V472"/>
+    <path d="M106 51 H800 M106 131.5 H800 M106 212 H800 M106 292.5 H800 M106 373 H800 M106 453.5 H800"/>
+  </g>
+
+  <!-- 两条折线 -->
+  <g fill="none" stroke-width="3">
+    <path d="M136.5 452.5 L207 452 L277 453 L347 451.5 L418 450.5 L488 449.5 L558 447
+             L628 443 L698 438 L769 430.5" stroke="#4c72b0"/>
+    <path d="M136.5 453.5 L207 452 L277 450.5 L347 447 L418 440.5 L488 427.5 L558 402
+             L628 351 L698 249 L769 45" stroke="#dd8452"/>
+  </g>
+
+  <!-- 纵轴刻度 -->
+  <g font-size="24" fill="#262626" text-anchor="end">
+    <text x="85" y="60">10000</text>
+    <text x="85" y="140.5">8000</text>
+    <text x="85" y="221">6000</text>
+    <text x="85" y="301.5">4000</text>
+    <text x="85" y="382">2000</text>
+    <text x="85" y="462.5">0</text>
+  </g>
+
+  <!-- 横轴刻度 -->
+  <g font-size="24" fill="#262626" text-anchor="middle">
+    <text x="136.5" y="511">0</text>
+    <text x="277" y="511">2</text>
+    <text x="418" y="511">4</text>
+    <text x="558.5" y="511">6</text>
+    <text x="699" y="511">8</text>
+  </g>
+
+  <!-- 图例 -->
+  <rect x="115" y="31" width="120" height="76" rx="5" fill="#eaeaf2" stroke="#d2d2d4" stroke-width="1.5"/>
+  <g stroke-width="3">
+    <path d="M124 50 H171" stroke="#4c72b0"/>
+    <path d="M124 85 H171" stroke="#dd8452"/>
+  </g>
+  <text x="191" y="59" font-size="24" fill="#262626">1.5</text>
+  <text x="191" y="92" font-size="24" fill="#262626">2</text>
+</svg></figure><p>假设我们在使用<code>ArrayList</code>的时候没有指定初始化的时候数组的长度，也就是说初始长度为<code>ArrayList</code>的默认长度也就是10。那么当我们不停地往容器当中增加数据，扩容导致的数组长度的变化如上图所示，横轴表示扩容次数，纵轴表示数组长度，蓝色的扩容为原数组长度的1.5倍，另外一条是2倍。我们很清晰的发现扩容为原来的<code>2倍</code>在后期的数组长度将会远大于扩容<code>1.5倍</code>。这很可能会导致我们会浪费很大的数组空间，比如说刚好加入最后一个数据的时候导致<code>ArrayList</code>进行扩容操作，这可能是<code>ArrayList</code>在设计时候的考量。</p>
 <p>本篇文章我们仔细分析介绍了<code>ArrayList</code>的源码，希望大家有所收获，我是LeHung，我们下期再见！！！</p>
 <p>关注公众号：一无是处的研究僧，了解更多计算机知识。</p>
 
@@ -670,6 +1234,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/dynamic-programming/"><span>较新</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a><a class="next" href="/posts/linked-list-design/"><span>较旧</span>链表设计与实现</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

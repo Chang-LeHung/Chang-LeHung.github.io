@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>并发程序的噩梦——数据竞争 · Chang-LeHung</title>
 <meta name="description" content="前言 在本文当中我主要通过不同线程对同一个数据进行加法操作的例子，层层递进，使用忙等待、 synchronized 和锁去解决我们的问题，切实体会为什么 数据竞争 是并发程序的噩梦。 问题介绍 在本文当中会有一个贯穿全文的例子：不同的线程会对一个全局变量不断的进行加的操作！然后比较结果，具体来说我们">
+<meta property="og:title" content="并发程序的噩梦——数据竞争">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -414,6 +415,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-03/"><span>较新</span>30行自己写并发工具类(Semaphore, CyclicBarrier, CountDownLatch)是什么体验？</a><a class="next" href="/posts/cscore-concurrency-01-java/"><span>较旧</span>并发开篇——带你从0到1建立并发知识体系的基石</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

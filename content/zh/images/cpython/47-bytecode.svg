@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 422 670" role="img"
+     aria-label="调用栈示意：栈底压着 code 对象的引用，栈顶方向朝上"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-47-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="65" y="57" font-size="24">栈顶</text>
+  <text x="65" y="612" font-size="24">栈底</text>
+  <path d="M88 573 V80" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-47-bytecode)"/>
+
+  <rect x="162" y="43" width="179" height="576" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="162" y1="528" x2="341" y2="528" stroke="#444" stroke-width="1.5"/>
+  <text x="251" y="582" font-size="20" text-anchor="middle">code obeject</text>
+</svg>

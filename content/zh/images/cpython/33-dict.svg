@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1864 1054" role="img" aria-label="字典的内存结构：PyDictObject 的 ma_keys 指向 PyDictKeyEntry，它的 dk_indices 与 dk_entries 分别指向下标数组与键值对数组" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1864" height="1054">
+  <defs>
+    <marker id="arrow-33dict" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左：PyDictObject -->
+  <text x="168" y="158" font-size="22" text-anchor="middle">PyDictObject</text>
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dde8fa">
+    <rect x="29" y="179" width="270" height="70"/>
+    <rect x="29" y="249" width="270" height="71"/>
+  </g>
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="29" y="320" width="270" height="70"/>
+    <rect x="29" y="390" width="270" height="117"/>
+    <rect x="29" y="507" width="270" height="94"/>
+  </g>
+  <g font-size="21">
+    <text x="46" y="221">Py_ssize_t ob_refcnt</text>
+    <text x="46" y="291">_typeobject *ob_type</text>
+    <text x="46" y="362">Py_ssize_t ma_used</text>
+    <text x="164" y="440" text-anchor="middle">PyDictKeysObject</text>
+    <text x="164" y="470" text-anchor="middle">*ma_keys</text>
+    <text x="42" y="562">PyObject **ma_values</text>
+  </g>
+
+  <!-- 前两个字段是 PyObject -->
+  <path d="M332 179 Q 346 179 346 200 V 239 Q 346 250 360 250 Q 346 250 346 261 V 300 Q 346 320 332 320"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="405" y="258" font-size="20">PyObject</text>
+
+  <!-- 中：PyDictKeyEntry -->
+  <text x="811" y="62" font-size="22" text-anchor="middle">PyDictKeyEntry</text>
+  <g stroke="#9673a6" stroke-width="1.5" fill="#e1d5e7">
+    <rect x="676" y="84" width="270" height="71"/>
+    <rect x="676" y="155" width="270" height="70"/>
+    <rect x="676" y="225" width="270" height="70"/>
+  </g>
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="676" y="295" width="270" height="115"/>
+    <rect x="676" y="410" width="270" height="117"/>
+  </g>
+  <g font-size="21" text-anchor="middle">
+    <text x="811" y="126">Py_ssize_t dk_refcnt</text>
+    <text x="811" y="197">Py_ssize_t dk_size</text>
+    <text x="811" y="267">Py_ssize_t dk_usable</text>
+    <text x="811" y="360">dk_indices</text>
+    <text x="811" y="476">dk_entries</text>
+  </g>
+
+  <!-- ma_keys 指向 PyDictKeyEntry -->
+  <path d="M300 445 H 552 V 84 H 670" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <!-- 右上：dk_indices 数组 -->
+  <g stroke="#d79b00" stroke-width="1.5" fill="#ffe6cc">
+    <rect x="1225" y="133" width="269" height="70"/>
+    <rect x="1225" y="203" width="269" height="70"/>
+    <rect x="1225" y="273" width="269" height="70"/>
+    <rect x="1225" y="343" width="269" height="70"/>
+    <rect x="1225" y="413" width="269" height="70"/>
+  </g>
+  <g font-size="21" text-anchor="middle">
+    <text x="1359" y="176">dk_indices[0]</text>
+    <text x="1359" y="246">dk_indices[1]</text>
+    <text x="1359" y="316">......</text>
+    <text x="1359" y="386">dk_indices[6]</text>
+    <text x="1359" y="456">dk_indices[7]</text>
+  </g>
+
+  <!-- 右下：dk_entries 数组 -->
+  <g stroke="#d6b656" stroke-width="1.5" fill="#fff2cc">
+    <rect x="1115" y="604" width="270" height="70"/>
+    <rect x="1115" y="674" width="270" height="70"/>
+    <rect x="1115" y="744" width="270" height="70"/>
+    <rect x="1115" y="814" width="270" height="70"/>
+    <rect x="1115" y="884" width="270" height="70"/>
+  </g>
+  <g font-size="21" text-anchor="middle">
+    <text x="1250" y="647">dk_entries[0]</text>
+    <text x="1250" y="717">dk_entries[1]</text>
+    <text x="1250" y="787">dk_entries[2]</text>
+    <text x="1250" y="857">dk_entries[3]</text>
+    <text x="1250" y="927">dk_entries[4]</text>
+  </g>
+
+  <!-- 最右：一个键值对 -->
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dde8fa">
+    <rect x="1461" y="766" width="269" height="70"/>
+    <rect x="1461" y="836" width="269" height="70"/>
+    <rect x="1461" y="906" width="269" height="70"/>
+  </g>
+  <g font-size="21" text-anchor="middle">
+    <text x="1595" y="809">me_hash : 15</text>
+    <text x="1595" y="879">me_key : Hello</text>
+    <text x="1595" y="949">me_value : World</text>
+  </g>
+
+  <!-- dk_indices / dk_entries 指向各自的数组 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)">
+    <path d="M946 305 L 1219 145"/>
+    <path d="M946 400 L 1219 462"/>
+    <path d="M946 450 L 1109 610"/>
+    <path d="M946 520 L 1109 930"/>
+  </g>
+
+  <!-- dk_indices[7] 的值指向 dk_entries[0] -->
+  <circle cx="1498" cy="448" r="4" fill="#1a1a1a"/>
+  <path d="M1498 448 H 1558 V 609 H 1391" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <!-- dk_entries[0] 对应的键值对 -->
+  <circle cx="1358" cy="640" r="4" fill="#1a1a1a"/>
+  <path d="M1358 640 H 1462 V 760" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <g font-size="21">
+    <text x="1570" y="676">(hash(&quot;Hello&quot;)) = 15</text>
+    <text x="1570" y="729">(hash(&quot;Hello&quot;)) % 8 = 7</text>
+  </g>
+</svg>

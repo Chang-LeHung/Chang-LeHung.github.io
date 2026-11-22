@@ -1,6 +1,11 @@
 /* Slide look after the jyywiki decks: a 4:3 frame with a hairline border,
-   left-aligned text, 32px body, a plum rule under h2, centred title slide.
+   left-aligned text, 32px body, a purple rule under h2, centred title slide.
    Shared by stand-alone decks and decks embedded in articles. */
+
+/* One accent for the whole deck: a readable purple that still looks printed,
+   not a link blue. Darker plums vanish into black at hairline widths. It sits
+   on :root because the full-screen button lives outside .reveal. */
+:root { --deck-accent: #7b1fa2; }
 
 .reveal {
   font-family: var(--font-body);
@@ -31,7 +36,7 @@
   margin: 0 0 20px;
 }
 .reveal h1 { font-size: 60px; }
-.reveal h2 { font-size: 48px; border-bottom: 2px solid rgb(106, 0, 95); padding-bottom: 5px; }
+.reveal h2 { font-size: 48px; border-bottom: 2px solid var(--deck-accent); padding-bottom: 5px; }
 .reveal h3 { font-size: 1.15em; }
 .reveal h4 { font-size: 1.05em; }
 .reveal .middle h1 { text-align: center; }
@@ -48,14 +53,14 @@
 .reveal ul, .reveal ol { display: block; margin: 0.4em 0 0.4em 1.1em; }
 .reveal li + li { margin-top: 10px; }
 .reveal li > p { margin: 0; }
-.reveal a { color: rgb(106, 0, 95); }
+.reveal a { color: var(--deck-accent); }
 .reveal hr { border: 10px solid transparent; }
 
 .reveal blockquote {
   width: 100%; margin: 0.6em 0; padding: 0 0 0 1em; background: none; box-shadow: none;
   border-left: 3px solid #ddd; font-style: normal;
 }
-.reveal .middle blockquote { text-align: center; color: rgb(106, 0, 95); border: 0; }
+.reveal .middle blockquote { text-align: center; color: var(--deck-accent); border: 0; }
 
 .reveal table {
   width: 100%; border-collapse: collapse; font-size: 26px;
@@ -97,7 +102,7 @@
 }
 .reveal .slide-number a,
 .reveal .slide-number a:hover { text-decoration: none; border: 0; }
-.reveal .controls { color: rgb(106, 0, 95); }
+.reveal .controls { color: var(--deck-accent); }
 /* Keep all four directions visible, including when no slide is available.
    Only enabled arrows receive pointer events or full opacity. */
 .reveal .controls button {
@@ -231,7 +236,7 @@
   cursor: pointer; opacity: 0; transition: opacity 0.15s;
 }
 .slide-embed:hover .slide-full, .slide-full:focus-visible { opacity: 1; }
-.slide-full:hover { color: rgb(106, 0, 95); border-color: rgb(106, 0, 95); }
+.slide-full:hover { color: var(--deck-accent); border-color: var(--deck-accent); }
 
 /* decks made of PDF pages: the image is the slide */
 .slide-embed.pdf .slides section { padding: 0 !important; }
@@ -248,7 +253,11 @@
   font: calc(var(--h) * 1cqh * 0.85) / 1 serif; color: transparent;
   transform-origin: 0 0; cursor: text; user-select: text; -webkit-user-select: text;
 }
-.pdf-text span::selection { color: transparent; background: rgba(106, 0, 95, 0.22); }
+.pdf-text span::selection {
+  color: transparent;
+  background: rgba(123, 31, 162, 0.22); /* fallback where color-mix is missing */
+  background: color-mix(in srgb, var(--deck-accent) 22%, transparent);
+}
 .pdf-text span { text-shadow: none; }
 
 /* Remove the article's inline max-width in fullscreen. Keep Reveal's natural

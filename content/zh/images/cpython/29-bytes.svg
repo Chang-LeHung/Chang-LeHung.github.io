@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 467" role="img" aria-label="bytes 对象的内存布局：左边是 b 空串，右边是三项内容的 bytes，ob_size 分别为 0 和 3，尾部各带一个 '\\0'" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <g stroke-width="1.5">
+    <!-- 左列 -->
+    <rect x="33" y="19" width="192" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="33" y="69" width="192" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="33" y="119" width="192" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="33" y="169" width="192" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="33" y="219" width="192" height="49" fill="#f4c9c6" stroke="#aa4f48"/>
+    <!-- 右列 -->
+    <rect x="336" y="19" width="192" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="336" y="69" width="192" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="336" y="119" width="192" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="336" y="169" width="192" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="336" y="219" width="192" height="49" fill="#f4c9c6" stroke="#aa4f48"/>
+    <rect x="336" y="269" width="192" height="49" fill="#f4c9c6" stroke="#aa4f48"/>
+    <rect x="336" y="319" width="192" height="49" fill="#f4c9c6" stroke="#aa4f48"/>
+    <rect x="336" y="369" width="192" height="49" fill="#f4c9c6" stroke="#aa4f48"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle">
+    <!-- 左列文字 -->
+    <text x="129" y="49">Py_ssize_t ob_refcnt</text>
+    <text x="129" y="99">_typeobject *ob_type</text>
+    <text x="129" y="149">Py_ssize_t ob_size = 0</text>
+    <text x="129" y="199">Py_hash_t ob_shash</text>
+    <text x="129" y="249">'\0'</text>
+    <!-- 右列文字 -->
+    <text x="432" y="49">Py_ssize_t ob_refcnt</text>
+    <text x="432" y="99">_typeobject *ob_type</text>
+    <text x="432" y="149">Py_ssize_t ob_size = 3</text>
+    <text x="432" y="199">Py_hash_t ob_shash</text>
+    <text x="432" y="249">'a'</text>
+    <text x="432" y="299">'b'</text>
+    <text x="432" y="349">'c'</text>
+    <text x="432" y="399">'\0'</text>
+  </g>
+
+  <text x="111" y="297" font-size="20">b"</text>
+</svg>

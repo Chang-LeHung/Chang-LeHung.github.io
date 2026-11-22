@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 385 278" role="img" aria-label="PyComplexObject 的结构体布局：前两个字段属于 PyObject，后面依次是 double real 与 double imag" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="385" height="278">
+  <text x="122" y="42" font-size="19" text-anchor="middle">PyComplexObject</text>
+
+  <!-- 四个字段 -->
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dbe7fb">
+    <rect x="27" y="51" width="192" height="50"/>
+    <rect x="27" y="101" width="192" height="50"/>
+  </g>
+  <rect x="27" y="151" width="192" height="50" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="27" y="201" width="192" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+
+  <g font-size="19" text-anchor="middle">
+    <text x="123" y="82">Py_ssize_t ob_refcnt</text>
+    <text x="123" y="132">_typeobject *ob_type</text>
+    <text x="123" y="182">double real</text>
+    <text x="123" y="232">double imag</text>
+  </g>
+
+  <!-- 前两行合起来是 PyObject -->
+  <path d="M252 56 Q 266 56 266 78 V 94 Q 266 101 278 101 Q 266 101 266 108 V 124 Q 266 146 252 146"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="290" y="108" font-size="18">PyObject</text>
+</svg>

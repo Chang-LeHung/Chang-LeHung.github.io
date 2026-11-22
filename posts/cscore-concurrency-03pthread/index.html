@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pthread 并发编程（三）——深入理解线程取消机制 · Chang-LeHung</title>
 <meta name="description" content="基本介绍 线程取消机制是 pthread 给我们提供的一种用于取消线程执行的一种机制，这种机制是在线程内部实现的，仅仅能够在共享内存的多线程程序当中使用。 基本使用 复制 #include &lt;stdio.h&gt; #include &lt;pthread.h&gt; #include &lt;assert.h&gt; #inc">
+<meta property="og:title" content="Pthread 并发编程（三）——深入理解线程取消机制">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -607,6 +608,7 @@ thread2 was canceled
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-pl-01builtin/"><span>较新</span>gcc 好玩的 builtin 函数</a><a class="next" href="/posts/cscore-concurrency-02pthread/"><span>较旧</span>Pthread 并发编程（二）——自底向上深入理解线程</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 python 虚拟机：令人拍案叫绝的字节码设计 · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要给大家介绍 cpython 虚拟机对于字节码的设计以及在调试过程当中一个比较重要的字段 co_lnotab 的设计原理！ python 字节码设计 一条 python 字节码主要有两部分组成，一部分是操作码，一部分是这个操作码的参数，在 cpython 当中只有部分字节码有参数，如">
+<meta property="og:title" content="深入理解 python 虚拟机：令人拍案叫绝的字节码设计">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -757,6 +758,7 @@ add.__code__.co_firstlineno<span class="tok-w"> </span><span class="tok-o">=</sp
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-pvm-01pyc/"><span>较新</span>深入理解 python 虚拟机：pyc 文件结构</a><a class="next" href="/posts/cpython-pvm-04bytecode-tutorial/"><span>较旧</span>深入理解 python 虚拟机：字节码教程(1)——原来装饰器是这样实现的</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

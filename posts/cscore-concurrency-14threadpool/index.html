@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>彻底了解线程池的原理——40行从零开始自己写线程池 · Chang-LeHung</title>
 <meta name="description" content="前言 在我们的日常的编程当中，并发是始终离不开的主题，而在并发多线程当中，线程池又是一个不可规避的问题。多线程可以提高我们并发程序的效率，可以让我们不去频繁的申请和释放线程，这是一个很大的花销，而在线程池当中就不需要去频繁的申请线程，他的主要原理是申请完线程之后并不中断，而是不断的去队列当中领取任务">
+<meta property="og:title" content="彻底了解线程池的原理——40行从零开始自己写线程池">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -307,6 +308,7 @@ ThreadPool-Thread-4
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-tools-git/"><span>较新</span>git</a><a class="next" href="/posts/cscore-concurrency-15threadpoolv2/"><span>较旧</span>彻底了解线程池原理——动手写一个低配版的ThreadPoolExecutor</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

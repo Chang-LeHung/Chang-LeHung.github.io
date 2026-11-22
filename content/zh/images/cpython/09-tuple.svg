@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393 311" role="img" aria-label="PyTupleObject 的结构体布局：PyObject 两个字段之后是 ob_size，最下面是定长的 ob_item 数组" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="393" height="311">
+  <!-- 外层结构体 -->
+  <rect x="47" y="38" width="293" height="240" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="63" y="70" font-size="17">PyTupleObject</text>
+
+  <!-- 五个字段 -->
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#b1e0e6">
+    <rect x="93" y="86" width="191" height="32"/>
+    <rect x="93" y="118" width="191" height="32"/>
+    <rect x="93" y="150" width="191" height="32"/>
+    <rect x="93" y="182" width="191" height="32"/>
+    <rect x="93" y="214" width="191" height="32"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="188" y="107">Py_ssize_t ob_refcnt</text>
+    <text x="188" y="139">_typeobject *ob_type</text>
+    <text x="188" y="171">Py_ssize_t ob_size</text>
+    <text x="188" y="203">PyObject *ob_item[1]</text>
+    <text x="188" y="235">Py_ssize_t allocated</text>
+  </g>
+</svg>

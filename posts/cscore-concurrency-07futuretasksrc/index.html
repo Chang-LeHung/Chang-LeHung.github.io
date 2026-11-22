@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FutureTask源码深度剖析 · Chang-LeHung</title>
 <meta name="description" content="前言 在前面的文章 自己动手写FutureTask 当中我们已经仔细分析了FutureTask给我们提供的功能，并且深入分析了我们该如何实现它的功能，并且给出了使用 ReentrantLock 和条件变量实现FutureTask的具体代码。而在本篇文章当中我们将仔细介绍JDK内部是如何实现Futur">
+<meta property="og:title" content="FutureTask源码深度剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -424,6 +425,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-08synchronizedusage/"><span>较新</span>深入学习Synchronized各种使用方法</a><a class="next" href="/posts/cscore-concurrency-05falsesharing/"><span>较旧</span>并发刺客（False Sharing）——并发程序的隐藏杀手</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

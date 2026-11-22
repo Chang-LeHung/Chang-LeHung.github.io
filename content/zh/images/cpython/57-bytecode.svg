@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 185 264" role="img"
+     aria-label="counter = 2 执行后，栈底压入了整数 1"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-57-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="93" y="30" font-size="19" text-anchor="middle">counter = 2</text>
+  <text x="19" y="233" font-size="14">栈底</text>
+  <path d="M30 215 V60" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-57-bytecode)"/>
+
+  <rect x="65" y="57" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="65" y1="206" x2="150" y2="206" stroke="#444" stroke-width="1.5"/>
+  <text x="107" y="228" font-size="16" text-anchor="middle">1</text>
+</svg>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>静态加载器 · Chang-LeHung</title>
 <meta name="description" content="通常我们程序的加载时通过fork execve系统调用进行加载的。然后在execve当中会对elf文件进行解析，将程序头表当中指定的需要加载的数据，使用mmap将数据加载到内存当中。如果我们想要不使用系统调用去加载程序的话，也就是说在用户态加载程序的话，我们就需要模拟execve的功能。 程序的执行">
+<meta property="og:title" content="静态加载器">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -184,6 +185,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-tools-03/"><span>较新</span>彻底掌握Makefile（三）</a><a class="next" href="/posts/cscore-linux-02ls/"><span>较旧</span>Linux命令系列之ls——原来最简单的ls这么复杂</a>    </nav>
+
   </div>
 
 </article>

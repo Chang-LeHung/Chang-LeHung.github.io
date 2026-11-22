@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>链表设计与实现 · Chang-LeHung</title>
 <meta name="description" content="在谈链表之前，我们先谈谈我们平常编程会遇到的很常见的一个问题。如果在编程的时候，某个变量在后续编程中仍需使用，我们可以用一个局部变量来保存该值，除此之外一个更加常用的方法就是使用容器了。 那什么是 容器 呢？从字面上来说就是用来装某个东西的，比如我们的杯子，就是容器。在程序设计当中我们最常见的容器就">
+<meta property="og:title" content="链表设计与实现">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -72,8 +73,51 @@
 </ul>
 <p>今天要谈到的链表在Java的<code>LinkedList</code>和C++的<code>list</code>当中就有使用到。</p>
 <p>那什么是链表呢？链表是由一个一个的节点组成的，每个节点包含两个字段，其中一个字段data表示真实需要表示的数据，另外一个字段next表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），data和next两者一起组成链表当中的节点(Node)。</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A808.svg" alt="" loading="lazy" /></p>
-<p>其中<code>data</code>表示链表当中存储的真实的数据，而<code>next</code>表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），<code>data</code>和<code>next</code>两者一起组成链表当中的节点(Node)。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="97" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="97" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="138" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="138" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="271" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="271" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="312" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="312" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="445" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="445" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="486" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="486" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="619" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="619" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="660" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="660" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 5 -->
+  <rect x="793" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="793" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="834" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="834" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- next 指针 -->
+  <path d="M179,85.5 L271,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M353,85.5 L445,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M527,85.5 L619,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M701,85.5 L793,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+</svg></figure><p>其中<code>data</code>表示链表当中存储的真实的数据，而<code>next</code>表示指向下一个节点的指针（如果不了解指针也没有关系，就将其当做一个普通的变量既可，不影响我们的理解），<code>data</code>和<code>next</code>两者一起组成链表当中的节点(Node)。</p>
 <p><code>Java</code>代码：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">class</span> <span class="tok-nc">Node</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">item</span><span class="tok-p">;</span>
@@ -85,21 +129,354 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><h3 id="单链表">单链表</h3>
 <p>所谓单链表就是只有一个指向其他节点的变量，比如下图当中只有一个next变量指向其他同样的节点。</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A808.svg" alt="" loading="lazy" /></p>
-<h3 id="双向链表">双向链表</h3>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 118" role="img" aria-label="五个单链表结点由 next 指针依次向右相连，最后一个结点之后箭头指向空" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="97" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="97" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="138" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="138" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="271" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="271" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="312" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="312" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="445" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="445" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="486" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="486" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="619" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="619" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="660" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="660" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 5 -->
+  <rect x="793" y="25" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="793" y="63" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="834" y="51" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="834" y="89" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- next 指针 -->
+  <path d="M179,85.5 L271,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M353,85.5 L445,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M527,85.5 L619,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M701,85.5 L793,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+  <path d="M875,85.5 L925,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-08)"/>
+</svg></figure><h3 id="双向链表">双向链表</h3>
 <p>双向链表和单链表的区别就是他的指向有两个方向，而单链表只有一个方向，在双向链表的节点当中会有两个指向其他同样节点的变量，一个指向前一个节点，一个指向后一个节点，对应下图prev指向前一个节点，next指向后一个节点。</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A801.svg" alt="" loading="lazy" /></p>
-<h3 id="循环链表">循环链表</h3>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 187" role="img" aria-label="四个双向链表结点，每个结点由 data、prev、next 三格组成，prev 指针向左、next 指针向右连成链" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="98" y="37" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="98" y="75" width="82" height="39" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="98" y="114" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="139" y="63" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="139" y="101" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="139" y="139" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="272" y="37" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="272" y="75" width="82" height="39" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="272" y="114" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="313" y="63" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="313" y="101" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="313" y="139" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="446" y="37" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="446" y="75" width="82" height="39" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="446" y="114" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="487" y="63" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="487" y="101" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="487" y="139" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="620" y="37" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="620" y="75" width="82" height="39" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="620" y="114" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="661" y="63" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="661" y="101" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="661" y="139" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- prev 指针：向左 -->
+  <path d="M98,94 L53,94" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M272,94 L180,94" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M446,94 L354,94" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M620,94 L528,94" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+
+  <!-- next 指针：向右 -->
+  <path d="M180,132 L272,132" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M354,132 L446,132" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M528,132 L620,132" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+  <path d="M702,132 L760,132" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-01)"/>
+</svg></figure><h3 id="循环链表">循环链表</h3>
 <p>这个概念也比较简单，就是链表首尾相连，形成一个环，比如单循环链表：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A809.svg" alt="" loading="lazy" /></p>
-<p>双向循环链表，第一个节点（头结点）的prev指向最后一个节点（尾节点），尾节点的next指向头结点：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A810.svg" alt="" loading="lazy" /></p>
-<h3 id="静态链表">静态链表</h3>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 975 157" role="img" aria-label="五个单链表结点向右相连，最后一个结点的 next 从下方绕回第一个结点，形成循环链表" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-09" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="130" y="19" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="130" y="57" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="171" y="45" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="171" y="83" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="304" y="19" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="304" y="57" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="345" y="45" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="345" y="83" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="478" y="19" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="478" y="57" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="519" y="45" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="519" y="83" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="652" y="19" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="652" y="57" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="693" y="45" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="693" y="83" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 5 -->
+  <rect x="826" y="19" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="826" y="57" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="867" y="45" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="867" y="83" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- next 指针 -->
+  <path d="M212,76.5 L303,76.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
+  <path d="M386,76.5 L477,76.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
+  <path d="M560,76.5 L651,76.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
+  <path d="M734,76.5 L825,76.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
+
+  <!-- 尾结点绕回第一个结点 -->
+  <path d="M908,76.5 H938 V139 H100 V76.5 H129" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-09)"/>
+</svg></figure><p>双向循环链表，第一个节点（头结点）的prev指向最后一个节点（尾节点），尾节点的next指向头结点：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-10" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="183" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="183" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="183" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="224" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="224" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="224" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 2 -->
+  <rect x="357" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="357" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="357" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="398" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="398" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="398" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 3 -->
+  <rect x="531" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="531" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="531" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="572" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="572" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="572" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- 结点 4 -->
+  <rect x="705" y="56" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="705" y="94" width="81" height="38" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="705" y="132" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="746" y="82" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="746" y="120" font-size="20" fill="#1a1a1a" text-anchor="middle">prev</text>
+  <text x="746" y="158" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+  <!-- prev 指针：向左 -->
+  <path d="M357,113.5 L264,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M531,113.5 L438,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M705,113.5 L612,113.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- next 指针：向右 -->
+  <path d="M264,151.5 L357,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M438,151.5 L531,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+  <path d="M612,151.5 L705,151.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- 上部绕行：第一个结点的 prev 指向最后一个结点 -->
+  <path d="M183,113.5 H153.5 V33.5 H816.5 V113.5 H786"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+
+  <!-- 下部绕行：最后一个结点的 next 指向第一个结点 -->
+  <path d="M786,151.5 H816.5 V222.5 H153.5 V151.5 H183"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-10)"/>
+</svg></figure><h3 id="静态链表">静态链表</h3>
 <p>我们前面所提到的链表中的节点除了数据域（data）还有一个变量指向其他的节点，节点与节点之间的内存地址是不连续的，而静态链表和前面提到的链表不一样，它是使用<strong>数组</strong>来实现链表，只是将next变成一个<code>int</code>类型的数据，表示下一跳数据的下标，比如下图当中所表示的那样（其中-1表示链表的结尾，因为next域存储的是下一个节点的下标，下标肯定大于等于0，因此可以使用-1表示链表的结尾）：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A812.svg" alt="" loading="lazy" /></p>
-<p>在上图当中对应的链表如下（通过分析上图当中next域的指向分析得到下图）：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A813.svg" alt="" loading="lazy" /></p>
-<p>像这种使用数组实现的链表叫做静态链表，上面谈到的就是静态单链表，它对应的数据结构也很清楚：</p>
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 357" role="img" aria-label="静态链表的结构表格，下标、数据域、next域三列共五行，四条不同颜色的虚线分别把 next 域的值指向对应下标的数据" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-12k" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+    <marker id="arrow-01-12m" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0080"/>
+    </marker>
+    <marker id="arrow-01-12g" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#00ff00"/>
+    </marker>
+    <marker id="arrow-01-12b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3333ff"/>
+    </marker>
+  </defs>
+
+  <!-- 表头 -->
+  <rect x="134" y="31" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="31" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="31" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">下标</text>
+  <text x="280.5" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">数据域</text>
+  <text x="378" y="63" font-size="24" fill="#1a1a1a" text-anchor="middle">next域</text>
+
+  <!-- 第 0 行 -->
+  <rect x="134" y="76" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="76" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="76" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">0</text>
+  <text x="280.5" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="108" font-size="24" fill="#1a1a1a" text-anchor="middle">4</text>
+
+  <!-- 第 1 行 -->
+  <rect x="134" y="121" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="121" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="121" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">1</text>
+  <text x="280.5" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="153" font-size="24" fill="#1a1a1a" text-anchor="middle">3</text>
+
+  <!-- 第 2 行 -->
+  <rect x="134" y="166" width="97.7" height="46" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="166" width="97.6" height="46" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="166" width="97.7" height="46" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">2</text>
+  <text x="280.5" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="198" font-size="24" fill="#1a1a1a" text-anchor="middle">-1</text>
+
+  <!-- 第 3 行 -->
+  <rect x="134" y="212" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="212" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="212" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">3</text>
+  <text x="280.5" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="243" font-size="24" fill="#1a1a1a" text-anchor="middle">2</text>
+
+  <!-- 第 4 行 -->
+  <rect x="134" y="257" width="97.7" height="45" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <rect x="231.7" y="257" width="97.6" height="45" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="329.3" y="257" width="97.7" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="183" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">4</text>
+  <text x="280.5" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="378" y="288" font-size="24" fill="#1a1a1a" text-anchor="middle">1</text>
+
+  <!-- 表头 next 域指向右上角的说明 -->
+  <path d="M427,53.5 L568,53.5" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow-01-12k)"/>
+  <text x="684" y="52" font-size="21" fill="#1a1a1a" text-anchor="middle">表示对应数据指向的</text>
+  <text x="686" y="78" font-size="21" fill="#1a1a1a" text-anchor="middle">下一条数据的下标</text>
+
+  <!-- 虚线：下标 0 的 next = 4 -->
+  <path d="M427,99 H454 Q464,99 464,109 V271 Q464,281 454,281 H429"
+        fill="none" stroke="#ff0080" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12m)"/>
+
+  <!-- 虚线：下标 1 的 next = 3 -->
+  <path d="M427,145 H483 Q493,145 493,155 V225 Q493,235.5 483,235.5 H429"
+        fill="none" stroke="#00ff00" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12g)"/>
+
+  <!-- 虚线：下标 3 的 next = 2 -->
+  <path d="M427,235.5 H662 Q672,235.5 672,225.5 V200.5 Q672,190.5 662,190.5 H429"
+        fill="none" stroke="#000000" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12k)"/>
+
+  <!-- 虚线：下标 4 的 next = 1 -->
+  <path d="M378,302 V325 Q378,335 388,335 H550 Q560,335 560,325 V155 Q560,145 550,145 H429"
+        fill="none" stroke="#3333ff" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-01-12b)"/>
+</svg></figure><p>在上图当中对应的链表如下（通过分析上图当中next域的指向分析得到下图）：</p>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 127" role="img" aria-label="静态链表的五个结点，每个结点由 data 和 next 值两格组成，next 值用箭头指向下一个结点" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-13" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 结点 1 -->
+  <rect x="66" y="47" width="80" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="146" y="47" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="106" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="187" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">4</text>
+
+  <!-- 结点 2 -->
+  <rect x="271" y="47" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="352" y="47" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="311" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="393" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">1</text>
+
+  <!-- 结点 3 -->
+  <rect x="485" y="47" width="80" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="565" y="47" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="525" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="606" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">3</text>
+
+  <!-- 结点 4 -->
+  <rect x="707" y="47" width="80" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="787" y="47" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="747" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="827" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">2</text>
+
+  <!-- 结点 5 -->
+  <rect x="926" y="47" width="80" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="1006" y="47" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="966" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="1046" y="74" font-size="20" fill="#1a1a1a" text-anchor="middle">-1</text>
+
+  <!-- 结点 1 -> 结点 2 -->
+  <path d="M147,47 V26 Q147,17.5 156,17.5 H343 Q352,17.5 352,26 V47"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-13)"/>
+
+  <!-- next = 3：指向结点 3 -->
+  <path d="M352,85 V105 Q352,114 361,114 H556 Q565,114 565,105 V85"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-13)"/>
+
+  <!-- next = 2：指向结点 4 -->
+  <path d="M565,47 V26 Q565,17.5 574,17.5 H778 Q787,17.5 787,26 V47"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-13)"/>
+
+  <!-- next = -1：指向结点 5 -->
+  <path d="M787,85 V105 Q787,114 796,114 H997 Q1006,114 1006,105 V85"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-13)"/>
+</svg></figure><p>像这种使用数组实现的链表叫做静态链表，上面谈到的就是静态单链表，它对应的数据结构也很清楚：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">private</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kd">class</span> <span class="tok-nc">StaticNode</span><span class="tok-o">&lt;</span><span class="tok-n">E</span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-c1">// 指向节点的真实存储的数据</span>
 <span class="tok-w">    </span><span class="tok-n">E</span><span class="tok-w"> </span><span class="tok-n">item</span><span class="tok-p">;</span>
@@ -117,22 +494,307 @@
 <li>我们需要有一个容器可以保存我们的数据</li>
 <li>我们的数据有一定的顺序性，比如我们现在容器当中的数据个数是10个，我们想在下标为3的地方插入一个数据</li>
 </ul>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A802.svg" alt="" loading="lazy" /></p>
-<p>​	在数组长度够的情况下，我们需要将下标2之后的数据往后搬一个位置然后将新的数据放到下标为3的位置，这种插入的时间复杂度为 O(n)，至于为什么是O(n)我们在谈ArrayList时我们再进行证明。</p>
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 863 211" role="img" aria-label="一个下标 0 到 9 的数组，红色箭头从黄色 data 方框指向下标 3 的位置" class="inline-svg">
+  <defs>
+    <marker id="arrow-01-02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <!-- 数组 -->
+  <rect x="28" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="109" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="190" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="271" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="352" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="433" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="514" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="595" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="676" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="757" y="31" width="81" height="37" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+
+  <text x="68" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">0</text>
+  <text x="149" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">1</text>
+  <text x="230" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">2</text>
+  <text x="311" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">3</text>
+  <text x="392" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">4</text>
+  <text x="473" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">5</text>
+  <text x="554" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">6</text>
+  <text x="635" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">7</text>
+  <text x="716" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">8</text>
+  <text x="797" y="58" font-size="21" fill="#1a1a1a" text-anchor="middle">9</text>
+
+  <!-- 指向下标 3 的红色箭头 -->
+  <path d="M311,157 C311,130 300,107 277,107 C272,107 271,92 271,69"
+        fill="none" stroke="#ff0000" stroke-width="1.6" marker-end="url(#arrow-01-02)"/>
+
+  <!-- data 方框 -->
+  <rect x="271" y="157" width="81" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="311" y="183" font-size="16" fill="#1a1a1a" text-anchor="middle">data</text>
+</svg></figure><p>​	在数组长度够的情况下，我们需要将下标2之后的数据往后搬一个位置然后将新的数据放到下标为3的位置，这种插入的时间复杂度为 O(n)，至于为什么是O(n)我们在谈ArrayList时我们再进行证明。</p>
 <ul>
 <li>但是如果我们采用的是链表的方法的话，我们的时间复杂度可以做到O(1)。</li>
 </ul>
-<p>​	<img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A803.svg" alt="" loading="lazy" /></p>
-<p>​	对于上面这种插入情况，我们只需要稍微改变一下next的指向就可以了：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A804.svg" alt="" loading="lazy" /></p>
-<ul>
+<p>​	```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1118 262" role="img" aria-label="一行四个单链表结点向右相连，红色箭头从下方独立的 data/next 结点指向第三个结点后面的指针">
+<defs>
+<marker id="arrow-01-03" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+</marker>
+<marker id="arrow-01-03r" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+</marker>
+</defs></p>
+  <!-- 结点 1 -->
+  <rect x="150" y="28" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="150" y="67" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="190" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="190" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- 结点 2 -->
+  <rect x="324" y="28" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="324" y="67" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="364" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="364" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- 结点 3 -->
+  <rect x="498" y="28" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="498" y="67" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="538" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="538" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- 结点 4 -->
+  <rect x="672" y="28" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="672" y="67" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="712" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="712" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- 结点 5 -->
+  <rect x="846" y="28" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="846" y="67" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="886" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="886" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- next 指针 -->
+  <path d="M231,85 L324,85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-03)"/>
+  <path d="M405,85 L498,85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-03)"/>
+  <path d="M579,85 L672,85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-03)"/>
+  <path d="M753,85 L846,85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-03)"/>
+  <path d="M927,85 L986,85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-03)"/>
+  <!-- 下方独立结点 -->
+  <rect x="623" y="172" width="81" height="39" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <rect x="623" y="211" width="81" height="39" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="663" y="198" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+  <text x="663" y="236" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+  <!-- 红色箭头：指向上面的指针线 -->
+<p><path d="M663,172 C663,156 661,143 655,137 C645,128 630,125 625,118 C622,112 622,100 622,90"
+        fill="none" stroke="#ff0000" stroke-width="1.6" marker-end="url(#arrow-01-03r)"/>
+</svg></p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>
+​	对于上面这种插入情况，我们只需要稍微改变一下next的指向就可以了：
+
+```svg
+&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 1085 293&quot; role=&quot;img&quot; aria-label=&quot;链表中第 3 个结点的 next 指向下方一个游离结点，该结点的 next 又指回第 4 个结点，用洋红色曲线表示&quot;&gt;
+  &lt;defs&gt;
+    &lt;marker id=&quot;arrow-01-04&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;9.5&quot; refY=&quot;5&quot;
+            markerWidth=&quot;9&quot; markerHeight=&quot;9&quot; orient=&quot;auto-start-reverse&quot;&gt;
+      &lt;path d=&quot;M0,0 L10,5 L0,10 z&quot; fill=&quot;#444&quot;/&gt;
+    &lt;/marker&gt;
+    &lt;marker id=&quot;arrow-01-04m&quot; viewBox=&quot;0 0 10 10&quot; refX=&quot;9.5&quot; refY=&quot;5&quot;
+            markerWidth=&quot;8&quot; markerHeight=&quot;8&quot; orient=&quot;auto-start-reverse&quot;&gt;
+      &lt;path d=&quot;M0,0 L10,5 L0,10 z&quot; fill=&quot;#ff0080&quot;/&gt;
+    &lt;/marker&gt;
+  &lt;/defs&gt;
+
+  &lt;!-- 结点 1 --&gt;
+  &lt;rect x=&quot;109&quot; y=&quot;37&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;109&quot; y=&quot;78&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;150&quot; y=&quot;65&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;150&quot; y=&quot;106&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- 结点 2 --&gt;
+  &lt;rect x=&quot;283&quot; y=&quot;37&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;283&quot; y=&quot;78&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;324&quot; y=&quot;65&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;324&quot; y=&quot;106&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- 结点 3 --&gt;
+  &lt;rect x=&quot;457&quot; y=&quot;37&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;457&quot; y=&quot;78&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;498&quot; y=&quot;65&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;498&quot; y=&quot;106&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- 结点 4 --&gt;
+  &lt;rect x=&quot;631&quot; y=&quot;37&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;631&quot; y=&quot;78&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;672&quot; y=&quot;65&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;672&quot; y=&quot;106&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- 结点 5 --&gt;
+  &lt;rect x=&quot;805&quot; y=&quot;37&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;805&quot; y=&quot;78&quot; width=&quot;82&quot; height=&quot;41&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;846&quot; y=&quot;65&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;846&quot; y=&quot;106&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- next 指针 --&gt;
+  &lt;path d=&quot;M191,97.5 L283,97.5&quot; fill=&quot;none&quot; stroke=&quot;#444&quot; stroke-width=&quot;1.5&quot; marker-end=&quot;url(#arrow-01-04)&quot;/&gt;
+  &lt;path d=&quot;M365,97.5 L457,97.5&quot; fill=&quot;none&quot; stroke=&quot;#444&quot; stroke-width=&quot;1.5&quot; marker-end=&quot;url(#arrow-01-04)&quot;/&gt;
+  &lt;path d=&quot;M713,97.5 L805,97.5&quot; fill=&quot;none&quot; stroke=&quot;#444&quot; stroke-width=&quot;1.5&quot; marker-end=&quot;url(#arrow-01-04)&quot;/&gt;
+  &lt;path d=&quot;M887,97.5 L945,97.5&quot; fill=&quot;none&quot; stroke=&quot;#444&quot; stroke-width=&quot;1.5&quot; marker-end=&quot;url(#arrow-01-04)&quot;/&gt;
+
+  &lt;!-- 下方游离结点 --&gt;
+  &lt;rect x=&quot;583&quot; y=&quot;184&quot; width=&quot;83&quot; height=&quot;37&quot; fill=&quot;#fff2cc&quot; stroke=&quot;#d6b656&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;rect x=&quot;583&quot; y=&quot;221&quot; width=&quot;83&quot; height=&quot;38&quot; fill=&quot;#d5e8d4&quot; stroke=&quot;#82b366&quot; stroke-width=&quot;1.5&quot;/&gt;
+  &lt;text x=&quot;624&quot; y=&quot;211&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;data&lt;/text&gt;
+  &lt;text x=&quot;624&quot; y=&quot;249&quot; font-size=&quot;20&quot; fill=&quot;#1a1a1a&quot; text-anchor=&quot;middle&quot;&gt;next&lt;/text&gt;
+
+  &lt;!-- 洋红色指针：第 3 个结点 -&gt; 游离结点 --&gt;
+  &lt;path d=&quot;M539,97 C556,97 568,110 569,130 C569,158 553,172 553,196 C553,224 560,238 580,240&quot;
+        fill=&quot;none&quot; stroke=&quot;#ff0080&quot; stroke-width=&quot;1.6&quot; marker-end=&quot;url(#arrow-01-04m)&quot;/&gt;
+
+  &lt;!-- 洋红色指针：游离结点 -&gt; 第 4 个结点 --&gt;
+  &lt;path d=&quot;M666,240 C684,240 694,225 694,205 C694,182 690,168 678,158 C674,150 672,140 672,122&quot;
+        fill=&quot;none&quot; stroke=&quot;#ff0080&quot; stroke-width=&quot;1.6&quot; marker-end=&quot;url(#arrow-01-04m)&quot;/&gt;
+&lt;/svg&gt;
+</code></pre></div><ul>
 <li>如果我们需要在数组当中删除一个元素，同样的原理，因为某个数据被删除之后它所在的那个位置就空了，因此需要将后续的数据往前搬一个位置：</li>
 </ul>
 <p>比如我们需要删除下标为三的数据：</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A806.svg" alt="" loading="lazy" /></p>
-<p>但是如果我们使用的是链表的话我们也只需要简单移动链表即可，比如要删除节点N，只需要将节点N的上一个节点的next指向节点N的下一个节点即可，同时将节点N的next设置为空。</p>
-<p><img src="/content/zh/images/link/01-%E9%93%BE%E8%A1%A807.svg" alt="" loading="lazy" /></p>
-<p>​	因为我们在操作的时候只需要调整一下next指针的指向即可，这个操作的时间复杂度是常数级别的，因此时间复杂度为O(1)。</p>
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1052 412" role="img" aria-label="删除下标为 3 的数据后，后面的数据整体前移一位，两行绿色数组对比，末尾下标 9 的位置空了出来" class="inline-svg">
+
+<!-- 顶部说明文字 -->
+<text x="465" y="26" font-size="18" fill="#1a1a1a" text-anchor="middle">删除下标为3的位置的数据，其后面的数据都需要往前移动一个位置</text>
+
+<!-- 浅蓝色左向箭头 -->
+<polygon points="585,54 585,69 462,69 462,85 433,60.5 462,36 462,54"
+         fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5"/>
+
+<!-- 第一行数组：下标 0-9，其中下标 3 已被删除 -->
+<rect x="108" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="189.3" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="270.6" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="351.9" y="109" width="81.3" height="40" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+<rect x="433.2" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="514.5" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="595.8" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="677.1" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="758.4" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="839.7" y="109" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+
+<text x="149" y="136" font-size="20" fill="#ffffff" text-anchor="middle">0</text>
+<text x="230" y="136" font-size="20" fill="#ffffff" text-anchor="middle">1</text>
+<text x="311" y="136" font-size="20" fill="#ffffff" text-anchor="middle">2</text>
+<text x="393" y="136" font-size="20" fill="#000000" text-anchor="middle">3</text>
+<text x="474" y="136" font-size="20" fill="#ffffff" text-anchor="middle">4</text>
+<text x="555" y="136" font-size="20" fill="#ffffff" text-anchor="middle">5</text>
+<text x="636" y="136" font-size="20" fill="#ffffff" text-anchor="middle">6</text>
+<text x="718" y="136" font-size="20" fill="#ffffff" text-anchor="middle">7</text>
+<text x="799" y="136" font-size="20" fill="#ffffff" text-anchor="middle">8</text>
+<text x="880" y="136" font-size="20" fill="#ffffff" text-anchor="middle">9</text>
+
+<!-- 向下的空心箭头 -->
+<path d="M452,188 H469 V277 H484 L460.5,309 L437,277 H452 Z"
+      fill="#ffffff" stroke="#444444" stroke-width="1.5"/>
+
+<!-- 右侧说明文字 -->
+<text x="871" y="342" font-size="18" fill="#1a1a1a" text-anchor="middle">移动之后下标为9的位置就空了</text>
+
+<!-- 第二行数组：移动之后 -->
+<rect x="108" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="189.3" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="270.6" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="351.9" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="433.2" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="514.5" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="595.8" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="677.1" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="758.4" y="353" width="81.3" height="40" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+<rect x="839.7" y="353" width="81.3" height="40" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+
+<text x="149" y="380" font-size="20" fill="#ffffff" text-anchor="middle">0</text>
+<text x="230" y="380" font-size="20" fill="#ffffff" text-anchor="middle">1</text>
+<text x="311" y="380" font-size="20" fill="#ffffff" text-anchor="middle">2</text>
+<text x="393" y="380" font-size="20" fill="#ffffff" text-anchor="middle">3</text>
+<text x="474" y="380" font-size="20" fill="#ffffff" text-anchor="middle">4</text>
+<text x="555" y="380" font-size="20" fill="#ffffff" text-anchor="middle">5</text>
+<text x="636" y="380" font-size="20" fill="#ffffff" text-anchor="middle">6</text>
+<text x="718" y="380" font-size="20" fill="#ffffff" text-anchor="middle">7</text>
+<text x="799" y="380" font-size="20" fill="#ffffff" text-anchor="middle">8</text>
+<text x="880" y="380" font-size="20" fill="#000000" text-anchor="middle">9</text>
+</svg></figure><p>但是如果我们使用的是链表的话我们也只需要简单移动链表即可，比如要删除节点N，只需要将节点N的上一个节点的next指向节点N的下一个节点即可，同时将节点N的next设置为空。</p>
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1026 318" role="img" aria-label="链表中第 3 个结点的 next 用红色箭头指向第 4 个结点，同时两条被红色叉号划掉的曲线从该结点绕到下方游离结点再绕回第 4 个结点" class="inline-svg">
+<defs>
+  <marker id="arrow-01-07" viewBox="0 0 10 10" refX="9.5" refY="5"
+          markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+  </marker>
+  <marker id="arrow-01-07r" viewBox="0 0 10 10" refX="9.5" refY="5"
+          markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+  </marker>
+</defs>
+
+<!-- 结点 1 -->
+<rect x="104" y="28" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="104" y="66" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="145" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="145" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 结点 2 -->
+<rect x="278" y="28" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="278" y="66" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="319" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="319" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 结点 3 -->
+<rect x="452" y="28" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="452" y="66" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="493" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="493" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 结点 4 -->
+<rect x="626" y="28" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="626" y="66" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="667" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="667" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 结点 5 -->
+<rect x="800" y="28" width="82" height="38" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="800" y="66" width="82" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="841" y="54" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="841" y="92" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 黑色 next 指针 -->
+<path d="M186,85.5 L278,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+<path d="M360,85.5 L452,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+<path d="M708,85.5 L800,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+<path d="M882,85.5 L941,85.5" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+
+<!-- 红色指针：第 3 个结点 -> 第 4 个结点 -->
+<path d="M535,85.5 L625,85.5" fill="none" stroke="#ff0000" stroke-width="1.6" marker-end="url(#arrow-01-07r)"/>
+
+<!-- 下方游离结点 -->
+<rect x="577" y="238" width="81" height="30" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<rect x="577" y="268" width="81" height="38" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+<text x="617" y="260" font-size="20" fill="#1a1a1a" text-anchor="middle">data</text>
+<text x="617" y="294" font-size="20" fill="#1a1a1a" text-anchor="middle">next</text>
+
+<!-- 被划掉的曲线：第 3 个结点 -> 游离结点 -->
+<path d="M535,88 C549,88 560,96 563,108 C566,120 555,133 505,141 C497,143 497,152 512,156
+         C530,160 560,155 578,162 C592,168 598,178 598,190 C598,205 585,215 565,221
+         C552,226 548,238 547,252 C546,268 552,281 566,285 C570,286 573,287 577,287"
+      fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+
+<!-- 被划掉的曲线：游离结点 -> 第 4 个结点 -->
+<path d="M658,288 C674,288 688,282 691,270 C693,262 690,255 688,249
+         C700,244 722,246 730,234 C736,224 737,212 733,196
+         C730,180 716,168 700,164 C688,161 682,150 679,136 C678,126 677,116 677,106"
+      fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-01-07)"/>
+
+<!-- 红色叉号 -->
+<path d="M538,144 L558,168" fill="none" stroke="#ff0000" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M558,144 L538,168" fill="none" stroke="#ff0000" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M680,240 L696,260" fill="none" stroke="#ff0000" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M696,240 L680,260" fill="none" stroke="#ff0000" stroke-width="4.5" stroke-linecap="round"/>
+</svg></figure><p>​	因为我们在操作的时候只需要调整一下next指针的指向即可，这个操作的时间复杂度是常数级别的，因此时间复杂度为O(1)。</p>
 <p>​	根据上面所谈到的内容，可以发现链表在这种需要频繁插入和删除的场景很适合。</p>
 <h3 id="java代码实现双向链表">Java代码实现双向链表</h3>
 <h4 id="需求分析">需求分析</h4>
@@ -591,6 +1253,7 @@ true
 
     <nav class="post-nav">
 <a class="prev" href="/posts/hashmap-part-1/"><span>较新</span>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</a><a class="next" href="/posts/cscore-container-02-linkedlist/"><span>较旧</span>LinkedList源码深度剖析</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

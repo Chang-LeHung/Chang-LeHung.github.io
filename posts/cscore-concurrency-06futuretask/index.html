@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>60行自己动手写FutureTask · Chang-LeHung</title>
 <meta name="description" content="前言 在并发编程当中我们最常见的需求就是启动一个线程执行一个函数去完成我们的需求，而在这种需求当中，我们常常需要函数有返回值。比如我们需要同一个非常大的数组当中数据的和，让每一个线程求某一个区间内部的和，最终将这些和加起来，那么每个线程都需要返回对应区间的和。而在Java当中给我们提供了这种机制，去">
+<meta property="og:title" content="60行自己动手写FutureTask">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -379,6 +380,7 @@ Thread[Inform-Thread,5,main] 准备唤醒其他线程
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-05falsesharing/"><span>较新</span>并发刺客（False Sharing）——并发程序的隐藏杀手</a><a class="next" href="/posts/cscore-concurrency-04volatile/"><span>较旧</span>万字长文：从计算机本源深入探寻volatile和Java内存模型</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

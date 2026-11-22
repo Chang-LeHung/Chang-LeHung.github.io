@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 275" role="img" aria-label="一个空栈的示意：counter = 40 的函数调用栈，标注栈底与栈的生长方向" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <text x="100" y="41" font-size="20" text-anchor="middle">counter = 40</text>
+
+  <rect x="76" y="67" width="85" height="195" fill="none" stroke="#000" stroke-width="1.2"/>
+
+  <!-- 向上的箭头：空心箭头 + 竖线 -->
+  <g fill="none" stroke="#000" stroke-width="1.2">
+    <path d="M40.5 214 V76"/>
+    <path d="M40.5 65 L35.5 75 H45.5 Z" fill="#fff"/>
+  </g>
+
+  <text x="29" y="243" font-size="15">栈底</text>
+</svg>

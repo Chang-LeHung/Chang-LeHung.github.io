@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenMP task construct 实现原理以及源码分析 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中主要给大家介绍在 OpenMP 当中 task 的实现原理，以及他调用的相关的库函数的具体实现。在本篇文章当中最重要的就是理解整个 OpenMP 的运行机制。 从编译器角度看 task construct 在本小节当中主要给大家分析一下编译器将 openmp 的 task con">
+<meta property="og:title" content="OpenMP task construct 实现原理以及源码分析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -527,6 +528,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-pvm-09binpyc/"><span>较新</span>深入理解 python 虚拟机：破解核心魔法——反序列化 pyc 文件</a><a class="next" href="/posts/cscore-concurrency-13seciton/"><span>较旧</span>OpenMP Sections Construct 实现原理以及源码分析</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

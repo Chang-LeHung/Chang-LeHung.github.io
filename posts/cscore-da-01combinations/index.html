@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>通过组合问题看透回溯法 · Chang-LeHung</title>
 <meta name="description" content="前言 已经好久没有更新了🤣，从今天开始要保证每周的更新频率了（立个flag，应该能够想到打脸会来的很快😂），今天给大家分享一道 LeetCode 算法题，题目不是很困难，但是从这到简单的题目我们可以分析出回溯算法的几个核心要点，以后遇到需要回溯的题目可以应对的思路，知道应该怎么思考，朝什么方向去寻找">
+<meta property="og:title" content="通过组合问题看透回溯法">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -91,8 +92,182 @@
 <span class="tok-p">}</span>
 </code></pre></div><p>但是遗憾的是<code>k</code>是一个变量，它不是一个定值，如果他是一个定值的话，那么我们就可以使用上面的循环操作去解决这个问题，而且是很高效的。那这个问题我们应该如何解决的？我们思考一下，对于每一个数我们都有两种选择：选择和不选择，也就是是否需要将这个数据加到集合当中去。</p>
 <p>现在我们对上述给定的例子进行求解**（n = 4, k = 2）**，每一个数据都有两种选择，选和不选（很多回溯的问题都是可以按照这种思路）具体过程入下图所示，其中蓝色的节点表示待选择的数据，红色的框表示当前被选中的数据的集合：</p>
-<p><img src="/content/zh/images/cscore/images/backtrace/02.svg" alt="" loading="lazy" /></p>
-<p>上图是上文当中给出的例子的解树，其中绿色的节点表示最终的答案，对于每个节点的数据都有两种选择办法，选和不选，因此上面的解决问题的树结构是一个完全二叉树，我们可以使用<strong>深度优先遍历</strong>去实现上面的解题过程。从上图来看我们可以进行一些剪枝，当我们选中的数据的个数已经达到<code>k</code>的时候我们不需要在进行递归，因为我们需要的数据长度是固定的，当达到指定数目的数据个数之后我们不需要再加入数据了，因此也没有继续往下遍历的必要了。具体看下图，其中紫色节点表示不需要进行递归的节点，因为在遍历他们之前我们都已经得到一个结果了：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2049 738" role="img" aria-label="回溯选择二叉树：每个节点用蓝格记录层号、彩色格记录已选集合，绿色为答案节点" class="inline-svg">
+  <defs>
+    <marker id="arrow-backtrace02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M1012 67 V95 H627 V122" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1012 67 V95 H1600 V122" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M627 166 V219 H256 V272" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M627 166 V219 H832 V272" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1600 166 V219 H1372 V272" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1600 166 V219 H1778 V272" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M256 316 V376 H164 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M256 316 V376 H337 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M832 316 V376 H681 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M832 316 V376 H928 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1372 316 V375 H1258 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1372 316 V375 H1465 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1778 316 V375 H1673 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1778 316 V375 H1897 V435" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M164 479 V525 H50 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M164 479 V525 H187 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M337 479 V525 H320 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M337 479 V525 H459 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M681 478 V525 H605 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M681 478 V525 H742 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M928 478 V525 H875 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M928 478 V525 H1012 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1258 478 V525 H1164 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1258 478 V525 H1301 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1465 476 V523 H1431 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1465 476 V523 H1568 V570" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1673 476 V533 H1624 V673" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1673 476 V533 H1761 V673" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1897 476 V527 H1801 V578" marker-end="url(#arrow-backtrace02)"/>
+    <path d="M1897 476 V527 H1938 V578" marker-end="url(#arrow-backtrace02)"/>
+  </g>
+
+  <g stroke-width="1.5">
+    <!-- 第 0 层 -->
+    <rect x="980" y="24" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1044" y="24" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <!-- 第 1 层 -->
+    <rect x="595" y="123" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="659" y="123" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1568" y="123" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1632" y="123" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <!-- 第 2 层 -->
+    <rect x="224" y="273" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="288" y="273" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="800" y="273" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="864" y="273" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1340" y="273" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1404" y="273" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1746" y="273" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1810" y="273" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <!-- 第 3 层 -->
+    <rect x="132" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="196" y="436" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="305" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="369" y="436" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="649" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="713" y="436" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="896" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="960" y="436" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1226" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1290" y="436" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="1433" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1497" y="436" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1641" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1705" y="436" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1865" y="436" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1929" y="436" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <!-- 第 4 层 -->
+    <rect x="18" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="82" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="155" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="219" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="288" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="352" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="427" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="491" y="571" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="573" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="637" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="710" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="774" y="571" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="843" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="907" y="571" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="980" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1044" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1132" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1196" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1269" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1333" y="571" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="1399" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1463" y="571" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="1536" y="571" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1600" y="571" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1769" y="579" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1833" y="579" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="1906" y="579" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1970" y="579" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+    <!-- 第 5 层 -->
+    <rect x="1592" y="674" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1656" y="674" width="64" height="42" fill="#cbe589" stroke="#82b366"/>
+    <rect x="1729" y="674" width="64" height="42" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="1793" y="674" width="64" height="42" fill="#f4c9c6" stroke="#b85450"/>
+  </g>
+
+  <g font-size="16" fill="#000" text-anchor="middle">
+    <text x="1012" y="51">1</text><text x="1076" y="51">[]</text>
+    <text x="627" y="150">2</text><text x="691" y="150">[1]</text>
+    <text x="1600" y="150">2</text><text x="1664" y="150">[]</text>
+    <text x="256" y="300">3</text><text x="320" y="300">[1, 2]</text>
+    <text x="832" y="300">3</text><text x="896" y="300">[1]</text>
+    <text x="1372" y="300">3</text><text x="1436" y="300">[2]</text>
+    <text x="1778" y="300">3</text><text x="1842" y="300">[]</text>
+    <text x="164" y="463">4</text><text x="228" y="463" font-size="13">[1, 2, 3]</text>
+    <text x="337" y="463">4</text><text x="401" y="463">[1, 2]</text>
+    <text x="681" y="463">4</text><text x="745" y="463">[1, 3]</text>
+    <text x="928" y="463">4</text><text x="992" y="463">[1]</text>
+    <text x="1258" y="463">4</text><text x="1322" y="463">[2, 3]</text>
+    <text x="1465" y="463">4</text><text x="1529" y="463">[2]</text>
+    <text x="1673" y="463">4</text><text x="1737" y="463">[3]</text>
+    <text x="1897" y="463">4</text><text x="1961" y="463">[]</text>
+    <text x="50" y="598">4</text><text x="114" y="598" font-size="11">[1, 2, 3, 4]</text>
+    <text x="187" y="598">4</text><text x="251" y="598" font-size="13">[1, 2, 3]</text>
+    <text x="320" y="598">4</text><text x="384" y="598" font-size="13">[1, 2, 4]</text>
+    <text x="459" y="598">4</text><text x="523" y="598">[1, 2]</text>
+    <text x="605" y="598">4</text><text x="669" y="598" font-size="13">[1, 3, 4]</text>
+    <text x="742" y="598">4</text><text x="806" y="598">[1, 3]</text>
+    <text x="875" y="598">4</text><text x="939" y="598">[1, 4]</text>
+    <text x="1012" y="598">4</text><text x="1076" y="598">[1]</text>
+    <text x="1164" y="598">4</text><text x="1228" y="598" font-size="13">[2, 3, 4]</text>
+    <text x="1301" y="598">4</text><text x="1365" y="598">[2, 3]</text>
+    <text x="1431" y="598">4</text><text x="1495" y="598">[2, 4]</text>
+    <text x="1568" y="598">4</text><text x="1632" y="598">[2]</text>
+    <text x="1801" y="606">4</text><text x="1865" y="606">[4]</text>
+    <text x="1938" y="606">4</text><text x="2002" y="606">[]</text>
+    <text x="1624" y="701">4</text><text x="1688" y="701">[3, 4]</text>
+    <text x="1761" y="701">4</text><text x="1825" y="701">[3]</text>
+  </g>
+
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="892" y="89">选择</text><text x="1262" y="86">不选择</text>
+    <text x="533" y="208">选择</text><text x="741" y="204">不选择</text>
+    <text x="207" y="360">选择</text><text x="308" y="360">不选择</text>
+    <text x="784" y="364">选择</text><text x="880" y="364">不选择</text>
+    <text x="1326" y="364">选择</text><text x="1422" y="364">不选择</text>
+    <text x="1742" y="364">选择</text><text x="1838" y="364">不选择</text>
+    <text x="112" y="514">选择</text><text x="208" y="514">不选择</text>
+    <text x="308" y="511">选择</text><text x="404" y="511">不选择</text>
+    <text x="625" y="514">选择</text><text x="728" y="514">不选择</text>
+    <text x="887" y="514">选择</text><text x="986" y="514">不选择</text>
+    <text x="1210" y="514">选择</text><text x="1306" y="514">不选择</text>
+    <text x="1429" y="508">选择</text><text x="1525" y="508">不选择</text>
+    <text x="1630" y="511">选择</text><text x="1726" y="511">不选择</text>
+    <text x="1860" y="514">选择</text><text x="1956" y="514">不选择</text>
+  </g>
+
+  <rect x="31" y="89" width="64" height="42" fill="#cbe589" stroke="#82b366" stroke-width="1.5"/>
+  <text x="117" y="114" font-size="18" fill="#000">答案节点</text>
+
+  <g stroke="#c8c8c8" fill="none" stroke-width="1.5">
+    <circle cx="1893" cy="722" r="9"/>
+    <circle cx="1906" cy="729" r="7"/>
+  </g>
+  <g fill="#c8c8c8">
+    <circle cx="1890" cy="720" r="1.4"/><circle cx="1896" cy="720" r="1.4"/>
+    <circle cx="1903" cy="728" r="1.2"/><circle cx="1909" cy="728" r="1.2"/>
+  </g>
+  <text x="2041" y="733" font-size="16" fill="#c8c8c8" text-anchor="end">一无是处的研究僧</text>
+</svg></figure><p>上图是上文当中给出的例子的解树，其中绿色的节点表示最终的答案，对于每个节点的数据都有两种选择办法，选和不选，因此上面的解决问题的树结构是一个完全二叉树，我们可以使用<strong>深度优先遍历</strong>去实现上面的解题过程。从上图来看我们可以进行一些剪枝，当我们选中的数据的个数已经达到<code>k</code>的时候我们不需要在进行递归，因为我们需要的数据长度是固定的，当达到指定数目的数据个数之后我们不需要再加入数据了，因此也没有继续往下遍历的必要了。具体看下图，其中紫色节点表示不需要进行递归的节点，因为在遍历他们之前我们都已经得到一个结果了：</p>
 <p><img src="/content/zh/images/cscore/images/backtrace/03.webp" alt="" loading="lazy" /></p>
 <p>因此当我们选中的元素达到<code>k</code>个的时候，我们就可以退出递归，因此这是我们的一个递归出口，我们在设计回溯函数的时候需要实现这个出口。</p>
 <p><img src="/content/zh/images/cscore/images/backtrace/04.webp" alt="" loading="lazy" /></p>
@@ -244,6 +419,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-da-01/"><span>较新</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a><a class="next" href="/posts/cscore-da-02-01/"><span>较旧</span>你真的懂01背包问题吗？01背包的这几问你能答出来吗？</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

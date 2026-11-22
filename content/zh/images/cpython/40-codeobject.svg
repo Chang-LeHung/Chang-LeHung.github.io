@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 627 280" role="img" aria-label="执行栈只有一个空位时，内存里放着一个整数对象" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="627" height="280">
+  <defs>
+    <marker id="arrow-40codeobject" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈：从栈底向栈顶增长 -->
+  <text x="30" y="38" font-size="17">栈顶</text>
+  <path d="M49 233 V 50" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-40codeobject)"/>
+  <text x="25" y="262" font-size="17">栈底</text>
+  <rect x="91" y="32" width="78" height="208" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 内存 -->
+  <rect x="359" y="91" width="238" height="147" rx="22" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="393" y="113" width="60" height="31" fill="#dbe7fb" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="423" y="135" font-size="17" text-anchor="middle">1</text>
+  <text x="527" y="148" font-size="17">内存</text>
+</svg>

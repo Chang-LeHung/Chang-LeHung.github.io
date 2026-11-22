@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenMP Parallel Construct 实现原理与源码分析 · Chang-LeHung</title>
 <meta name="description" content="前言 在本篇文章当中我们将主要分析 OpenMP 当中的 parallel construct 具体时如何实现的，以及这个 construct 调用了哪些运行时库函数，并且详细分析这期间的参数传递！ Parallel 分析——编译器角度 在本小节当中我们将从编译器的角度去分析该如何处理 parall">
+<meta property="og:title" content="OpenMP Parallel Construct 实现原理与源码分析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -343,6 +344,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-09sync/"><span>较新</span>OpenMP 线程同步 Construct 实现原理以及源码分析（上）</a><a class="next" href="/posts/cscore-concurrency-05environment/"><span>较旧</span>OpenMP 环境变量使用总结</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

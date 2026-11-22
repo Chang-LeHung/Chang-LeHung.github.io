@@ -58,7 +58,7 @@
   /* 48rem ~ 43 CJK characters per line.  Both widths can be changed in the
      [layout] table of site.toml; page follows the measure unless set. */
   --measure: 48rem;
-  --page:    calc(var(--measure) + 18rem);
+  --page:    calc(var(--measure) + 22.5rem);
 
   /* rhythm */
   --s1: 0.35rem;
@@ -454,10 +454,10 @@ main { container-type: inline-size; }
 
 .toc { display: none; }
 
-@media (min-width: 66rem) {
+@media (min-width: 70.5rem) {
   .post {
     /* The table of contents yields its width before the prose does. */
-    grid-template-columns: minmax(0, var(--measure)) minmax(0, 11.5rem);
+    grid-template-columns: minmax(0, var(--measure)) minmax(0, 16rem);
     column-gap: 2.5rem;
     justify-content: start;
   }
@@ -470,24 +470,42 @@ main { container-type: inline-size; }
     top: 1.5rem;
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
-    padding-left: 0.9rem;
-    border-left: 1px solid var(--rule);
-    font-size: 0.82rem;
-    line-height: 1.5;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding-left: 1rem;
+    border-left: 1px solid var(--rule-soft);
+    /* Clearly an index, not a second column: smaller than the prose it sits
+       beside, but still at a comfortable reading size. */
+    font-size: 0.875rem;
+    line-height: 1.45;
   }
   .toc-title {
-    margin: 0 0 0.55em;
-    font-size: 0.68rem;
+    margin: 0 0 0.75em;
+    padding-bottom: 0.55em;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--fg-faint);
   }
   .toc ol { list-style: none; margin: 0; padding: 0; }
-  .toc li { margin: 0.32em 0; }
-  .toc a { color: var(--fg-dim); text-decoration: none; }
-  .toc a:hover { color: var(--fg); text-decoration: underline; }
-  .toc-l3 { padding-left: 0.85rem; font-size: 0.95em; }
+  /* Entries are separated by space, not markers: the hairline left rule already
+     says "aside", so a second device would only add noise. */
+  .toc li { margin: 0.5em 0; }
+  .toc a {
+    color: var(--fg-dim);
+    text-decoration: none;
+  }
+  .toc a:hover,
+  .toc a:focus-visible {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+  /* The third level keeps the reading size and moves inward instead, so depth
+     is a change of position rather than a change of type. */
+  .toc-l3 { margin: 0.42em 0 0.42em 1.15em; }
 }
 
 .post-nav {
@@ -526,16 +544,26 @@ main { container-type: inline-size; }
 
 .prose p { margin: 0.9em 0; text-wrap: pretty; }
 .prose h2 {
-  font-size: 1.32rem;
+  font-size: 1.5rem;
   margin: 2.1em 0 0.55em;
 }
 .prose h3 {
-  font-size: 1.08rem;
+  font-size: 1.28rem;
   margin: 1.7em 0 0.45em;
 }
 .prose h4 {
-  font-size: 1rem;
+  font-size: 1.16rem;
   margin: 1.5em 0 0.4em;
+}
+/* Below h4 the scale has no room left, so h5/h6 are run-in headings: they keep
+   the reading size and separate themselves with weight and spacing instead.
+   Without this they would fall back to the browser's 0.83em/0.67em -- smaller
+   than the prose they introduce. */
+.prose h5,
+.prose h6 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 1.4em 0 0.3em;
 }
 .prose ul, .prose ol { margin: 0.85em 0; padding-left: 1.5em; }
 .prose li { margin: 0.26em 0; }
@@ -590,6 +618,32 @@ main { container-type: inline-size; }
   font-size: 0.88rem;
   color: var(--fg-dim);
 }
+
+/* 8b. comments ------------------------------------------------------------ */
+/* Opt-in: the section only exists when [comments] is configured.  It sits in
+   the reading column, after the prev/next links, so it shares their left edge
+   and width instead of opening a separate full-width band. */
+.comments {
+  margin-top: var(--s5);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+}
+.comments-title {
+  font-size: 1.28rem;
+  margin: 0 0 0.35em;
+}
+.comments-note {
+  margin: 0 0 var(--s4);
+  font-size: 0.88rem;
+  color: var(--fg-faint);
+}
+.comments-mount { min-height: 3rem; }
+.comments-status {
+  margin: 0.8em 0;
+  font-size: 0.9rem;
+  color: var(--fg-dim);
+}
+.comments-status a { color: var(--fg); }
 
 /* 9. code blocks ---------------------------------------------------------- */
 /* A pale blue-grey rounded slab and a coloured, restrained palette.  No
@@ -879,7 +933,7 @@ math {
 /* 14. small screens ------------------------------------------------------- */
 @media (max-width: 40rem) {
   body { font-size: 17px; }
-  .post-head h1 { font-size: 1.6rem; }
+  .post-head h1 { font-size: 1.75rem; }
   .entries li { grid-template-columns: 5.4em 1fr; }
   .entries time { font-size: 0.78rem; }
   .masthead-inner { gap: var(--s2); }
@@ -908,14 +962,14 @@ math {
 }
 
 /* keep the table of contents out until the frame fits the measure */
-@container (max-width: calc(48rem + 17rem - 0.0625rem)) {
+@container (max-width: calc(48rem + 21.5rem - 0.0625rem)) {
   .post { grid-template-columns: minmax(0, 1fr); }
   .toc { display: none; }
 }
 /* fallback when a custom base.html has no <main> container;
    media-query rem is the 16px initial size, so a smaller root
    font hides the contents early and a larger one too late. */
-@media (max-width: calc(48rem + 17rem - 0.0625rem)) {
+@media (max-width: calc(48rem + 21.5rem - 0.0625rem)) {
   .post { grid-template-columns: minmax(0, 1fr); }
   .toc { display: none; }
 }

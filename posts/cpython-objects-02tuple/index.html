@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>深入理解 Python 虚拟机：元组（tuple）的实现原理及源码剖析 · Chang-LeHung</title>
 <meta name="description" content="在本篇文章当中主要给大家介绍 cpython 虚拟机当中针对列表的实现，在 Python 中，tuple 是一种非常常用的数据类型，在本篇文章当中将深入去分析这一点是如何实现的。 元组的结构 在这一小节当中主要介绍在 python 当中元组的数据结构： 复制 typedef struct { PyO">
+<meta property="og:title" content="深入理解 Python 虚拟机：元组（tuple）的实现原理及源码剖析">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -274,8 +275,101 @@
 <li>将元组指向的所有对象的引用计数减一。</li>
 <li>判断元组是否满足保存到 free_list 当中的条件，如果满足就将他加入到 free_list 当中去，否则回收这块内存。加入到 free_list 当中整个元组当中 ob_item 指向变化如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cpython/11-tuple.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1560 660" role="img" aria-label="free_list 缓存池：左侧三个元组对象从数组下标 10 起串起来，新的元组对象要加入 free_list；右侧新对象先指向原表头，表头再挂到数组上" class="inline-svg">
+  <defs>
+    <marker id="arrow-11tuple" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左：数组下标 10/11/12 指向三个 PyTupleObject -->
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="152" y="64" width="222" height="61"/>
+    <rect x="152" y="174" width="222" height="62"/>
+    <rect x="152" y="282" width="222" height="62"/>
+  </g>
+  <g stroke="#444" stroke-width="1.5" fill="none" marker-end="url(#arrow-11tuple)">
+    <path d="M263 174 V125"/>
+    <path d="M263 282 V236"/>
+    <path d="M210 478 V411 H263 V344"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="263" y="103">PyTupleObject</text>
+    <text x="263" y="213">PyTupleObject</text>
+    <text x="263" y="321">PyTupleObject</text>
+  </g>
+
+  <!-- 数组：表头 + 下标 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="144" y="476" width="132" height="56"/>
+    <rect x="276" y="476" width="132" height="56"/>
+    <rect x="408" y="476" width="132" height="56"/>
+  </g>
+  <g stroke="#444" stroke-width="1.5" fill="#ffffff">
+    <rect x="144" y="532" width="132" height="56"/>
+    <rect x="276" y="532" width="132" height="56"/>
+    <rect x="408" y="532" width="132" height="56"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="210" y="514">PyObject*</text>
+    <text x="342" y="514">PyObject*</text>
+    <text x="474" y="514">PyObject*</text>
+    <text x="210" y="570">10</text>
+    <text x="342" y="570">11</text>
+    <text x="474" y="570">12</text>
+  </g>
+  <text x="20" y="569" font-size="25">数组下标</text>
+
+  <!-- 中间说明与待加入 free_list 的对象 -->
+  <text x="654" y="256" font-size="26" text-anchor="middle">最新需要加入到 free_list 当中的元组数据</text>
+  <rect x="449" y="283" width="222" height="67" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="560" y="325" font-size="27" text-anchor="middle">PyTupleObject</text>
+
+  <!-- 左右两图之间的箭头 -->
+  <path d="M712 398 H866 V384 L893 405 L866 426 V412 H712 Z" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 右：新对象插到表头，表头再写入数组 -->
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="1014" y="60" width="222" height="61"/>
+    <rect x="1014" y="170" width="222" height="62"/>
+    <rect x="1014" y="278" width="222" height="61"/>
+  </g>
+  <g stroke="#444" stroke-width="1.5" fill="none" marker-end="url(#arrow-11tuple)">
+    <path d="M1125 170 V121"/>
+    <path d="M1125 278 V232"/>
+    <path d="M1075 476 V410 H1422 V350"/>
+    <path d="M1312 316 H1236"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="1125" y="99">PyTupleObject</text>
+    <text x="1125" y="209">PyTupleObject</text>
+    <text x="1125" y="316">PyTupleObject</text>
+  </g>
+
+  <!-- 右侧数组 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="1006" y="476" width="132" height="56"/>
+    <rect x="1138" y="476" width="132" height="56"/>
+    <rect x="1270" y="476" width="132" height="56"/>
+  </g>
+  <g stroke="#444" stroke-width="1.5" fill="#ffffff">
+    <rect x="1006" y="532" width="132" height="56"/>
+    <rect x="1138" y="532" width="132" height="56"/>
+    <rect x="1270" y="532" width="132" height="56"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="1072" y="514">PyObject*</text>
+    <text x="1204" y="514">PyObject*</text>
+    <text x="1336" y="514">PyObject*</text>
+    <text x="1072" y="570">10</text>
+    <text x="1204" y="570">11</text>
+    <text x="1336" y="570">12</text>
+  </g>
+
+  <rect x="1312" y="283" width="222" height="67" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <text x="1423" y="325" font-size="27" text-anchor="middle">PyTupleObject</text>
+</svg></figure><ul>
 <li>如果不能够将释放的元组对象加入到 free_list 当中，否则将内存释放回收。</li>
 </ul>
 <h2 id="总结">总结</h2>
@@ -289,6 +383,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cpython-objects-01list/"><span>较新</span>深入理解 Python 虚拟机：列表（list）的实现原理及源码剖析</a><a class="next" href="/posts/cpython-objects-03float/"><span>较旧</span>深入理解 Python 虚拟机：浮点数（float）的实现原理及源码剖析</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

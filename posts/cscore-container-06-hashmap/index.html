@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！ · Chang-LeHung</title>
 <meta name="description" content="我们在上篇文章 哈希表的设计原理 当中已经大体说明了哈希表的实现原理，在这篇文章当中我们将自己动手实现我们自己的 HashMap ，完整的代码在文章末尾。 在本篇文章当中主要通过线性探测法，从最基本的数组再到 HashMap 当中节点的设计，一步一步的实现一个能够实现 Key 、 Value 映射的">
+<meta property="og:title" content="HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -124,8 +125,78 @@
 <span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">;</span>
 <span class="tok-n">System</span><span class="tok-p">.</span><span class="tok-na">out</span><span class="tok-p">.</span><span class="tok-na">println</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 输出结果为3</span>
 </code></pre></div><p>上述代码的位运算操作如下：</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap05.svg" alt="" loading="lazy" /></p>
-<p>进行位运算是，二进制数的对应位置进行相应的操作，<code>&amp;</code>运算的结果只有两个比特位的数据都是<code>1</code>时，运算结果才等于<code>1</code>，其余的情况都为0，因此<code>3 &amp; 7 = 3</code>。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1114 314" role="img" aria-label="7 和 3 的二进制数按位与运算，得到结果 0011" class="inline-svg">
+  <!-- 第一行：7 -->
+  <text x="19" y="71" font-size="26" fill="#000">7的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="40" width="109.5" height="41"/>
+    <rect x="304.5" y="40" width="109.5" height="41"/>
+    <rect x="414" y="40" width="109.5" height="41"/>
+    <rect x="523.5" y="40" width="110" height="41"/>
+    <rect x="633.5" y="40" width="109" height="41"/>
+    <rect x="742.5" y="40" width="109.5" height="41"/>
+    <rect x="852" y="40" width="109.5" height="41"/>
+  </g>
+  <rect x="961.5" y="40" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="71">0000</text>
+    <text x="359.25" y="71">0000</text>
+    <text x="468.75" y="71">0000</text>
+    <text x="578.25" y="71">0000</text>
+    <text x="687.75" y="71">0000</text>
+    <text x="797.25" y="71">0000</text>
+    <text x="906.75" y="71">0000</text>
+    <text x="1016" y="71">0111</text>
+  </g>
+
+  <!-- 与运算 -->
+  <text x="983" y="121" font-size="26" fill="#000">&amp;运算</text>
+
+  <!-- 第二行：3 -->
+  <text x="19" y="175" font-size="26" fill="#000">3的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="145" width="109.5" height="42"/>
+    <rect x="304.5" y="145" width="109.5" height="42"/>
+    <rect x="414" y="145" width="109.5" height="42"/>
+    <rect x="523.5" y="145" width="110" height="42"/>
+    <rect x="633.5" y="145" width="109" height="42"/>
+    <rect x="742.5" y="145" width="109.5" height="42"/>
+    <rect x="852" y="145" width="109.5" height="42"/>
+  </g>
+  <rect x="961.5" y="145" width="109.5" height="42" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="175">0000</text>
+    <text x="359.25" y="175">0000</text>
+    <text x="468.75" y="175">0000</text>
+    <text x="578.25" y="175">0000</text>
+    <text x="687.75" y="175">0000</text>
+    <text x="797.25" y="175">0000</text>
+    <text x="906.75" y="175">0000</text>
+    <text x="1016" y="175">0011</text>
+  </g>
+
+  <!-- 第三行：结果 -->
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="195" y="212" width="109.5" height="41"/>
+    <rect x="304.5" y="212" width="109.5" height="41"/>
+    <rect x="414" y="212" width="109.5" height="41"/>
+    <rect x="523.5" y="212" width="110" height="41"/>
+    <rect x="633.5" y="212" width="109" height="41"/>
+    <rect x="742.5" y="212" width="109.5" height="41"/>
+    <rect x="852" y="212" width="109.5" height="41"/>
+  </g>
+  <rect x="961.5" y="212" width="109.5" height="41" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="249.75" y="243">0000</text>
+    <text x="359.25" y="243">0000</text>
+    <text x="468.75" y="243">0000</text>
+    <text x="578.25" y="243">0000</text>
+    <text x="687.75" y="243">0000</text>
+    <text x="797.25" y="243">0000</text>
+    <text x="906.75" y="243">0000</text>
+    <text x="1016" y="243">0011</text>
+  </g>
+</svg></figure><p>进行位运算是，二进制数的对应位置进行相应的操作，<code>&amp;</code>运算的结果只有两个比特位的数据都是<code>1</code>时，运算结果才等于<code>1</code>，其余的情况都为0，因此<code>3 &amp; 7 = 3</code>。</p>
 <p>通过<code>put</code>函数放入<code>HashMap</code>当中的数据首先需要将<code>key</code>的哈希值与数组的长度进行取余运算得到对应的下标，再将数据放入到数组对应的下标当中。但是在实际的操作当中我们将底层数组的长度设置为<code>2</code>的整数次幂，并且使用位运算<code>&amp;</code>去进行取余数操作，而这样操作主要有一下三点原因：</p>
 <ul>
 <li>位运算<code>&amp;</code>的程序执行效率，比取余<code>%</code>操作更加高效，需要的时间越短。</li>
@@ -133,15 +204,418 @@
 <li>任何一个数<code>a</code>对<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>取余数得到的结果与<code>a</code>跟<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作结果是相等的，即：</li>
 </ul>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>a</mi><mi>&#x00025;</mi><msup><mn>2</mn><mi>n</mi></msup><mo>&#x0003D;</mo><mi>a</mi><mi>&#x00026;</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math></div><p>我们现在先来解释一下第三点，令<code>a = 127</code>，<code>n = 4</code>，那么：<code>127%16 = 15</code>，<code>127 &amp; 15 = 15</code>。</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap12.svg" alt="" loading="lazy" />首先我们需要明白求余数的意义是什么？<code>127</code>对<code>16</code>取余，就是用<code>127</code>一直减去<code>16</code>，直到某个结果小于<code>16</code>为止，得到的值为求余数结果。</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap07.svg" alt="" loading="lazy" /></p>
-<p>上图当中红框当中包括的位置就是小于<code>16</code>的部分</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap11.svg" alt="" loading="lazy" /></p>
-<p>上图当中红框框住的部分是<code>16</code>的倍数，因此在求余数的时候上图当中红框框住的部分就没有了，都为0，只会剩下小于<code>16</code>的部分，这跟<code>15</code>进行<code>&amp;</code>操作得到的结果是一致的。这也就解释了上面提到的第三条。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1198 375" role="img" aria-label="127 与 15 按位与运算的二进制过程，结果与原值相同" class="inline-svg">
+  <!-- 第一行：16 -->
+  <text x="42" y="75" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="41" width="109.5" height="41"/>
+    <rect x="359.5" y="41" width="109.5" height="41"/>
+    <rect x="469" y="41" width="109.5" height="41"/>
+    <rect x="578.5" y="41" width="110" height="41"/>
+    <rect x="688.5" y="41" width="109" height="41"/>
+    <rect x="797.5" y="41" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="41" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="41" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="72">0000</text>
+    <text x="414.25" y="72">0000</text>
+    <text x="523.75" y="72">0000</text>
+    <text x="633.5" y="72">0000</text>
+    <text x="743" y="72">0000</text>
+    <text x="852.25" y="72">0000</text>
+    <text x="962" y="72">0001</text>
+    <text x="1071.5" y="72">0000</text>
+  </g>
+
+  <!-- 第二行：127 -->
+  <text x="35" y="153" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="119" width="109.5" height="41"/>
+    <rect x="359.5" y="119" width="109.5" height="41"/>
+    <rect x="469" y="119" width="109.5" height="41"/>
+    <rect x="578.5" y="119" width="110" height="41"/>
+    <rect x="688.5" y="119" width="109" height="41"/>
+    <rect x="797.5" y="119" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="119" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="119" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="150">0000</text>
+    <text x="414.25" y="150">0000</text>
+    <text x="523.75" y="150">0000</text>
+    <text x="633.5" y="150">0000</text>
+    <text x="743" y="150">0000</text>
+    <text x="852.25" y="150">0000</text>
+    <text x="962" y="150">0111</text>
+    <text x="1071.5" y="150">1111</text>
+  </g>
+
+  <!-- 与运算 -->
+  <text x="1038" y="200" font-size="26" fill="#000">&amp;运算</text>
+
+  <!-- 第三行：15 -->
+  <text x="35" y="255" font-size="26" fill="#000">15的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="221" width="109.5" height="41"/>
+    <rect x="359.5" y="221" width="109.5" height="41"/>
+    <rect x="469" y="221" width="109.5" height="41"/>
+    <rect x="578.5" y="221" width="110" height="41"/>
+    <rect x="688.5" y="221" width="109" height="41"/>
+    <rect x="797.5" y="221" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="221" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="221" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="250">0000</text>
+    <text x="414.25" y="250">0000</text>
+    <text x="523.75" y="250">0000</text>
+    <text x="633.5" y="250">0000</text>
+    <text x="743" y="250">0000</text>
+    <text x="852.25" y="250">0000</text>
+    <text x="962" y="250">0000</text>
+    <text x="1071.5" y="250">1111</text>
+  </g>
+
+  <!-- 结果行 -->
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="250" y="287" width="109.5" height="41"/>
+    <rect x="359.5" y="287" width="109.5" height="41"/>
+    <rect x="469" y="287" width="109.5" height="41"/>
+    <rect x="578.5" y="287" width="110" height="41"/>
+    <rect x="688.5" y="287" width="109" height="41"/>
+    <rect x="797.5" y="287" width="109.5" height="41"/>
+  </g>
+  <rect x="907" y="287" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1017" y="287" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="304.75" y="318">0000</text>
+    <text x="414.25" y="318">0000</text>
+    <text x="523.75" y="318">0000</text>
+    <text x="633.5" y="318">0000</text>
+    <text x="743" y="318">0000</text>
+    <text x="852.25" y="318">0000</text>
+    <text x="962" y="318">0000</text>
+    <text x="1071.5" y="318">1111</text>
+  </g>
+</svg>
+```首先我们需要明白求余数的意义是什么？`127`对`16`取余，就是用`127`一直减去`16`，直到某个结果小于`16`为止，得到的值为求余数结果。
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 204" role="img" aria-label="16 和 127 的二进制数，红框标出最后一列">
+  <!-- 第一行：16 -->
+  <text x="19" y="69" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="227" y="36" width="109.5" height="41"/>
+    <rect x="336.5" y="36" width="109.5" height="41"/>
+    <rect x="446" y="36" width="109.5" height="41"/>
+    <rect x="555.5" y="36" width="110" height="41"/>
+    <rect x="665.5" y="36" width="109" height="41"/>
+    <rect x="774.5" y="36" width="109.5" height="41"/>
+  </g>
+  <rect x="884" y="36" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="993.5" y="36" width="108.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="281.75" y="66">0000</text>
+    <text x="391.25" y="66">0000</text>
+    <text x="500.75" y="66">0000</text>
+    <text x="610.5" y="66">0000</text>
+    <text x="720" y="66">0000</text>
+    <text x="829.25" y="66">0000</text>
+    <text x="938.75" y="66">0001</text>
+    <text x="1047.75" y="66">0000</text>
+  </g>
+
+  <!-- 第二行：127 -->
+  <text x="12" y="147" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="227" y="113" width="109.5" height="41"/>
+    <rect x="336.5" y="113" width="109.5" height="41"/>
+    <rect x="446" y="113" width="109.5" height="41"/>
+    <rect x="555.5" y="113" width="110" height="41"/>
+    <rect x="665.5" y="113" width="109" height="41"/>
+    <rect x="774.5" y="113" width="109.5" height="41"/>
+  </g>
+  <rect x="884" y="113" width="109.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="993.5" y="113" width="108.5" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="281.75" y="144">0000</text>
+    <text x="391.25" y="144">0000</text>
+    <text x="500.75" y="144">0000</text>
+    <text x="610.5" y="144">0000</text>
+    <text x="720" y="144">0000</text>
+    <text x="829.25" y="144">0000</text>
+    <text x="938.75" y="144">0111</text>
+    <text x="1047.75" y="144">1111</text>
+  </g>
+
+  <!-- 红框标出最后一列 -->
+  <rect x="993.5" y="35" width="108.5" height="120" fill="none" stroke="#fb3838" stroke-width="3"/>
+</svg></figure><p>上图当中红框当中包括的位置就是小于<code>16</code>的部分</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1174 356" role="img" aria-label="127、16、32、64 的二进制数，红框标出倒数第二列" class="inline-svg">
+  <!-- 第一行：127 -->
+  <text x="36" y="69" font-size="26" fill="#000">127的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="35" width="109.5" height="41"/>
+    <rect x="360.5" y="35" width="109.5" height="41"/>
+    <rect x="470" y="35" width="109.5" height="41"/>
+    <rect x="579.5" y="35" width="110" height="41"/>
+    <rect x="689.5" y="35" width="109" height="41"/>
+    <rect x="798.5" y="35" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="35" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="35" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="66">0000</text>
+    <text x="415.25" y="66">0000</text>
+    <text x="524.75" y="66">0000</text>
+    <text x="634.5" y="66">0000</text>
+    <text x="744" y="66">0000</text>
+    <text x="853.25" y="66">0000</text>
+  </g>
+  <text x="923" y="66" font-size="26" fill="#000">011</text>
+  <text x="990" y="66" font-size="26" fill="#000">1</text>
+  <text x="1072.5" y="66" font-size="26" fill="#000" text-anchor="middle">1111</text>
+
+  <!-- 第二行：16 -->
+  <text x="43" y="139" font-size="26" fill="#000">16的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="106" width="109.5" height="41"/>
+    <rect x="360.5" y="106" width="109.5" height="41"/>
+    <rect x="470" y="106" width="109.5" height="41"/>
+    <rect x="579.5" y="106" width="110" height="41"/>
+    <rect x="689.5" y="106" width="109" height="41"/>
+    <rect x="798.5" y="106" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="106" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="106" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="136">0000</text>
+    <text x="415.25" y="136">0000</text>
+    <text x="524.75" y="136">0000</text>
+    <text x="634.5" y="136">0000</text>
+    <text x="744" y="136">0000</text>
+    <text x="853.25" y="136">0000</text>
+    <text x="1072.5" y="136">0000</text>
+  </g>
+  <text x="923" y="136" font-size="26" fill="#000">000</text>
+  <text x="990" y="136" font-size="26" fill="#000">1</text>
+
+  <!-- 第三行：32 -->
+  <text x="42" y="216" font-size="26" fill="#000">32的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="183" width="109.5" height="41"/>
+    <rect x="360.5" y="183" width="109.5" height="41"/>
+    <rect x="470" y="183" width="109.5" height="41"/>
+    <rect x="579.5" y="183" width="110" height="41"/>
+    <rect x="689.5" y="183" width="109" height="41"/>
+    <rect x="798.5" y="183" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="183" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="183" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="213">0000</text>
+    <text x="415.25" y="213">0000</text>
+    <text x="524.75" y="213">0000</text>
+    <text x="634.5" y="213">0000</text>
+    <text x="744" y="213">0000</text>
+    <text x="853.25" y="213">0000</text>
+    <text x="1072.5" y="213">0000</text>
+  </g>
+  <text x="923" y="213" font-size="26" fill="#000">001</text>
+  <text x="990" y="213" font-size="26" fill="#000">0</text>
+
+  <!-- 第四行：64 -->
+  <text x="41" y="293" font-size="26" fill="#000">64的二进制数</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="251" y="259" width="109.5" height="41"/>
+    <rect x="360.5" y="259" width="109.5" height="41"/>
+    <rect x="470" y="259" width="109.5" height="41"/>
+    <rect x="579.5" y="259" width="110" height="41"/>
+    <rect x="689.5" y="259" width="109" height="41"/>
+    <rect x="798.5" y="259" width="109.5" height="41"/>
+  </g>
+  <rect x="908" y="259" width="110" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="1018" y="259" width="109" height="41" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="26" fill="#000" text-anchor="middle">
+    <text x="305.75" y="290">0000</text>
+    <text x="415.25" y="290">0000</text>
+    <text x="524.75" y="290">0000</text>
+    <text x="634.5" y="290">0000</text>
+    <text x="744" y="290">0000</text>
+    <text x="853.25" y="290">0000</text>
+    <text x="1072.5" y="290">0000</text>
+  </g>
+  <text x="923" y="290" font-size="26" fill="#000">010</text>
+  <text x="990" y="290" font-size="26" fill="#000">0</text>
+
+  <!-- 红框 -->
+  <rect x="906" y="104" width="113" height="198" fill="none" stroke="#fb3838" stroke-width="2.5"/>
+</svg></figure><p>上图当中红框框住的部分是<code>16</code>的倍数，因此在求余数的时候上图当中红框框住的部分就没有了，都为0，只会剩下小于<code>16</code>的部分，这跟<code>15</code>进行<code>&amp;</code>操作得到的结果是一致的。这也就解释了上面提到的第三条。</p>
 <p>在第二条中我们提到了使用数组长度为<code>2</code>的整数次幂可以在一定程度上减少哈希冲突，因为进行下标运算的时候是与<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>进行<code>&amp;</code>操作，而<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup><mo>&#x02212;</mo><mn>1</mn></mrow></math>的二进制表示最后一部分位置上的数都是<code>1</code>。</p>
 <p>比如下图中的数据都是<code>2</code>的整数次幂减一之后的结果：</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap13.svg" alt="" loading="lazy" /></p>
-<h2 id="roundup函数">RoundUp函数</h2>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 448" role="img" aria-label="1 到 127 之间的 2 的幂减一的二进制表示，蓝色格为有效位" class="inline-svg">
+  <!-- 1 -->
+  <text x="61" y="54" font-size="22" fill="#000" text-anchor="middle">1</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="28" width="91" height="33.5"/>
+    <rect x="191.5" y="28" width="91.5" height="33.5"/>
+    <rect x="283" y="28" width="91.5" height="33.5"/>
+    <rect x="374.5" y="28" width="91" height="33.5"/>
+    <rect x="465.5" y="28" width="91" height="33.5"/>
+    <rect x="556.5" y="28" width="91.5" height="33.5"/>
+    <rect x="648" y="28" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="28" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="54">0000</text>
+    <text x="237.25" y="54">0000</text>
+    <text x="328.75" y="54">0000</text>
+    <text x="420" y="54">0000</text>
+    <text x="511" y="54">0000</text>
+    <text x="602.25" y="54">0000</text>
+    <text x="693.5" y="54">0000</text>
+    <text x="785" y="54">0001</text>
+  </g>
+
+  <!-- 3 -->
+  <text x="61" y="109" font-size="22" fill="#000" text-anchor="middle">3</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="83" width="91" height="33.5"/>
+    <rect x="191.5" y="83" width="91.5" height="33.5"/>
+    <rect x="283" y="83" width="91.5" height="33.5"/>
+    <rect x="374.5" y="83" width="91" height="33.5"/>
+    <rect x="465.5" y="83" width="91" height="33.5"/>
+    <rect x="556.5" y="83" width="91.5" height="33.5"/>
+    <rect x="648" y="83" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="83" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="109">0000</text>
+    <text x="237.25" y="109">0000</text>
+    <text x="328.75" y="109">0000</text>
+    <text x="420" y="109">0000</text>
+    <text x="511" y="109">0000</text>
+    <text x="602.25" y="109">0000</text>
+    <text x="693.5" y="109">0000</text>
+    <text x="785" y="109">0011</text>
+  </g>
+
+  <!-- 7 -->
+  <text x="61" y="163" font-size="22" fill="#000" text-anchor="middle">7</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="136.5" width="91" height="33.5"/>
+    <rect x="191.5" y="136.5" width="91.5" height="33.5"/>
+    <rect x="283" y="136.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="136.5" width="91" height="33.5"/>
+    <rect x="465.5" y="136.5" width="91" height="33.5"/>
+    <rect x="556.5" y="136.5" width="91.5" height="33.5"/>
+    <rect x="648" y="136.5" width="91" height="33.5"/>
+  </g>
+  <rect x="739" y="136.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="163">0000</text>
+    <text x="237.25" y="163">0000</text>
+    <text x="328.75" y="163">0000</text>
+    <text x="420" y="163">0000</text>
+    <text x="511" y="163">0000</text>
+    <text x="602.25" y="163">0000</text>
+    <text x="693.5" y="163">0000</text>
+    <text x="785" y="163">0111</text>
+  </g>
+
+  <!-- 15 -->
+  <text x="61" y="218" font-size="22" fill="#000" text-anchor="middle">15</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="192" width="91" height="33.5"/>
+    <rect x="191.5" y="192" width="91.5" height="33.5"/>
+    <rect x="283" y="192" width="91.5" height="33.5"/>
+    <rect x="374.5" y="192" width="91" height="33.5"/>
+    <rect x="465.5" y="192" width="91" height="33.5"/>
+    <rect x="556.5" y="192" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="192" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="192" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="218">0000</text>
+    <text x="237.25" y="218">0000</text>
+    <text x="328.75" y="218">0000</text>
+    <text x="420" y="218">0000</text>
+    <text x="511" y="218">0000</text>
+    <text x="602.25" y="218">0000</text>
+    <text x="693.5" y="218">0001</text>
+    <text x="785" y="218">1111</text>
+  </g>
+
+  <!-- 31 -->
+  <text x="61" y="276" font-size="22" fill="#000" text-anchor="middle">31</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="250.5" width="91" height="33.5"/>
+    <rect x="191.5" y="250.5" width="91.5" height="33.5"/>
+    <rect x="283" y="250.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="250.5" width="91" height="33.5"/>
+    <rect x="465.5" y="250.5" width="91" height="33.5"/>
+    <rect x="556.5" y="250.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="250.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="250.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="276">0000</text>
+    <text x="237.25" y="276">0000</text>
+    <text x="328.75" y="276">0000</text>
+    <text x="420" y="276">0000</text>
+    <text x="511" y="276">0000</text>
+    <text x="602.25" y="276">0000</text>
+    <text x="693.5" y="276">0011</text>
+    <text x="785" y="276">1111</text>
+  </g>
+
+  <!-- 63 -->
+  <text x="61" y="331" font-size="22" fill="#000" text-anchor="middle">63</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="305.5" width="91" height="33.5"/>
+    <rect x="191.5" y="305.5" width="91.5" height="33.5"/>
+    <rect x="283" y="305.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="305.5" width="91" height="33.5"/>
+    <rect x="465.5" y="305.5" width="91" height="33.5"/>
+    <rect x="556.5" y="305.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="305.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="305.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="331">0000</text>
+    <text x="237.25" y="331">0000</text>
+    <text x="328.75" y="331">0000</text>
+    <text x="420" y="331">0000</text>
+    <text x="511" y="331">0000</text>
+    <text x="602.25" y="331">0000</text>
+    <text x="693.5" y="331">0111</text>
+    <text x="785" y="331">1111</text>
+  </g>
+
+  <!-- 127 -->
+  <text x="61" y="385" font-size="22" fill="#000" text-anchor="middle">127</text>
+  <g fill="#fff" stroke="#444" stroke-width="1.5">
+    <rect x="100.5" y="359.5" width="91" height="33.5"/>
+    <rect x="191.5" y="359.5" width="91.5" height="33.5"/>
+    <rect x="283" y="359.5" width="91.5" height="33.5"/>
+    <rect x="374.5" y="359.5" width="91" height="33.5"/>
+    <rect x="465.5" y="359.5" width="91" height="33.5"/>
+    <rect x="556.5" y="359.5" width="91.5" height="33.5"/>
+  </g>
+  <rect x="648" y="359.5" width="91" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="739" y="359.5" width="92" height="33.5" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="146" y="385">0000</text>
+    <text x="237.25" y="385">0000</text>
+    <text x="328.75" y="385">0000</text>
+    <text x="420" y="385">0000</text>
+    <text x="511" y="385">0000</text>
+    <text x="602.25" y="385">0000</text>
+    <text x="693.5" y="385">1111</text>
+    <text x="785" y="385">1111</text>
+  </g>
+</svg></figure><h2 id="roundup函数">RoundUp函数</h2>
 <p>因为我们需要数组的长度是<code>2</code>的整数次幂，而我们之后在初始化函数当中会允许用户输入一个数组长度的大小，但是用户输入的数字可能不是<code>2</code>的整数次幂，因此我们需要将用户输入的数据变成<code>2</code>的整数次幂，我们可以将用户输入的数据变成大于等于这个数的最小的<code>2</code>的整数次幂。</p>
 <p>比如说如果用户输入的是<code>12</code>我们需要将其变成<code>16</code>，如果输入的是<code>28</code>我们需要将其变成<code>32</code>。我们可以通过下面这个函数做到这一点：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
@@ -163,13 +637,497 @@
 <span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-n">MAXIMUM_CAPACITY</span><span class="tok-w"> </span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
 <span class="tok-w">  </span><span class="tok-p">}</span>
 </code></pre></div><p>上面的代码还是很难理解的，让我们一点一点的来分析。首先我们使用一个<code>2</code>的整数次幂的数进行上面<code>移位操作</code>的操作！</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap17.svg" alt="" loading="lazy" /></p>
-<p><img src="/content/zh/images/hashmap/01-hashmap21.svg" alt="" loading="lazy" /></p>
-<p>从上图当中我们会发现，我们咋一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap23.svg" alt="" loading="lazy" /></p>
-<p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，如果最终的容量没有大于我们设置的最大容量<code>MAXIMUM_CAPACITY</code>，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
-<p><img src="/content/zh/images/hashmap/01-hashmap24.svg" alt="" loading="lazy" /></p>
-<p>在<code>roundUp</code>函数当中，给初始容量减了个<code>1</code>，这样做的原因是让这个函数的返回值大于等于传入的参数<code>capacity</code>：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 857 537" role="img" aria-label="把 8 位二进制数依次右移一位、两位、四位后与原数做异或，得到 1111 1111、0000 0000" class="inline-svg">
+  <defs>
+    <marker id="arrow-hashmap17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 行 A：1000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="23" width="77.5" height="29"/>
+    <rect x="336.5" y="23" width="77.5" height="29"/>
+    <rect x="414" y="23" width="78" height="29"/>
+    <rect x="492" y="23" width="77" height="29"/>
+    <rect x="569" y="23" width="77.5" height="29"/>
+    <rect x="646.5" y="23" width="77.5" height="29"/>
+    <rect x="724" y="23" width="78" height="29"/>
+  </g>
+  <rect x="182" y="23" width="77" height="29" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="44">1000</text>
+    <text x="297.75" y="44">0000</text>
+    <text x="375.25" y="44">0000</text>
+    <text x="453" y="44">0000</text>
+    <text x="530.5" y="44">0000</text>
+    <text x="607.75" y="44">0000</text>
+    <text x="685.25" y="44">0000</text>
+    <text x="763" y="44">0000</text>
+  </g>
+
+  <text x="186" y="93" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 B：0100 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="111" width="77.5" height="29"/>
+    <rect x="336.5" y="111" width="77.5" height="29"/>
+    <rect x="414" y="111" width="78" height="29"/>
+    <rect x="492" y="111" width="77" height="29"/>
+    <rect x="569" y="111" width="77.5" height="29"/>
+    <rect x="646.5" y="111" width="77.5" height="29"/>
+    <rect x="724" y="111" width="78" height="29"/>
+  </g>
+  <rect x="182" y="111" width="77" height="29" fill="#fad7ac" stroke="#b46504" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="132">0100</text>
+    <text x="297.75" y="132">0000</text>
+    <text x="375.25" y="132">0000</text>
+    <text x="453" y="132">0000</text>
+    <text x="530.5" y="132">0000</text>
+    <text x="607.75" y="132">0000</text>
+    <text x="685.25" y="132">0000</text>
+    <text x="763" y="132">0000</text>
+  </g>
+
+  <!-- 行 C：1100 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="164" width="77.5" height="29"/>
+    <rect x="336.5" y="164" width="77.5" height="29"/>
+    <rect x="414" y="164" width="78" height="29"/>
+    <rect x="492" y="164" width="77" height="29"/>
+    <rect x="569" y="164" width="77.5" height="29"/>
+    <rect x="646.5" y="164" width="77.5" height="29"/>
+    <rect x="724" y="164" width="78" height="29"/>
+  </g>
+  <rect x="182" y="164" width="77" height="29" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="185">1100</text>
+    <text x="297.75" y="185">0000</text>
+    <text x="375.25" y="185">0000</text>
+    <text x="453" y="185">0000</text>
+    <text x="530.5" y="185">0000</text>
+    <text x="607.75" y="185">0000</text>
+    <text x="685.25" y="185">0000</text>
+    <text x="763" y="185">0000</text>
+  </g>
+
+  <text x="186" y="234" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 D：0011 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="259" y="253" width="77.5" height="29"/>
+    <rect x="336.5" y="253" width="77.5" height="29"/>
+    <rect x="414" y="253" width="78" height="29"/>
+    <rect x="492" y="253" width="77" height="29"/>
+    <rect x="569" y="253" width="77.5" height="29"/>
+    <rect x="646.5" y="253" width="77.5" height="29"/>
+    <rect x="724" y="253" width="78" height="29"/>
+  </g>
+  <rect x="182" y="253" width="77" height="29" fill="#fad9d5" stroke="#b85450" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="274">0011</text>
+    <text x="297.75" y="274">0000</text>
+    <text x="375.25" y="274">0000</text>
+    <text x="453" y="274">0000</text>
+    <text x="530.5" y="274">0000</text>
+    <text x="607.75" y="274">0000</text>
+    <text x="685.25" y="274">0000</text>
+    <text x="763" y="274">0000</text>
+  </g>
+
+  <!-- 行 E：1111 0000 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="313" width="77.5" height="29"/>
+    <rect x="414" y="313" width="78" height="29"/>
+    <rect x="492" y="313" width="77" height="29"/>
+    <rect x="569" y="313" width="77.5" height="29"/>
+    <rect x="646.5" y="313" width="77.5" height="29"/>
+    <rect x="724" y="313" width="78" height="29"/>
+  </g>
+  <rect x="182" y="313" width="77" height="29" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="259" y="313" width="77.5" height="29" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="334">1111</text>
+    <text x="297.75" y="334">0000</text>
+    <text x="375.25" y="334">0000</text>
+    <text x="453" y="334">0000</text>
+    <text x="530.5" y="334">0000</text>
+    <text x="607.75" y="334">0000</text>
+    <text x="685.25" y="334">0000</text>
+    <text x="763" y="334">0000</text>
+  </g>
+
+  <text x="193" y="380" font-size="20" fill="#000">进行异或"|"操作</text>
+
+  <!-- 行 F：0000 1111 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="401" width="77.5" height="28"/>
+    <rect x="414" y="401" width="78" height="28"/>
+    <rect x="492" y="401" width="77" height="28"/>
+    <rect x="569" y="401" width="77.5" height="28"/>
+    <rect x="646.5" y="401" width="77.5" height="28"/>
+    <rect x="724" y="401" width="78" height="28"/>
+  </g>
+  <rect x="182" y="401" width="77" height="28" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <rect x="259" y="401" width="77.5" height="28" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="422">0000</text>
+    <text x="297.75" y="422">1111</text>
+    <text x="375.25" y="422">0000</text>
+    <text x="453" y="422">0000</text>
+    <text x="530.5" y="422">0000</text>
+    <text x="607.75" y="422">0000</text>
+    <text x="685.25" y="422">0000</text>
+    <text x="763" y="422">0000</text>
+  </g>
+
+  <!-- 行 G：1111 1111 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="336.5" y="462" width="77.5" height="29"/>
+    <rect x="414" y="462" width="78" height="29"/>
+    <rect x="492" y="462" width="77" height="29"/>
+    <rect x="569" y="462" width="77.5" height="29"/>
+    <rect x="646.5" y="462" width="77.5" height="29"/>
+    <rect x="724" y="462" width="78" height="29"/>
+  </g>
+  <rect x="182" y="462" width="77" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="259" y="462" width="77.5" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="220.5" y="483">1111</text>
+    <text x="297.75" y="483">1111</text>
+    <text x="375.25" y="483">0000</text>
+    <text x="453" y="483">0000</text>
+    <text x="530.5" y="483">0000</text>
+    <text x="607.75" y="483">0000</text>
+    <text x="685.25" y="483">0000</text>
+    <text x="763" y="483">0000</text>
+  </g>
+
+  <!-- 等号 -->
+  <g stroke="#000" stroke-width="1.5">
+    <path d="M156 176 H181 M156 180.5 H181"/>
+    <path d="M156 324 H181 M156 328.5 H181"/>
+    <path d="M156 475 H181 M156 479.5 H181"/>
+  </g>
+
+  <!-- 移位框 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="34" y="111" width="121" height="29"/>
+    <rect x="30" y="252" width="122" height="29"/>
+    <rect x="30" y="400" width="122" height="29"/>
+  </g>
+  <g font-size="19" fill="#000" text-anchor="middle">
+    <text x="94.5" y="134">右移一位</text>
+    <text x="91" y="276">右移两位</text>
+    <text x="91" y="424">右移四位</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap17)">
+    <path d="M182 37 H94 V107"/>
+    <path d="M182 186 H91 V249"/>
+    <path d="M182 334 H91 V397"/>
+    <path d="M155 125.5 H177"/>
+    <path d="M152 267 H177"/>
+    <path d="M152 414.5 H177"/>
+  </g>
+</svg></figure><figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 418" role="img" aria-label="右移八位、右移十六位后与原数做异或，最终得到全 1 的 16 位结果" class="inline-svg">
+  <defs>
+    <marker id="arrow-hashmap21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一行：1111 1111 0000 0000 0000 0000 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="323.5" y="28" width="77.5" height="29"/>
+    <rect x="401" y="28" width="77.5" height="29"/>
+    <rect x="478.5" y="28" width="77.5" height="29"/>
+    <rect x="556" y="28" width="77.5" height="29"/>
+    <rect x="633.5" y="28" width="77.5" height="29"/>
+    <rect x="711" y="28" width="78" height="29"/>
+  </g>
+  <rect x="168" y="28" width="78" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="246" y="28" width="77.5" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="207" y="48">1111</text>
+    <text x="284.75" y="48">1111</text>
+    <text x="362.25" y="48">0000</text>
+    <text x="439.75" y="48">0000</text>
+    <text x="517.25" y="48">0000</text>
+    <text x="594.75" y="48">0000</text>
+    <text x="672.25" y="48">0000</text>
+    <text x="750" y="48">0000</text>
+  </g>
+
+  <text x="181" y="100" font-size="19" fill="#000">进行异或"|"操作</text>
+
+  <!-- 第二行：0000 0000 1111 1111 0000 0000 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="168" y="128" width="78" height="29"/>
+    <rect x="246" y="128" width="77.5" height="29"/>
+    <rect x="478.5" y="128" width="77.5" height="29"/>
+    <rect x="556" y="128" width="77.5" height="29"/>
+    <rect x="633.5" y="128" width="77.5" height="29"/>
+    <rect x="711" y="128" width="78" height="29"/>
+  </g>
+  <rect x="323.5" y="128" width="77.5" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <rect x="401" y="128" width="77.5" height="29" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="207" y="148">0000</text>
+    <text x="284.75" y="148">0000</text>
+    <text x="362.25" y="148">1111</text>
+    <text x="439.75" y="148">1111</text>
+    <text x="517.25" y="148">0000</text>
+    <text x="594.75" y="148">0000</text>
+    <text x="672.25" y="148">0000</text>
+    <text x="750" y="148">0000</text>
+  </g>
+
+  <!-- 第三行：1111 1111 1111 1111 0000 0000 0000 0000 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="478.5" y="189" width="77.5" height="29"/>
+    <rect x="556" y="189" width="77.5" height="29"/>
+    <rect x="633.5" y="189" width="77.5" height="29"/>
+    <rect x="711" y="189" width="78" height="29"/>
+  </g>
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="168" y="189" width="78" height="29"/>
+    <rect x="246" y="189" width="77.5" height="29"/>
+    <rect x="323.5" y="189" width="77.5" height="29"/>
+    <rect x="401" y="189" width="77.5" height="29"/>
+  </g>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="207" y="209">1111</text>
+    <text x="284.75" y="209">1111</text>
+    <text x="362.25" y="209">1111</text>
+    <text x="439.75" y="209">1111</text>
+    <text x="517.25" y="209">0000</text>
+    <text x="594.75" y="209">0000</text>
+    <text x="672.25" y="209">0000</text>
+    <text x="750" y="209">0000</text>
+  </g>
+
+  <text x="181" y="262" font-size="19" fill="#000">进行异或"|"操作</text>
+
+  <!-- 第四行：0000 0000 0000 0000 1111 1111 1111 1111 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="168" y="284" width="78" height="29"/>
+    <rect x="246" y="284" width="77.5" height="29"/>
+    <rect x="323.5" y="284" width="77.5" height="29"/>
+    <rect x="401" y="284" width="77.5" height="29"/>
+  </g>
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="478.5" y="284" width="77.5" height="29"/>
+    <rect x="556" y="284" width="77.5" height="29"/>
+    <rect x="633.5" y="284" width="77.5" height="29"/>
+    <rect x="711" y="284" width="78" height="29"/>
+  </g>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="207" y="304">0000</text>
+    <text x="284.75" y="304">0000</text>
+    <text x="362.25" y="304">0000</text>
+    <text x="439.75" y="304">0000</text>
+    <text x="517.25" y="304">1111</text>
+    <text x="594.75" y="304">1111</text>
+    <text x="672.25" y="304">1111</text>
+    <text x="750" y="304">1111</text>
+  </g>
+
+  <!-- 第五行：全 1 -->
+  <g fill="#ffff88" stroke="#000" stroke-width="1.5">
+    <rect x="168" y="345" width="78" height="29"/>
+    <rect x="246" y="345" width="77.5" height="29"/>
+    <rect x="323.5" y="345" width="77.5" height="29"/>
+    <rect x="401" y="345" width="77.5" height="29"/>
+    <rect x="478.5" y="345" width="77.5" height="29"/>
+    <rect x="556" y="345" width="77.5" height="29"/>
+    <rect x="633.5" y="345" width="77.5" height="29"/>
+    <rect x="711" y="345" width="78" height="29"/>
+  </g>
+  <g font-size="18" fill="#000" text-anchor="middle">
+    <text x="207" y="365">1111</text>
+    <text x="284.75" y="365">1111</text>
+    <text x="362.25" y="365">1111</text>
+    <text x="439.75" y="365">1111</text>
+    <text x="517.25" y="365">1111</text>
+    <text x="594.75" y="365">1111</text>
+    <text x="672.25" y="365">1111</text>
+    <text x="750" y="365">1111</text>
+  </g>
+
+  <!-- 等号 -->
+  <g stroke="#000" stroke-width="1.5">
+    <path d="M144 200.5 H152.5 M144 204.5 H152.5"/>
+    <path d="M144 356.5 H152.5 M144 360.5 H152.5"/>
+  </g>
+
+  <!-- 移位框 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="14" y="128" width="122" height="28"/>
+    <rect x="14" y="284" width="122" height="29"/>
+  </g>
+  <g font-size="19" fill="#000" text-anchor="middle">
+    <text x="75" y="151">右移八位</text>
+    <text x="75" y="308">右移十六位</text>
+  </g>
+
+  <!-- 箭头 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-hashmap21)">
+    <path d="M168 35 H75 V124"/>
+    <path d="M136 142 H164"/>
+  </g>
+</svg></figure><p>从上图当中我们会发现，我们咋一个数的二进制数的32位放一个<code>1</code>，经过移位之后最终<code>32</code>位的比特数字全部变成了<code>1</code>。根据上面数字变化的规律我们可以发现，任何一个比特经过上面移位的变化，这个比特后面的<code>31</code>个比特位都会变成<code>1</code>，像下图那样：</p>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1178 237" role="img" aria-label="移位前后的 32 位比特示意：实线格为已有数据，右侧虚线格表示超出 int 范围的位置" class="inline-svg">
+  <defs>
+    <marker id="arrow-hashmap23" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="125" y="24" width="91" height="35"/>
+    <rect x="216" y="24" width="91" height="35"/>
+    <rect x="307" y="24" width="91.5" height="35"/>
+    <rect x="398.5" y="24" width="91.5" height="35"/>
+    <rect x="490" y="24" width="91" height="35"/>
+    <rect x="581" y="24" width="91" height="35"/>
+    <rect x="672" y="24" width="91.5" height="35"/>
+    <rect x="763.5" y="24" width="91.5" height="35"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="170.5" y="51">0000</text>
+    <text x="261.5" y="51">0000</text>
+    <text x="352.75" y="51">0000</text>
+    <text x="444.25" y="51">1000</text>
+    <text x="535.5" y="51">0000</text>
+    <text x="626.5" y="51">0000</text>
+    <text x="717.75" y="51">0000</text>
+    <text x="809.25" y="51">0000</text>
+  </g>
+
+  <text x="100" y="96" font-size="20" fill="#000">经过函数当中的移位变化之后</text>
+
+  <!-- 第二行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="125" y="114" width="91" height="35"/>
+    <rect x="216" y="114" width="91" height="35"/>
+    <rect x="307" y="114" width="91.5" height="35"/>
+    <rect x="398.5" y="114" width="91.5" height="35"/>
+    <rect x="490" y="114" width="91" height="35"/>
+    <rect x="581" y="114" width="91" height="35"/>
+    <rect x="672" y="114" width="91.5" height="35"/>
+    <rect x="763.5" y="114" width="91.5" height="35"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="170.5" y="141">0000</text>
+    <text x="261.5" y="141">0000</text>
+    <text x="352.75" y="141">0000</text>
+    <text x="444.25" y="141">1111</text>
+    <text x="535.5" y="141">1111</text>
+    <text x="626.5" y="141">1111</text>
+    <text x="717.75" y="141">1111</text>
+    <text x="809.25" y="141">1111</text>
+  </g>
+
+  <!-- 虚线格 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" stroke-dasharray="4 4">
+    <rect x="855" y="114" width="273" height="35"/>
+    <path d="M946 114 V149 M1037 114 V149"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="900.5" y="141">1111</text>
+    <text x="991.5" y="141">1111</text>
+    <text x="1082.5" y="141">1111</text>
+  </g>
+
+  <!-- 箭头 -->
+  <path d="M125 41.5 H48 V131.5 H121" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-hashmap23)"/>
+
+  <!-- 说明 -->
+  <text x="25" y="199" font-size="22" letter-spacing="0.45" fill="#000">因为一个int类型只有32位，虚线位置没有数据，画虚线只是为了表示清楚，经过移位操作之后，会有32位比特数为1</text>
+</svg></figure><p>因此上述的移位操作的结果只取决于最高一位的比特值为<code>1</code>，移位操作后它后面的所有比特位的值全为<code>1</code>，而在上面函数的最后，如果最终的容量没有大于我们设置的最大容量<code>MAXIMUM_CAPACITY</code>，我们返回的结果就是上面移位之后的结果 <code>+1</code>。又因为移位之后最高位的<code>1</code>到最低位的<code>1</code>之间的比特值全为<code>1</code>，当我们<code>+1</code>之后他会不断的进位，最终只有一个比特位置是<code>1</code>，因此它是<code>2</code>的整数倍。</p>
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 836 225" role="img" aria-label="两个 32 位比特数相加，结果中一格变成 0001，表示进位" class="inline-svg">
+  <!-- 第一行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="23" width="91" height="34"/>
+    <rect x="153" y="23" width="91.5" height="34"/>
+    <rect x="244.5" y="23" width="91" height="34"/>
+  </g>
+  <g fill="#60a917" stroke="#2d7600" stroke-width="1.5">
+    <rect x="335.5" y="23" width="91.5" height="34"/>
+    <rect x="427" y="23" width="91" height="34"/>
+    <rect x="518" y="23" width="91.5" height="34"/>
+    <rect x="609.5" y="23" width="91" height="34"/>
+    <rect x="700.5" y="23" width="91.5" height="34"/>
+  </g>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="49">0000</text>
+    <text x="198.75" y="49">0000</text>
+    <text x="290" y="49">0000</text>
+  </g>
+  <g font-size="22" fill="#fff" text-anchor="middle">
+    <text x="381.25" y="49">1111</text>
+    <text x="472.5" y="49">1111</text>
+    <text x="563.75" y="49">1111</text>
+    <text x="655" y="49">1111</text>
+    <text x="746.25" y="49">1111</text>
+  </g>
+
+  <text x="45" y="78" font-size="20" fill="#000" text-anchor="middle">+</text>
+
+  <!-- 第二行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="93" width="91" height="34"/>
+    <rect x="153" y="93" width="91.5" height="34"/>
+    <rect x="244.5" y="93" width="91" height="34"/>
+    <rect x="335.5" y="93" width="91.5" height="34"/>
+    <rect x="427" y="93" width="91" height="34"/>
+    <rect x="518" y="93" width="91.5" height="34"/>
+    <rect x="609.5" y="93" width="91" height="34"/>
+  </g>
+  <rect x="700.5" y="93" width="91.5" height="34" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="119">0000</text>
+    <text x="198.75" y="119">0000</text>
+    <text x="290" y="119">0000</text>
+    <text x="381.25" y="119">0000</text>
+    <text x="472.5" y="119">0000</text>
+    <text x="563.75" y="119">0000</text>
+    <text x="655" y="119">0000</text>
+  </g>
+  <text x="746.25" y="119" font-size="22" fill="#fff" text-anchor="middle">0001</text>
+
+  <text x="45" y="161" font-size="20" fill="#000" text-anchor="middle">=</text>
+
+  <!-- 第三行 -->
+  <g fill="#fff" stroke="#000" stroke-width="1.5">
+    <rect x="62" y="148" width="91" height="34"/>
+    <rect x="153" y="148" width="91.5" height="34"/>
+    <rect x="335.5" y="148" width="91.5" height="34"/>
+    <rect x="427" y="148" width="91" height="34"/>
+    <rect x="518" y="148" width="91.5" height="34"/>
+    <rect x="609.5" y="148" width="91" height="34"/>
+    <rect x="700.5" y="148" width="91.5" height="34"/>
+  </g>
+  <rect x="244.5" y="148" width="91" height="34" fill="#60a917" stroke="#2d7600" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="107.5" y="174">0000</text>
+    <text x="198.75" y="174">0000</text>
+    <text x="381.25" y="174">0000</text>
+    <text x="472.5" y="174">0000</text>
+    <text x="563.75" y="174">0000</text>
+    <text x="655" y="174">0000</text>
+    <text x="746.25" y="174">0000</text>
+  </g>
+  <text x="290" y="174" font-size="22" fill="#fff" text-anchor="middle">0001</text>
+</svg></figure><p>在<code>roundUp</code>函数当中，给初始容量减了个<code>1</code>，这样做的原因是让这个函数的返回值大于等于传入的参数<code>capacity</code>：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-c1">// 就是当传入的数据已经是 2 的整数次幂的时候也返回传入的值</span>
 <span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">3</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">4</span>
 <span class="tok-n">roundUp</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">8</span>
@@ -572,6 +1530,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-container-05-hashmap/"><span>较新</span>HashMap（Python字典）设计原理与实现（上篇）——哈希表的原理</a><a class="next" href="/posts/cscore-da-01/"><span>较旧</span>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

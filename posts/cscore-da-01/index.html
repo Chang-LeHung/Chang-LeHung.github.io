@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！ · Chang-LeHung</title>
 <meta name="description" content="动态规划作为一种非常经典的一类算法，不仅在解决实际问题当中有很多实际的应用，同时通常也是面试的一个重点。本篇文章一步步剖析动态规划的基本原理，通过 斐波拉契数列问题 （优化时间复杂度从 O ( 2 n ) 到 O(n) 再到 O(log(n)) ）和经典的 01背包问题 一步一步带你从最基本的原理弄">
+<meta property="og:title" content="庖丁解牛斐波拉契数列和背包问题——详细解析两个问题优化过程，带你从最基本的问题看懂动态规划！！！">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -65,8 +66,64 @@
     <div class="prose">
       <p>动态规划作为一种非常经典的一类算法，不仅在解决实际问题当中有很多实际的应用，同时通常也是面试的一个重点。本篇文章一步步剖析动态规划的基本原理，通过<code>斐波拉契数列问题</code>（优化时间复杂度从<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>到<code>O(n)</code>再到<code>O(log(n))</code>）和经典的<code>01背包问题</code>一步一步带你从最基本的原理弄懂动态规划。我们首先分析斐波拉契数列问题，然后在分析问题的时候慢慢的深入动态规划。</p>
 <p>本篇文章的篇章结构：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp15.svg" alt="" loading="lazy" /></p>
-<h2 id="斐波拉契数列">斐波拉契数列</h2>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1106 672" role="img" aria-label="文章结构思维导图：文章结构分出斐波拉契数列、背包问题、总结三条分支，每条分支下列出若干小节" class="inline-svg">
+  <rect x="0" y="0" width="1106" height="672" fill="#ffffff"/>
+
+  <!-- 主干连线 -->
+  <path d="M 206 307 C 206 262 258 151 339 151" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+  <path d="M 273 412 C 296 412 305 415 339 415" fill="none" stroke="#feb40b" stroke-width="3.5"/>
+  <path d="M 207 457 C 207 522 282 612 339 612" fill="none" stroke="#6dc354" stroke-width="3.5"/>
+
+  <!-- 二级节点 -->
+  <rect x="340.8" y="119.8" width="201.4" height="67.4" rx="8" fill="#ffffff"
+        stroke="#fd6d5a" stroke-width="3.5"/>
+  <text x="438.5" y="160" font-size="24" fill="#333333" text-anchor="middle">斐波拉契数列</text>
+
+  <rect x="340.8" y="385.8" width="152.4" height="64.4" rx="8" fill="#ffffff"
+        stroke="#feb40b" stroke-width="3.5"/>
+  <text x="414.5" y="426" font-size="24" fill="#333333" text-anchor="middle">背包问题</text>
+
+  <rect x="340.8" y="578.8" width="100.4" height="66.4" rx="8" fill="#ffffff"
+        stroke="#6dc354" stroke-width="3.5"/>
+  <text x="390.5" y="619" font-size="24" fill="#333333" text-anchor="middle">总结</text>
+
+  <!-- 斐波拉契五条子分支 -->
+  <path d="M 543 151 C 568 139.4 564 61.3 606 54.5 H 786" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+  <path d="M 543 151 C 568 145.2 564 105.9 606 102.5 H 786" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+  <path d="M 543 151 H 1013" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+  <path d="M 543 151 C 568 156.9 564 196.6 606 200 H 956" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+  <path d="M 543 151 C 568 162.7 564 241.7 606 248.5 H 956" fill="none" stroke="#fd6d5a" stroke-width="3.5"/>
+
+  <text x="624" y="43" font-size="19" fill="#333333">斐波拉契数列介绍</text>
+  <text x="624" y="92" font-size="19" fill="#333333">斐波拉契递归求解</text>
+  <text x="624" y="140" font-size="19" fill="#333333">斐波拉契数组求解——优化时间和空间复杂度</text>
+  <text x="624" y="189" font-size="19" fill="#333333">斐波拉契数组优化——优化空间复杂度</text>
+  <text x="624" y="237" font-size="19" fill="#333333">斐波拉契矩阵优化——优化时间复杂度</text>
+
+  <!-- 背包问题四条子分支 -->
+  <path d="M 495 417 C 520 406.7 516 337.5 558 331.5 H 718" fill="none" stroke="#feb40b" stroke-width="3.5"/>
+  <path d="M 495 417 C 520 412.7 516 383.5 558 381 H 914" fill="none" stroke="#feb40b" stroke-width="3.5"/>
+  <path d="M 495 417 C 520 418.5 516 428.6 558 429.5 H 813" fill="none" stroke="#feb40b" stroke-width="3.5"/>
+  <path d="M 495 417 C 520 427.3 516 496.5 558 502.5 H 983" fill="none" stroke="#feb40b" stroke-width="3.5"/>
+
+  <text x="575" y="321" font-size="19" fill="#333333">选择或者不选择</text>
+  <text x="575" y="370" font-size="19" fill="#333333">你真的理解了背包问题for循环的顺序吗</text>
+  <text x="575" y="418" font-size="19" fill="#333333">背包空间优化——滚动数组</text>
+  <text x="575" y="467" font-size="19" fill="#333333">背包空间再优化——单行数组单行数组和它的遍</text>
+  <text x="575" y="491" font-size="19" fill="#333333">历顺序问题</text>
+
+  <!-- 总结两条子分支 -->
+  <path d="M 443 612 C 468 608.9 464 588.3 506 586.5 H 651" fill="none" stroke="#6dc354" stroke-width="3.5"/>
+  <path d="M 443 612 C 468 614.7 464 632.9 506 634.5 H 783" fill="none" stroke="#6dc354" stroke-width="3.5"/>
+
+  <text x="527" y="575" font-size="19" fill="#333333">动态规划套路</text>
+  <text x="527" y="623" font-size="19" fill="#333333">为什么动态规划叫做动态规划</text>
+
+  <!-- 根节点 -->
+  <rect x="35" y="309" width="235" height="147" rx="8" fill="#ffffff"
+        stroke="#8793a5" stroke-width="3.5"/>
+  <text x="152.5" y="369.5" font-size="38" fill="#333333" text-anchor="middle">文章结构</text>
+</svg></figure><h2 id="斐波拉契数列">斐波拉契数列</h2>
 <p>斐波拉契数列的定义如下：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>F</mi><mn>0</mn></msub><mo>&#x0003D;</mo><mn>0</mn></mrow></math></div><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>F</mi><mn>1</mn></msub><mo>&#x0003D;</mo><mn>1</mn></mrow></math></div><div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><msub><mi>F</mi><mi>n</mi></msub><mo>&#x0003D;</mo><msub><mi>F</mi><mrow><mi>n</mi><mo>&#x02212;</mo><mn>1</mn></mrow></msub><mo>&#x0002B;</mo><msub><mi>F</mi><mrow><mi>n</mi><mo>&#x02212;</mo><mn>2</mn></mrow></msub></mrow></math></div><p>就是斐波那契数列由0和1开始，之后的斐波那契数就是由之前的两数相加而得出。比如说在斐波拉契数列当中第一个数为0，第二个数为1，因此第三个数为前面两个数之和，因此第三个数为1，同理第四个数是第二个数和第三个数之和，因此第四个数为2，下面就是斐波拉契数的变化：</p>
 <p><code>0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, ....</code></p>
@@ -89,19 +146,328 @@
 <span class="tok-w">  </span><span class="tok-p">}</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>当我们求第<code>6</code>个斐波拉契数的时候，函数<code>fibonacci</code>的调用过程如下所示：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp04.svg" alt="" loading="lazy" /></p>
-<p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 767 422" role="img" aria-label="求解 fib(6) 的递归树：每个节点是 fib 的取值，节点颜色表示该值，箭头从父问题指向它分解出的两个子问题" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp04" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <g stroke="#000" stroke-width="1.8" marker-end="url(#arrow-dp04)">
+    <line x1="420.3" y1="49.3" x2="312.6" y2="106.2"/>
+    <line x1="456.1" y1="48.4" x2="582.9" y2="107.2"/>
+    <line x1="276.2" y1="125.2" x2="200.6" y2="164.3"/>
+    <line x1="311.6" y1="125.5" x2="383.5" y2="164.1"/>
+    <line x1="587.4" y1="129.7" x2="555.3" y2="159.7"/>
+    <line x1="616.1" y1="130.1" x2="645.2" y2="159.2"/>
+    <line x1="168.5" y1="188.8" x2="134.1" y2="226.5"/>
+    <line x1="195.0" y1="189.2" x2="226.4" y2="226.0"/>
+    <line x1="395.0" y1="192.7" x2="379.4" y2="234.3"/>
+    <line x1="409.0" y1="192.7" x2="424.6" y2="234.3"/>
+    <line x1="533.0" y1="192.7" x2="517.4" y2="234.3"/>
+    <line x1="547.0" y1="192.7" x2="562.6" y2="234.3"/>
+    <line x1="651.8" y1="192.2" x2="632.6" y2="234.8"/>
+    <line x1="668.2" y1="192.2" x2="687.4" y2="234.8"/>
+    <line x1="113.1" y1="260.8" x2="97.2" y2="304.3"/>
+    <line x1="126.9" y1="260.8" x2="142.8" y2="304.3"/>
+    <line x1="232.0" y1="260.3" x2="212.4" y2="304.8"/>
+    <line x1="248.0" y1="260.3" x2="267.6" y2="304.8"/>
+    <line x1="362.5" y1="271.6" x2="344.0" y2="305.5"/>
+    <line x1="379.9" y1="272.4" x2="393.7" y2="304.7"/>
+    <line x1="503.2" y1="272.8" x2="493.2" y2="300.3"/>
+    <line x1="517.3" y1="272.6" x2="528.3" y2="300.5"/>
+    <line x1="80.2" y1="341.5" x2="62.2" y2="373.7"/>
+    <line x1="98.1" y1="342.3" x2="111.5" y2="372.8"/>
+  </g>
+
+  <g stroke-width="1.6">
+    <circle cx="438" cy="40" r="19" fill="#ffcc99" stroke="#36393d"/>
+    <circle cx="294" cy="116" r="19" fill="#ffff88" stroke="#36393d"/>
+    <circle cx="602" cy="116" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="182" cy="174" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="402" cy="174" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="540" cy="174" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="120" cy="242" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="660" cy="174" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="240" cy="242" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="372" cy="254" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="510" cy="254" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="90" cy="324" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="432" cy="254" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="570" cy="254" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="624" cy="254" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="150" cy="324" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="204" cy="324" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="334" cy="324" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="486" cy="320" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="52" cy="392" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="696" cy="254" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="276" cy="324" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="402" cy="324" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="536" cy="320" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="120" cy="392" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#000">
+    <text x="438" y="47.5">6</text>
+    <text x="294" y="123.5">5</text>
+    <text x="602" y="123.5">4</text>
+    <text x="182" y="181.5">4</text>
+    <text x="402" y="181.5">3</text>
+    <text x="540" y="181.5">3</text>
+    <text x="120" y="249.5">3</text>
+    <text x="660" y="181.5">2</text>
+    <text x="240" y="249.5">2</text>
+    <text x="372" y="261.5">2</text>
+    <text x="510" y="261.5">2</text>
+    <text x="90" y="331.5">2</text>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#fff">
+    <text x="432" y="261.5">1</text>
+    <text x="570" y="261.5">1</text>
+    <text x="624" y="261.5">1</text>
+    <text x="150" y="331.5">1</text>
+    <text x="204" y="331.5">1</text>
+    <text x="334" y="331.5">1</text>
+    <text x="486" y="327.5">1</text>
+    <text x="52" y="399.5">1</text>
+    <text x="696" y="261.5">0</text>
+    <text x="276" y="331.5">0</text>
+    <text x="402" y="331.5">0</text>
+    <text x="536" y="327.5">0</text>
+    <text x="120" y="399.5">0</text>
+  </g>
+</svg></figure><p>我们在调用<code>fibonacci(6)</code>的时候他会调用：<code>[fibonacci(5)和fibonacci(4)]</code>，然后<code>fibonacci(5)</code>会调用<code>[fibonacci(4)和fibonacci(3)]</code>，<code>fibonacci(4)</code>会调用<code>[fibonacci(3)和fibonacci(2)]</code>......</p>
 <p>我们容易发现我们在函数调用的过程当中存在重复，比如下图两个相同的部分表示对<code>fibonacci(4)</code>重新计算，因为他们的调用树都是一样的：</p>
 <p>这种使用递归的方式计算斐波拉契数列的时间和空间复杂度都是<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>O</mi><mo stretchy="false">&#x00028;</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">&#x00029;</mo></mrow></math>。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp05.svg" alt="" loading="lazy" /></p>
-<h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 858 491" role="img" aria-label="fib(6) 的递归树，两棵以 4 为根的子树被浅色方框圈出，表示这两个子问题完全相同、可以复用结果" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp05" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <g fill="#f9f7ed" stroke="#36393d" stroke-width="1.5">
+    <rect x="42" y="152" width="286" height="295" rx="40"/>
+    <rect x="484" y="98" width="279" height="293" rx="40"/>
+  </g>
+
+  <g stroke="#000" stroke-width="1.8" marker-end="url(#arrow-dp05)">
+    <line x1="444.3" y1="59.3" x2="336.6" y2="116.2"/>
+    <line x1="480.2" y1="58.3" x2="608.9" y2="117.3"/>
+    <line x1="300.3" y1="135.3" x2="226.6" y2="174.2"/>
+    <line x1="335.7" y1="135.3" x2="409.4" y2="174.2"/>
+    <line x1="613.4" y1="139.7" x2="581.3" y2="169.7"/>
+    <line x1="641.9" y1="140.4" x2="669.4" y2="168.9"/>
+    <line x1="194.5" y1="198.8" x2="160.1" y2="236.5"/>
+    <line x1="220.7" y1="199.4" x2="250.7" y2="235.8"/>
+    <line x1="420.6" y1="202.6" x2="403.8" y2="244.5"/>
+    <line x1="434.6" y1="202.9" x2="449.1" y2="244.2"/>
+    <line x1="558.6" y1="202.6" x2="541.8" y2="244.5"/>
+    <line x1="573.0" y1="202.7" x2="588.6" y2="244.3"/>
+    <line x1="675.8" y1="202.2" x2="656.6" y2="244.8"/>
+    <line x1="692.2" y1="202.2" x2="711.4" y2="244.8"/>
+    <line x1="138.7" y1="270.6" x2="121.6" y2="314.4"/>
+    <line x1="152.9" y1="270.8" x2="168.8" y2="314.3"/>
+    <line x1="256.0" y1="270.3" x2="236.4" y2="314.8"/>
+    <line x1="272.0" y1="270.3" x2="291.6" y2="314.8"/>
+    <line x1="386.9" y1="281.8" x2="369.6" y2="315.3"/>
+    <line x1="404.3" y1="282.2" x2="419.3" y2="314.9"/>
+    <line x1="527.2" y1="282.8" x2="517.2" y2="310.3"/>
+    <line x1="541.8" y1="282.4" x2="553.8" y2="310.7"/>
+    <line x1="104.6" y1="351.7" x2="87.8" y2="383.4"/>
+    <line x1="122.5" y1="352.1" x2="137.1" y2="383.0"/>
+  </g>
+
+  <g stroke-width="1.6">
+    <circle cx="462" cy="50" r="19" fill="#ffcc99" stroke="#36393d"/>
+    <circle cx="318" cy="126" r="19" fill="#ffff88" stroke="#36393d"/>
+    <circle cx="628" cy="126" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="208" cy="184" r="19" fill="#cdeb8b" stroke="#36393d"/>
+    <circle cx="428" cy="184" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="566" cy="184" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="146" cy="252" r="19" fill="#ffcccc" stroke="#36393d"/>
+    <circle cx="684" cy="184" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="264" cy="252" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="396" cy="264" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="534" cy="264" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="114" cy="334" r="19" fill="#e1d5e7" stroke="#9673a6"/>
+    <circle cx="456" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="596" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="648" cy="264" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="176" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="228" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="360" cy="334" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="510" cy="330" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="78" cy="402" r="19" fill="#60a917" stroke="#2d7600"/>
+    <circle cx="720" cy="264" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="300" cy="334" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="428" cy="334" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="562" cy="330" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+    <circle cx="146" cy="402" r="19" fill="#1ba1e2" stroke="#006eaf"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#000">
+    <text x="462" y="57.5">6</text>
+    <text x="318" y="133.5">5</text>
+    <text x="628" y="133.5">4</text>
+    <text x="208" y="191.5">4</text>
+    <text x="428" y="191.5">3</text>
+    <text x="566" y="191.5">3</text>
+    <text x="146" y="259.5">3</text>
+    <text x="684" y="191.5">2</text>
+    <text x="264" y="259.5">2</text>
+    <text x="396" y="271.5">2</text>
+    <text x="534" y="271.5">2</text>
+    <text x="114" y="341.5">2</text>
+  </g>
+
+  <g font-size="20" text-anchor="middle" fill="#fff">
+    <text x="456" y="271.5">1</text>
+    <text x="596" y="271.5">1</text>
+    <text x="648" y="271.5">1</text>
+    <text x="176" y="341.5">1</text>
+    <text x="228" y="341.5">1</text>
+    <text x="360" y="341.5">1</text>
+    <text x="510" y="337.5">1</text>
+    <text x="78" y="409.5">1</text>
+    <text x="720" y="271.5">0</text>
+    <text x="300" y="341.5">0</text>
+    <text x="428" y="341.5">0</text>
+    <text x="562" y="337.5">0</text>
+    <text x="146" y="409.5">0</text>
+  </g>
+</svg></figure><h2 id="斐波拉契数列数组法优化时间复杂度">斐波拉契数列——数组法优化时间复杂度</h2>
 <p>既然是重复计算那么我们是否可用避免<code>重复计算</code>呢？在计算机一种常见的做法就是<code>空间换时间</code>，我们可以将之前计算的数据存下来，比如我们用数组<code>fib[]</code>存储我们计算得到的结果，<code>fib[i] = fibonacci(i) </code>，那么根据斐波拉契数列的公式我们可以知道：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>当我们通过数组存储中间计算的数据的时候，我们应该使用什么样的算法进行计算呢？</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp06.svg" alt="" loading="lazy" /></p>
-<p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 807 296" role="img" aria-label="fib 数组示意图：数组共 8 格，橙色两格是蓝色格所依赖的数据，箭头从左下指向蓝色格，标注它表示当前需要计算的数据 n，下方是两种颜色的图例" font-size="25" fill="#000" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp06" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <text x="43" y="55">fib 数组</text>
+
+  <g stroke="#000" stroke-width="1.2">
+    <rect x="141.5" y="32" width="65" height="28" fill="#fff"/>
+    <rect x="206.5" y="32" width="65.5" height="28" fill="#fff"/>
+    <rect x="272" y="32" width="65.5" height="28" fill="#ffcc99"/>
+    <rect x="337.5" y="32" width="65" height="28" fill="#ffcc99"/>
+    <rect x="402.5" y="32" width="65" height="28" fill="#cce5ff"/>
+    <rect x="467.5" y="32" width="66" height="28" fill="#fff"/>
+    <rect x="533.5" y="32" width="65" height="28" fill="#fff"/>
+    <rect x="598.5" y="32" width="65" height="28" fill="#fff"/>
+  </g>
+
+  <path d="M 505 130.5 H 435.5 V 61" fill="none" stroke="#000" stroke-width="1.5"
+        marker-end="url(#arrow-dp06)"/>
+
+  <text x="529" y="142">当前需要计算的数据 n</text>
+
+  <g stroke="#000" stroke-width="1.2">
+    <rect x="141" y="176" width="66" height="28" fill="#cce5ff"/>
+    <rect x="141" y="241" width="66" height="28" fill="#ffcc99"/>
+  </g>
+
+  <text x="234" y="199">表示待计算的数据</text>
+  <text x="234" y="264">表示蓝色框依赖的数据</text>
+</svg></figure><p>在上面的图片当中比如我们要计算<code>绿色框</code>对应的数据，根据公式：</p>
 <div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo stretchy="false">]</mo><mo>&#x0003D;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>1</mn><mo stretchy="false">]</mo><mo>&#x0002B;</mo><mi>f</mi><mi>i</mi><mi>b</mi><mo stretchy="false">[</mo><mi>i</mi><mo>&#x02212;</mo><mn>2</mn><mo stretchy="false">]</mo><mo>&#x0002C;</mo><mi>i</mi><mo>&#x02265;</mo><mn>2</mn></mrow></math></div><p>我们知道<code>绿色框</code>依赖它前面的两个数据，因此我们在计算<code>fib[i]</code>的时候，需要提前将前面两个它依赖的数据计算好，因此我们可以从左至右计算<code>fib</code>数组，这样的话我们在计算第<code>n</code>个<code>fib</code>数的时候前面<code>n - 1</code>个<code>fib</code>数已经计算好了。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp11.svg" alt="" loading="lazy" /></p>
-<p>因此我们的代码可以像下面这样：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 962 378" role="img" aria-label="fib 数组从 0 到 13 自左向右依次计算，上方黑色箭头表示计算方向，六组彩色箭头分别标出每个新值所依赖的两个旧值" fill="#000" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp11-black" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9.5" markerHeight="9.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+    <marker id="arrow-dp11-yellow" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#cccc00"/>
+    </marker>
+    <marker id="arrow-dp11-red" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff3333"/>
+    </marker>
+    <marker id="arrow-dp11-magenta1" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#cc00cc"/>
+    </marker>
+    <marker id="arrow-dp11-magenta2" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff66ff"/>
+    </marker>
+    <marker id="arrow-dp11-magenta3" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff33ff"/>
+    </marker>
+    <marker id="arrow-dp11-green" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#009900"/>
+    </marker>
+  </defs>
+
+  <text x="323" y="62" font-size="32">从左至右计算 fib 数组</text>
+
+  <line x1="327" y1="91.5" x2="646" y2="91.5" stroke="#000" stroke-width="3.5"
+        marker-end="url(#arrow-dp11-black)"/>
+
+  <g fill="none" stroke-width="2.6">
+    <g stroke="#cccc00">
+      <path d="M 403 175 V 123 H 214 V 175" marker-end="url(#arrow-dp11-yellow)"/>
+      <path d="M 285 123 V 175" marker-end="url(#arrow-dp11-yellow)"/>
+    </g>
+    <g stroke="#ff3333">
+      <path d="M 592 175 V 123 H 427 V 175" marker-end="url(#arrow-dp11-red)"/>
+      <path d="M 474 123 V 175" marker-end="url(#arrow-dp11-red)"/>
+    </g>
+    <g stroke="#cc00cc">
+      <path d="M 781 175 V 123 H 616 V 175" marker-end="url(#arrow-dp11-magenta1)"/>
+      <path d="M 663 123 V 175" marker-end="url(#arrow-dp11-magenta1)"/>
+    </g>
+    <g stroke="#ff66ff">
+      <path d="M 498 216 V 267.5 H 309 V 216" marker-end="url(#arrow-dp11-magenta2)"/>
+      <path d="M 379.5 267.5 V 216" marker-end="url(#arrow-dp11-magenta2)"/>
+    </g>
+    <g stroke="#009900">
+      <path d="M 686.5 216 V 267.5 H 521 V 216" marker-end="url(#arrow-dp11-green)"/>
+      <path d="M 568.5 267.5 V 216" marker-end="url(#arrow-dp11-green)"/>
+    </g>
+    <g stroke="#ff33ff">
+      <path d="M 875.5 216 V 267.5 H 710.5 V 216" marker-end="url(#arrow-dp11-magenta3)"/>
+      <path d="M 757.5 267.5 V 216" marker-end="url(#arrow-dp11-magenta3)"/>
+    </g>
+  </g>
+
+  <text x="24" y="209" font-size="37">fib 数组</text>
+
+  <g stroke="#000" stroke-width="2" fill="none">
+    <rect x="167" y="175.5" width="756" height="40.5"/>
+    <line x1="261" y1="176" x2="261" y2="215.5"/>
+    <line x1="356" y1="176" x2="356" y2="215.5"/>
+    <line x1="450" y1="176" x2="450" y2="215.5"/>
+    <line x1="545" y1="176" x2="545" y2="215.5"/>
+    <line x1="639" y1="176" x2="639" y2="215.5"/>
+    <line x1="734" y1="176" x2="734" y2="215.5"/>
+    <line x1="828" y1="176" x2="828" y2="215.5"/>
+  </g>
+
+  <g font-size="37" text-anchor="middle">
+    <text x="214" y="209">0</text>
+    <text x="307.5" y="209">1</text>
+    <text x="401.5" y="209">1</text>
+    <text x="497.5" y="209">2</text>
+    <text x="592" y="209">3</text>
+    <text x="687" y="209">5</text>
+    <text x="781.5" y="209">8</text>
+    <text x="877" y="209">13</text>
+  </g>
+
+  <text x="323" y="330" font-size="32">彩色箭头表示数据依赖情况</text>
+</svg></figure><p>因此我们的代码可以像下面这样：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">fibonacci</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span>
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">n</span><span class="tok-p">;</span>
@@ -159,10 +525,228 @@
 <span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">ans</span><span class="tok-p">;</span>
 <span class="tok-w">    </span><span class="tok-p">}</span>
 </code></pre></div><p>我们知道计算机在进行运算的时候都是采用<code>2进制</code>进行运算，所有的正整数如果是2的整数次幂的话，数据的二进制当中只有一个为为<code>1</code>，其余位置为<code>0</code>。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp12.svg" alt="" loading="lazy" /></p>
-<p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp14.svg" alt="" loading="lazy" /></p>
-<p>同样的我们需要求解的<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>上的<code>n</code>也是可以通过加法得到，比如说<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mn>7</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>4</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn><mo>&#x0002B;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></msup></mrow></math>，因此我们可以使用下面的代码进行快速幂的求解：</p>
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 448" role="img" aria-label="int 类型占 4 个字节共 32 bit 的二进制表示：0、1、2、4、8、16 分别写成 8 组四位二进制，每行只有一处 1" fill="#000" class="inline-svg">
+  <text x="200" y="41.5" font-size="26" letter-spacing="-0.5">下面的二进制表示数据类型为 int 类型，占4个字节 32个bit</text>
+
+  <g font-size="22">
+    <text x="33" y="109">0的二进制表示</text>
+    <text x="34" y="164">1的二进制表示</text>
+    <text x="31" y="221">2的二进制表示</text>
+    <text x="32" y="276">4的二进制表示</text>
+    <text x="33" y="331">8的二进制表示</text>
+    <text x="28" y="386">16的二进制表示</text>
+  </g>
+
+  <g fill="#fad7ac" stroke="#b46504" stroke-width="2">
+    <rect x="228" y="80" width="784" height="37"/>
+    <rect x="228" y="136" width="784" height="37"/>
+    <rect x="228" y="193" width="784" height="36"/>
+    <rect x="228" y="249" width="784" height="36"/>
+    <rect x="228" y="305" width="784" height="36"/>
+    <rect x="228" y="357" width="784" height="37"/>
+    <g>
+      <line x1="326.5" y1="80" x2="326.5" y2="117"/>
+      <line x1="424.5" y1="80" x2="424.5" y2="117"/>
+      <line x1="522" y1="80" x2="522" y2="117"/>
+      <line x1="619.5" y1="80" x2="619.5" y2="117"/>
+      <line x1="717.5" y1="80" x2="717.5" y2="117"/>
+      <line x1="815.5" y1="80" x2="815.5" y2="117"/>
+      <line x1="913.5" y1="80" x2="913.5" y2="117"/>
+    </g>
+    <g>
+      <line x1="326.5" y1="136" x2="326.5" y2="173"/>
+      <line x1="424.5" y1="136" x2="424.5" y2="173"/>
+      <line x1="522" y1="136" x2="522" y2="173"/>
+      <line x1="619.5" y1="136" x2="619.5" y2="173"/>
+      <line x1="717.5" y1="136" x2="717.5" y2="173"/>
+      <line x1="815.5" y1="136" x2="815.5" y2="173"/>
+      <line x1="913.5" y1="136" x2="913.5" y2="173"/>
+    </g>
+    <g>
+      <line x1="326.5" y1="193" x2="326.5" y2="229"/>
+      <line x1="424.5" y1="193" x2="424.5" y2="229"/>
+      <line x1="522" y1="193" x2="522" y2="229"/>
+      <line x1="619.5" y1="193" x2="619.5" y2="229"/>
+      <line x1="717.5" y1="193" x2="717.5" y2="229"/>
+      <line x1="815.5" y1="193" x2="815.5" y2="229"/>
+      <line x1="913.5" y1="193" x2="913.5" y2="229"/>
+    </g>
+    <g>
+      <line x1="326.5" y1="249" x2="326.5" y2="285"/>
+      <line x1="424.5" y1="249" x2="424.5" y2="285"/>
+      <line x1="522" y1="249" x2="522" y2="285"/>
+      <line x1="619.5" y1="249" x2="619.5" y2="285"/>
+      <line x1="717.5" y1="249" x2="717.5" y2="285"/>
+      <line x1="815.5" y1="249" x2="815.5" y2="285"/>
+      <line x1="913.5" y1="249" x2="913.5" y2="285"/>
+    </g>
+    <g>
+      <line x1="326.5" y1="305" x2="326.5" y2="341"/>
+      <line x1="424.5" y1="305" x2="424.5" y2="341"/>
+      <line x1="522" y1="305" x2="522" y2="341"/>
+      <line x1="619.5" y1="305" x2="619.5" y2="341"/>
+      <line x1="717.5" y1="305" x2="717.5" y2="341"/>
+      <line x1="815.5" y1="305" x2="815.5" y2="341"/>
+      <line x1="913.5" y1="305" x2="913.5" y2="341"/>
+    </g>
+    <g>
+      <line x1="326.5" y1="357" x2="326.5" y2="394"/>
+      <line x1="424.5" y1="357" x2="424.5" y2="394"/>
+      <line x1="522" y1="357" x2="522" y2="394"/>
+      <line x1="619.5" y1="357" x2="619.5" y2="394"/>
+      <line x1="717.5" y1="357" x2="717.5" y2="394"/>
+      <line x1="815.5" y1="357" x2="815.5" y2="394"/>
+      <line x1="913.5" y1="357" x2="913.5" y2="394"/>
+    </g>
+  </g>
+
+  <g font-size="24" text-anchor="middle">
+    <text x="277.25" y="108">0000</text>
+    <text x="375.5" y="108">0000</text>
+    <text x="473.25" y="108">0000</text>
+    <text x="570.75" y="108">0000</text>
+    <text x="668.5" y="108">0000</text>
+    <text x="766.5" y="108">0000</text>
+    <text x="864.5" y="108">0000</text>
+    <text x="962.75" y="108">0000</text>
+
+    <text x="277.25" y="164">0000</text>
+    <text x="375.5" y="164">0000</text>
+    <text x="473.25" y="164">0000</text>
+    <text x="570.75" y="164">0000</text>
+    <text x="668.5" y="164">0000</text>
+    <text x="766.5" y="164">0000</text>
+    <text x="864.5" y="164">0000</text>
+    <text x="962.75" y="164">0001</text>
+
+    <text x="277.25" y="221">0000</text>
+    <text x="375.5" y="221">0000</text>
+    <text x="473.25" y="221">0000</text>
+    <text x="570.75" y="221">0000</text>
+    <text x="668.5" y="221">0000</text>
+    <text x="766.5" y="221">0000</text>
+    <text x="864.5" y="221">0000</text>
+    <text x="962.75" y="221">0010</text>
+
+    <text x="277.25" y="277">0000</text>
+    <text x="375.5" y="277">0000</text>
+    <text x="473.25" y="277">0000</text>
+    <text x="570.75" y="277">0000</text>
+    <text x="668.5" y="277">0000</text>
+    <text x="766.5" y="277">0000</text>
+    <text x="864.5" y="277">0000</text>
+    <text x="962.75" y="277">0100</text>
+
+    <text x="277.25" y="333">0000</text>
+    <text x="375.5" y="333">0000</text>
+    <text x="473.25" y="333">0000</text>
+    <text x="570.75" y="333">0000</text>
+    <text x="668.5" y="333">0000</text>
+    <text x="766.5" y="333">0000</text>
+    <text x="864.5" y="333">0000</text>
+    <text x="962.75" y="333">1000</text>
+
+    <text x="277.25" y="386">0000</text>
+    <text x="375.5" y="386">0000</text>
+    <text x="473.25" y="386">0000</text>
+    <text x="570.75" y="386">0000</text>
+    <text x="668.5" y="386">0000</text>
+    <text x="766.5" y="386">0000</text>
+    <text x="864.5" y="386">0001</text>
+    <text x="962.75" y="386">0000</text>
+  </g>
+</svg></figure><p>我们知道一个数据用二进制表示只有某些位置为0，某些位置为1，那么一个整数一定可以用若干个整数相加得到，而且这些整数满足2的整数次幂，比如下图中的<code>7 = 1 + 2 + 4</code>：</p>
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 309" role="img" aria-label="1、2、4、7 的 32 位二进制表示，红框圈出最低的一位，说明只有最后一位或最后几位不同" fill="#000" class="inline-svg">
+  <g font-size="22">
+    <text x="27" y="73">1的二进制表示</text>
+    <text x="27" y="129">2的二进制表示</text>
+    <text x="27" y="185">4的二进制表示</text>
+    <text x="27" y="256">7的二进制表示</text>
+  </g>
+
+  <g fill="#fad7ac" stroke="#b46504" stroke-width="2">
+    <rect x="224.5" y="44" width="784" height="36"/>
+    <rect x="224.5" y="100" width="784" height="36"/>
+    <rect x="224.5" y="156" width="784" height="36"/>
+    <rect x="224.5" y="227" width="784" height="36"/>
+    <g>
+      <line x1="322.5" y1="44" x2="322.5" y2="80"/>
+      <line x1="420" y1="44" x2="420" y2="80"/>
+      <line x1="518" y1="44" x2="518" y2="80"/>
+      <line x1="615.5" y1="44" x2="615.5" y2="80"/>
+      <line x1="713.5" y1="44" x2="713.5" y2="80"/>
+      <line x1="811.5" y1="44" x2="811.5" y2="80"/>
+      <line x1="910" y1="44" x2="910" y2="80"/>
+    </g>
+    <g>
+      <line x1="322.5" y1="100" x2="322.5" y2="136"/>
+      <line x1="420" y1="100" x2="420" y2="136"/>
+      <line x1="518" y1="100" x2="518" y2="136"/>
+      <line x1="615.5" y1="100" x2="615.5" y2="136"/>
+      <line x1="713.5" y1="100" x2="713.5" y2="136"/>
+      <line x1="811.5" y1="100" x2="811.5" y2="136"/>
+      <line x1="910" y1="100" x2="910" y2="136"/>
+    </g>
+    <g>
+      <line x1="322.5" y1="156" x2="322.5" y2="192"/>
+      <line x1="420" y1="156" x2="420" y2="192"/>
+      <line x1="518" y1="156" x2="518" y2="192"/>
+      <line x1="615.5" y1="156" x2="615.5" y2="192"/>
+      <line x1="713.5" y1="156" x2="713.5" y2="192"/>
+      <line x1="811.5" y1="156" x2="811.5" y2="192"/>
+      <line x1="910" y1="156" x2="910" y2="192"/>
+    </g>
+    <g>
+      <line x1="322.5" y1="227" x2="322.5" y2="263"/>
+      <line x1="420" y1="227" x2="420" y2="263"/>
+      <line x1="518" y1="227" x2="518" y2="263"/>
+      <line x1="615.5" y1="227" x2="615.5" y2="263"/>
+      <line x1="713.5" y1="227" x2="713.5" y2="263"/>
+      <line x1="811.5" y1="227" x2="811.5" y2="263"/>
+      <line x1="910" y1="227" x2="910" y2="263"/>
+    </g>
+  </g>
+
+  <g font-size="24" text-anchor="middle">
+    <text x="273.25" y="70">0000</text>
+    <text x="371.5" y="70">0000</text>
+    <text x="469" y="70">0000</text>
+    <text x="566.75" y="70">0000</text>
+    <text x="664.5" y="70">0000</text>
+    <text x="762.5" y="70">0000</text>
+    <text x="860.75" y="70">0000</text>
+    <text x="958.75" y="70">0001</text>
+
+    <text x="273.25" y="126">0000</text>
+    <text x="371.5" y="126">0000</text>
+    <text x="469" y="126">0000</text>
+    <text x="566.75" y="126">0000</text>
+    <text x="664.5" y="126">0000</text>
+    <text x="762.5" y="126">0000</text>
+    <text x="860.75" y="126">0000</text>
+    <text x="958.75" y="126">0010</text>
+
+    <text x="273.25" y="182">0000</text>
+    <text x="371.5" y="182">0000</text>
+    <text x="469" y="182">0000</text>
+    <text x="566.75" y="182">0000</text>
+    <text x="664.5" y="182">0000</text>
+    <text x="762.5" y="182">0000</text>
+    <text x="860.75" y="182">0000</text>
+    <text x="958.75" y="182">0100</text>
+
+    <text x="273.25" y="254">0000</text>
+    <text x="371.5" y="254">0000</text>
+    <text x="469" y="254">0000</text>
+    <text x="566.75" y="254">0000</text>
+    <text x="664.5" y="254">0000</text>
+    <text x="762.5" y="254">0000</text>
+    <text x="860.75" y="254">0000</text>
+    <text x="958.75" y="254">01111</text>
+  </g>
+
+  <rect x="909.5" y="44" width="99" height="220" fill="none" stroke="#fb3838" stroke-width="2.5"/>
+</svg></figure><p>同样的我们需要求解的<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>上的<code>n</code>也是可以通过加法得到，比如说<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mn>7</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002A;</mo><msup><mn>2</mn><mn>4</mn></msup><mo>&#x0003D;</mo><msup><mn>2</mn><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002B;</mo><mn>2</mn><mo>&#x0002B;</mo><mn>4</mn><mo stretchy="false">&#x00029;</mo></mrow></msup></mrow></math>，因此我们可以使用下面的代码进行快速幂的求解：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-cm">/**</span>
 <span class="tok-cm">   * 这个函数的目的是求解 base 的 n 次方</span>
 <span class="tok-cm">   * @param base</span>
@@ -350,8 +934,33 @@
 <span class="tok-p">}</span>
 </code></pre></div><h2 id="我们从斐波拉契数列得到了什么">我们从斐波拉契数列得到了什么</h2>
 <p>我们现在来重新捋一下我们在上面学习斐波拉契数列的思路：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp16.svg" alt="" loading="lazy" /></p>
-<p>首先我们用于解决斐波拉契数列的方法是<code>递归法</code>但是这个方法有一个很大的问题，就是计算某个斐波拉契数的时候它依赖于它前面的斐波拉契数（这个过程相当于将一个大问题划分成若干个小问题），这个依赖会导致我们进行很多重复的运算，为了解决这个问题我们用到了<code>数组法</code>，这其实就是一个用空间换时间的方法，用数组将前面计算你的结果存储下来，避免重复计算。</p>
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp16" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="569" height="440" fill="#ffffff"/>
+  <text x="278.5" y="48" font-size="25.5" fill="#000000" text-anchor="middle">斐波拉契数列优化过程</text>
+
+  <rect x="186.5" y="85" width="167" height="40" rx="5" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="270" y="114" font-size="22" fill="#000000" text-anchor="middle">递归法</text>
+
+  <rect x="186.5" y="177.5" width="167" height="40" rx="5" fill="#fad9d5" stroke="#ae4132" stroke-width="2"/>
+  <text x="270" y="206" font-size="22" fill="#000000" text-anchor="middle">数组法</text>
+
+  <rect x="186.5" y="265.5" width="167" height="41" rx="5" fill="#b0e3e6" stroke="#0e8088" stroke-width="2"/>
+  <text x="270" y="295" font-size="22" fill="#000000" text-anchor="middle">优化数组法</text>
+
+  <rect x="186.5" y="360.5" width="167" height="40" rx="5" fill="#b1ddf0" stroke="#10739e" stroke-width="2"/>
+  <text x="270" y="388" font-size="22" fill="#000000" text-anchor="middle">快速矩阵幂优化</text>
+
+  <path d="M 270.5 127 V 174" fill="none" stroke="#000000" stroke-width="2" marker-end="url(#arrow-dp16)"/>
+  <path d="M 270.5 219 V 263" fill="none" stroke="#000000" stroke-width="2" marker-end="url(#arrow-dp16)"/>
+  <path d="M 270.5 308 V 358" fill="none" stroke="#000000" stroke-width="2" marker-end="url(#arrow-dp16)"/>
+</svg></figure><p>首先我们用于解决斐波拉契数列的方法是<code>递归法</code>但是这个方法有一个很大的问题，就是计算某个斐波拉契数的时候它依赖于它前面的斐波拉契数（这个过程相当于将一个大问题划分成若干个小问题），这个依赖会导致我们进行很多重复的运算，为了解决这个问题我们用到了<code>数组法</code>，这其实就是一个用空间换时间的方法，用数组将前面计算你的结果存储下来，避免重复计算。</p>
 <p>通过分析我们公式，我们发现我们的数据依赖关系，我们在计算某个斐波拉契数的时候只需要依赖它前面的两个斐波拉契数，因此我们不用存储我们计算的每一个斐波拉契数，只需要保存两个值即可，这就是我们<code>优化数组法</code>的原理。</p>
 <p>最后我们通过<code>快速矩阵幂</code>的方法将我们的时间复杂度从<code>O(n)</code>降低到了<code>O(long(n))</code>，这个方法其实带有一定的技巧性，在大多数动态规划的算法当中我们用不到它，也就是说它的普适性并不强。</p>
 <p>从上面的分析我们可以总结我们在使用动态规划时的大致思路：</p>
@@ -396,17 +1005,145 @@
 </table>
 <p>这个问题还是比较简单，我们直接看就知道选择物品B和物品C得到的价值最大。那么我们如何设计一个算法去实现这个问题呢？首先对于每一个物品都有两种情况，选择和不选择，我们需要选择两种情况当中能够获取最大价值的那种情况。</p>
 <h3 id="选择或者不选择">选择或者不选择</h3>
-<p><img src="/content/zh/images/dsal/dp/01-dp17.svg" alt="" loading="lazy" /></p>
-<p>在动态规划当中我们通常通过数组进行求解，在01背包问题当中，我们设置一个数组<code>dp[i][j]</code>，表示当我们只使用前<code>i</code>个物品（物品编号从0开始，第一个物品的下标为0）且当前剩余能够承受的重量为<code>j</code>时，能够获取的最大的价值，那么我们要求解的值为<code>dp[N - 1][V]</code>，物品下标从<code>0</code>开始。</p>
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 784 356" role="img" aria-label="背包问题状态转移示意：物品节点分出选与不选两条分支，各自给出总价值与剩余承重量的变化" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp17" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="784" height="356" fill="#ffffff"/>
+
+  <text x="391" y="43" font-size="22" fill="#000000" text-anchor="middle">假设在当前的状态下，我们背包的还能够承受的重量为W</text>
+  <text x="392" y="67" font-size="22" fill="#000000" text-anchor="middle">目前装入的东西的价值综合为V</text>
+
+  <circle cx="385" cy="117.5" r="30.75" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="384.5" y="124" font-size="22" fill="#000000" text-anchor="middle">物品</text>
+  <text x="435" y="124" font-size="22" fill="#000000">重量为w，价值为 w</text>
+
+  <path d="M 385 149 L 267 222" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp17)"/>
+  <path d="M 385 149 L 512 218" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp17)"/>
+
+  <text x="247.5" y="253" font-size="22" fill="#000000" text-anchor="middle">选</text>
+  <text x="512" y="253" font-size="22" fill="#000000" text-anchor="middle">不选</text>
+
+  <text x="180.5" y="282.5" font-size="22" fill="#000000" text-anchor="middle">背包中物品总价值为V + v</text>
+  <text x="181" y="308" font-size="22" fill="#000000" text-anchor="middle">背包还能够承受的重量为 W - w</text>
+  <text x="554" y="286" font-size="22" fill="#000000" text-anchor="middle">背包中物品总价值为V</text>
+  <text x="554.5" y="310.5" font-size="22" fill="#000000" text-anchor="middle">背包还能够承受的重量为 W</text>
+</svg></figure><p>在动态规划当中我们通常通过数组进行求解，在01背包问题当中，我们设置一个数组<code>dp[i][j]</code>，表示当我们只使用前<code>i</code>个物品（物品编号从0开始，第一个物品的下标为0）且当前剩余能够承受的重量为<code>j</code>时，能够获取的最大的价值，那么我们要求解的值为<code>dp[N - 1][V]</code>，物品下标从<code>0</code>开始。</p>
 <p>比如说：<code>dp[2][3]</code>表示在本题当中的四个物品<code>A,B,C,D</code>当中只选择前面两个物品<code>A,B</code>，且背包还能够承受<code>3</code>de 重量。</p>
 <p>根据上面的分析我们可以得到下面一个动态规划公式：</p>
 <p><code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，其中<code>w</code>和<code>v</code>分别表示第<code>i</code>个物品的重量和价值。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp18.svg" alt="" loading="lazy" /></p>
-<h3 id="你真的理解了背包问题for循环的顺序吗">你真的理解了背包问题for循环的顺序吗</h3>
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp18" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1259" height="509" fill="#ffffff"/>
+
+  <!-- 根节点 -->
+  <circle cx="636" cy="64" r="30" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="636" y="71" font-size="21.5" fill="#000000" text-anchor="middle">物品</text>
+
+  <!-- 两条分支箭头 -->
+  <path d="M 636 95 L 518 169" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp18)"/>
+  <path d="M 636 95 L 767 166" fill="none" stroke="#000000" stroke-width="2.5" marker-end="url(#arrow-dp18)"/>
+
+  <text x="499" y="200" font-size="21.5" fill="#000000" text-anchor="middle">选</text>
+  <text x="764" y="200" font-size="21.5" fill="#000000" text-anchor="middle">不选</text>
+
+  <!-- 选择分支说明 -->
+  <text x="254.5" y="125.5" font-size="21.5" fill="#000000" text-anchor="middle">因为选择第i个物品，而且每个物品只能选择一次</text>
+  <text x="254.5" y="152.5" font-size="21.5" fill="#000000" text-anchor="middle">因此我们只能选择前i - 1个物品</text>
+  <text x="254.5" y="179.5" font-size="21.5" fill="#000000" text-anchor="middle">但是我们能够承受的容量需要减去第i</text>
+  <text x="254.5" y="205" font-size="21.5" fill="#000000" text-anchor="middle">个物品的质量w并且加上他的价值v</text>
+
+  <!-- 不选择分支说明 -->
+  <text x="1035.5" y="135" font-size="21.5" fill="#000000" text-anchor="middle">因为没有选择第i个物品，我们只能选</text>
+  <text x="1035.5" y="161" font-size="21.5" fill="#000000" text-anchor="middle">择前i - 1个物品</text>
+  <text x="1035.5" y="187" font-size="21.5" fill="#000000" text-anchor="middle">但是我们能够承受的容量没有发生变化</text>
+
+  <!-- 两个价值框 -->
+  <rect x="234" y="222" width="343" height="39" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="405.5" y="250" font-size="21.5" fill="#000000" text-anchor="middle">价值为： dp[i - 1][j - w] + v</text>
+
+  <rect x="636" y="222" width="343" height="39" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="807.5" y="250" font-size="21.5" fill="#000000" text-anchor="middle">价值为： dp[i - 1][j]</text>
+
+  <!-- 汇合与 max -->
+  <path d="M 405.5 262 V 336.5 H 807.5 V 262" fill="none" stroke="#000000" stroke-width="1.5"/>
+  <path d="M 612 336.5 V 409" fill="none" stroke="#000000" stroke-width="1.5" marker-end="url(#arrow-dp18)"/>
+  <text x="634" y="373" font-size="21" fill="#000000">max</text>
+
+  <rect x="440" y="412" width="343" height="40" rx="8" fill="#fad7ac" stroke="#b46504" stroke-width="2"/>
+  <text x="611.5" y="442.5" font-size="21.5" fill="#000000" text-anchor="middle">dp[i][j]</text>
+</svg></figure><h3 id="你真的理解了背包问题for循环的顺序吗">你真的理解了背包问题for循环的顺序吗</h3>
 <p>我们已经得到了我们的动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>，我们现在了来好好分析这个公式：</p>
 <p>我们可以很清楚的看到要想求解<code>dp[i][j]</code>的值，我们首先需要知道<code>dp[i - 1][j - w]</code>和<code>dp[i - 1][j]</code>的值，他们之间的依赖关系可以用下图来表示。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp21.svg" alt="" loading="lazy" /></p>
-<p>我们在求解<code>dp[i][j]</code>的值的时候，首先的需要求出它依赖的数据，当我们在求解第动态规划数组<code>dp</code>的第<code>i</code>行时，我们首先需要求出第<code>i - 1</code>行的值。但是我们在求第<code>0</code>行的时候并没有<code>-1</code>行，因此我们首先需要进行初始化。<code>dp[i][j]</code>的含义是只使用前<code>i</code>个物品且承受重量只有<code>j</code>时，我们能过获取的最大的价值！！！</p>
+<figure class="diagram svg-figure" id="figure-11"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1065 426" role="img" aria-label="dp 表格依赖关系示意：(i, j) 单元格依赖上一行同一列与若干列的数据，右侧为图例说明" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp21" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1065" height="426" fill="#ffffff"/>
+
+  <!-- 着色单元格 -->
+  <rect x="61.5" y="204.5" width="261" height="27.5" fill="#fad7ac"/>
+  <rect x="322.5" y="204.5" width="65" height="27.5" fill="#cdeb8b"/>
+  <rect x="322.5" y="232" width="65" height="27.5" fill="#b1ddf0"/>
+  <text x="354.5" y="254" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 表格线 -->
+  <g fill="none" stroke="#000000" stroke-width="1">
+    <path d="M 61.5 123.5 H 583.5 M 61.5 150.5 H 583.5 M 61.5 177.5 H 583.5
+             M 61.5 204.5 H 583.5 M 61.5 232 H 583.5 M 61.5 259.5 H 583.5
+             M 61.5 286.5 H 583.5 M 61.5 313.5 H 583.5 M 61.5 341 H 583.5
+             M 61.5 368 H 583.5"/>
+    <path d="M 61.5 123.5 V 368 M 126.5 123.5 V 368 M 192 123.5 V 368
+             M 257 123.5 V 368 M 322.5 123.5 V 368 M 387.5 123.5 V 368
+             M 453 123.5 V 368 M 518 123.5 V 368 M 583.5 123.5 V 368"/>
+  </g>
+
+  <!-- 依赖箭头（红色） -->
+  <g fill="none" stroke="#ff0000" stroke-width="1.5" stroke-dasharray="4 7">
+    <path d="M 198.5 82 V 160 H 224.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 94 130.5 H 290"/>
+    <path d="M 94 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 159.5 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+    <path d="M 290 130.5 V 205" marker-end="url(#arrow-dp21)"/>
+  </g>
+  <path d="M 408.5 80 V 130.5 H 355.5 V 205" fill="none" stroke="#ff0000"
+        stroke-width="1.5" marker-end="url(#arrow-dp21)"/>
+
+  <!-- 两个来源标注框 -->
+  <rect x="125" y="49" width="147" height="33" rx="8" fill="#ffcc99" stroke="#333333" stroke-width="1.5"/>
+  <text x="198.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j - w]</text>
+  <rect x="344" y="49" width="129" height="31" rx="8" fill="#cdeb8b" stroke="#333333" stroke-width="1.5"/>
+  <text x="408.5" y="74.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 图例 -->
+  <rect x="620" y="129" width="61" height="23" fill="#cce5ff" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="194" width="61" height="24" fill="#ffcc99" stroke="#333333" stroke-width="1"/>
+  <rect x="620" y="256" width="61" height="23" fill="#cdeb8b" stroke="#333333" stroke-width="1"/>
+
+  <text x="711" y="151" font-size="25" fill="#000000">表示待计算的数据</text>
+  <text x="715" y="213" font-size="25" fill="#000000">表示绿色框可能依赖的数据</text>
+  <text x="720" y="277" font-size="25" fill="#000000">表示蓝色框依赖的数据</text>
+  <text x="724" y="325" font-size="25" fill="#000000">表示被依赖的数据</text>
+  <text x="725" y="370" font-size="25" fill="#000000">表示可能被依赖的数据</text>
+
+  <path d="M 619 315.5 H 685" fill="none" stroke="#ff0000" stroke-width="2" marker-end="url(#arrow-dp21)"/>
+  <path d="M 619 359 H 686" fill="none" stroke="#ff0000" stroke-width="2"
+        stroke-dasharray="4 7" marker-end="url(#arrow-dp21)"/>
+</svg></figure><p>我们在求解<code>dp[i][j]</code>的值的时候，首先的需要求出它依赖的数据，当我们在求解第动态规划数组<code>dp</code>的第<code>i</code>行时，我们首先需要求出第<code>i - 1</code>行的值。但是我们在求第<code>0</code>行的时候并没有<code>-1</code>行，因此我们首先需要进行初始化。<code>dp[i][j]</code>的含义是只使用前<code>i</code>个物品且承受重量只有<code>j</code>时，我们能过获取的最大的价值！！！</p>
 <p>那么初始化<code>dp[0][j]</code>的含义就是当我们只有第<code>1</code>个物品可选择而且背包能够承受的重量为<code>j</code>时能够获取的最大的价值，那么我们很容易进行初始化（当<code>j</code>大于等于物品的重量的时候可以获取第一个物品的价值，否则获取价值为0，因为只有一个物品，但是背包承受不了它的重量）：</p>
 <p><code>Java代码实现动态规划</code>：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">java.util.Scanner</span><span class="tok-p">;</span>
@@ -494,8 +1231,73 @@
 <span class="tok-w">	</span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
 <span class="tok-p">}</span>
 </code></pre></div><p>我们在上述两份代码当中的<code>for</code>循环顺序是遍历所有的物品，然后背包容量从<code>0</code>变化到<code>V</code>，那么我们背包容量变化能不能从<code>V</code>变化到<code>0</code>呢？答案是可以的：</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp22.svg" alt="" loading="lazy" /></p>
-<p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
+<figure class="diagram svg-figure" id="figure-12"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1049 404" role="img" aria-label="dp 表格中 (i, j) 单元格向左累加同一行前面各列的数据，右侧为图例说明" class="inline-svg">
+  <defs>
+    <marker id="arrow-dp22" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#ff0000"/>
+    </marker>
+    <marker id="arrow-dp22b" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="5.75" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000000"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1049" height="404" fill="#ffffff"/>
+
+  <!-- 着色单元格 -->
+  <rect x="49.5" y="188.5" width="261" height="27.5" fill="#fad7ac"/>
+  <rect x="310.5" y="188.5" width="65" height="27.5" fill="#cdeb8b"/>
+  <rect x="310.5" y="216" width="65" height="27.5" fill="#b1ddf0"/>
+
+  <!-- 表格线 -->
+  <g fill="none" stroke="#000000" stroke-width="1">
+    <path d="M 49.5 107.5 H 571.5 M 49.5 134.5 H 571.5 M 49.5 161.5 H 571.5
+             M 49.5 188.5 H 571.5 M 49.5 216 H 571.5 M 49.5 243.5 H 571.5
+             M 49.5 270.5 H 571.5 M 49.5 297.5 H 571.5 M 49.5 325 H 571.5
+             M 49.5 352 H 571.5"/>
+    <path d="M 49.5 107.5 V 352 M 114.5 107.5 V 352 M 180 107.5 V 352
+             M 245 107.5 V 352 M 310.5 107.5 V 352 M 375.5 107.5 V 352
+             M 441 107.5 V 352 M 506 107.5 V 352 M 571.5 107.5 V 352"/>
+  </g>
+
+  <!-- 依赖箭头（红色） -->
+  <g fill="none" stroke="#ff0000" stroke-width="1.5" stroke-dasharray="4 7">
+    <path d="M 186.5 66 V 144 H 212.5 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 82 114 H 278"/>
+    <path d="M 82 114 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 147.5 114 V 190" marker-end="url(#arrow-dp22)"/>
+    <path d="M 278 114 V 190" marker-end="url(#arrow-dp22)"/>
+  </g>
+  <path d="M 396.5 64 V 114 H 343 V 190" fill="none" stroke="#ff0000"
+        stroke-width="1.5" marker-end="url(#arrow-dp22)"/>
+
+  <!-- 两个来源标注框 -->
+  <rect x="113" y="33" width="147" height="33" rx="8" fill="#ffcc99" stroke="#333333" stroke-width="1.5"/>
+  <text x="186.5" y="58.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j - w]</text>
+  <rect x="332" y="33" width="129" height="31" rx="8" fill="#cdeb8b" stroke="#333333" stroke-width="1.5"/>
+  <text x="396.5" y="58.5" font-size="18.7" fill="#000000" text-anchor="middle">dp[i - 1][j]</text>
+
+  <!-- 横向累加箭头 -->
+  <path d="M 571.5 229.5 H 49" fill="none" stroke="#000000" stroke-width="4"
+        stroke-dasharray="12 10" marker-end="url(#arrow-dp22b)"/>
+  <text x="349" y="238.5" font-size="23" letter-spacing="1.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 图例 -->
+  <rect x="608" y="113" width="61" height="23" fill="#cce5ff" stroke="#333333" stroke-width="1"/>
+  <rect x="608" y="178" width="61" height="24" fill="#ffcc99" stroke="#333333" stroke-width="1"/>
+  <rect x="608" y="240" width="61" height="23" fill="#cdeb8b" stroke="#333333" stroke-width="1"/>
+
+  <text x="699" y="135" font-size="25" fill="#000000">表示待计算的数据</text>
+  <text x="703" y="197" font-size="25" fill="#000000">表示绿色框可能依赖的数据</text>
+  <text x="708" y="261" font-size="25" fill="#000000">表示蓝色框依赖的数据</text>
+  <text x="712" y="309" font-size="25" fill="#000000">表示被依赖的数据</text>
+  <text x="713" y="354" font-size="25" fill="#000000">表示可能被依赖的数据</text>
+
+  <path d="M 607 299.5 H 673" fill="none" stroke="#ff0000" stroke-width="2" marker-end="url(#arrow-dp22)"/>
+  <path d="M 607 343.5 H 674" fill="none" stroke="#ff0000" stroke-width="2"
+        stroke-dasharray="4 7" marker-end="url(#arrow-dp22)"/>
+</svg></figure><p>从上图看我们在计算第<code>i</code>的数据的时候我们只依赖第<code>i - 1</code>行，我们在第<code>i</code>行从后往前遍历并不会破坏动态转移公式的要求。</p>
 <p>下面的代码同样可以是正确的：</p>
 <div class="code-block" data-lang="java"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kd">public</span><span class="tok-w"> </span><span class="tok-kd">static</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">backpack</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-o">[]</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">V</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">N</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">w</span><span class="tok-p">.</span><span class="tok-na">length</span><span class="tok-p">;</span>
@@ -572,14 +1374,92 @@
 <ul>
 <li>根据动态转移公式<code>dp[i][j] = max(dp[i - 1][j - w] + v, dp[i - 1][j])</code>我们知道，第<code>i</code>行的数据只依赖第<code>i - 1</code>行的前<code>j</code>个数据，跟第<code>j</code>个数据之后的数据没有关系。因此我们在使用一维数组的时候可以从后往前计算（且只能从后往前计算，如果从前往后计算会破话动态转移公式，因为第<code>j</code>个数据跟他前面的数据有依赖关系，跟他后面的数据没有依赖关系）就能够满足我们的动态转移公式。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp23.svg" alt="" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-13"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 358" role="img" aria-label="一维数组优化示意：初始化的数组用黄色与绿色格表示，计算橙色虚线框时只依赖黄色格的数据" class="inline-svg">
+  <rect x="0" y="0" width="914" height="358" fill="#ffffff"/>
+
+  <text x="434.5" y="53" font-size="21.5" fill="#000000" text-anchor="middle">一维数组优化</text>
+  <text x="39" y="124" font-size="21.5" fill="#000000">初始化的数组</text>
+
+  <!-- 初始化的数组：6 个黄色格 + 2 个绿色格 -->
+  <g stroke="#b09500" stroke-width="1.5" fill="#e3c800">
+    <rect x="201" y="101" width="65.25" height="29"/>
+    <rect x="266.25" y="101" width="65.25" height="29"/>
+    <rect x="331.5" y="101" width="65.25" height="29"/>
+    <rect x="396.75" y="101" width="65.25" height="29"/>
+    <rect x="462" y="101" width="65.25" height="29"/>
+    <rect x="527.25" y="101" width="65.25" height="29"/>
+  </g>
+  <g stroke="#005700" stroke-width="1.5" fill="#008a00">
+    <rect x="592.5" y="101" width="65.25" height="29"/>
+    <rect x="657.75" y="101" width="65.25" height="29"/>
+  </g>
+
+  <!-- 待计算的虚线数组 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5" stroke-dasharray="4 6">
+    <rect x="201" y="171" width="65.25" height="27"/>
+    <rect x="266.25" y="171" width="65.25" height="27"/>
+    <rect x="331.5" y="171" width="65.25" height="27"/>
+    <rect x="396.75" y="171" width="65.25" height="27"/>
+    <rect x="462" y="171" width="65.25" height="27"/>
+    <rect x="592.5" y="171" width="65.25" height="27"/>
+    <rect x="657.75" y="171" width="65.25" height="27"/>
+  </g>
+  <rect x="527.25" y="171" width="65.25" height="27" fill="#fa6800"
+        stroke="#c73500" stroke-width="1.5" stroke-dasharray="4 6"/>
+  <text x="561.5" y="194" font-size="22.5" fill="#000000" text-anchor="middle">(i, j)</text>
+
+  <!-- 省略的部分 -->
+  <rect x="201" y="234" width="67" height="28" fill="#fa6800"
+        stroke="#c73500" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <text x="103" y="306" font-size="21.5" fill="#000000">计算虚线橙色框的结果的时候，他只依赖黄色框的数据，不依赖绿色框的数据</text>
+</svg></figure><ul>
 <li>如果我们从在使用单行数组的时候从前往后计算，那么会使得一维数据前面部分数据的状态从<code>i - 1</code>行的状态变成第<code>i</code>行的状态，像下面这样。</li>
 </ul>
-<p><img src="/content/zh/images/dsal/dp/01-dp24.svg" alt="" loading="lazy" /></p>
-<p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
-<p><img src="/content/zh/images/dsal/dp/01-dp25.svg" alt="" loading="lazy" /></p>
-<h2 id="动态规划总结">动态规划总结</h2>
+<figure class="diagram svg-figure" id="figure-14"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 636 239" role="img" aria-label="滚动数组示意：前四格表示第 i - 1 行的状态，后四格表示第 i 行的状态" class="inline-svg">
+  <rect x="0" y="0" width="636" height="239" fill="#ffffff"/>
+
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="55" y="48.5" width="65.25" height="27"/>
+    <rect x="120.25" y="48.5" width="65.25" height="27"/>
+    <rect x="185.5" y="48.5" width="65.25" height="27"/>
+    <rect x="250.75" y="48.5" width="65.25" height="27"/>
+  </g>
+  <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">
+    <rect x="316" y="48.5" width="65.25" height="27"/>
+    <rect x="381.25" y="48.5" width="65.25" height="27"/>
+    <rect x="446.5" y="48.5" width="65.25" height="27"/>
+    <rect x="511.75" y="48.5" width="65.25" height="27"/>
+  </g>
+
+  <rect x="54.5" y="110.5" width="65" height="26.5" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="149" y="134" font-size="21" fill="#000000">表示第i - 1行的状态</text>
+
+  <rect x="54.5" y="175.5" width="65" height="26.5" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="146" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
+</svg></figure><p>但是一维数组当中后部分的数据还是<code>i - 1</code>行的状态，当我们去更新他们的时候他们依赖前面部分数据的<code>i - 1</code>行的状态，但是他们已经更新到第<code>i</code>的状态了，因此破坏了动态规划的转移方程，但是如果我们从后往前进行遍历那么前面的状态始终是第<code>i - 1</code>行的状态，因此没有破坏动态规划的转移方程，因此我们需要从后往前遍历。</p>
+<figure class="diagram svg-figure" id="figure-15"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 661 257" role="img" aria-label="滚动数组示意：前五格表示第 i - 1 行的状态，后三格表示第 i 行的状态" class="inline-svg">
+  <rect x="0" y="0" width="661" height="257" fill="#ffffff"/>
+
+  <g fill="#fff2cc" stroke="#d6b656" stroke-width="1.5">
+    <rect x="72" y="49.5" width="65.31" height="27"/>
+    <rect x="137.31" y="49.5" width="65.31" height="27"/>
+    <rect x="202.62" y="49.5" width="65.31" height="27"/>
+    <rect x="267.94" y="49.5" width="65.31" height="27"/>
+    <rect x="333.25" y="49.5" width="65.31" height="27"/>
+  </g>
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="398.56" y="49.5" width="65.31" height="27"/>
+    <rect x="463.88" y="49.5" width="65.31" height="27"/>
+    <rect x="529.19" y="49.5" width="65.31" height="27"/>
+  </g>
+
+  <rect x="72" y="111" width="66" height="27" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+  <text x="167" y="134" font-size="21" fill="#000000">表示第i - 1行的状态</text>
+
+  <rect x="72" y="176" width="66" height="27" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="164" y="199" font-size="21" fill="#000000">表示第i行的状态</text>
+</svg></figure><h2 id="动态规划总结">动态规划总结</h2>
 <h3 id="动态规划的套路">动态规划的套路</h3>
 <p>通过仔细分析上面两个算法题，我们可以得到下面的一些心得：</p>
 <ul>
@@ -610,6 +1490,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-container-06-hashmap/"><span>较新</span>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</a><a class="next" href="/posts/cscore-da-01combinations/"><span>较旧</span>通过组合问题看透回溯法</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">

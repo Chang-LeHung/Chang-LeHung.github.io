@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1167 445" role="img" aria-label="PyListObject 的 ob_item 数组：每个元素都是指向真实数据的 PyObject* 指针" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1167" height="445">
+  <defs>
+    <marker id="arrow-02list" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="54" y="26" width="57" height="57" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <text x="127" y="62" font-size="19">真实的数据</text>
+
+  <!-- 八个真实数据 -->
+  <g fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5">
+    <rect x="376" y="102" width="57" height="57"/>
+    <rect x="470" y="102" width="57" height="57"/>
+    <rect x="564" y="102" width="57" height="57"/>
+    <rect x="658" y="102" width="57" height="57"/>
+    <rect x="752" y="102" width="57" height="57"/>
+    <rect x="846" y="102" width="57" height="57"/>
+    <rect x="940" y="102" width="57" height="57"/>
+    <rect x="1034" y="102" width="57" height="57"/>
+  </g>
+
+  <!-- 数组本身：八个 PyObject* -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="358" y="227" width="93" height="39"/>
+    <rect x="452" y="227" width="93" height="39"/>
+    <rect x="546" y="227" width="93" height="39"/>
+    <rect x="640" y="227" width="93" height="39"/>
+    <rect x="734" y="227" width="93" height="39"/>
+    <rect x="828" y="227" width="93" height="39"/>
+    <rect x="922" y="227" width="93" height="39"/>
+    <rect x="1016" y="227" width="93" height="39"/>
+  </g>
+  <g font-size="17" text-anchor="middle">
+    <text x="404" y="252">PyObject*</text>
+    <text x="498" y="252">PyObject*</text>
+    <text x="592" y="252">PyObject*</text>
+    <text x="686" y="252">PyObject*</text>
+    <text x="780" y="252">PyObject*</text>
+    <text x="874" y="252">PyObject*</text>
+    <text x="968" y="252">PyObject*</text>
+    <text x="1062" y="252">PyObject*</text>
+  </g>
+
+  <!-- 每个格子指向自己的数据 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02list)">
+    <path d="M404 227 V 163"/>
+    <path d="M498 227 V 163"/>
+    <path d="M592 227 V 163"/>
+    <path d="M686 227 V 163"/>
+    <path d="M780 227 V 163"/>
+    <path d="M874 227 V 163"/>
+    <path d="M968 227 V 163"/>
+    <path d="M1062 227 V 163"/>
+  </g>
+
+  <!-- ob_item 指向数组首元素 -->
+  <rect x="70" y="372" width="192" height="31" fill="#b1e0e6" stroke="#207078" stroke-width="1.5"/>
+  <text x="78" y="394" font-size="17">PyObject **ob_item;</text>
+  <path d="M266 387 C 320 382, 352 330, 357 274"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02list)"/>
+</svg>

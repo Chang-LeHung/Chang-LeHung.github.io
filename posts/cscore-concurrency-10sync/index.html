@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenMP 线程同步 Construct 实现原理以及源码分析（下） · Chang-LeHung</title>
 <meta name="description" content="前言 在上面文章当中我们主要分析了 flush, critical, master 这三个 construct 的实现原理。在本篇文章当中我们将主要分析另外两个 construct : barrier 和 single 。 Barrier Construct 编译器角度分析 在本小节当中我们主要介绍">
+<meta property="og:title" content="OpenMP 线程同步 Construct 实现原理以及源码分析（下）">
 <meta name="color-scheme" content="light">
 <link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
 <link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
@@ -32,7 +33,7 @@
 })();
 </script>
 <link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
-<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="stylesheet" href="/assets/style.css?v=d7236a6f">
 <link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
 </head>
 <body>
@@ -518,6 +519,7 @@
 
     <nav class="post-nav">
 <a class="prev" href="/posts/cscore-concurrency-11for-dynamic/"><span>较新</span>OpenMP For Construct dynamic 调度方式实现原理和源码分析</a><a class="next" href="/posts/cscore-concurrency-09sync/"><span>较旧</span>OpenMP 线程同步 Construct 实现原理以及源码分析（上）</a>    </nav>
+
   </div>
 
   <aside class="toc" aria-label="目录">
