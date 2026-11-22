@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解 python 虚拟机：描述器实现原理与源码分析 · Chang-LeHung</title>
+<meta name="description" content="在本篇文章当中主要给大家介绍描述器背后的实现原理，通过分析 cpython 对应的源代码了解与描述器相关的字节码的指令，我们就可以真正了解到描述器背后的原理！ 从字节码角度看描述器 在前面的内容当中我们已经详细分析了描述器的使用和其相关的应用，我们通常使用描述器都是将其作为类的一个类属性使用，而使用">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解 python 虚拟机：描述器实现原理与源码分析</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/面向对象/">面向对象</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在本篇文章当中主要给大家介绍描述器背后的实现原理，通过分析 cpython 对应的源代码了解与描述器相关的字节码的指令，我们就可以真正了解到描述器背后的原理！</p>
+<h2 id="从字节码角度看描述器">从字节码角度看描述器</h2>
+<p>在前面的内容当中我们已经详细分析了描述器的使用和其相关的应用，我们通常使用描述器都是将其作为类的一个类属性使用，而使用的方式就是 <code>a.attr</code>，而这个使用方式使用的字节码如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Python<span class="tok-w"> </span><span class="tok-m">3</span>.10.9<span class="tok-w"> </span><span class="tok-o">(</span>main,<span class="tok-w"> </span>Jan<span class="tok-w"> </span><span class="tok-m">11</span><span class="tok-w"> </span><span class="tok-m">2023</span>,<span class="tok-w"> </span><span class="tok-m">09</span>:18:18<span class="tok-o">)</span><span class="tok-w"> </span><span class="tok-o">[</span>Clang<span class="tok-w"> </span><span class="tok-m">14</span>.0.6<span class="tok-w"> </span><span class="tok-o">]</span><span class="tok-w"> </span>on<span class="tok-w"> </span>darwin
+Type<span class="tok-w"> </span><span class="tok-s2">"help"</span>,<span class="tok-w"> </span><span class="tok-s2">"copyright"</span>,<span class="tok-w"> </span><span class="tok-s2">"credits"</span><span class="tok-w"> </span>or<span class="tok-w"> </span><span class="tok-s2">"license"</span><span class="tok-w"> </span><span class="tok-k">for</span><span class="tok-w"> </span>more<span class="tok-w"> </span>information.
+&gt;&gt;&gt;<span class="tok-w"> </span>import<span class="tok-w"> </span>dis
+&gt;&gt;&gt;<span class="tok-w"> </span>dis.dis<span class="tok-o">(</span><span class="tok-s2">"a.attr"</span><span class="tok-o">)</span>
+<span class="tok-w">  </span><span class="tok-m">1</span><span class="tok-w">           </span><span class="tok-m">0</span><span class="tok-w"> </span>LOAD_NAME<span class="tok-w">                </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>a<span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">2</span><span class="tok-w"> </span>LOAD_ATTR<span class="tok-w">                </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-o">(</span>attr<span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">4</span><span class="tok-w"> </span>RETURN_VALUE
+&gt;&gt;&gt;
+</code></pre></div><p>可以看到的是真正调用的字节码是 <code>LOAD_ATTR</code>，因此只需要我们深入 <code>LOAD_ATTR</code> 指令我们就能够了解这其中所有发生的内容，了解魔法背后的神秘。</p>
+<h2 id="描述器源码分析">描述器源码分析</h2>
+<p>cpython 虚拟机当中执行这个字节码的内容如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">TARGET</span><span class="tok-p">(</span><span class="tok-n">LOAD_ATTR</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">name</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">GETITEM</span><span class="tok-p">(</span><span class="tok-n">names</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">oparg</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">owner</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">TOP</span><span class="tok-p">();</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyObject_GetAttr</span><span class="tok-p">(</span><span class="tok-n">owner</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">owner</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">SET_TOP</span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">error</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">DISPATCH</span><span class="tok-p">();</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>owner</code> 对应上面的代码当中的 <code>a</code> 对象，<code>name</code> 对应上面的字符串 <code>attr</code> 。从上面的代码分析我们可以知道真正获取属性的函数为 <code>PyObject_GetAttr</code> ，这个函数的源程序如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">PyObject_GetAttr</span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">name</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 首先获取对象 v 的类型 ，对应上面的代码的话就是找到对象 a 的类型</span>
+<span class="tok-w">    </span><span class="tok-n">PyTypeObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">tp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Py_TYPE</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">PyUnicode_Check</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_Format</span><span class="tok-p">(</span><span class="tok-n">PyExc_TypeError</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-s">"attribute name must be string, not '%.200s'"</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-n">name</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_type</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_name</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 获取对象的 tp_getattro 函数 这个函数就是负责属性查找的函数 我们一般使用的这个属性查找函数都是</span>
+<span class="tok-w">    </span><span class="tok-c1">// object 这个基类的属性查找函数</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_getattro</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_getattro</span><span class="tok-p">)(</span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_getattr</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">const</span><span class="tok-w"> </span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">name_str</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyUnicode_AsUTF8</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">name_str</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_getattr</span><span class="tok-p">)(</span><span class="tok-n">v</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">name_str</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">PyErr_Format</span><span class="tok-p">(</span><span class="tok-n">PyExc_AttributeError</span><span class="tok-p">,</span>
+<span class="tok-w">                 </span><span class="tok-s">"'%.50s' object has no attribute '%U'"</span><span class="tok-p">,</span>
+<span class="tok-w">                 </span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_name</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>在上面的代码当中我们提到了 object 这个基类，因为我们需要找到他的属性查找函数，因此我们看一下这个基类在 cpython 内部的定义，在 cpython 内部 object 基类定义为 <code>PyBaseObject_Type</code>：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">PyTypeObject</span><span class="tok-w"> </span><span class="tok-n">PyBaseObject_Type</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyVarObject_HEAD_INIT</span><span class="tok-p">(</span><span class="tok-o">&amp;</span><span class="tok-n">PyType_Type</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">    </span><span class="tok-s">"object"</span><span class="tok-p">,</span><span class="tok-w">                                   </span><span class="tok-cm">/* tp_name */</span>
+<span class="tok-w">    </span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-p">),</span><span class="tok-w">                           </span><span class="tok-cm">/* tp_basicsize */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_itemsize */</span>
+<span class="tok-w">    </span><span class="tok-n">object_dealloc</span><span class="tok-p">,</span><span class="tok-w">                             </span><span class="tok-cm">/* tp_dealloc */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_print */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_getattr */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_setattr */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_reserved */</span>
+<span class="tok-w">    </span><span class="tok-n">object_repr</span><span class="tok-p">,</span><span class="tok-w">                                </span><span class="tok-cm">/* tp_repr */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_as_number */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_as_sequence */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_as_mapping */</span>
+<span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-n">hashfunc</span><span class="tok-p">)</span><span class="tok-n">_Py_HashPointer</span><span class="tok-p">,</span><span class="tok-w">                  </span><span class="tok-cm">/* tp_hash */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_call */</span>
+<span class="tok-w">    </span><span class="tok-n">object_str</span><span class="tok-p">,</span><span class="tok-w">                                 </span><span class="tok-cm">/* tp_str */</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个就是真正的属性查找函数</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject_GenericGetAttr</span><span class="tok-p">,</span><span class="tok-w">                    </span><span class="tok-cm">/* tp_getattro */</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject_GenericSetAttr</span><span class="tok-p">,</span><span class="tok-w">                    </span><span class="tok-cm">/* tp_setattro */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_as_buffer */</span>
+<span class="tok-w">    </span><span class="tok-n">Py_TPFLAGS_DEFAULT</span><span class="tok-w"> </span><span class="tok-o">|</span><span class="tok-w"> </span><span class="tok-n">Py_TPFLAGS_BASETYPE</span><span class="tok-p">,</span><span class="tok-w">   </span><span class="tok-cm">/* tp_flags */</span>
+<span class="tok-w">    </span><span class="tok-n">PyDoc_STR</span><span class="tok-p">(</span><span class="tok-s">"object()</span><span class="tok-se">\n</span><span class="tok-s">--</span><span class="tok-se">\n\n</span><span class="tok-s">The most base type"</span><span class="tok-p">),</span><span class="tok-w">  </span><span class="tok-cm">/* tp_doc */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_traverse */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_clear */</span>
+<span class="tok-w">    </span><span class="tok-n">object_richcompare</span><span class="tok-p">,</span><span class="tok-w">                         </span><span class="tok-cm">/* tp_richcompare */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_weaklistoffset */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_iter */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_iternext */</span>
+<span class="tok-w">    </span><span class="tok-n">object_methods</span><span class="tok-p">,</span><span class="tok-w">                             </span><span class="tok-cm">/* tp_methods */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_members */</span>
+<span class="tok-w">    </span><span class="tok-n">object_getsets</span><span class="tok-p">,</span><span class="tok-w">                             </span><span class="tok-cm">/* tp_getset */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_base */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_dict */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_descr_get */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_descr_set */</span>
+<span class="tok-w">    </span><span class="tok-mi">0</span><span class="tok-p">,</span><span class="tok-w">                                          </span><span class="tok-cm">/* tp_dictoffset */</span>
+<span class="tok-w">    </span><span class="tok-n">object_init</span><span class="tok-p">,</span><span class="tok-w">                                </span><span class="tok-cm">/* tp_init */</span>
+<span class="tok-w">    </span><span class="tok-n">PyType_GenericAlloc</span><span class="tok-p">,</span><span class="tok-w">                        </span><span class="tok-cm">/* tp_alloc */</span>
+<span class="tok-w">    </span><span class="tok-n">object_new</span><span class="tok-p">,</span><span class="tok-w">                                 </span><span class="tok-cm">/* tp_new */</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject_Del</span><span class="tok-p">,</span><span class="tok-w">                               </span><span class="tok-cm">/* tp_free */</span>
+<span class="tok-p">};</span>
+
+<span class="tok-c1">// 从上面的 object 定义可以看到真正的查找函数为 PyObject_GenericGetAttr 其函数内容如下所示：</span>
+<span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">PyObject_GenericGetAttr</span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">obj</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">name</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">_PyObject_GenericGetAttrWithDict</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+</code></pre></div><p><code>_PyObject_GenericGetAttrWithDict</code> 函数定义如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cm">/* Generic GetAttr functions - put these in your tp_[gs]etattro slot. */</span>
+
+<span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">_PyObject_GenericGetAttrWithDict</span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">obj</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">name</span><span class="tok-p">,</span>
+<span class="tok-w">                                 </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">dict</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">suppress</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Make sure the logic of _PyObject_GetMethod is in sync with</span>
+<span class="tok-cm">       this method.</span>
+
+<span class="tok-cm">       When suppress=1, this function suppress AttributeError.</span>
+<span class="tok-cm">    */</span>
+<span class="tok-w">    </span><span class="tok-c1">// 首先获取对象的类型 针对于上面的源代码来说就是找到对象 a 的类型</span>
+<span class="tok-w">    </span><span class="tok-n">PyTypeObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">tp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Py_TYPE</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">descr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">descrgetfunc</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">dictoffset</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">**</span><span class="tok-n">dictptr</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">PyUnicode_Check</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">)){</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_Format</span><span class="tok-p">(</span><span class="tok-n">PyExc_TypeError</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-s">"attribute name must be string, not '%.200s'"</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-n">name</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_type</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_name</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_dict</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyType_Ready</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这个是从所有的基类当中找到一个名字为 name 的对象 如果没有就返回 NULL</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里的过程还是比较复杂 需要从类的 mro 序列当中进行查找</span>
+<span class="tok-w">    </span><span class="tok-n">descr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">_PyType_Lookup</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+
+<span class="tok-w">    </span><span class="tok-n">f</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果找到的类对象不为空 也就是在类本身或者基类当中找到一个名为 name 的对象</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-c1">// 得到类对象的 __get__ 函数</span>
+<span class="tok-w">        </span><span class="tok-n">f</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">descr</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_type</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_descr_get</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 如果对象有 __get__ 函数则进行进一步判断</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">f</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">PyDescr_IsData</span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-c1">// PyDescr_IsData(descr) 这个宏是查看对象是否有 __set__ 函数</span>
+<span class="tok-w">            </span><span class="tok-c1">// 如果是类对象又有 __get__ 函数 又有 __set__ 函数 则直接调用对象的 __get__ 函数 并且将结果返回</span>
+<span class="tok-w">            </span><span class="tok-c1">// 这里需要注意一下优先级 这个优先级是最高的 如果一个类对象定义了 __set__ 和 __get__ 函数，那么</span>
+<span class="tok-w">            </span><span class="tok-c1">// 就会直接调用类对象的 __get__ 函数并且将这个函数的返回值返回</span>
+<span class="tok-w">            </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">obj</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">obj</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_type</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">suppress</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span>
+<span class="tok-w">                    </span><span class="tok-n">PyErr_ExceptionMatches</span><span class="tok-p">(</span><span class="tok-n">PyExc_AttributeError</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">PyErr_Clear</span><span class="tok-p">();</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果没有名为 name 的类对象 或者虽然有名为 name 的对象 但是只要没有同时定义 __get__ 和 __set__ 函数就需要</span>
+<span class="tok-w">    </span><span class="tok-c1">// 继续往下执行 从对象本省的 dict 当中寻找</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-cm">/* Inline _PyObject_GetDictPtr */</span>
+<span class="tok-w">        </span><span class="tok-c1">// 这部分代码就是从对象 obj 当中找到对象的 __dict__ 字段</span>
+<span class="tok-w">        </span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_dictoffset</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">tsize</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span>
+
+<span class="tok-w">                </span><span class="tok-n">tsize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-n">PyVarObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">obj</span><span class="tok-p">)</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_size</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">tsize</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">                    </span><span class="tok-n">tsize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-n">tsize</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">_PyObject_VAR_SIZE</span><span class="tok-p">(</span><span class="tok-n">tp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">tsize</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">PY_SSIZE_T_MAX</span><span class="tok-p">);</span>
+
+<span class="tok-w">                </span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Py_ssize_t</span><span class="tok-p">)</span><span class="tok-n">size</span><span class="tok-p">;</span>
+<span class="tok-w">                </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">dictoffset</span><span class="tok-w"> </span><span class="tok-o">%</span><span class="tok-w"> </span><span class="tok-n">SIZEOF_VOID_P</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">            </span><span class="tok-n">dictptr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">**</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">((</span><span class="tok-kt">char</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">obj</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">dictoffset</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">dict</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">dictptr</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果对象 obj 存在 __dict__ 字段 那么就返回 __dict__ 字段当中名字等于 name 的对象</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyDict_GetItem</span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">dict</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果类对象定义了 __get__ 函数没有定义 __set__ 函数而且在 dict 当中没有找到名为 name 的对象的话</span>
+<span class="tok-w">    </span><span class="tok-c1">// 那么久调用类对象的 __get__ 函数</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">f</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">f</span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">obj</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">Py_TYPE</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">));</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">suppress</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span>
+<span class="tok-w">                </span><span class="tok-n">PyErr_ExceptionMatches</span><span class="tok-p">(</span><span class="tok-n">PyExc_AttributeError</span><span class="tok-p">))</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">PyErr_Clear</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果类对象没有定义 __get__ 函数那么就直接将这个类对象返回</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">res</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">descr</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">descr</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">goto</span><span class="tok-w"> </span><span class="tok-n">done</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">suppress</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_Format</span><span class="tok-p">(</span><span class="tok-n">PyExc_AttributeError</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-s">"'%.50s' object has no attribute '%U'"</span><span class="tok-p">,</span>
+<span class="tok-w">                     </span><span class="tok-n">tp</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_name</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">  </span><span class="tok-nl">done</span><span class="tok-p">:</span>
+<span class="tok-w">    </span><span class="tok-n">Py_XDECREF</span><span class="tok-p">(</span><span class="tok-n">descr</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">res</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>根据对上面的程序进行分析，我们可以到得到从对象当中获取属性的顺序和优先级如下所示（以 <code>a.attr</code> 为例子）：</p>
+<ul>
+<li>如果属性不是类属性，那么很简单就是直接从对象本身的 <code>__dict__</code> 当中获取这个对象。</li>
+<li>如果属性是类属性，如果同时定义了 <code>__get__</code> 和 <code>__set__</code> 函数，那么就会调用这个类对象的 <code>__get__</code> 函数，将这个函数的返回值作为 <code>a.attr</code> 的返回值。</li>
+<li>如果属性是类属性，如果只定义了 <code>__get__</code> 函数，那么就会从对象 <code>a</code> 本身的 <code>__dict__</code> 当中获取 <code>attr</code> ，如果 <code>attr</code> 存在与 <code>a.__dict__</code> 当中，那么久返回这个结果，如果不存在的话那么就会调用 <code>__get__</code> 函数，将这个函数的返回值作为 <code>a.attr</code> 的结果，如果连 <code>__get__</code> 都没有定义，那么就会直接返回这个类对象。</li>
+</ul>
+<p>上面的函数过程用 python 语言来描述的话如下所示：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">find_name_in_mro</span><span class="tok-p">(</span><span class="tok-bp">cls</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">,</span> <span class="tok-n">default</span><span class="tok-p">):</span>
+    <span class="tok-s2">"Emulate _PyType_Lookup() in Objects/typeobject.c"</span>
+    <span class="tok-k">for</span> <span class="tok-n">base</span> <span class="tok-ow">in</span> <span class="tok-bp">cls</span><span class="tok-o">.</span><span class="tok-vm">__mro__</span><span class="tok-p">:</span>
+        <span class="tok-k">if</span> <span class="tok-n">name</span> <span class="tok-ow">in</span> <span class="tok-nb">vars</span><span class="tok-p">(</span><span class="tok-n">base</span><span class="tok-p">):</span>
+            <span class="tok-k">return</span> <span class="tok-nb">vars</span><span class="tok-p">(</span><span class="tok-n">base</span><span class="tok-p">)[</span><span class="tok-n">name</span><span class="tok-p">]</span>
+    <span class="tok-k">return</span> <span class="tok-n">default</span>
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">object_getattribute</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">):</span>
+    <span class="tok-s2">"Emulate PyObject_GenericGetAttr() in Objects/object.c"</span>
+    <span class="tok-n">null</span> <span class="tok-o">=</span> <span class="tok-nb">object</span><span class="tok-p">()</span>
+    <span class="tok-n">objtype</span> <span class="tok-o">=</span> <span class="tok-nb">type</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">)</span>
+    <span class="tok-n">cls_var</span> <span class="tok-o">=</span> <span class="tok-n">find_name_in_mro</span><span class="tok-p">(</span><span class="tok-n">objtype</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">,</span> <span class="tok-n">null</span><span class="tok-p">)</span>
+    <span class="tok-n">descr_get</span> <span class="tok-o">=</span> <span class="tok-nb">getattr</span><span class="tok-p">(</span><span class="tok-nb">type</span><span class="tok-p">(</span><span class="tok-n">cls_var</span><span class="tok-p">),</span> <span class="tok-s1">'__get__'</span><span class="tok-p">,</span> <span class="tok-n">null</span><span class="tok-p">)</span>
+    <span class="tok-k">if</span> <span class="tok-n">descr_get</span> <span class="tok-ow">is</span> <span class="tok-ow">not</span> <span class="tok-n">null</span><span class="tok-p">:</span>
+        <span class="tok-k">if</span> <span class="tok-p">(</span><span class="tok-nb">hasattr</span><span class="tok-p">(</span><span class="tok-nb">type</span><span class="tok-p">(</span><span class="tok-n">cls_var</span><span class="tok-p">),</span> <span class="tok-s1">'__set__'</span><span class="tok-p">)</span>
+            <span class="tok-ow">or</span> <span class="tok-nb">hasattr</span><span class="tok-p">(</span><span class="tok-nb">type</span><span class="tok-p">(</span><span class="tok-n">cls_var</span><span class="tok-p">),</span> <span class="tok-s1">'__delete__'</span><span class="tok-p">)):</span>
+            <span class="tok-k">return</span> <span class="tok-n">descr_get</span><span class="tok-p">(</span><span class="tok-n">cls_var</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">objtype</span><span class="tok-p">)</span>     <span class="tok-c1"># data descriptor</span>
+    <span class="tok-k">if</span> <span class="tok-nb">hasattr</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-s1">'__dict__'</span><span class="tok-p">)</span> <span class="tok-ow">and</span> <span class="tok-n">name</span> <span class="tok-ow">in</span> <span class="tok-nb">vars</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-nb">vars</span><span class="tok-p">(</span><span class="tok-n">obj</span><span class="tok-p">)[</span><span class="tok-n">name</span><span class="tok-p">]</span>                          <span class="tok-c1"># instance variable</span>
+    <span class="tok-k">if</span> <span class="tok-n">descr_get</span> <span class="tok-ow">is</span> <span class="tok-ow">not</span> <span class="tok-n">null</span><span class="tok-p">:</span>
+        <span class="tok-k">return</span> <span class="tok-n">descr_get</span><span class="tok-p">(</span><span class="tok-n">cls_var</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">objtype</span><span class="tok-p">)</span>         <span class="tok-c1"># non-data descriptor</span>
+    <span class="tok-k">if</span> <span class="tok-n">cls_var</span> <span class="tok-ow">is</span> <span class="tok-ow">not</span> <span class="tok-n">null</span><span class="tok-p">:</span>
+        <span class="tok-k">return</span> <span class="tok-n">cls_var</span>                                  <span class="tok-c1"># class variable</span>
+    <span class="tok-k">raise</span> <span class="tok-ne">AttributeError</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">)</span>
+</code></pre></div><p>仔细分析上面的 python 代码，他的整个逻辑和我们前面分析的 c 代码的逻辑是一样的。首先是获取对象的类型，然后从类型当中获取名字为 name 的属性，如果类属性定义了 <code>__get__</code> 函数，则需要进行描述器的判断，否则直接从对象的 <code>__dict__</code> 当中获取，如果其中没有则返回类对象。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家深入分析了在 cpython 的内部对于描述器的实现原理，其中最重要的就是在获取属性的时候的优先级了。我们直接从 c 代码的层面分析了整个获取属性的优先级，并且给出了 python 层面的代码帮助大家理解。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-obsy-02application/"><span>较新</span>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</a><a class="next" href="/posts/cpython-obsy-05magicmethod/"><span>较旧</span>魔术方法之数学计算</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#从字节码角度看描述器">从字节码角度看描述器</a></li>
+      <li class="toc-l2"><a href="#描述器源码分析">描述器源码分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

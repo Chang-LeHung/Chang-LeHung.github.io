@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解 Python 虚拟机：整型（int）的实现原理及源码剖析 · Chang-LeHung</title>
+<meta name="description" content="在本篇文章当中主要给大家介绍在 cpython 内部是如何实现整型数据 int 的，主要是分析 int 类型的表示方式，分析 int 类型的巧妙设计。 数据结构 在 cpython 内部的 int 类型的实现数据结构如下所示： 复制 typedef struct _longobject PyLong">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解 Python 虚拟机：整型（int）的实现原理及源码剖析</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/对象模型/">对象模型</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在本篇文章当中主要给大家介绍在 cpython 内部是如何实现整型数据 int 的，主要是分析 int 类型的表示方式，分析 int 类型的巧妙设计。</p>
+<h2 id="数据结构">数据结构</h2>
+<p>在 cpython 内部的 int 类型的实现数据结构如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_longobject</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-p">;</span>
+<span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_longobject</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">	</span><span class="tok-n">PyObject_VAR_HEAD</span>
+<span class="tok-w">	</span><span class="tok-n">digit</span><span class="tok-w"> </span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+<span class="tok-p">};</span>
+<span class="tok-cp">#define PyObject_VAR_HEAD      PyVarObject ob_base;</span>
+<span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-n">ob_base</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">ob_size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* Number of items in variable part */</span>
+<span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyVarObject</span><span class="tok-p">;</span>
+<span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_object</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">_PyObject_HEAD_EXTRA</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">ob_refcnt</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_typeobject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ob_type</span><span class="tok-p">;</span>
+<span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-p">;</span>
+</code></pre></div><p>上面的数据结构用图的方式表示出来如下图所示：</p>
+<p><img src="/content/zh/images/cpython/22-int.webp" alt="15-int" loading="lazy" /></p>
+<ul>
+<li>ob_refcnt，表示对象的引用记数的个数，这个对于垃圾回收很有用处，后面我们分析虚拟机中垃圾回收部分在深入分析。</li>
+<li>ob_type，表示这个对象的数据类型是什么，在 python 当中有时候需要对数据的数据类型进行判断比如 isinstance, type 这两个关键字就会使用到这个字段。</li>
+<li>ob_size，这个字段表示这个整型对象数组 ob_digit 当中一共有多少个元素。</li>
+<li>digit 类型其实就是 uint32_t 类型的一个 宏定义，表示 32 位的整型数据。</li>
+</ul>
+<h2 id="深入分析-pylongobject-字段的语意">深入分析 PyLongObject 字段的语意</h2>
+<p>首先我们知道在 python 当中的整数是不会溢出的，这正是 PyLongObject 使用数组的原因。在 cpython 内部的实现当中，整数有 0 、正数、负数，对于这一点在 cpython 当中有以下几个规定：</p>
+<ul>
+<li>ob_size，保存的是数组的长度，ob_size 大于 0 时保存的是正数，当 ob_size 小于 0 时保存的是负数。</li>
+<li>ob_digit，保存的是整数的绝对值。在前面我们谈到了，ob_digit 是一个 32 位的数据，但是在 cpython 内部只会使用其中的前 30 位，这只为了避免溢出的问题。</li>
+</ul>
+<p>我们下面使用几个例子来深入理解一下上面的规则：</p>
+<p><img src="/content/zh/images/cpython/16-int.webp" alt="15-int" loading="lazy" /></p>
+<p>在上图当中 ob_size  大于 0 ，说明这个数是一个正数，而 ob_digit 指向一个 int32 的数据，数的值等于 10，因此上面这个数表示整数 10 。</p>
+<p><img src="/content/zh/images/cpython/17-int.webp" alt="15-int" loading="lazy" /></p>
+<p>同理 ob_size 小于 0，而 ob_digit 等于 10，因此上图当中的数据表示 -10 。</p>
+<p><img src="/content/zh/images/cpython/18-int.webp" alt="15-int" loading="lazy" /></p>
+<p>上面是一个 ob_digit 数组长度为 2 的例子，上面所表示数据如下所示：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>0</mn></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002B;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>29</mn></mrow></msup><mo>&#x0002B;</mo><mn>0</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>30</mn></mrow></msup><mo>&#x0002B;</mo><mn>0</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>31</mn></mrow></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>32</mn></mrow></msup></mrow></math></div><p>因为对于每一个数组元素来说我们只使用前 30 位，因此到第二个整型数据的时候正好对应着 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mrow><mn>30</mn></mrow></msup></mrow></math>，大家可以对应着上面的结果了解整个计算过程。</p>
+<p><img src="/content/zh/images/cpython/19-int.webp" alt="15-int" loading="lazy" /></p>
+<p>上面也就很简单了：</p>
+<div class="math-block"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mo>&#x02212;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>0</mn></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>1</mn></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mn>2</mn></msup><mo>&#x0002B;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002E;</mo><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>29</mn></mrow></msup><mo>&#x0002B;</mo><mn>0</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>30</mn></mrow></msup><mo>&#x0002B;</mo><mn>0</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>31</mn></mrow></msup><mo>&#x0002B;</mo><mn>1</mn><mo>&#x000B7;</mo><msup><mn>2</mn><mrow><mn>32</mn></mrow></msup><mo stretchy="false">&#x00029;</mo></mrow></math></div><h2 id="小整数池">小整数池</h2>
+<p>为了避免频繁的创建一些常用的整数，加快程序执行的速度，我们可以将一些常用的整数先缓存起来，如果需要的话就直接将这个数据返回即可。在 cpython 当中相关的代码如下所示：（小整数池当中缓存数据的区间为[-5, 256]）</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define NSMALLPOSINTS           257</span>
+<span class="tok-cp">#define NSMALLNEGINTS           5</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-n">small_ints</span><span class="tok-p">[</span><span class="tok-n">NSMALLNEGINTS</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">NSMALLPOSINTS</span><span class="tok-p">];</span>
+</code></pre></div><p><img src="/content/zh/images/cpython/20-int.webp" alt="15-int" loading="lazy" /></p>
+<p>我们使用下面的代码进行测试，看是否使用了小整数池当中的数据，如果使用的话，对于使用小整数池当中的数据，他们的 id() 返回值是一样的，id 这个内嵌函数返回的是 python 对象的内存地址。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-mi">1</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">b</span> <span class="tok-o">=</span> <span class="tok-mi">2</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">c</span> <span class="tok-o">=</span> <span class="tok-mi">1</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">),</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+<span class="tok-p">(</span><span class="tok-mi">4343136496</span><span class="tok-p">,</span> <span class="tok-mi">4343136496</span><span class="tok-p">)</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-o">-</span><span class="tok-mi">6</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">c</span> <span class="tok-o">=</span> <span class="tok-o">-</span><span class="tok-mi">6</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">),</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+<span class="tok-p">(</span><span class="tok-mi">4346020624</span><span class="tok-p">,</span> <span class="tok-mi">4346021072</span><span class="tok-p">)</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-mi">257</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">b</span> <span class="tok-o">=</span> <span class="tok-mi">257</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">),</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+<span class="tok-p">(</span><span class="tok-mi">4346021104</span><span class="tok-p">,</span> <span class="tok-mi">4346021072</span><span class="tok-p">)</span>
+<span class="tok-o">&gt;&gt;&gt;</span>
+</code></pre></div><p>从上面的结果我们可以看到的是，对于区间[-5, 256]当中的值，id 的返回值确实是一样的，不在这个区间之内的返回值就是不一样的。</p>
+<p>我们还可以这个特性实现一个小的 trick，就是求一个 PyLongObject 对象所占的内存空间大小，因为我们可以使用 -5 和 256 这两个数据的内存首地址，然后将这个地址相减就可以得到 261 个 PyLongObject 所占的内存空间大小（注意虽然小整数池当中一共有 262 个数据，但是最后一个数据是内存首地址，并不是尾地址，因此只有 261 个数据），这样我们就可以求一个 PyLongObject 对象的内存大小。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-o">-</span><span class="tok-mi">5</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">b</span> <span class="tok-o">=</span> <span class="tok-mi">256</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-p">(</span><span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">)</span> <span class="tok-o">-</span> <span class="tok-nb">id</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">))</span> <span class="tok-o">/</span> <span class="tok-mi">261</span>
+<span class="tok-mf">32.0</span>
+<span class="tok-o">&gt;&gt;&gt;</span>
+</code></pre></div><p>从上面的输出结果我们可以看到一个 PyLongObject 对象占 32 个字节。我们可以使用下面的 C 程序查看一个 PyLongObject 真实所占的内存空间大小。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">"Python.h"</span>
+<span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span>
+<span class="tok-p">{</span>
+<span class="tok-w">  </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"%ld</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">PyLongObject</span><span class="tok-p">));</span>
+<span class="tok-w">  </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<p><img src="/content/zh/images/cpython/21-int.webp" alt="15-int" loading="lazy" /></p>
+<p>上面两个结果是相等的，因此也验证了我们的想法。</p>
+<p>从小整数池当中获取数据的核心代码如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">get_small_int</span><span class="tok-p">(</span><span class="tok-n">sdigit</span><span class="tok-w"> </span><span class="tok-n">ival</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">v</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-o">-</span><span class="tok-n">NSMALLNEGINTS</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">ival</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">ival</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">NSMALLPOSINTS</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">v</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-o">&amp;</span><span class="tok-n">small_ints</span><span class="tok-p">[</span><span class="tok-n">ival</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">NSMALLNEGINTS</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="整数的加法实现">整数的加法实现</h2>
+<p>关于 PyLongObject 的操作有很多，我们看一下加法的实现，见微知著，剩下的其他的方法我们就不介绍了，大家感兴趣可以去看具体的源代码。</p>
+<p>如果你了解过大整数加法就能够知道，大整数加法的具体实现过程了，在 cpython 内部的实现方式其实也是一样的，就是不断的进行加法操作然后进行进位操作。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define Py_ABS(x) ((x) &lt; 0 ? -(x) : (x)) </span><span class="tok-c1">// 返回 x 的绝对值</span>
+<span class="tok-cp">#define PyLong_BASE	((digit)1 &lt;&lt; PyLong_SHIFT)</span>
+<span class="tok-cp">#define PyLong_MASK	((digit)(PyLong_BASE - 1))</span>
+
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">x_add</span><span class="tok-p">(</span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">b</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-c1">// 首先获得两个整型数据的 size </span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">size_a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Py_ABS</span><span class="tok-p">(</span><span class="tok-n">Py_SIZE</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">)),</span><span class="tok-w"> </span><span class="tok-n">size_b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Py_ABS</span><span class="tok-p">(</span><span class="tok-n">Py_SIZE</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">z</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">digit</span><span class="tok-w"> </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 确保 a 保存的数据 size 是更大的</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Ensure a is the larger of the two: */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size_a</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size_b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">temp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">temp</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">{</span><span class="tok-w"> </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">size_temp</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size_a</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">size_a</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size_b</span><span class="tok-p">;</span>
+<span class="tok-w">            </span><span class="tok-n">size_b</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size_temp</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 创建一个新的 PyLongObject 对象，而且数组的长度是 size_a + 1</span>
+<span class="tok-w">    </span><span class="tok-n">z</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">_PyLong_New</span><span class="tok-p">(</span><span class="tok-n">size_a</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">z</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 下面就是整个加法操作的核心</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size_b</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-c1">// 将低 30 位的数据保存下来</span>
+<span class="tok-w">        </span><span class="tok-n">z</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">PyLong_MASK</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-c1">// 将 carry 右移 30 位，如果上面的加法有进位的话 刚好可以在下一次加法当中使用（注意上面的 carry）</span>
+<span class="tok-w">        </span><span class="tok-c1">// 使用的是 += 而不是 =</span>
+<span class="tok-w">        </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;=</span><span class="tok-w"> </span><span class="tok-n">PyLong_SHIFT</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// PyLong_SHIFT = 30</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将剩下的长度保存 （因为 a 的 size 是比 b 大的）</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size_a</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-o">++</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">+=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-n">z</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">PyLong_MASK</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">carry</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;=</span><span class="tok-w"> </span><span class="tok-n">PyLong_SHIFT</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 最后保存高位的进位</span>
+<span class="tok-w">    </span><span class="tok-n">z</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">carry</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">long_normalize</span><span class="tok-p">(</span><span class="tok-n">z</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// long_normalize 这个函数的主要功能是保证 ob_size 保存的是真正的数据的长度 因为可以是一个正数加上一个负数 size 还变小了</span>
+<span class="tok-p">}</span>
+
+<span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">_PyLong_New</span><span class="tok-p">(</span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Number of bytes needed is: offsetof(PyLongObject, ob_digit) +</span>
+<span class="tok-cm">       sizeof(digit)*size.  Previous incarnations of this code used</span>
+<span class="tok-cm">       sizeof(PyVarObject) instead of the offsetof, but this risks being</span>
+<span class="tok-cm">       incorrect in the presence of padding between the PyVarObject header</span>
+<span class="tok-cm">       and the digits. */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Py_ssize_t</span><span class="tok-p">)</span><span class="tok-n">MAX_LONG_DIGITS</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_SetString</span><span class="tok-p">(</span><span class="tok-n">PyExc_OverflowError</span><span class="tok-p">,</span>
+<span class="tok-w">                        </span><span class="tok-s">"too many digits in integer"</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// offsetof 会调用 gcc 的一个内嵌函数 __builtin_offsetof </span>
+<span class="tok-w">    </span><span class="tok-c1">// offsetof(PyLongObject, ob_digit)  这个功能是得到 PyLongObject 对象 字段 ob_digit 之前的所有字段所占的内存空间的大小</span>
+<span class="tok-w">    </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyObject_MALLOC</span><span class="tok-p">(</span><span class="tok-n">offsetof</span><span class="tok-p">(</span><span class="tok-n">PyLongObject</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ob_digit</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                             </span><span class="tok-n">size</span><span class="tok-o">*</span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">digit</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-o">!</span><span class="tok-n">result</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_NoMemory</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将对象的 result 的引用计数设置成 1</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyLongObject</span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">PyObject_INIT_VAR</span><span class="tok-p">(</span><span class="tok-n">result</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">PyLong_Type</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">long_normalize</span><span class="tok-p">(</span><span class="tok-n">PyLongObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">v</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">Py_ABS</span><span class="tok-p">(</span><span class="tok-n">Py_SIZE</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">while</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-o">-&gt;</span><span class="tok-n">ob_digit</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-mi">-1</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-o">--</span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">j</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">Py_SIZE</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">Py_SIZE</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">?</span><span class="tok-w"> </span><span class="tok-o">-</span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">v</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了 cpython 内部是如何实现整型数据 int 的，分析了 int 类型的表示方式和设计。int 内部使用 digit 来表示 32 位的整型数据，同时为了避免溢出的问题，只会使用其中的前 30 位。在 cpython 内部的实现当中，整数有 0 、正数、负数，对于这一点有以下几个规定：</p>
+<ul>
+<li>ob_size，保存的是数组的长度，ob_size 大于 0 时保存的是正数，当 ob_size 小于 0 时保存的是负数。</li>
+<li>ob_digit，保存的是整数的绝对值。</li>
+<li>此外，为避免频繁创建一些常用的整数，cpython 使用了小整数池的技术，将一些常用的整数先缓存起来。最后，本文还介绍了整数的加法实现，即不断进行加法操作然后进行进位操作。</li>
+</ul>
+<p>cpython 使用这种方式的主要原理就是大整数的加减乘除，本篇文章主要是介绍了加法操作，大家如果感兴趣可以自行阅读其他的源程序。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-objects-03float/"><span>较新</span>深入理解 Python 虚拟机：浮点数（float）的实现原理及源码剖析</a><a class="next" href="/posts/cpython-objects-05complex/"><span>较旧</span>深入理解 Python 虚拟机：复数（complex）的实现原理及源码剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#数据结构">数据结构</a></li>
+      <li class="toc-l2"><a href="#深入分析-pylongobject-字段的语意">深入分析 PyLongObject 字段的语意</a></li>
+      <li class="toc-l2"><a href="#小整数池">小整数池</a></li>
+      <li class="toc-l2"><a href="#整数的加法实现">整数的加法实现</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

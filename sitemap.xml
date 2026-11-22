@@ -13,7 +13,107 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
-    <loc>https://chang-lehung.github.io/posts/welcome/</loc>
+    <loc>https://chang-lehung.github.io/posts/cpython-new-314/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-08bytes/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-04mro/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-02codeobject/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-08debugger/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-01list/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-02tuple/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-03float/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-04long/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-05complex/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-06set/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-07dict/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-objects-09dict/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-01class/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-02application/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-03decriptor/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-05magicmethod/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-06magicmethod02/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-obsy-07super/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-01pyc/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-03bytecode/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-04bytecode-tutorial/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-05bytecode-tutorial/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-06bytecode-tutorial/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-07frameobject/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/posts/cpython-pvm-09binpyc/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
@@ -49,6 +149,22 @@
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>
+    <loc>https://chang-lehung.github.io/tags/python/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/tags/对象模型/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/tags/虚拟机/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
+    <loc>https://chang-lehung.github.io/tags/面向对象/</loc>
+    <lastmod>2026-11-22</lastmod>
+  </url>
+  <url>
     <loc>https://chang-lehung.github.io/tags/java/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
@@ -74,10 +190,6 @@
   </url>
   <url>
     <loc>https://chang-lehung.github.io/en/tags/</loc>
-    <lastmod>2026-11-22</lastmod>
-  </url>
-  <url>
-    <loc>https://chang-lehung.github.io/en/posts/welcome/</loc>
     <lastmod>2026-11-22</lastmod>
   </url>
   <url>

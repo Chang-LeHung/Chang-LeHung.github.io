@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解 python 虚拟机：字节码教程(1)——原来装饰器是这样实现的 · Chang-LeHung</title>
+<meta name="description" content="在本篇文章当中主要给大家介绍在 cpython 当中一些比较常见的字节码，从根本上理解 python 程序的执行。在本文当中主要介绍一些 python 基本操作的字节码，并且将从字节码的角度分析函数装饰器的原理！ Python 常见字节码 LOAD_CONST 这个指令用于将一个常量加载到栈中。常量">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解 python 虚拟机：字节码教程(1)——原来装饰器是这样实现的</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/虚拟机/">虚拟机</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在本篇文章当中主要给大家介绍在 cpython 当中一些比较常见的字节码，从根本上理解 python 程序的执行。在本文当中主要介绍一些 python 基本操作的字节码，并且将从字节码的角度分析函数装饰器的原理！</p>
+<h2 id="python-常见字节码">Python 常见字节码</h2>
+<h3 id="load_const">LOAD_CONST</h3>
+<p>这个指令用于将一个常量加载到栈中。常量可以是数字、字符串、元组、列表、字典等对象。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-mi">42</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-mi">42</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="load_name">LOAD_NAME</h3>
+<p>这个指令用于将一个变量加载到栈中。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span>
+</code></pre></div><h3 id="store_name">STORE_NAME</h3>
+<p>这个指令用于将栈顶的值存储到一个变量中。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-s2">"x=42"</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-mi">42</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">STORE_NAME</span>               <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-kc">None</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="binary_add">BINARY_ADD</h3>
+<p>这个指令用于对栈顶的两个值进行加法运算并将结果推送到栈中。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">+</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_ADD</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="binary_subtract">BINARY_SUBTRACT</h3>
+<p>这个指令用于对栈顶的两个值进行减法运算并将结果推送到栈中。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">-</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_SUBTRACT</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><p>同样的加减乘除取余数的字节码如下所示：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">+</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_ADD</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">-</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_SUBTRACT</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">*</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_MULTIPLY</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">/</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_TRUE_DIVIDE</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">//</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_FLOOR_DIVIDE</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">%</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_MODULO</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="compare_op">COMPARE_OP</h3>
+<p>这个指令用于比较栈顶的两个值，并且将比较得到的结果压入栈中，这个字节码后面后一个字节的参数，表示小于大于不等于等等比较符号。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">-</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">BINARY_SUBTRACT</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">&gt;</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">4</span> <span class="tok-p">(</span><span class="tok-o">&gt;</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">&lt;</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-o">&lt;</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">!=</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">3</span> <span class="tok-p">(</span><span class="tok-o">!=</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">&lt;=</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-o">&lt;=</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">&gt;=</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">5</span> <span class="tok-p">(</span><span class="tok-o">&gt;=</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-o">==</span> <span class="tok-n">y</span><span class="tok-p">)</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">y</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">COMPARE_OP</span>               <span class="tok-mi">2</span> <span class="tok-p">(</span><span class="tok-o">==</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="return_value">RETURN_VALUE</h3>
+<p>将栈顶元素弹出作为返回值。</p>
+<h3 id="build_list">BUILD_LIST</h3>
+<p>这个指令用于创建一个列表。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-p">[</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">,</span> <span class="tok-n">c</span><span class="tok-p">,</span> <span class="tok-n">e</span><span class="tok-p">])</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">2</span> <span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">3</span> <span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-p">)</span>
+              <span class="tok-mi">8</span> <span class="tok-n">BUILD_LIST</span>               <span class="tok-mi">4</span>
+             <span class="tok-mi">10</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><p>这条字节码指令有一个参数表示栈空间当中列表元素的个数，在上面的例子当中这个参数是 4 。</p>
+<h3 id="build_tuple">BUILD_TUPLE</h3>
+<p>这个指令用于创建一个元组。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">,</span> <span class="tok-n">c</span><span class="tok-p">))</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">2</span> <span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">BUILD_TUPLE</span>              <span class="tok-mi">3</span>
+              <span class="tok-mi">8</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><p>同样的这个字节码也有一个参数，表示创建元组的元素个数。</p>
+<h3 id="build_map">BUILD_MAP</h3>
+<p>这个指令用于创建一个字典。例如：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>
+</code></pre></div><h3 id="build_set">BUILD_SET</h3>
+<p>和 list 和 tuple 一样，这条指令是用于创建一个集合对象，同样的这条指令也有一个参数表示用于创建集合的元素的个数。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-p">{</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">,</span> <span class="tok-n">c</span><span class="tok-p">,</span> <span class="tok-n">d</span><span class="tok-p">})</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">0</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">2</span> <span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span>
+              <span class="tok-mi">6</span> <span class="tok-n">LOAD_GLOBAL</span>              <span class="tok-mi">3</span> <span class="tok-p">(</span><span class="tok-n">d</span><span class="tok-p">)</span>
+              <span class="tok-mi">8</span> <span class="tok-n">BUILD_SET</span>                <span class="tok-mi">4</span>
+             <span class="tok-mi">10</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h3 id="build_const_key_map">BUILD_CONST_KEY_MAP</h3>
+<p>这条指令是用于创建一个字典对象，同样的这条指令也有一个参数，表示字典当中元素的个数。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-k">lambda</span><span class="tok-p">:</span> <span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">:</span><span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">:</span><span class="tok-mi">4</span><span class="tok-p">})</span>
+  <span class="tok-mi">1</span>           <span class="tok-mi">0</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">1</span> <span class="tok-p">(</span><span class="tok-mi">2</span><span class="tok-p">)</span>
+              <span class="tok-mi">2</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">2</span> <span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">)</span>
+              <span class="tok-mi">4</span> <span class="tok-n">LOAD_CONST</span>               <span class="tok-mi">3</span> <span class="tok-p">((</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">))</span>
+              <span class="tok-mi">6</span> <span class="tok-n">BUILD_CONST_KEY_MAP</span>      <span class="tok-mi">2</span>
+              <span class="tok-mi">8</span> <span class="tok-n">RETURN_VALUE</span>
+</code></pre></div><h2 id="从字节码角度分析装饰器的原理">从字节码角度分析装饰器的原理</h2>
+<p>如果你是一个 pythoner 那么你肯定或多或少听说过装饰器，这是一个 python 的语法糖我们可以用它来做很多有趣的事情，比如在不修改源代码的基础之上给函数附加一些功能，比如说计算时间。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">time</span>
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">eval_time</span><span class="tok-p">(</span><span class="tok-n">func</span><span class="tok-p">):</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">cal_time</span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">args</span><span class="tok-p">,</span> <span class="tok-o">**</span><span class="tok-n">kwargs</span><span class="tok-p">):</span>
+        <span class="tok-n">start</span> <span class="tok-o">=</span> <span class="tok-n">time</span><span class="tok-o">.</span><span class="tok-n">time</span><span class="tok-p">()</span>
+        <span class="tok-n">r</span> <span class="tok-o">=</span> <span class="tok-n">func</span><span class="tok-p">(</span><span class="tok-o">*</span><span class="tok-n">args</span><span class="tok-p">,</span> <span class="tok-o">**</span><span class="tok-n">kwargs</span><span class="tok-p">)</span>
+        <span class="tok-n">end</span> <span class="tok-o">=</span> <span class="tok-n">time</span><span class="tok-o">.</span><span class="tok-n">time</span><span class="tok-p">()</span>
+        <span class="tok-k">return</span> <span class="tok-n">r</span><span class="tok-p">,</span> <span class="tok-n">end</span> <span class="tok-o">-</span> <span class="tok-n">start</span>
+    <span class="tok-k">return</span> <span class="tok-n">cal_time</span>
+
+
+<span class="tok-nd">@eval_time</span>
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">fib</span><span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-p">):</span>
+    <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-mi">0</span>
+    <span class="tok-n">b</span> <span class="tok-o">=</span> <span class="tok-mi">1</span>
+    <span class="tok-k">while</span> <span class="tok-n">n</span> <span class="tok-o">&gt;</span> <span class="tok-mi">0</span><span class="tok-p">:</span>
+        <span class="tok-n">n</span> <span class="tok-o">-=</span> <span class="tok-mi">1</span>
+        <span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span> <span class="tok-o">=</span> <span class="tok-n">b</span><span class="tok-p">,</span> <span class="tok-n">a</span> <span class="tok-o">+</span> <span class="tok-n">b</span>
+    <span class="tok-k">return</span> <span class="tok-n">a</span>
+</code></pre></div><p>在上面的代码当中我们实现了一个计算斐波拉契数列的函数，除此之外还写了一个 eval_time 函数用于计算函数执行的时间，现在调用函数 fib(10)，程序的输出如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>&gt;&gt;&gt;fib<span class="tok-o">(</span><span class="tok-m">10</span><span class="tok-o">)</span>
+<span class="tok-o">(</span><span class="tok-m">55</span>,<span class="tok-w"> </span><span class="tok-m">5</span>.9604644775390625e-06<span class="tok-o">)</span>
+</code></pre></div><p>可以看到实现了我们想要的效果。</p>
+<p>现在我们使用一个更加简单的例子来模拟上面的代码结构，方便我们对上面函数执行的过程进行分析：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">s</span> <span class="tok-o">=</span> <span class="tok-s2">"""</span>
+<span class="tok-s2">def decorator(func):</span>
+<span class="tok-s2">    print("Hello")</span>
+<span class="tok-s2">    return func</span>
+
+<span class="tok-s2">@decorator</span>
+<span class="tok-s2">def fib(n):</span>
+<span class="tok-s2">    pass</span>
+<span class="tok-s2">"""</span>
+<span class="tok-n">dis</span><span class="tok-o">.</span><span class="tok-n">dis</span><span class="tok-p">(</span><span class="tok-n">s</span><span class="tok-p">)</span>
+</code></pre></div><p>上面的 dis 函数的输出对应代码的字节码如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-w">  </span><span class="tok-m">2</span><span class="tok-w">           </span><span class="tok-m">0</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>&lt;code<span class="tok-w"> </span>object<span class="tok-w"> </span>decorator<span class="tok-w"> </span>at<span class="tok-w"> </span>0x108068d40,<span class="tok-w"> </span>file<span class="tok-w"> </span><span class="tok-s2">"&lt;dis&gt;"</span>,<span class="tok-w"> </span>line<span class="tok-w"> </span><span class="tok-m">2</span>&gt;<span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">2</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-s1">'decorator'</span><span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">4</span><span class="tok-w"> </span>MAKE_FUNCTION<span class="tok-w">            </span><span class="tok-m">0</span>
+<span class="tok-w">              </span><span class="tok-m">6</span><span class="tok-w"> </span>STORE_NAME<span class="tok-w">               </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>decorator<span class="tok-o">)</span>
+
+<span class="tok-w">  </span><span class="tok-m">6</span><span class="tok-w">           </span><span class="tok-m">8</span><span class="tok-w"> </span>LOAD_NAME<span class="tok-w">                </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>decorator<span class="tok-o">)</span>
+
+<span class="tok-w">  </span><span class="tok-m">7</span><span class="tok-w">          </span><span class="tok-m">10</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">2</span><span class="tok-w"> </span><span class="tok-o">(</span>&lt;code<span class="tok-w"> </span>object<span class="tok-w"> </span>fib<span class="tok-w"> </span>at<span class="tok-w"> </span>0x1075c1710,<span class="tok-w"> </span>file<span class="tok-w"> </span><span class="tok-s2">"&lt;dis&gt;"</span>,<span class="tok-w"> </span>line<span class="tok-w"> </span><span class="tok-m">6</span>&gt;<span class="tok-o">)</span>
+<span class="tok-w">             </span><span class="tok-m">12</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">3</span><span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-s1">'fib'</span><span class="tok-o">)</span>
+<span class="tok-w">             </span><span class="tok-m">14</span><span class="tok-w"> </span>MAKE_FUNCTION<span class="tok-w">            </span><span class="tok-m">0</span>
+<span class="tok-w">             </span><span class="tok-m">16</span><span class="tok-w"> </span>CALL_FUNCTION<span class="tok-w">            </span><span class="tok-m">1</span>
+<span class="tok-w">             </span><span class="tok-m">18</span><span class="tok-w"> </span>STORE_NAME<span class="tok-w">               </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-o">(</span>fib<span class="tok-o">)</span>
+<span class="tok-w">             </span><span class="tok-m">20</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">4</span><span class="tok-w"> </span><span class="tok-o">(</span>None<span class="tok-o">)</span>
+<span class="tok-w">             </span><span class="tok-m">22</span><span class="tok-w"> </span>RETURN_VALUE
+
+Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<span class="tok-w"> </span>object<span class="tok-w"> </span>decorator<span class="tok-w"> </span>at<span class="tok-w"> </span>0x108068d40,<span class="tok-w"> </span>file<span class="tok-w"> </span><span class="tok-s2">"&lt;dis&gt;"</span>,<span class="tok-w"> </span>line<span class="tok-w"> </span><span class="tok-m">2</span>&gt;:
+<span class="tok-w">  </span><span class="tok-m">3</span><span class="tok-w">           </span><span class="tok-m">0</span><span class="tok-w"> </span>LOAD_GLOBAL<span class="tok-w">              </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>print<span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">2</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">1</span><span class="tok-w"> </span><span class="tok-o">(</span><span class="tok-s1">'Hello'</span><span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">4</span><span class="tok-w"> </span>CALL_FUNCTION<span class="tok-w">            </span><span class="tok-m">1</span>
+<span class="tok-w">              </span><span class="tok-m">6</span><span class="tok-w"> </span>POP_TOP
+
+<span class="tok-w">  </span><span class="tok-m">4</span><span class="tok-w">           </span><span class="tok-m">8</span><span class="tok-w"> </span>LOAD_FAST<span class="tok-w">                </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>func<span class="tok-o">)</span>
+<span class="tok-w">             </span><span class="tok-m">10</span><span class="tok-w"> </span>RETURN_VALUE
+
+Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<span class="tok-w"> </span>object<span class="tok-w"> </span>fib<span class="tok-w"> </span>at<span class="tok-w"> </span>0x1075c1710,<span class="tok-w"> </span>file<span class="tok-w"> </span><span class="tok-s2">"&lt;dis&gt;"</span>,<span class="tok-w"> </span>line<span class="tok-w"> </span><span class="tok-m">6</span>&gt;:
+<span class="tok-w">  </span><span class="tok-m">8</span><span class="tok-w">           </span><span class="tok-m">0</span><span class="tok-w"> </span>LOAD_CONST<span class="tok-w">               </span><span class="tok-m">0</span><span class="tok-w"> </span><span class="tok-o">(</span>None<span class="tok-o">)</span>
+<span class="tok-w">              </span><span class="tok-m">2</span><span class="tok-w"> </span>RETURN_VALUE
+</code></pre></div><ul>
+<li>执行第一条指令 LOAD_CONST，这条指令主要是加载一个 code object 对象，这个对象里面主要是包含函数 decorator 的字节码，主要是上面字节码的第二块内容。在执行完这条字节码之后栈空间如下所示：</li>
+</ul>
+<p><img src="/content/zh/images/cpython/47-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>执行完第二条指令 LOAD_CONST 之后，会将字符串 decorator 加载进入栈空间当中。</li>
+</ul>
+<p><img src="/content/zh/images/cpython/48-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>执行第三条指令 MAKE_FUNCTION，这条字节码的作用是在虚拟机内部创建一个函数，函数的名称为 decorator，函数对应的字节码则是在先前压入栈空间当中的 code object 对象，这条指令还会将创建好的函数对象压入栈中。</li>
+</ul>
+<p><img src="/content/zh/images/cpython/49-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>STORE_NAME，条字节码会将栈顶的元素弹出，并且将 co_names[oparg]  指向这个对象，在上面的字节码当中 co_names[oparg]  就是 decorator 。</li>
+</ul>
+<p><img src="/content/zh/images/cpython/50-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>LOAD_NAME，这条字节码就是将 co_names[oparg] 对应的名字指向的对象重新加载进入栈空间当中，也就是上面的 decorator 函数加入进行栈空间当中。</li>
+</ul>
+<p><img src="/content/zh/images/cpython/51-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>接下来的三条字节码 LOAD_CONST，LOAD_CONST 和 MAKE_FUNCTION，在执行这三条字节码之后，栈空间如下所示：</li>
+</ul>
+<p><img src="/content/zh/images/cpython/52-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>接下来的一条指令非常重要，这条指令便是装饰器的核心原理，CALL_FUNCTION 这条指令有一个参数 i，在上面的字节码当中为 1，也就是说从栈顶开始的前 i 个元素都是函数参数，调用的函数在栈空间的位置为 i + 1 （从栈顶往下数），那么在上面的情况下就是说调用 decorator 函数，并且将 fib 函数作为 decorator 函数的参数，decorator 函数的返回值再压入栈顶。在上面的代码当中 decorator 函数返回值也是一个函数，也就是 decorator 函数的参数，即 fib 函数。</li>
+</ul>
+<p><img src="/content/zh/images/cpython/54-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
+<ul>
+<li>接下来便是 STORE_NAME 字节码，这条字节码的含义我们在前面已经说过了，就是将栈顶元素弹出，保存到 co_names[oparg] 指向的对象当中，在上面的代码当中也就是将栈顶的对象保存到 fib 当中。栈顶元素 fib 函数是调用函数 decorator 的返回值。</li>
+</ul>
+<p>看到这里就能够理解了原来装饰器的最根本的原理不就是函数调用嘛，比如我们最前面的用于计算函数执行时间的装饰器的原理就是：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">fib</span> <span class="tok-o">=</span> <span class="tok-n">eval_time</span><span class="tok-p">(</span><span class="tok-n">fib</span><span class="tok-p">)</span>
+</code></pre></div><p>将 fib 函数作为 eval_time 函数的参数，再将这个函数的返回值保存到 fib 当中，当然这个对象必须是可调用的，不然后面使用 fib() 就会保存，我们可以使用下面的代码来验证这个效果。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">decorator</span><span class="tok-p">(</span><span class="tok-n">func</span><span class="tok-p">):</span>
+    <span class="tok-k">return</span> <span class="tok-n">func</span><span class="tok-p">()</span>
+
+
+<span class="tok-nd">@decorator</span>
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">demo</span><span class="tok-p">():</span>
+    <span class="tok-k">return</span> <span class="tok-s2">"function demo return string : Demo"</span>
+
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">demo</span><span class="tok-p">)</span>
+</code></pre></div><p>执行上面的程序结果为：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">function</span><span class="tok-w"> </span>demo<span class="tok-w"> </span><span class="tok-k">return</span><span class="tok-w"> </span>string<span class="tok-w"> </span>:<span class="tok-w"> </span>Demo
+</code></pre></div><p>可以看到 demo 已经变成了一个字符串对象而不再是一个函数了，因为 <code>demo = decorator(demo)</code>，而在函数 decorator 当中返回值是 demo 函数自己的返回值，因此才打印了字符串。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了 python 当中一些基础的字节码对应的含义以及示例代码，本篇文章最重要的便是从字节码的角度解释了装饰器的本质原理，这对我们以后使用装饰器非常有帮助，可以灵活的控制和了解装饰器其中发生的故事。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-pvm-03bytecode/"><span>较新</span>深入理解 python 虚拟机：令人拍案叫绝的字节码设计</a><a class="next" href="/posts/cpython-pvm-05bytecode-tutorial/"><span>较旧</span>深入理解 python 虚拟机：字节码教程(2)——控制流是如何实现的？</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#python-常见字节码">Python 常见字节码</a></li>
+      <li class="toc-l3"><a href="#load_const">LOAD_CONST</a></li>
+      <li class="toc-l3"><a href="#load_name">LOAD_NAME</a></li>
+      <li class="toc-l3"><a href="#store_name">STORE_NAME</a></li>
+      <li class="toc-l3"><a href="#binary_add">BINARY_ADD</a></li>
+      <li class="toc-l3"><a href="#binary_subtract">BINARY_SUBTRACT</a></li>
+      <li class="toc-l3"><a href="#compare_op">COMPARE_OP</a></li>
+      <li class="toc-l3"><a href="#return_value">RETURN_VALUE</a></li>
+      <li class="toc-l3"><a href="#build_list">BUILD_LIST</a></li>
+      <li class="toc-l3"><a href="#build_tuple">BUILD_TUPLE</a></li>
+      <li class="toc-l3"><a href="#build_map">BUILD_MAP</a></li>
+      <li class="toc-l3"><a href="#build_set">BUILD_SET</a></li>
+      <li class="toc-l3"><a href="#build_const_key_map">BUILD_CONST_KEY_MAP</a></li>
+      <li class="toc-l2"><a href="#从字节码角度分析装饰器的原理">从字节码角度分析装饰器的原理</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

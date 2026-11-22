@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解 python 虚拟机：破解核心魔法——反序列化 pyc 文件 · Chang-LeHung</title>
+<meta name="description" content="在前面的文章当中我们详细的对于 pyc 文件的结构进行了分析，pyc 文件主要有下面的四个部分组成：魔术、 Bite Filed 、修改日期和 Code Object 组成。在前面的文章当中我们已经对前面三个部分进行了字节角度的分析，直接从 pyc 文件当中读取对应的数据并且打印出来了。而在本篇文章">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解 python 虚拟机：破解核心魔法——反序列化 pyc 文件</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>7 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/虚拟机/">虚拟机</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在前面的文章当中我们详细的对于 pyc 文件的结构进行了分析，pyc 文件主要有下面的四个部分组成：魔术、 Bite Filed 、修改日期和 Code Object 组成。在前面的文章当中我们已经对前面三个部分进行了字节角度的分析，直接从 pyc 文件当中读取对应的数据并且打印出来了。而在本篇文章当中我们将主要对 Code Object 进行分析，并且详细它是如何被反序列化的，通过本篇文章我们将能够把握整个 pyc 文件结构。</p>
+<p><img src="/content/zh/images/cpython/38-pyc.webp" alt="36-pyc" loading="lazy" /></p>
+<h2 id="marshal-模块的魔力">marshal 模块的魔力</h2>
+<h3 id="序列化和反序列化-python-对象">序列化和反序列化 python 对象</h3>
+<p>marshal 是 python 自带的一个模块，他可以将一些 python 内置对象进行序列化和反序列化操作，甚至我们可以在一个文件当中序列话一个函数的 Code Object 对象，然后在另外一个文件反序列化这个 Code Object 对象并且执行它。</p>
+<p>我们可以使用下面的代码将 python 当中的一些对象序列化操作，直接将 python 对边变成一个字节流，保存到磁盘当中：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">marshal</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"pyobjects.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-mf">1.5</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-s2">"Hello World"</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">((</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">),</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">([</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">],</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">({</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">},</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-n">j</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">({</span><span class="tok-mi">1</span><span class="tok-p">:</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">:</span> <span class="tok-mi">4</span><span class="tok-p">},</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+</code></pre></div><p>在上面的代码当中需要注意的是需要使用二进制方式 rb 打开文件，上面的程序执行完成之后会生成一个 pyobjects.bin 的二进制文件，我们可以使用 python 代码再将上面的 python 对象，比如整数、浮点数、字符串和列表元组等等反序列化出来。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">marshal</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"pyobjects.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"rb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">))</span>
+</code></pre></div><p>上面的代码输出结果如下所示：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-mi">1</span>
+<span class="tok-mf">1.5</span>
+<span class="tok-n">Hello</span> <span class="tok-n">World</span>
+<span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">)</span>
+<span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">]</span>
+<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">}</span>
+<span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-o">+</span><span class="tok-mi">1</span><span class="tok-n">j</span><span class="tok-p">)</span>
+<span class="tok-p">{</span><span class="tok-mi">1</span><span class="tok-p">:</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">:</span> <span class="tok-mi">4</span><span class="tok-p">}</span>
+</code></pre></div><p>从上面代码的输出结果我们可以看到我们可以将所有的被写入到二进制文件当中的数据全部解析了出来。</p>
+<h3 id="序列化和反序列化-codeobject">序列化和反序列化 CodeObject</h3>
+<p>除了上面使用 marshal 对 python 的基本对象进行序列化和反序列化，我们可以使用 marshal 模块对 CodeObject 进行同样的操作，如果是这样的话，那么就可以将一个文件的代码序列化，然后另外一个程序反序列化再进行调用：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">marshal</span>
+
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">):</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"Hello World"</span><span class="tok-p">)</span>
+    <span class="tok-k">return</span> <span class="tok-n">a</span><span class="tok-o">+</span><span class="tok-n">b</span>
+
+
+<span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"add.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+    <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-n">add</span><span class="tok-o">.</span><span class="tok-vm">__code__</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+</code></pre></div><p>在上面的代码当中，我们打开了文件 <code>add.bin</code> 然后将 add 函数的 CodeObject 对象写入到文件当中去，而 CodeObject 当中保存了函数 add 的所有执行所需要的信息，因此我们可以在另外一个文件当中打开这个文件，然后将 CodeObject 对象反序列化出来在执行这个代码，我们看下面的代码：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">marshal</span>
+
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">name</span><span class="tok-p">():</span>
+    <span class="tok-k">pass</span>
+
+
+<span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"add.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"rb+"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+    <span class="tok-n">code</span> <span class="tok-o">=</span> <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">load</span><span class="tok-p">(</span><span class="tok-n">fp</span><span class="tok-p">)</span>
+<span class="tok-n">name</span><span class="tok-o">.</span><span class="tok-vm">__code__</span> <span class="tok-o">=</span> <span class="tok-n">code</span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">))</span>
+</code></pre></div><p>上面的代码执行结果如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Hello<span class="tok-w"> </span>World
+<span class="tok-m">3</span>
+</code></pre></div><p>可以看到反序列化之后的函数 add 复制到了 name 上，然后我们调用了函数 name 真的实现了打印和相加的效果，从这一点来看确实实现了我们在前面所提到的效果。</p>
+<h2 id="python-对象反序列化">Python 对象反序列化</h2>
+<p>在本节当中将主要分析 python 对象序列化之后的二进制文件格式，我们到底应该如何解析这个文件，解析文件的规则是什么。在 cpython 当中对于每个数据类型的解析都是不一样的，marshal 支持 python 当中所有的基本数据类型，额外还支持 CodeObject ，在上面的验证代码当中我们已经使用 marshal 去做了一些序列化和反序列化操作。</p>
+<p>在对 python 对象进行序列化的时候，每一个 python 对象主要是由两个部分组成的：</p>
+<p><img src="/content/zh/images/cpython/83-pyc.webp" alt="83-pyc" loading="lazy" /></p>
+<p>其中 type 占一个字节，用于表示接下里啊的 python 的对象类型，比如如字典、元组、集合之类的，而后面的 PyObject 就是实际的 python 数据类型了，需要注意的是对于 None、False、True 这种在虚拟机当中只有一个备份的对象，PyObject 是没有的，也就只有 type 这一个字段。</p>
+<p>type 的种类具体如下所示，它只占用一个字节：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">TYPE</span><span class="tok-p">(</span><span class="tok-n">Enum</span><span class="tok-p">):</span>
+    <span class="tok-n">TYPE_NULL</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'0'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_NONE</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'N'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_FALSE</span>                <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'F'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_TRUE</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'T'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_STOPITER</span>             <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'S'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_ELLIPSIS</span>             <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'.'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_INT</span>                  <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'i'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_INT64</span>                <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'I'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_FLOAT</span>                <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'f'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_BINARY_FLOAT</span>         <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'g'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_COMPLEX</span>              <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'x'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_BINARY_COMPLEX</span>       <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'y'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_LONG</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'l'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_STRING</span>               <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'s'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_INTERNED</span>             <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'t'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_REF</span>                  <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'r'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_TUPLE</span>                <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'('</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_LIST</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'['</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_DICT</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'{'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_CODE</span>                 <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'c'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_UNICODE</span>              <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'u'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_UNKNOWN</span>              <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'?'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_SET</span>                  <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'&lt;'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_FROZENSET</span>            <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'&gt;'</span><span class="tok-p">)</span>
+    <span class="tok-n">FLAG_REF</span>                  <span class="tok-o">=</span> <span class="tok-mh">0x80</span>
+    <span class="tok-n">TYPE_ASCII</span>                <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'a'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_ASCII_INTERNED</span>       <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'A'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_SMALL_TUPLE</span>          <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">')'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_SHORT_ASCII</span>          <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'z'</span><span class="tok-p">)</span>
+    <span class="tok-n">TYPE_SHORT_ASCII_INTERNED</span> <span class="tok-o">=</span> <span class="tok-nb">ord</span><span class="tok-p">(</span><span class="tok-s1">'Z'</span><span class="tok-p">)</span>
+</code></pre></div><p>我们接下来对上面的类型进行一一解释，首先我们需要了解下面几个方法，我们在后面的解析过程当中会使用到下面的内容：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">ByteStreamReader</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+
+    <span class="tok-nd">@staticmethod</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">read_int</span><span class="tok-p">(</span><span class="tok-n">buf</span><span class="tok-p">:</span> <span class="tok-nb">bytes</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">struct</span><span class="tok-o">.</span><span class="tok-n">unpack</span><span class="tok-p">(</span><span class="tok-s2">"&lt;i"</span><span class="tok-p">,</span> <span class="tok-n">buf</span><span class="tok-p">)[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+
+    <span class="tok-nd">@staticmethod</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">read_byte</span><span class="tok-p">(</span><span class="tok-n">buf</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">struct</span><span class="tok-o">.</span><span class="tok-n">unpack</span><span class="tok-p">(</span><span class="tok-s2">"&lt;B"</span><span class="tok-p">,</span> <span class="tok-n">buf</span><span class="tok-p">)[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+
+    <span class="tok-nd">@staticmethod</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">read_float</span><span class="tok-p">(</span><span class="tok-n">buf</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">struct</span><span class="tok-o">.</span><span class="tok-n">unpack</span><span class="tok-p">(</span><span class="tok-s2">"&lt;f"</span><span class="tok-p">,</span> <span class="tok-n">buf</span><span class="tok-p">)[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+
+    <span class="tok-nd">@staticmethod</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">read_double</span><span class="tok-p">(</span><span class="tok-n">buf</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">struct</span><span class="tok-o">.</span><span class="tok-n">unpack</span><span class="tok-p">(</span><span class="tok-s2">"&lt;d"</span><span class="tok-p">,</span> <span class="tok-n">buf</span><span class="tok-p">)[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+
+    <span class="tok-nd">@staticmethod</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">read_long</span><span class="tok-p">(</span><span class="tok-n">buf</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">struct</span><span class="tok-o">.</span><span class="tok-n">unpack</span><span class="tok-p">(</span><span class="tok-s2">"&lt;q"</span><span class="tok-p">,</span> <span class="tok-n">buf</span><span class="tok-p">)[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+</code></pre></div><p>上面的的几个函数主要是将字节变成 byte、int 或者浮点数。接下来我们会实现一个类 PyObjectLoader，用于对 marshal 序列化之后的文件进行解析。类的构造函数如下所示：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">filename</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span> <span class="tok-o">=</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-n">filename</span><span class="tok-p">,</span> <span class="tok-s2">"rb"</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">flag</span> <span class="tok-o">=</span> <span class="tok-mi">0</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span> <span class="tok-o">=</span> <span class="tok-p">[]</span>
+</code></pre></div><p>现在来对一个对象进行解析，根据我们前面谈到的内容首先我们需要读入一个字节的内容用于判断是那种数据类型：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">do_parse</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+    <span class="tok-n">c</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+    <span class="tok-k">assert</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">!=</span> <span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-s2">"can not read more data from file descriptor"</span>
+    <span class="tok-n">t</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">&amp;</span> <span class="tok-p">(</span><span class="tok-o">~</span><span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">FLAG_REF</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">)</span>
+    <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">flag</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">&amp;</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">FLAG_REF</span><span class="tok-o">.</span><span class="tok-n">value</span>
+</code></pre></div><p>在上面的代码当中使用函数 do_parse 对一个 python 对象进行解析操作，使用到了 TYPE.FLAG_REF，这个字段的作用表示这个 python 对象是不是一个可引用的，除了 None 、True、False、StopIteration、Ellipsis 是不可引用对象，集合、字典、不可变集合、字符串、字节、CodeObject 等是可引用对象，可引用对象的 type 的最高位是 1（也就是 type 的第 8 个比特位是 1），非可引用对象就是 0 。如果是可引用对象需要将这个对象加入到引用列表当中，因为可能会存在一个对象引用其他对象的情况，需要将对象加入到引用队列当中，如果需要对对象进行引用操作直接使用下标从引用数组当中查找即可。所有的可引用对象在创建完成之后都需要加入到引用列表当中。</p>
+<ul>
+<li>TYPE_NULL，这个在 cpython 虚拟机当中就会直接返回 NULL 。</li>
+<li>TYPE_NONE，返回 python 对象 None 。</li>
+<li>TYPE_FALSE，返回 python 对象 False 。</li>
+<li>TYPE_TRUE，返回 python 对象 True 。</li>
+<li>TYPE_STOPITER，返回 StopIteration 对象。</li>
+<li>TYPE_ELLIPSIS，返回 对象 Ellipsis 。</li>
+<li>TYPE_INT，如果是这个数据类型表示接下来的 4 个字节的数据是一个整数。</li>
+<li>TYPE_INT64，这个类型表示接下来的 8 个字节表示一个整数。</li>
+<li>TYPE_BINARY_FLOAT，浮点数对象，表示接下里啊的 8 个字节表示一个浮点数。</li>
+<li>TYPE_BINARY_COMPLEX，复数对象，表示接下来有两个 8 个字节的浮点数，分别表示实部和虚部。</li>
+<li>TYPE_STRING，这个表示一个 bytes 对象，接下来的四个字节表示一个整数 size ，整数 size 的含义表示还需要读取的字节个数，因此接下来的 size 个字节就是 bytes 对象的内容。</li>
+<li>TYPE_INTERNED，表示一个需要缓存到字符串常量池的字符串，解析方法和 TYPE_STRING 一样首先读取四个字节得到一个整数 size，然后在读取 size 个字节，表示字符串的内容，我们在 python 当中可以直接使用<code> .decode(&quot;utf-8&quot;)</code> 进行编码。</li>
+<li>TYPE_REF，表示需要引用一个对象，读取四个字节作为整数 size，然后从引用列表当中获取下标为 size 的对象。</li>
+<li>TYPE_TUPLE，表示一个元组，首先读取四个字节的数据得到一个整数 size ，然后使用 for 循环递归调用 do_parse 函数获取 size 的对象。</li>
+<li>TYPE_LIST，解析方式和 TYPE_TUPLE 一样，只不过返回列表对象。</li>
+<li>TYPE_DICT，这个解析的方式不断的调用 do_parse 函数，从 1 开始计数，奇数对象当作 key，偶数对象当中 val，直到遇到 NULL，跳出循环停止解析，这个类型可以直接看下面的解析代码，非常清晰。</li>
+<li>TYPE_CODE，这个类型表示一个 CodeObject 对象，见下面的解析代码，这部分代码可以结合 CodeObject 的字段分析，前面24 个字节表示整数对象，用于表示 CodeObject 的 6 个字段，接下来的是 8 个 PyObject 对象，因此需要调用 do_parse 函数进行解析，然后再解析一个 4 字节的整数表示第一行代码的行号，最后再读取一个 PyObject 对象。</li>
+<li>TYPE_UNICODE，表示一个字符串，读取方式和 TYPE_INTERNED 一样。</li>
+<li>TYPE_SET，前 4 个自己表示集合当中元素的个数 size，接下来使用 for 循环读取（调用 do_parse） size 的元素加入到集合当中。</li>
+<li>TYPE_FROZENSET，和 TYPE_SET 读取方式一样，只不过返回 frozen set 。</li>
+<li>TYPE_ASCII，和 TYPE_UNICODE 读取方式一样，也可以使用 utf-8 编码，虽然读取的是 ASCII 编码的字符，但是 utf-8 兼容 ASCII 因此也可以。</li>
+<li>TYPE_ASCII_INTERNED，和 TYPE_ASCII 解析方式一样。</li>
+<li>TYPE_SMALL_TUPLE，读取一个字节的数据表示元组当中的数据个数，然后读取对应个数的对象。</li>
+<li>TYPE_SHORT_ASCII，之前是读取四个字节作为长度，现在只读取一个字节作为字节个数。</li>
+<li>TYPE_SHORT_ASCII_INTERNED，和 TYPE_SHORT_ASCII 读取方式一样，只不过加入到字符串常量池子。</li>
+</ul>
+<p>余下的对象的解析不在一一解释，大家可以直接看下方代码，都是比较清晰易懂的。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">filename</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">reader</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-p">()</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span> <span class="tok-o">=</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-n">filename</span><span class="tok-p">,</span> <span class="tok-s2">"rb"</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">flag</span> <span class="tok-o">=</span> <span class="tok-mi">0</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span> <span class="tok-o">=</span> <span class="tok-p">[]</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">do_parse</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-n">c</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">)</span>
+        <span class="tok-k">assert</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">!=</span> <span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-s2">"can not read more data from file descriptor"</span>
+        <span class="tok-n">t</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">&amp;</span> <span class="tok-p">(</span><span class="tok-o">~</span><span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">FLAG_REF</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">flag</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">)</span> <span class="tok-o">&amp;</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">FLAG_REF</span><span class="tok-o">.</span><span class="tok-n">value</span>
+        <span class="tok-k">match</span> <span class="tok-n">t</span><span class="tok-p">:</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_NULL</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-kc">None</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_NONE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-kc">None</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_FALSE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-kc">False</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_TRUE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-kc">True</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_STOPITER</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-ne">StopIteration</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_ELLIPSIS</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-bp">Ellipsis</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INT</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INT</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INT64</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_long</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">8</span><span class="tok-p">))</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INT64</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_FLOAT</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">raise</span> <span class="tok-ne">RuntimeError</span><span class="tok-p">(</span><span class="tok-s2">"Unsupported TYPE TYPE_FLOAT"</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_BINARY_FLOAT</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_double</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">8</span><span class="tok-p">))</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_FLOAT</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_COMPLEX</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">raise</span> <span class="tok-ne">RuntimeError</span><span class="tok-p">(</span><span class="tok-s2">"Unsupported TYPE TYPE_COMPLEX"</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_BINARY_COMPLEX</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-nb">complex</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">(),</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_BINARY_COMPLEX</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_LONG</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">raise</span> <span class="tok-ne">RuntimeError</span><span class="tok-p">(</span><span class="tok-s2">"Unsupported TYPE TYPE_LONG"</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_STRING</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_STRING</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INTERNED</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INTERNED</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_REF</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_REF</span><span class="tok-p">,</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-p">[</span><span class="tok-n">size</span><span class="tok-p">]</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_TUPLE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-p">[]</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">):</span>
+                    <span class="tok-n">ret</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_TUPLE</span><span class="tok-p">,</span> <span class="tok-nb">tuple</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_LIST</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-p">[]</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">):</span>
+                    <span class="tok-n">ret</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_LIST</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_DICT</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-nb">dict</span><span class="tok-p">()</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">while</span> <span class="tok-kc">True</span><span class="tok-p">:</span>
+                    <span class="tok-n">key</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                    <span class="tok-k">if</span> <span class="tok-n">key</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+                        <span class="tok-k">break</span>
+                    <span class="tok-n">val</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                    <span class="tok-k">if</span> <span class="tok-n">val</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+                        <span class="tok-k">break</span>
+                    <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-n">key</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">val</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_DICT</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_CODE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-nb">dict</span><span class="tok-p">()</span>
+                <span class="tok-n">idx</span> <span class="tok-o">=</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-kc">None</span><span class="tok-p">)</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"argcount"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"posonlyargcount"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"kwonlyargcount"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"nlocals"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"stacksize"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"flags"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"code"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"consts"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"names"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"varnames"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"freevars"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"cellvars"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"filename"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"name"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"firstlineno"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span><span class="tok-p">[</span><span class="tok-s2">"lnotab"</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">()</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-p">[</span><span class="tok-n">idx</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ret</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_CODE</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_UNICODE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INTERNED</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_UNKNOWN</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-k">raise</span> <span class="tok-ne">RuntimeError</span><span class="tok-p">(</span><span class="tok-s2">"Unknown value "</span> <span class="tok-o">+</span> <span class="tok-nb">str</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">))</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SET</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-nb">set</span><span class="tok-p">()</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">):</span>
+                    <span class="tok-n">ret</span><span class="tok-o">.</span><span class="tok-n">add</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SET</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_FROZENSET</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-nb">set</span><span class="tok-p">()</span>
+                <span class="tok-n">idx</span> <span class="tok-o">=</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-kc">None</span><span class="tok-p">)</span>
+                <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">):</span>
+                    <span class="tok-n">ret</span><span class="tok-o">.</span><span class="tok-n">add</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-p">[</span><span class="tok-n">idx</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">ret</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SET</span><span class="tok-p">,</span> <span class="tok-nb">frozenset</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_ASCII</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_INTERNED</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_ASCII_INTERNED</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_int</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">4</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_ASCII_INTERNED</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SMALL_TUPLE</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-p">[]</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">):</span>
+                    <span class="tok-n">ret</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SMALL_TUPLE</span><span class="tok-p">,</span> <span class="tok-nb">tuple</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SHORT_ASCII</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SHORT_ASCII</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SHORT_ASCII_INTERNED</span><span class="tok-o">.</span><span class="tok-n">value</span><span class="tok-p">:</span>
+                <span class="tok-n">size</span> <span class="tok-o">=</span> <span class="tok-n">ByteStreamReader</span><span class="tok-o">.</span><span class="tok-n">read_byte</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">))</span>
+                <span class="tok-n">ret</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">)</span><span class="tok-o">.</span><span class="tok-n">decode</span><span class="tok-p">(</span><span class="tok-s2">"utf-8"</span><span class="tok-p">)</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">refs</span><span class="tok-o">.</span><span class="tok-n">append</span><span class="tok-p">(</span><span class="tok-n">ret</span><span class="tok-p">)</span>
+                <span class="tok-k">return</span> <span class="tok-n">TYPE</span><span class="tok-o">.</span><span class="tok-n">TYPE_SHORT_ASCII_INTERNED</span><span class="tok-p">,</span> <span class="tok-n">ret</span>
+            <span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-k">_</span><span class="tok-p">:</span>
+                <span class="tok-k">raise</span> <span class="tok-ne">RuntimeError</span><span class="tok-p">(</span><span class="tok-s2">"can not parse "</span> <span class="tok-o">+</span> <span class="tok-nb">str</span><span class="tok-p">(</span><span class="tok-n">t</span><span class="tok-p">))</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">__del_</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">close</span><span class="tok-p">()</span>
+</code></pre></div><p>我们现在使用下面的代码生成一些二进制文件：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">marshal</span>
+
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">add</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">):</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"Hello World"</span><span class="tok-p">)</span>
+    <span class="tok-k">return</span> <span class="tok-n">a</span><span class="tok-o">+</span><span class="tok-n">b</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"add.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-n">add</span><span class="tok-o">.</span><span class="tok-vm">__code__</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"int.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"float.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-mf">1.5</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"tuple.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">((</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">),</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"set.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">({</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">},</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"list.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">([</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">],</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"dict.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">({</span><span class="tok-mi">1</span><span class="tok-p">:</span> <span class="tok-mi">2</span><span class="tok-p">,</span> <span class="tok-mi">3</span><span class="tok-p">:</span> <span class="tok-mi">4</span><span class="tok-p">},</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"code.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-n">add</span><span class="tok-o">.</span><span class="tok-vm">__code__</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+
+    <span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-s2">"string.bin"</span><span class="tok-p">,</span> <span class="tok-s2">"wb"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+        <span class="tok-n">marshal</span><span class="tok-o">.</span><span class="tok-n">dump</span><span class="tok-p">(</span><span class="tok-s2">"Hello World"</span><span class="tok-p">,</span> <span class="tok-n">fp</span><span class="tok-p">)</span>
+</code></pre></div><p>当我们使用 marshal 对函数 add 的 code 进行序列化的时候实际上就是序列化一个 CodeObject 对象，这个对象的结果实际上和 pyc 的结构是一样的。</p>
+<p>我们使用下面的代码进行反序列化：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-k">assert</span> <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">version_info</span><span class="tok-o">.</span><span class="tok-n">major</span> <span class="tok-o">==</span> <span class="tok-mi">3</span> <span class="tok-ow">and</span> <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">version_info</span><span class="tok-o">.</span><span class="tok-n">minor</span> <span class="tok-o">==</span> <span class="tok-mi">10</span><span class="tok-p">,</span> <span class="tok-s2">"only python3.10 works"</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"int.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"float.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"set.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"dict.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"tuple.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"list.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"string.bin"</span><span class="tok-p">)</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+    <span class="tok-n">loader</span> <span class="tok-o">=</span> <span class="tok-n">PyObjectLoader</span><span class="tok-p">(</span><span class="tok-s2">"code.bin"</span><span class="tok-p">)</span>
+    <span class="tok-n">pprint</span><span class="tok-p">(</span><span class="tok-n">loader</span><span class="tok-o">.</span><span class="tok-n">do_parse</span><span class="tok-p">())</span>
+</code></pre></div><p>需要注意的是本篇文章代码需要在 python 3.10 上运行，如果需要在 3.8 3.9 运行的话可以将 match 语句改成 if-else 语句。但是由于 python 3.11 当中的 CodeObject 对象的字段发生了一些微小的变化，因此上面的代码是不能在 python 3.11 上执行的。上面的代码执行结果如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_FLOAT:<span class="tok-w"> </span><span class="tok-m">102</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span>.5<span class="tok-o">)</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_SET:<span class="tok-w"> </span><span class="tok-m">60</span>&gt;,<span class="tok-w"> </span><span class="tok-o">{(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-o">)})</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_DICT:<span class="tok-w"> </span><span class="tok-m">123</span>&gt;,<span class="tok-w"> </span><span class="tok-o">{(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-o">)</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">4</span><span class="tok-o">)})</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_SMALL_TUPLE:<span class="tok-w"> </span><span class="tok-m">41</span>&gt;,<span class="tok-w"> </span><span class="tok-o">((</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-o">)))</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_LIST:<span class="tok-w"> </span><span class="tok-m">91</span>&gt;,<span class="tok-w"> </span><span class="tok-o">[(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">2</span><span class="tok-o">)</span>,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_INT:<span class="tok-w"> </span><span class="tok-m">105</span>&gt;,<span class="tok-w"> </span><span class="tok-m">3</span><span class="tok-o">)])</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_SHORT_ASCII:<span class="tok-w"> </span><span class="tok-m">122</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'Hello World'</span><span class="tok-o">)</span>
+<span class="tok-o">(</span>&lt;TYPE.TYPE_CODE:<span class="tok-w"> </span><span class="tok-m">99</span>&gt;,
+<span class="tok-w"> </span><span class="tok-o">{</span><span class="tok-s1">'argcount'</span>:<span class="tok-w"> </span><span class="tok-m">2</span>,
+<span class="tok-w">  </span><span class="tok-s1">'cellvars'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_REF:<span class="tok-w"> </span><span class="tok-m">114</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'print'</span><span class="tok-o">)</span>,
+<span class="tok-w">  </span><span class="tok-s1">'code'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_STRING:<span class="tok-w"> </span><span class="tok-m">115</span>&gt;,
+<span class="tok-w">           </span>b<span class="tok-s1">'t\x00d\x01\x83\x01\x01\x00|\x00|\x01\x17\x00S\x00'</span><span class="tok-o">)</span>,
+<span class="tok-w">  </span><span class="tok-s1">'consts'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SMALL_TUPLE:<span class="tok-w"> </span><span class="tok-m">41</span>&gt;,
+<span class="tok-w">             </span><span class="tok-o">(</span>None,<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SHORT_ASCII:<span class="tok-w"> </span><span class="tok-m">122</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'Hello World'</span><span class="tok-o">)))</span>,
+<span class="tok-w">  </span><span class="tok-s1">'filename'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SHORT_ASCII:<span class="tok-w"> </span><span class="tok-m">122</span>&gt;,
+<span class="tok-w">               </span><span class="tok-s1">'/Users/xxxxxxx/Desktop/workdir/dive-into-cpython/code/marshal_demos/add.py'</span><span class="tok-o">)</span>,
+<span class="tok-w">  </span><span class="tok-s1">'firstlineno'</span>:<span class="tok-w"> </span><span class="tok-m">5</span>,
+<span class="tok-w">  </span><span class="tok-s1">'flags'</span>:<span class="tok-w"> </span><span class="tok-m">67</span>,
+<span class="tok-w">  </span><span class="tok-s1">'freevars'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SMALL_TUPLE:<span class="tok-w"> </span><span class="tok-m">41</span>&gt;,<span class="tok-w"> </span><span class="tok-o">())</span>,
+<span class="tok-w">  </span><span class="tok-s1">'kwonlyargcount'</span>:<span class="tok-w"> </span><span class="tok-m">0</span>,
+<span class="tok-w">  </span><span class="tok-s1">'lnotab'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_STRING:<span class="tok-w"> </span><span class="tok-m">115</span>&gt;,<span class="tok-w"> </span>b<span class="tok-s1">'\x08\x01\x08\x01'</span><span class="tok-o">)</span>,
+<span class="tok-w">  </span><span class="tok-s1">'name'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SHORT_ASCII_INTERNED:<span class="tok-w"> </span><span class="tok-m">90</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'add'</span><span class="tok-o">)</span>,
+<span class="tok-w">  </span><span class="tok-s1">'names'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SMALL_TUPLE:<span class="tok-w"> </span><span class="tok-m">41</span>&gt;,
+<span class="tok-w">            </span><span class="tok-o">((</span>&lt;TYPE.TYPE_SHORT_ASCII_INTERNED:<span class="tok-w"> </span><span class="tok-m">90</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'print'</span><span class="tok-o">)</span>,<span class="tok-o">))</span>,
+<span class="tok-w">  </span><span class="tok-s1">'nlocals'</span>:<span class="tok-w"> </span><span class="tok-m">2</span>,
+<span class="tok-w">  </span><span class="tok-s1">'posonlyargcount'</span>:<span class="tok-w"> </span><span class="tok-m">0</span>,
+<span class="tok-w">  </span><span class="tok-s1">'stacksize'</span>:<span class="tok-w"> </span><span class="tok-m">2</span>,
+<span class="tok-w">  </span><span class="tok-s1">'varnames'</span>:<span class="tok-w"> </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SMALL_TUPLE:<span class="tok-w"> </span><span class="tok-m">41</span>&gt;,
+<span class="tok-w">               </span><span class="tok-o">((</span>&lt;TYPE.TYPE_SHORT_ASCII_INTERNED:<span class="tok-w"> </span><span class="tok-m">90</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'a'</span><span class="tok-o">)</span>,
+<span class="tok-w">                </span><span class="tok-o">(</span>&lt;TYPE.TYPE_SHORT_ASCII_INTERNED:<span class="tok-w"> </span><span class="tok-m">90</span>&gt;,<span class="tok-w"> </span><span class="tok-s1">'b'</span><span class="tok-o">)))})</span>
+</code></pre></div><p>从上面的解析结果来看我们是实现了正确的解析的。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家分析了 python 对象序列化之后我们该如何反序列化这些对象，并且使用 python 对二进制文件进行了分析，可以成功的将 python 对象解析出来，但是我们忽略了两个稍微复杂一点的对象，他们的解析稍微有点复杂，但是我们平时的变成当中很少使用到，因此本文的代码解析一般的文件都是可以的。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-pvm-07frameobject/"><span>较新</span>深入理解python虚拟机：程序执行的载体——栈帧</a><a class="next" href="/posts/hashmap-part-2/"><span>较旧</span>HashMap设计原理与实现（下篇）200行带你写自己的HashMap！！！</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#marshal-模块的魔力">marshal 模块的魔力</a></li>
+      <li class="toc-l3"><a href="#序列化和反序列化-python-对象">序列化和反序列化 python 对象</a></li>
+      <li class="toc-l3"><a href="#序列化和反序列化-codeobject">序列化和反序列化 CodeObject</a></li>
+      <li class="toc-l2"><a href="#python-对象反序列化">Python 对象反序列化</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

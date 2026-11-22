@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解Python虚拟机：super的超级魔法 · Chang-LeHung</title>
+<meta name="description" content="介绍 在本篇文章中，我们将深入探讨Python中的 super 函数的使用和原理。 super 函数作为Python虚拟机中强大的功能之一，可以帮助我们更灵活地使用继承和多重继承。 super函数的使用 在Python中，我们经常使用继承来构建类的层次结构。当子类继承了父类的属性和方法时，有时我们需">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解Python虚拟机：super的超级魔法</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/面向对象/">面向对象</a>      </p>
+    </header>
+
+    <div class="prose">
+      <h2 id="介绍">介绍</h2>
+<p>在本篇文章中，我们将深入探讨Python中的<code>super</code>函数的使用和原理。<code>super</code>函数作为Python虚拟机中强大的功能之一，可以帮助我们更灵活地使用继承和多重继承。</p>
+<h2 id="super函数的使用">super函数的使用</h2>
+<p>在Python中，我们经常使用继承来构建类的层次结构。当子类继承了父类的属性和方法时，有时我们需要在子类中调用父类的方法或属性。这就是<code>super</code>函数的用武之地。</p>
+<p><code>super</code>函数的一般用法是在子类中调用父类的方法，格式为<code>super().method()</code>。这样可以方便地使用父类的实现，并在子类中添加自己的特定行为。</p>
+<p>下面是一个示例代码，演示了<code>super</code>函数的使用：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Parent</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">name</span> <span class="tok-o">=</span> <span class="tok-n">name</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">say_hello</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"Hello, I'm </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">name</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Child</span><span class="tok-p">(</span><span class="tok-n">Parent</span><span class="tok-p">):</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">,</span> <span class="tok-n">age</span><span class="tok-p">):</span>
+        <span class="tok-nb">super</span><span class="tok-p">()</span><span class="tok-o">.</span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-n">name</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">age</span> <span class="tok-o">=</span> <span class="tok-n">age</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">say_hello</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-nb">super</span><span class="tok-p">()</span><span class="tok-o">.</span><span class="tok-n">say_hello</span><span class="tok-p">()</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"I'm </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">name</span><span class="tok-si">}</span><span class="tok-s2"> and I'm </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">age</span><span class="tok-si">}</span><span class="tok-s2"> years old"</span><span class="tok-p">)</span>
+
+<span class="tok-n">child</span> <span class="tok-o">=</span> <span class="tok-n">Child</span><span class="tok-p">(</span><span class="tok-s2">"Alice"</span><span class="tok-p">,</span> <span class="tok-mi">10</span><span class="tok-p">)</span>
+<span class="tok-n">child</span><span class="tok-o">.</span><span class="tok-n">say_hello</span><span class="tok-p">()</span>
+</code></pre></div><p>输出结果为：</p>
+<div class="code-block" data-lang=""><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Hello, I&#x27;m Alice
+I&#x27;m Alice and I&#x27;m 10 years old
+</code></pre></div><p>在上述示例中，<code>Child</code>类继承自<code>Parent</code>类。在<code>Child</code>类的构造函数中，我们使用<code>super().__init__(name)</code>来调用父类<code>Parent</code>的构造函数，以便在子类中初始化父类的属性。在<code>say_hello</code>方法中，我们使用<code>super().say_hello()</code>调用父类<code>Parent</code>的<code>say_hello</code>方法，并在子类中添加了额外的输出。</p>
+<p>除了调用父类的方法，<code>super</code>函数还可以用于访问父类的属性。例如，<code>super().attribute</code>可以用来获取父类的属性值。</p>
+<h2 id="super函数的原理">super函数的原理</h2>
+<p>要理解<code>super</code>函数的原理，我们需要了解Python中的多重继承和方法解析顺序（Method Resolution Order，MRO）。</p>
+<p>多重继承是指一个类可以同时继承多个父类。在Python中，每个类都有一个内置属性<code>__mro__</code>，它记录了方法解析顺序。MRO是根据C3线性化算法生成的，它决定了在多重继承中调用方法的顺序。</p>
+<p><code>super</code>函数的实现原理是根据当前类的MRO找到下一个要调用的方法。它通过检查当前类的MRO列表，找到下一个类的方法，并返回一个绑定了下一个类的实例。这意味着当我们在子类中调用<code>super().method()</code>时，实际上是在调用父类的方法。</p>
+<h2 id="cpython的实现">CPython的实现</h2>
+<p>CPython是Python的默认解释器，它使用C语言实现。在CPython中，<code>super</code>函数的实现是通过查找对象的<code>__class__</code>属性来确定下一个要调用的方法。<code>__class__</code>属性指向对象所属的类。</p>
+<p>CPython使用<code>PyTypeObject</code>结构体来表示每个类。该结构体包含了类的名称、父类、方法表等信息。在方法表中，每个方法都有一个指向实际函数的指针。</p>
+<p>当使用<code>super</code>函数时，CPython会根据当前对象的<code>__class__</code>属性和方法名，在父类的方法表中找到对应的方法，并调用它。</p>
+<h2 id="总结">总结</h2>
+<p><code>super</code>函数是Python中重要的功能之一，它允许我们方便地调用父类的方法和访问父类的属性。它的实现原理是根据当前类的MRO找到下一个要调用的方法。在CPython中，<code>super</code>函数的实现是通过查找对象的<code>__class__</code>属性来确定下一个要调用的方法。</p>
+<p>通过深入理解<code>super</code>函数的使用和原理，我们可以更好地利用继承和多重继承的强大功能，编写出更灵活、可维护的Python代码。</p>
+<p>希望本文对您对<code>super</code>函数有所帮助。如有任何疑问，请随时提问。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-obsy-06magicmethod02/"><span>较新</span>深入理解 python 虚拟机：花里胡哨的魔术方法</a><a class="next" href="/posts/cpython-pvm-01pyc/"><span>较旧</span>深入理解 python 虚拟机：pyc 文件结构</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#介绍">介绍</a></li>
+      <li class="toc-l2"><a href="#super函数的使用">super函数的使用</a></li>
+      <li class="toc-l2"><a href="#super函数的原理">super函数的原理</a></li>
+      <li class="toc-l2"><a href="#cpython的实现">CPython的实现</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

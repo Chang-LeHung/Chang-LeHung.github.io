@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解python虚拟机：黑科技的幕后英雄——描述器 · Chang-LeHung</title>
+<meta name="description" content="在本篇文章当中主要给大家介绍一个我们在使用类的时候经常使用但是却很少在意的黑科技——描述器，在本篇文章当中主要分析描述器的原理，以及介绍使用描述器实现属性访问控制和 orm 映射等等功能！在后面的文章当中我们将继续去分析描述器的实现原理。 描述器的基本用法 描述器是一个实现了 __get__ 、 _">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解python虚拟机：黑科技的幕后英雄——描述器</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>5 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/面向对象/">面向对象</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在本篇文章当中主要给大家介绍一个我们在使用类的时候经常使用但是却很少在意的黑科技——描述器，在本篇文章当中主要分析描述器的原理，以及介绍使用描述器实现属性访问控制和 orm 映射等等功能！在后面的文章当中我们将继续去分析描述器的实现原理。</p>
+<h2 id="描述器的基本用法">描述器的基本用法</h2>
+<p>描述器是一个实现了 <code>__get__</code>、<code>__set__</code> 或 <code>__delete__</code> 中至少一个方法的 Python 类。这些方法分别用于在属性被访问、设置或删除时调用。当一个描述器被定义为一个类的属性时，它可以控制该属性的访问、修改和删除。</p>
+<p>下面是一个示例，演示了如何定义一个简单的描述器：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Descriptor</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"Getting </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-vm">__class__</span><span class="tok-o">.</span><span class="tok-vm">__name__</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-n">instance</span><span class="tok-o">.</span><span class="tok-vm">__dict__</span><span class="tok-o">.</span><span class="tok-n">get</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">attrname</span><span class="tok-p">)</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__set__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"Setting </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-vm">__class__</span><span class="tok-o">.</span><span class="tok-vm">__name__</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-n">instance</span><span class="tok-o">.</span><span class="tok-vm">__dict__</span><span class="tok-p">[</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">attrname</span><span class="tok-p">]</span> <span class="tok-o">=</span> <span class="tok-n">value</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__delete__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"Deleting </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-vm">__class__</span><span class="tok-o">.</span><span class="tok-vm">__name__</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">del</span> <span class="tok-n">instance</span><span class="tok-o">.</span><span class="tok-vm">__dict__</span><span class="tok-p">[</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">attrname</span><span class="tok-p">]</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">__set_name__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">attrname</span> <span class="tok-o">=</span> <span class="tok-n">name</span>
+</code></pre></div><p>在这个例子中，我们定义了一个名为 Descriptor 的描述器类，它有三个方法：<code>__get__</code>、<code>__set__</code> 和 <code>__delete__</code>。当我们在另一个类中使用这个描述器时，这些方法将被调用，以控制该类的属性的访问和修改。</p>
+<p>要使用这个描述器，我们可以在另一个类中将其定义为一个类属性：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">:</span>
+    <span class="tok-n">x</span> <span class="tok-o">=</span> <span class="tok-n">Descriptor</span><span class="tok-p">()</span>
+</code></pre></div><p>现在，我们可以创建一个 MyClass 对象并访问其属性：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">obj</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">x</span> <span class="tok-o">=</span> <span class="tok-mi">1</span>
+<span class="tok-n">Setting</span> <span class="tok-n">Descriptor</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">x</span>
+<span class="tok-n">Getting</span> <span class="tok-n">Descriptor</span>
+<span class="tok-mi">1</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-k">del</span> <span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">x</span>
+<span class="tok-n">Deleting</span> <span class="tok-n">Descriptor</span>
+<span class="tok-o">&gt;&gt;&gt;</span> <span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">x</span>
+<span class="tok-n">Getting</span> <span class="tok-n">Descriptor</span>
+</code></pre></div><p>在这个例子中，我们首先创建了一个 MyClass 对象，并将其 x 属性设置为 1。然后，我们再次访问 x 属性时，会调用 <code>__get__</code> 方法并返回 1。最后，我们删除了 x 属性，并再次访问它时，会调用 <code>__get__</code> 方法并返回 None。从上面的输出结果可以看到对应的方法都被调用了，这是符合上面对描述器的定义的。如果一个类对象不是描述器，那么在使用对应的属性的时候是不会调用<code>__get__</code>、<code>__set__</code> 和 <code>__delete__</code>三个方法的。比如下面的代码：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">NonDescriptor</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+    <span class="tok-k">pass</span>
+
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">():</span>
+
+    <span class="tok-n">nd</span> <span class="tok-o">=</span> <span class="tok-n">NonDescriptor</span><span class="tok-p">()</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-o">.</span><span class="tok-n">nd</span><span class="tok-p">)</span>
+</code></pre></div><p>上面的代码输出结果如下所示：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">&lt;</span><span class="tok-n">__main__</span><span class="tok-o">.</span><span class="tok-n">NonDescriptor</span> <span class="tok-nb">object</span> <span class="tok-n">at</span> <span class="tok-mh">0x1012cce20</span><span class="tok-o">&gt;</span>
+</code></pre></div><p>从上面程序的输出结果可以知道，当使用一个非描述器的类属性的时候是不会调用对应的方法的，而是直接得到对应的对象。</p>
+<h2 id="描述器的实现原理">描述器的实现原理</h2>
+<p>描述器的实现原理可以用以下三个步骤来概括：</p>
+<ul>
+<li>
+<p>当一个类的属性被访问时，Python 解释器会检查该属性是否是一个描述器。如果是，它会调用描述器的 <code>__get__</code> 方法，并将该类的实例作为第一个参数，该实例所属的类作为第二个参数，并将属性名称作为第三个参数传递给 <code>__get__</code> 方法。</p>
+</li>
+<li>
+<p>当一个类的属性被设置时，Python 解释器会检查该属性是否是一个描述器。如果是，它会调用描述器的 <code>__set__</code> 方法，并将该类的实例作为第一个参数，设置的值作为第二个参数，并将属性名称作为第三个参数传递给 <code>__set__</code> 方法。</p>
+</li>
+<li>
+<p>当一个类的属性被删除时，Python 解释器会检查该属性是否是一个描述器。如果是，它会调用描述器的 <code>__delete__</code> 方法，并将该类的实例作为第一个参数和属性名称作为第二个参数传递给 <code>__delete__</code> 方法。</p>
+</li>
+</ul>
+<p>在描述器的实现中，通常还会使用 <code>__set_name__</code> 方法来在描述器被绑定到类属性时设置属性名称。这使得描述器可以在被多个属性使用时，正确地识别每个属性的名称。</p>
+<p>现在来仔细了解一下上面的几个函数的参数，我们以下面的代码为例子进行说明：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Descriptor</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">__set_name__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">obj_type</span><span class="tok-p">,</span> <span class="tok-n">attr_name</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"__set_name__ : </span><span class="tok-si">{</span><span class="tok-n">obj_type</span><span class="tok-w"> </span><span class="tok-si">}</span><span class="tok-s2"> </span><span class="tok-si">{</span><span class="tok-n">attr_name</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-s2">"__set_name__"</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">obj_type</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"__get__ : </span><span class="tok-si">{</span><span class="tok-n">obj</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2"> </span><span class="tok-si">{</span><span class="tok-w"> </span><span class="tok-n">obj_type</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-s2">"__get__"</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__set__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"__set__ : </span><span class="tok-si">{</span><span class="tok-n">instance</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2"> </span><span class="tok-si">{</span><span class="tok-n">value</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-s2">"__set__"</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__delete__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"__delete__ : </span><span class="tok-si">{</span><span class="tok-n">obj</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-s2">"__delete__"</span>
+
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">(</span><span class="tok-nb">object</span><span class="tok-p">):</span>
+
+    <span class="tok-n">des</span> <span class="tok-o">=</span> <span class="tok-n">Descriptor</span><span class="tok-p">()</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">a</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+    <span class="tok-n">_</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-o">.</span><span class="tok-n">des</span>
+    <span class="tok-n">_</span> <span class="tok-o">=</span> <span class="tok-n">a</span><span class="tok-o">.</span><span class="tok-n">des</span>
+    <span class="tok-n">a</span><span class="tok-o">.</span><span class="tok-n">des</span> <span class="tok-o">=</span> <span class="tok-s2">"hello"</span>
+    <span class="tok-k">del</span> <span class="tok-n">a</span><span class="tok-o">.</span><span class="tok-n">des</span>
+</code></pre></div><p>上面的代码输入结果如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>__set_name__<span class="tok-w"> </span>:<span class="tok-w"> </span>&lt;class<span class="tok-w"> </span><span class="tok-s1">'__main__.MyClass'</span>&gt;<span class="tok-w"> </span><span class="tok-nv">attr_name</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'des'</span>
+__get__<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-nv">obj</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>None<span class="tok-w">  </span><span class="tok-nv">obj_type</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>&lt;class<span class="tok-w"> </span><span class="tok-s1">'__main__.MyClass'</span>&gt;
+__get__<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-nv">obj</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>&lt;__main__.MyClass<span class="tok-w"> </span>object<span class="tok-w"> </span>at<span class="tok-w"> </span>0x1054abeb0&gt;<span class="tok-w">  </span><span class="tok-nv">obj_type</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>&lt;class<span class="tok-w"> </span><span class="tok-s1">'__main__.MyClass'</span>&gt;
+__set__<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-nv">instance</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>&lt;__main__.MyClass<span class="tok-w"> </span>object<span class="tok-w"> </span>at<span class="tok-w"> </span>0x1054abeb0&gt;<span class="tok-w"> </span><span class="tok-nv">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'hello'</span>
+__delete__<span class="tok-w"> </span>:<span class="tok-w"> </span><span class="tok-nv">obj</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span>&lt;__main__.MyClass<span class="tok-w"> </span>object<span class="tok-w"> </span>at<span class="tok-w"> </span>0x1054abeb0&gt;
+</code></pre></div><ul>
+<li><code>__set_name__</code> 这个函数一共有两个参数传入的参数第一个参数是使用描述器的类，第二个参数是使用这个描述器的类当中使用的属性名字，在上面的例子当中就是 &quot;des&quot; 。</li>
+<li><code>__get__</code>，这个函数主要有两个参数，一个是使用属性的对象，另外一个是对象的类型，如果是直接使用类名使用属性的话，obj 就是 None，比如上面的 MyClass.des 。</li>
+<li><code>__set__</code>，这个函数主要有两个参数一个是对象，另外一个是需要设置的值。</li>
+<li><code>__delete__</code>，这函数有一个参数，就是传入的对象，比如 del a.des 传入的就是对象 a 。</li>
+</ul>
+<h2 id="描述器的应用场景">描述器的应用场景</h2>
+<p>描述器在 Python 中有很多应用场景。以下是其中的一些示例：</p>
+<h3 id="实现属性访问控制">实现属性访问控制</h3>
+<p>通过使用描述器，可以实现对类属性的访问控制，例如只读属性、只写属性、只读/只写属性等。通过在 <code>__get__</code> 和 <code>__set__</code> 方法中添加相应的访问控制逻辑，可以限制对类属性的访问和修改。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">ReadOnly</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_value</span> <span class="tok-o">=</span> <span class="tok-n">value</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_value</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__set__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-k">raise</span> <span class="tok-ne">AttributeError</span><span class="tok-p">(</span><span class="tok-s2">"Read only attribute"</span><span class="tok-p">)</span>
+        
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">:</span>
+    <span class="tok-n">read_only_prop</span> <span class="tok-o">=</span> <span class="tok-n">ReadOnly</span><span class="tok-p">(</span><span class="tok-mi">42</span><span class="tok-p">)</span>
+    <span class="tok-n">writeable_prop</span> <span class="tok-o">=</span> <span class="tok-kc">None</span>
+    
+<span class="tok-n">my_obj</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">read_only_prop</span><span class="tok-p">)</span>  <span class="tok-c1"># 42</span>
+<span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">writeable_prop</span> <span class="tok-o">=</span> <span class="tok-s2">"hello"</span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">writeable_prop</span><span class="tok-p">)</span>  <span class="tok-c1"># hello</span>
+<span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">read_only_prop</span> <span class="tok-o">=</span> <span class="tok-mi">100</span>  <span class="tok-c1"># raises AttributeError</span>
+</code></pre></div><p>在上面的例子中，<code>ReadOnly</code> 描述器只实现了 <code>__get__</code> 方法，而 <code>__set__</code> 方法则抛出了 <code>AttributeError</code> 异常，从而实现了只读属性的访问控制。</p>
+<h3 id="实现数据验证和转换">实现数据验证和转换</h3>
+<p>描述器还可以用于实现数据验证和转换逻辑。通过在 <code>__set__</code> 方法中添加数据验证和转换逻辑，可以确保设置的值符合某些特定的要求。例如，可以使用描述器来确保设置的值是整数、在某个范围内、符合某个正则表达式等。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Bounded</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">low</span><span class="tok-p">,</span> <span class="tok-n">high</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_low</span> <span class="tok-o">=</span> <span class="tok-n">low</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_high</span> <span class="tok-o">=</span> <span class="tok-n">high</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_value</span>
+    
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__set__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-k">if</span> <span class="tok-ow">not</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_low</span> <span class="tok-o">&lt;=</span> <span class="tok-n">value</span> <span class="tok-o">&lt;=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_high</span><span class="tok-p">:</span>
+            <span class="tok-k">raise</span> <span class="tok-ne">ValueError</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"Value must be between </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_low</span><span class="tok-si">}</span><span class="tok-s2"> and </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_high</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_value</span> <span class="tok-o">=</span> <span class="tok-n">value</span>
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">:</span>
+    <span class="tok-n">bounded_prop</span> <span class="tok-o">=</span> <span class="tok-n">Bounded</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-mi">100</span><span class="tok-p">)</span>
+
+<span class="tok-n">my_obj</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+<span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">bounded_prop</span> <span class="tok-o">=</span> <span class="tok-mi">50</span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">bounded_prop</span><span class="tok-p">)</span>  <span class="tok-c1"># 50</span>
+<span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">bounded_prop</span> <span class="tok-o">=</span> <span class="tok-mi">200</span>  <span class="tok-c1"># raises ValueError</span>
+</code></pre></div><p>在上面的例子中，<code>Bounded</code> 描述器在 <code>__set__</code> 方法中进行了数值范围的检查，如果值不在指定范围内，则抛出了 <code>ValueError</code> 异常。</p>
+<h3 id="实现延迟加载和缓存">实现延迟加载和缓存</h3>
+<p>描述器还可以用于实现延迟加载和缓存逻辑。通过在 <code>__get__</code> 方法中添加逻辑，可以实现属性的延迟加载，即当属性第一次被访问时才进行加载。此外，还可以使用描述器来实现缓存逻辑，以避免重复计算。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">LazyLoad</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">func</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_func</span> <span class="tok-o">=</span> <span class="tok-n">func</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">):</span>
+        <span class="tok-k">if</span> <span class="tok-n">instance</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span>
+        <span class="tok-n">value</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_func</span><span class="tok-p">(</span><span class="tok-n">instance</span><span class="tok-p">)</span>
+        <span class="tok-nb">setattr</span><span class="tok-p">(</span><span class="tok-n">instance</span><span class="tok-p">,</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_func</span><span class="tok-o">.</span><span class="tok-vm">__name__</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">)</span>
+        <span class="tok-k">return</span> <span class="tok-n">value</span>
+
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">MyClass</span><span class="tok-p">:</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_expensive_data</span> <span class="tok-o">=</span> <span class="tok-kc">None</span>
+
+    <span class="tok-nd">@LazyLoad</span>
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">expensive_data</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">):</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"Calculating expensive data..."</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_expensive_data</span> <span class="tok-o">=</span> <span class="tok-p">[</span><span class="tok-n">i</span> <span class="tok-o">**</span> <span class="tok-mi">2</span> <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">)]</span>
+        <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_expensive_data</span>
+
+
+<span class="tok-n">my_obj</span> <span class="tok-o">=</span> <span class="tok-n">MyClass</span><span class="tok-p">()</span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">expensive_data</span><span class="tok-p">)</span>  <span class="tok-c1"># Calculating expensive data... </span>
+<span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">my_obj</span><span class="tok-o">.</span><span class="tok-n">expensive_data</span><span class="tok-p">)</span>
+</code></pre></div><p>上面的程序的输出结果如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>Calculating<span class="tok-w"> </span>expensive<span class="tok-w"> </span>data...
+<span class="tok-o">[</span><span class="tok-m">0</span>,<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">4</span>,<span class="tok-w"> </span><span class="tok-m">9</span>,<span class="tok-w"> </span><span class="tok-m">16</span>,<span class="tok-w"> </span><span class="tok-m">25</span>,<span class="tok-w"> </span><span class="tok-m">36</span>,<span class="tok-w"> </span><span class="tok-m">49</span>,<span class="tok-w"> </span><span class="tok-m">64</span>,<span class="tok-w"> </span><span class="tok-m">81</span><span class="tok-o">]</span>
+<span class="tok-o">[</span><span class="tok-m">0</span>,<span class="tok-w"> </span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">4</span>,<span class="tok-w"> </span><span class="tok-m">9</span>,<span class="tok-w"> </span><span class="tok-m">16</span>,<span class="tok-w"> </span><span class="tok-m">25</span>,<span class="tok-w"> </span><span class="tok-m">36</span>,<span class="tok-w"> </span><span class="tok-m">49</span>,<span class="tok-w"> </span><span class="tok-m">64</span>,<span class="tok-w"> </span><span class="tok-m">81</span><span class="tok-o">]</span>
+</code></pre></div><p>从上面的结果可以看到，只有在第一次使用属性的时候才调用函数，后续再次调用函数将不会再调用函数而是直接返回缓存的结果。</p>
+<h3 id="实现-orm-映射">实现 ORM 映射</h3>
+<p>ORM 的主要作用是把数据库中的关系数据转化为面向对象的数据，让开发者可以通过编写面向对象的代码来操作数据库。ORM 技术可以把面向对象的编程语言和关系数据库之间的映射关系抽象出来，开发者可以不用写 SQL 语句，而是直接使用面向对象的语法进行数据库操作。</p>
+<p>我们现在需要实现一个功能，user.name 直接从数据库的 user 表当中查询 name 等于 user.name 的数据，user.name = &quot;xxx&quot; 根据 user 的主键 id 进行更新数据。这个功能我们就可以使用描述器实现，因为只需要了解如何使用描述器的，因此在下面的代码当中并没有连接数据库：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">conn</span> <span class="tok-o">=</span> <span class="tok-nb">dict</span><span class="tok-p">()</span>
+
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">Field</span><span class="tok-p">:</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">__set_name__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">owner</span><span class="tok-p">,</span> <span class="tok-n">name</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fetch</span> <span class="tok-o">=</span> <span class="tok-sa">f</span><span class="tok-s1">'SELECT </span><span class="tok-si">{</span><span class="tok-n">name</span><span class="tok-si">}</span><span class="tok-s1"> FROM </span><span class="tok-si">{</span><span class="tok-n">owner</span><span class="tok-o">.</span><span class="tok-n">table</span><span class="tok-si">}</span><span class="tok-s1"> WHERE </span><span class="tok-si">{</span><span class="tok-n">owner</span><span class="tok-o">.</span><span class="tok-n">key</span><span class="tok-si">}</span><span class="tok-s1">=?;'</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fetch</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">store</span> <span class="tok-o">=</span> <span class="tok-sa">f</span><span class="tok-s1">'UPDATE </span><span class="tok-si">{</span><span class="tok-n">owner</span><span class="tok-o">.</span><span class="tok-n">table</span><span class="tok-si">}</span><span class="tok-s1"> SET </span><span class="tok-si">{</span><span class="tok-n">name</span><span class="tok-si">}</span><span class="tok-s1">=? WHERE </span><span class="tok-si">{</span><span class="tok-n">owner</span><span class="tok-o">.</span><span class="tok-n">key</span><span class="tok-si">}</span><span class="tok-s1">=?;'</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">store</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__get__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">objtype</span><span class="tok-o">=</span><span class="tok-kc">None</span><span class="tok-p">):</span>
+        <span class="tok-k">return</span> <span class="tok-n">conn</span><span class="tok-o">.</span><span class="tok-n">execute</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">fetch</span><span class="tok-p">,</span> <span class="tok-p">[</span><span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">key</span><span class="tok-p">])</span><span class="tok-o">.</span><span class="tok-n">fetchone</span><span class="tok-p">()[</span><span class="tok-mi">0</span><span class="tok-p">]</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__set__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-p">,</span> <span class="tok-n">value</span><span class="tok-p">):</span>
+        <span class="tok-n">conn</span><span class="tok-o">.</span><span class="tok-n">execute</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">store</span><span class="tok-p">,</span> <span class="tok-p">[</span><span class="tok-n">value</span><span class="tok-p">,</span> <span class="tok-n">obj</span><span class="tok-o">.</span><span class="tok-n">key</span><span class="tok-p">])</span>
+        <span class="tok-n">conn</span><span class="tok-o">.</span><span class="tok-n">commit</span><span class="tok-p">()</span>
+
+
+<span class="tok-k">class</span><span class="tok-w"> </span><span class="tok-nc">User</span><span class="tok-p">:</span>
+    <span class="tok-n">table</span> <span class="tok-o">=</span> <span class="tok-s1">'User'</span>                    <span class="tok-c1"># Table name</span>
+    <span class="tok-n">key</span> <span class="tok-o">=</span> <span class="tok-s1">'id'</span>                       <span class="tok-c1"># Primary key</span>
+    <span class="tok-n">name</span> <span class="tok-o">=</span> <span class="tok-n">Field</span><span class="tok-p">()</span>
+    <span class="tok-n">age</span> <span class="tok-o">=</span> <span class="tok-n">Field</span><span class="tok-p">()</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-fm">__init__</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">key</span><span class="tok-p">):</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">key</span> <span class="tok-o">=</span> <span class="tok-n">key</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">u</span> <span class="tok-o">=</span> <span class="tok-n">User</span><span class="tok-p">(</span><span class="tok-s2">"Bob"</span><span class="tok-p">)</span>
+</code></pre></div><p>上面的程序输出结果如下所示：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>self.fetch<span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'SELECT name FROM User WHERE id=?;'</span>
+self.store<span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'UPDATE User SET name=? WHERE id=?;'</span>
+self.fetch<span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-s1">'SELECT age FROM User WHERE id=?;'</span>
+self.store<span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-err">'</span>UPDATE<span class="tok-w"> </span>User<span class="tok-w"> </span>SET<span class="tok-w"> </span><span class="tok-nv">age</span><span class="tok-o">=</span>?<span class="tok-w"> </span>WHERE<span class="tok-w"> </span><span class="tok-nv">id</span><span class="tok-o">=</span>?<span class="tok-p">;</span>
+</code></pre></div><p>从上面的输出结果我们可以看到针对 name 和 age 两个字段的查询和更新语句确实生成了，当我们调用 u.name = xxx 或者 u.age = xxx 的时候就执行 <code>__set__</code> 函数，就会连接数据库进行相应的操作了。</p>
+<h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家介绍了什么是描述器以及我们能够使用描述器来实现什么样的功能，事实上 python 是一个比较随意的语言，因此我们可以利用很多有意思的语法做出黑多黑科技。python 语言本身也利用描述器实现了很多有意思的功能，比如 property、staticmethod 等等，这些内容我们在后面的文章当中再进行分析。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-objects-09dict/"><span>较新</span>深入理解 Python 虚拟机：字典（dict）的优化</a><a class="next" href="/posts/cpython-obsy-02application/"><span>较旧</span>深入理解 python 虚拟机：描述器的王炸应用-property、staticmethod 和 classmehtod</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#描述器的基本用法">描述器的基本用法</a></li>
+      <li class="toc-l2"><a href="#描述器的实现原理">描述器的实现原理</a></li>
+      <li class="toc-l2"><a href="#描述器的应用场景">描述器的应用场景</a></li>
+      <li class="toc-l3"><a href="#实现属性访问控制">实现属性访问控制</a></li>
+      <li class="toc-l3"><a href="#实现数据验证和转换">实现数据验证和转换</a></li>
+      <li class="toc-l3"><a href="#实现延迟加载和缓存">实现延迟加载和缓存</a></li>
+      <li class="toc-l3"><a href="#实现-orm-映射">实现 ORM 映射</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

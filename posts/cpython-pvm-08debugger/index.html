@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解python虚拟机：调试器实现原理与源码分析 · Chang-LeHung</title>
+<meta name="description" content="调试器是一个编程语言非常重要的部分，调试器是一种用于诊断和修复代码错误（或称为 bug）的工具，它允许开发者在程序执行时逐步查看和分析代码的状态和行为，它可以帮助开发者诊断和修复代码错误，理解程序的行为，优化性能。无论在哪种编程语言中，调试器都是一个强大的工具，对于提高开发效率和代码质量都起着积极的">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解python虚拟机：调试器实现原理与源码分析</h1>
+      <p class="post-meta">
+        <time datetime="2023-10-14">2023-10-14</time>
+        <span class="sep">·</span>6 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/虚拟机/">虚拟机</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>调试器是一个编程语言非常重要的部分，调试器是一种用于诊断和修复代码错误（或称为 bug）的工具，它允许开发者在程序执行时逐步查看和分析代码的状态和行为，它可以帮助开发者诊断和修复代码错误，理解程序的行为，优化性能。无论在哪种编程语言中，调试器都是一个强大的工具，对于提高开发效率和代码质量都起着积极的作用。</p>
+<p>在本篇文章当中主要给大家介绍 python 语言当中调试器的实现原理，通过了解一个语言的调试器的实现原理我们可以更加深入的理解整个语言的运行机制，可以帮助我们更好的理解程序的执行。</p>
+<h2 id="让程序停下来">让程序停下来</h2>
+<p>如果我们需要对一个程序进行调试最重要的一个点就是如果让程序停下来，只有让程序的执行停下来我们才能够观察程序执行的状态，比如我们需要调试 99 乘法表：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">m99</span><span class="tok-p">():</span>
+    <span class="tok-k">for</span> <span class="tok-n">i</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-mi">10</span><span class="tok-p">):</span>
+        <span class="tok-k">for</span> <span class="tok-n">j</span> <span class="tok-ow">in</span> <span class="tok-nb">range</span><span class="tok-p">(</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">i</span> <span class="tok-o">+</span> <span class="tok-mi">1</span><span class="tok-p">):</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-n">i</span><span class="tok-si">}</span><span class="tok-s2">x</span><span class="tok-si">{</span><span class="tok-n">j</span><span class="tok-si">}</span><span class="tok-s2">=</span><span class="tok-si">{</span><span class="tok-n">i</span><span class="tok-o">*</span><span class="tok-n">j</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">,</span> <span class="tok-n">end</span><span class="tok-o">=</span><span class="tok-s1">'</span><span class="tok-se">\t</span><span class="tok-s1">'</span><span class="tok-p">)</span>
+        <span class="tok-nb">print</span><span class="tok-p">()</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">m99</span><span class="tok-p">()</span>
+</code></pre></div><p>现在执行命令 <code>python -m pdb pdbusage.py </code>  就可以对上面的程序进行调试：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">(</span>py3.8<span class="tok-o">)</span><span class="tok-w"> </span>➜<span class="tok-w">  </span>pdb_test<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>python<span class="tok-w"> </span>-m<span class="tok-w"> </span>pdb<span class="tok-w"> </span>pdbusage.py
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">3</span><span class="tok-o">)</span>&lt;module&gt;<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span>def<span class="tok-w"> </span>m99<span class="tok-o">()</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">10</span><span class="tok-o">)</span>&lt;module&gt;<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-nv">__name__</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-s1">'__main__'</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">11</span><span class="tok-o">)</span>&lt;module&gt;<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span>m99<span class="tok-o">()</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+--Call--
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">3</span><span class="tok-o">)</span>m99<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span>def<span class="tok-w"> </span>m99<span class="tok-o">()</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">4</span><span class="tok-o">)</span>m99<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span><span class="tok-k">for</span><span class="tok-w"> </span>i<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>range<span class="tok-o">(</span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">10</span><span class="tok-o">)</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">5</span><span class="tok-o">)</span>m99<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span><span class="tok-k">for</span><span class="tok-w"> </span>j<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>range<span class="tok-o">(</span><span class="tok-m">1</span>,<span class="tok-w"> </span>i<span class="tok-w"> </span>+<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>s
+&gt;<span class="tok-w"> </span>/Users/xxxx/Desktop/workdir/dive-into-cpython/code/pdb_test/pdbusage.py<span class="tok-o">(</span><span class="tok-m">6</span><span class="tok-o">)</span>m99<span class="tok-o">()</span>
+-&gt;<span class="tok-w"> </span>print<span class="tok-o">(</span>f<span class="tok-s2">"{i}x{j}={i*j}"</span>,<span class="tok-w"> </span><span class="tok-nv">end</span><span class="tok-o">=</span><span class="tok-s1">'\t'</span><span class="tok-o">)</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>p<span class="tok-w"> </span>i
+<span class="tok-m">1</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span><span class="tok-w"> </span>
+</code></pre></div><p>当然你也可以在 IDE 当中进行调试：</p>
+<p><img src="/content/zh/images/cpython/76-debugger.webp" alt="76-debugger" loading="lazy" /></p>
+<p>根据我们的调试经历容易知道，要想调试一个程序首先最重要的一点就是程序需要在我们设置断点的位置要能够停下来</p>
+<h2 id="cpython-王炸机制-tracing">cpython 王炸机制 —— tracing</h2>
+<p>现在的问题是，上面的程序是怎么在程序执行时停下来的呢？</p>
+<p>根据前面的学习我们可以了解到，一个 python 程序的执行首先需要经过 python 编译器编译成 python 字节码，然后交给 python 虚拟机进行执行，如果需要程序停下来就一定需要虚拟机给上层的 python 程序提供接口，让程序在执行的时候可以知道现在执行到什么位置了。这个神秘的机制就隐藏在 sys 这个模块当中，事实上这个模块几乎承担了所有我们与 python 解释器交互的接口。实现调试器一个非常重要的函数就是 sys.settrace 函数，这个函数将为线程设置一个追踪函数，当虚拟机有函数调用，执行完一行代码的时候、甚至执行完一条字节码之后就会执行这个函数。</p>
+<p>设置系统的跟踪函数，允许在 Python 中实现一个 Python 源代码调试器。该函数是线程特定的；为了支持多线程调试，必须对每个正在调试的线程注册一个跟踪函数，使用 settrace() 或者使用 threading.settrace() 。</p>
+<p>跟踪函数应该有三个参数：frame、event 和 arg。frame 是当前的栈帧。event 是一个字符串：'call'、'line'、'return'、'exception'、 'opcode' 、'c_call' 或者  'c_exception'。arg 取决于事件类型。</p>
+<p><strong>跟踪函数在每次进入新的局部作用域时被调用（事件设置为'call'）；它应该返回一个引用，用于新作用域的本地跟踪函数，或者如果不想在该作用域中进行跟踪，则返回None。</strong></p>
+<p>如果在跟踪函数中发生任何错误，它将被取消设置，就像调用settrace(None)一样。</p>
+<p>事件的含义如下：</p>
+<ul>
+<li>
+<p>call，调用了一个函数（或者进入了其他代码块）。调用全局跟踪函数；arg 为 None；返回值指定了本地跟踪函数。</p>
+</li>
+<li>
+<p>line，将要执行一行新的代码，参数 arg 的值为 None 。</p>
+</li>
+<li>
+<p>return，函数（或其他代码块）即将返回。调用本地跟踪函数；arg 是将要返回的值，如果事件是由引发的异常引起的，则arg为None。跟踪函数的返回值将被忽略。</p>
+</li>
+<li>
+<p>exception，发生了异常。调用本地跟踪函数；arg是一个元组（exception，value，traceback）；返回值指定了新的本地跟踪函数。</p>
+</li>
+<li>
+<p>opcode，解释器即将执行新的字节码指令。调用本地跟踪函数；arg 为 None；返回值指定了新的本地跟踪函数。默认情况下，不会发出每个操作码的事件：必须通过在帧上设置 f_trace_opcodes 为 True 来显式请求。</p>
+</li>
+<li>
+<p>c_call，一个 c 函数将要被调用。</p>
+</li>
+<li>
+<p>c_exception，调用 c 函数的时候产生了异常。</p>
+</li>
+</ul>
+<h2 id="自己动手实现一个简单的调试器">自己动手实现一个简单的调试器</h2>
+<p>在本小节当中我们将实现一个非常简单的调试器帮助大家理解调试器的实现原理。调试器的实现代码如下所示，只有短短几十行却可以帮助我们深入去理解调试器的原理，我们先看一下实现的效果在后文当中再去分析具体的实现：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">sys</span>
+
+<span class="tok-n">file</span> <span class="tok-o">=</span> <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">argv</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">]</span>
+<span class="tok-k">with</span> <span class="tok-nb">open</span><span class="tok-p">(</span><span class="tok-n">file</span><span class="tok-p">,</span> <span class="tok-s2">"r+"</span><span class="tok-p">)</span> <span class="tok-k">as</span> <span class="tok-n">fp</span><span class="tok-p">:</span>
+    <span class="tok-n">code</span> <span class="tok-o">=</span> <span class="tok-n">fp</span><span class="tok-o">.</span><span class="tok-n">read</span><span class="tok-p">()</span>
+<span class="tok-n">lines</span> <span class="tok-o">=</span> <span class="tok-n">code</span><span class="tok-o">.</span><span class="tok-n">split</span><span class="tok-p">(</span><span class="tok-s2">"</span><span class="tok-se">\n</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">do_line</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">event</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">):</span>
+    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"debugging line:"</span><span class="tok-p">,</span> <span class="tok-n">lines</span><span class="tok-p">[</span><span class="tok-n">frame</span><span class="tok-o">.</span><span class="tok-n">f_lineno</span> <span class="tok-o">-</span> <span class="tok-mi">1</span><span class="tok-p">])</span>
+    <span class="tok-k">return</span> <span class="tok-n">debug</span>
+
+
+<span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">debug</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">event</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">):</span>
+    <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s2">"line"</span><span class="tok-p">:</span>
+        <span class="tok-k">while</span> <span class="tok-kc">True</span><span class="tok-p">:</span>
+            <span class="tok-n">_</span> <span class="tok-o">=</span> <span class="tok-nb">input</span><span class="tok-p">(</span><span class="tok-s2">"(Pdb)"</span><span class="tok-p">)</span>
+            <span class="tok-k">if</span> <span class="tok-n">_</span> <span class="tok-o">==</span> <span class="tok-s1">'n'</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-n">do_line</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">event</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">)</span>
+            <span class="tok-k">elif</span> <span class="tok-n">_</span><span class="tok-o">.</span><span class="tok-n">startswith</span><span class="tok-p">(</span><span class="tok-s1">'p'</span><span class="tok-p">):</span>
+                <span class="tok-n">_</span><span class="tok-p">,</span> <span class="tok-n">v</span> <span class="tok-o">=</span> <span class="tok-n">_</span><span class="tok-o">.</span><span class="tok-n">split</span><span class="tok-p">()</span>
+                <span class="tok-n">v</span> <span class="tok-o">=</span> <span class="tok-nb">eval</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">,</span> <span class="tok-n">frame</span><span class="tok-o">.</span><span class="tok-n">f_globals</span><span class="tok-p">,</span> <span class="tok-n">frame</span><span class="tok-o">.</span><span class="tok-n">f_locals</span><span class="tok-p">)</span>
+                <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-n">v</span><span class="tok-p">)</span>
+            <span class="tok-k">elif</span> <span class="tok-n">_</span> <span class="tok-o">==</span> <span class="tok-s1">'q'</span><span class="tok-p">:</span>
+                <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">exit</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">)</span>
+    <span class="tok-k">return</span> <span class="tok-n">debug</span>
+
+
+<span class="tok-k">if</span> <span class="tok-vm">__name__</span> <span class="tok-o">==</span> <span class="tok-s1">'__main__'</span><span class="tok-p">:</span>
+    <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">settrace</span><span class="tok-p">(</span><span class="tok-n">debug</span><span class="tok-p">)</span>
+    <span class="tok-n">exec</span><span class="tok-p">(</span><span class="tok-n">code</span><span class="tok-p">,</span> <span class="tok-kc">None</span><span class="tok-p">,</span> <span class="tok-kc">None</span><span class="tok-p">)</span>
+    <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">settrace</span><span class="tok-p">(</span><span class="tok-kc">None</span><span class="tok-p">)</span>
+</code></pre></div><p>在上面的程序当中使用如下：</p>
+<ul>
+<li>输入 n 执行一行代码。</li>
+<li>p name 打印变量 name 。</li>
+<li>q 退出调试。</li>
+</ul>
+<p>现在我们执行上面的程序，进行程序调试：</p>
+<div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-o">(</span>py3.10<span class="tok-o">)</span><span class="tok-w"> </span>➜<span class="tok-w">  </span>pdb_test<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>python<span class="tok-w"> </span>mydebugger.py<span class="tok-w"> </span>pdbusage.py
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w"> </span>def<span class="tok-w"> </span>m99<span class="tok-o">()</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w"> </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-nv">__name__</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-s1">'__main__'</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w">     </span>m99<span class="tok-o">()</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w">     </span><span class="tok-k">for</span><span class="tok-w"> </span>i<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>range<span class="tok-o">(</span><span class="tok-m">1</span>,<span class="tok-w"> </span><span class="tok-m">10</span><span class="tok-o">)</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w">         </span><span class="tok-k">for</span><span class="tok-w"> </span>j<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>range<span class="tok-o">(</span><span class="tok-m">1</span>,<span class="tok-w"> </span>i<span class="tok-w"> </span>+<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w">             </span>print<span class="tok-o">(</span>f<span class="tok-s2">"{i}x{j}={i*j}"</span>,<span class="tok-w"> </span><span class="tok-nv">end</span><span class="tok-o">=</span><span class="tok-s1">'\t'</span><span class="tok-o">)</span>
+<span class="tok-nv">1x1</span><span class="tok-o">=</span><span class="tok-m">1</span><span class="tok-w">   </span><span class="tok-o">(</span>Pdb<span class="tok-o">)</span>n
+debugging<span class="tok-w"> </span>line:<span class="tok-w">         </span><span class="tok-k">for</span><span class="tok-w"> </span>j<span class="tok-w"> </span><span class="tok-k">in</span><span class="tok-w"> </span>range<span class="tok-o">(</span><span class="tok-m">1</span>,<span class="tok-w"> </span>i<span class="tok-w"> </span>+<span class="tok-w"> </span><span class="tok-m">1</span><span class="tok-o">)</span>:
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>p<span class="tok-w"> </span>i
+<span class="tok-m">1</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>p<span class="tok-w"> </span>j
+<span class="tok-m">1</span>
+<span class="tok-o">(</span>Pdb<span class="tok-o">)</span>q
+<span class="tok-o">(</span>py3.10<span class="tok-o">)</span><span class="tok-w"> </span>➜<span class="tok-w">  </span>pdb_test<span class="tok-w"> </span>git:<span class="tok-o">(</span>master<span class="tok-o">)</span><span class="tok-w"> </span>✗<span class="tok-w"> </span>
+</code></pre></div><p><img src="/content/zh/images/cpython/debugger.gif" alt="debugger" loading="lazy" /></p>
+<p>可以看到我们的程序真正的被调试起来了。</p>
+<p>现在我们来分析一下我们自己实现的简易版本的调试器，在前文当中我们已经提到了 sys.settrace 函数，调用这个函数时需要传递一个函数作为参数，被传入的函数需要接受三个参数：</p>
+<ul>
+<li>
+<p>frame，当前正在执行的栈帧。</p>
+</li>
+<li>
+<p>event，事件的类别，这一点在前面的文件当中已经提到了。</p>
+</li>
+<li>
+<p>arg，参数这一点在前面也已经提到了。</p>
+</li>
+<li>
+<p>同时需要注意的是这个函数也需要有一个返回值，python 虚拟机在下一次事件发生的时候会调用返回的这个函数，如果返回 None  那么就不会在发生事件的时候调用 tracing 函数了，这是代码当中为什么在 debug 返回 debug 的原因。</p>
+</li>
+</ul>
+<p>我们只对 line 这个事件进行处理，然后进行死循环，只有输入 n 指令的时候才会执行下一行，然后打印正在执行的行，这个时候就会退出函数 debug ，程序就会继续执行了。python 内置的 eval 函数可以获取变量的值。</p>
+<h2 id="python-官方调试器源码分析">python 官方调试器源码分析</h2>
+<p>python 官方的调试器为 pdb 这个是 python 标准库自带的，我们可以通过 <code>python -m pdb xx.py</code> 去调试文件 xx.py 。这里我们只分析核心代码：</p>
+<p>代码位置：bdp.py 下面的 Bdb 类</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">run</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">cmd</span><span class="tok-p">,</span> <span class="tok-nb">globals</span><span class="tok-o">=</span><span class="tok-kc">None</span><span class="tok-p">,</span> <span class="tok-nb">locals</span><span class="tok-o">=</span><span class="tok-kc">None</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""Debug a statement executed via the exec() function.</span>
+
+<span class="tok-sd">        globals defaults to __main__.dict; locals defaults to globals.</span>
+<span class="tok-sd">        """</span>
+        <span class="tok-k">if</span> <span class="tok-nb">globals</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+            <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">__main__</span>
+            <span class="tok-nb">globals</span> <span class="tok-o">=</span> <span class="tok-n">__main__</span><span class="tok-o">.</span><span class="tok-vm">__dict__</span>
+        <span class="tok-k">if</span> <span class="tok-nb">locals</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+            <span class="tok-nb">locals</span> <span class="tok-o">=</span> <span class="tok-nb">globals</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">reset</span><span class="tok-p">()</span>
+        <span class="tok-k">if</span> <span class="tok-nb">isinstance</span><span class="tok-p">(</span><span class="tok-n">cmd</span><span class="tok-p">,</span> <span class="tok-nb">str</span><span class="tok-p">):</span>
+            <span class="tok-n">cmd</span> <span class="tok-o">=</span> <span class="tok-nb">compile</span><span class="tok-p">(</span><span class="tok-n">cmd</span><span class="tok-p">,</span> <span class="tok-s2">"&lt;string&gt;"</span><span class="tok-p">,</span> <span class="tok-s2">"exec"</span><span class="tok-p">)</span>
+        <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">settrace</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span><span class="tok-p">)</span>
+        <span class="tok-k">try</span><span class="tok-p">:</span>
+            <span class="tok-n">exec</span><span class="tok-p">(</span><span class="tok-n">cmd</span><span class="tok-p">,</span> <span class="tok-nb">globals</span><span class="tok-p">,</span> <span class="tok-nb">locals</span><span class="tok-p">)</span>
+        <span class="tok-k">except</span> <span class="tok-n">BdbQuit</span><span class="tok-p">:</span>
+            <span class="tok-k">pass</span>
+        <span class="tok-k">finally</span><span class="tok-p">:</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">quitting</span> <span class="tok-o">=</span> <span class="tok-kc">True</span>
+            <span class="tok-n">sys</span><span class="tok-o">.</span><span class="tok-n">settrace</span><span class="tok-p">(</span><span class="tok-kc">None</span><span class="tok-p">)</span>
+</code></pre></div><p>上面的函数主要是使用 sys.settrace 函数进行 tracing 操作，当有事件发生的时候就能够捕捉了。在上面的代码当中 tracing 函数为 self.trace_dispatch 我们再来看这个函数的代码：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">trace_dispatch</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">event</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""Dispatch a trace function for debugged frames based on the event.</span>
+
+<span class="tok-sd">        This function is installed as the trace function for debugged</span>
+<span class="tok-sd">        frames. Its return value is the new trace function, which is</span>
+<span class="tok-sd">        usually itself. The default implementation decides how to</span>
+<span class="tok-sd">        dispatch a frame, depending on the type of event (passed in as a</span>
+<span class="tok-sd">        string) that is about to be executed.</span>
+
+<span class="tok-sd">        The event can be one of the following:</span>
+<span class="tok-sd">            line: A new line of code is going to be executed.</span>
+<span class="tok-sd">            call: A function is about to be called or another code block</span>
+<span class="tok-sd">                  is entered.</span>
+<span class="tok-sd">            return: A function or other code block is about to return.</span>
+<span class="tok-sd">            exception: An exception has occurred.</span>
+<span class="tok-sd">            c_call: A C function is about to be called.</span>
+<span class="tok-sd">            c_return: A C function has returned.</span>
+<span class="tok-sd">            c_exception: A C function has raised an exception.</span>
+
+<span class="tok-sd">        For the Python events, specialized functions (see the dispatch_*()</span>
+<span class="tok-sd">        methods) are called.  For the C events, no action is taken.</span>
+
+<span class="tok-sd">        The arg parameter depends on the previous event.</span>
+<span class="tok-sd">        """</span>
+        <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">quitting</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span> <span class="tok-c1"># None</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'line'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In line"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">dispatch_line</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">)</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'call'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In call"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">dispatch_call</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">)</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'return'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In return"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">dispatch_return</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">)</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'exception'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In exception"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">dispatch_exception</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">)</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'c_call'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In c_call"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'c_exception'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In c_exception"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span>
+        <span class="tok-k">if</span> <span class="tok-n">event</span> <span class="tok-o">==</span> <span class="tok-s1">'c_return'</span><span class="tok-p">:</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In c_return"</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s1">'bdb.Bdb.dispatch: unknown debugging event:'</span><span class="tok-p">,</span> <span class="tok-nb">repr</span><span class="tok-p">(</span><span class="tok-n">event</span><span class="tok-p">))</span>
+        <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span>
+</code></pre></div><p>从上面的代码当中可以看到每一种事件都有一个对应的处理函数，在本文当中我们主要分析 函数 dispatch_line，这个处理 line 事件的函数。</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">dispatch_line</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">frame</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""Invoke user function and return trace function for line event.</span>
+
+<span class="tok-sd">        If the debugger stops on the current line, invoke</span>
+<span class="tok-sd">        self.user_line(). Raise BdbQuit if self.quitting is set.</span>
+<span class="tok-sd">        Return self.trace_dispatch to continue tracing in this scope.</span>
+<span class="tok-sd">        """</span>
+        <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">stop_here</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">)</span> <span class="tok-ow">or</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">break_here</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">):</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">user_line</span><span class="tok-p">(</span><span class="tok-n">frame</span><span class="tok-p">)</span>
+            <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">quitting</span><span class="tok-p">:</span> <span class="tok-k">raise</span> <span class="tok-n">BdbQuit</span>
+        <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">trace_dispatch</span>
+</code></pre></div><p>这个函数首先会判断是否需要在当前行停下来，如果需要停下来就需要进入 user_line 这个函数，后面的调用链函数比较长，我们直接看最后执行的函数，根据我们使用 pdb 的经验来看，最终肯定是一个 while 循环让我们可以不断的输入指令进行处理：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">cmdloop</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">intro</span><span class="tok-o">=</span><span class="tok-kc">None</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""Repeatedly issue a prompt, accept input, parse an initial prefix</span>
+<span class="tok-sd">        off the received input, and dispatch to action methods, passing them</span>
+<span class="tok-sd">        the remainder of the line as argument.</span>
+
+<span class="tok-sd">        """</span>
+        <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-s2">"In cmdloop"</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">preloop</span><span class="tok-p">()</span>
+        <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">use_rawinput</span> <span class="tok-ow">and</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">completekey</span><span class="tok-p">:</span>
+            <span class="tok-k">try</span><span class="tok-p">:</span>
+                <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">readline</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">old_completer</span> <span class="tok-o">=</span> <span class="tok-n">readline</span><span class="tok-o">.</span><span class="tok-n">get_completer</span><span class="tok-p">()</span>
+                <span class="tok-n">readline</span><span class="tok-o">.</span><span class="tok-n">set_completer</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">complete</span><span class="tok-p">)</span>
+                <span class="tok-n">readline</span><span class="tok-o">.</span><span class="tok-n">parse_and_bind</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">completekey</span><span class="tok-o">+</span><span class="tok-s2">": complete"</span><span class="tok-p">)</span>
+            <span class="tok-k">except</span> <span class="tok-ne">ImportError</span><span class="tok-p">:</span>
+                <span class="tok-k">pass</span>
+        <span class="tok-k">try</span><span class="tok-p">:</span>
+            <span class="tok-k">if</span> <span class="tok-n">intro</span> <span class="tok-ow">is</span> <span class="tok-ow">not</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">intro</span> <span class="tok-o">=</span> <span class="tok-n">intro</span>
+            <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">intro</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+            <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">intro</span><span class="tok-p">:</span>
+                <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">stdout</span><span class="tok-o">.</span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-nb">str</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">intro</span><span class="tok-p">)</span><span class="tok-o">+</span><span class="tok-s2">"</span><span class="tok-se">\n</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+            <span class="tok-n">stop</span> <span class="tok-o">=</span> <span class="tok-kc">None</span>
+            <span class="tok-k">while</span> <span class="tok-ow">not</span> <span class="tok-n">stop</span><span class="tok-p">:</span>
+                <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">cmdqueue</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+                <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">cmdqueue</span><span class="tok-p">:</span>
+                    <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">cmdqueue</span><span class="tok-o">.</span><span class="tok-n">pop</span><span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">)</span>
+                <span class="tok-k">else</span><span class="tok-p">:</span>
+                    <span class="tok-nb">print</span><span class="tok-p">(</span><span class="tok-sa">f</span><span class="tok-s2">"</span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">prompt</span><span class="tok-w"> </span><span class="tok-si">= }</span><span class="tok-s2"> </span><span class="tok-si">{</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">use_rawinput</span><span class="tok-si">}</span><span class="tok-s2">"</span><span class="tok-p">)</span>
+                    <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">use_rawinput</span><span class="tok-p">:</span>
+                        <span class="tok-k">try</span><span class="tok-p">:</span>
+                            <span class="tok-c1"># 核心逻辑就在这里 不断的要求输入然后进行处理</span>
+                            <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-nb">input</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">prompt</span><span class="tok-p">)</span> <span class="tok-c1"># self.prompt = '(Pdb)'</span>
+                        <span class="tok-k">except</span> <span class="tok-ne">EOFError</span><span class="tok-p">:</span>
+                            <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-s1">'EOF'</span>
+                    <span class="tok-k">else</span><span class="tok-p">:</span>
+                        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">stdout</span><span class="tok-o">.</span><span class="tok-n">write</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">prompt</span><span class="tok-p">)</span>
+                        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">stdout</span><span class="tok-o">.</span><span class="tok-n">flush</span><span class="tok-p">()</span>
+                        <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">stdin</span><span class="tok-o">.</span><span class="tok-n">readline</span><span class="tok-p">()</span>
+                        <span class="tok-k">if</span> <span class="tok-ow">not</span> <span class="tok-nb">len</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">):</span>
+                            <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-s1">'EOF'</span>
+                        <span class="tok-k">else</span><span class="tok-p">:</span>
+                            <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-n">line</span><span class="tok-o">.</span><span class="tok-n">rstrip</span><span class="tok-p">(</span><span class="tok-s1">'</span><span class="tok-se">\r\n</span><span class="tok-s1">'</span><span class="tok-p">)</span>
+
+                <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">precmd</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span>
+                <span class="tok-n">stop</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">onecmd</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span> <span class="tok-c1"># 这个函数就是处理我们输入的字符串的比如 p n 等等</span>
+                <span class="tok-n">stop</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">postcmd</span><span class="tok-p">(</span><span class="tok-n">stop</span><span class="tok-p">,</span> <span class="tok-n">line</span><span class="tok-p">)</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">postloop</span><span class="tok-p">()</span>
+        <span class="tok-k">finally</span><span class="tok-p">:</span>
+            <span class="tok-k">if</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">use_rawinput</span> <span class="tok-ow">and</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">completekey</span><span class="tok-p">:</span>
+                <span class="tok-k">try</span><span class="tok-p">:</span>
+                    <span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">readline</span>
+                    <span class="tok-n">readline</span><span class="tok-o">.</span><span class="tok-n">set_completer</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">old_completer</span><span class="tok-p">)</span>
+                <span class="tok-k">except</span> <span class="tok-ne">ImportError</span><span class="tok-p">:</span>
+                    <span class="tok-k">pass</span>
+</code></pre></div><div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">onecmd</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">line</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""Interpret the argument as though it had been typed in response</span>
+<span class="tok-sd">        to the prompt.</span>
+
+<span class="tok-sd">        This may be overridden, but should not normally need to be;</span>
+<span class="tok-sd">        see the precmd() and postcmd() methods for useful execution hooks.</span>
+<span class="tok-sd">        The return value is a flag indicating whether interpretation of</span>
+<span class="tok-sd">        commands by the interpreter should stop.</span>
+
+<span class="tok-sd">        """</span>
+        <span class="tok-n">cmd</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">,</span> <span class="tok-n">line</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">parseline</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span>
+        <span class="tok-k">if</span> <span class="tok-ow">not</span> <span class="tok-n">line</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">emptyline</span><span class="tok-p">()</span>
+        <span class="tok-k">if</span> <span class="tok-n">cmd</span> <span class="tok-ow">is</span> <span class="tok-kc">None</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">default</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">lastcmd</span> <span class="tok-o">=</span> <span class="tok-n">line</span>
+        <span class="tok-k">if</span> <span class="tok-n">line</span> <span class="tok-o">==</span> <span class="tok-s1">'EOF'</span> <span class="tok-p">:</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">lastcmd</span> <span class="tok-o">=</span> <span class="tok-s1">''</span>
+        <span class="tok-k">if</span> <span class="tok-n">cmd</span> <span class="tok-o">==</span> <span class="tok-s1">''</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">default</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span>
+        <span class="tok-k">else</span><span class="tok-p">:</span>
+            <span class="tok-k">try</span><span class="tok-p">:</span>
+                <span class="tok-c1"># 根据下面的代码可以分析了解到如果我们执行命令 p 执行的函数为 do_p</span>
+                <span class="tok-n">func</span> <span class="tok-o">=</span> <span class="tok-nb">getattr</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-s1">'do_'</span> <span class="tok-o">+</span> <span class="tok-n">cmd</span><span class="tok-p">)</span>
+            <span class="tok-k">except</span> <span class="tok-ne">AttributeError</span><span class="tok-p">:</span>
+                <span class="tok-k">return</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">default</span><span class="tok-p">(</span><span class="tok-n">line</span><span class="tok-p">)</span>
+            <span class="tok-k">return</span> <span class="tok-n">func</span><span class="tok-p">(</span><span class="tok-n">arg</span><span class="tok-p">)</span>
+</code></pre></div><p>现在我们再来看一下 do_p 打印一个表达式是如何实现的：</p>
+<div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">do_p</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">):</span>
+<span class="tok-w">        </span><span class="tok-sd">"""p expression</span>
+<span class="tok-sd">        Print the value of the expression.</span>
+<span class="tok-sd">        """</span>
+        <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_msg_val_func</span><span class="tok-p">(</span><span class="tok-n">arg</span><span class="tok-p">,</span> <span class="tok-nb">repr</span><span class="tok-p">)</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">_msg_val_func</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">,</span> <span class="tok-n">func</span><span class="tok-p">):</span>
+        <span class="tok-k">try</span><span class="tok-p">:</span>
+            <span class="tok-n">val</span> <span class="tok-o">=</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_getval</span><span class="tok-p">(</span><span class="tok-n">arg</span><span class="tok-p">)</span>
+        <span class="tok-k">except</span><span class="tok-p">:</span>
+            <span class="tok-k">return</span>  <span class="tok-c1"># _getval() has displayed the error</span>
+        <span class="tok-k">try</span><span class="tok-p">:</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">message</span><span class="tok-p">(</span><span class="tok-n">func</span><span class="tok-p">(</span><span class="tok-n">val</span><span class="tok-p">))</span>
+        <span class="tok-k">except</span><span class="tok-p">:</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_error_exc</span><span class="tok-p">()</span>
+
+    <span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">_getval</span><span class="tok-p">(</span><span class="tok-bp">self</span><span class="tok-p">,</span> <span class="tok-n">arg</span><span class="tok-p">):</span>
+        <span class="tok-k">try</span><span class="tok-p">:</span>
+            <span class="tok-c1"># 看到这里就破案了这不是和我们自己实现的 pdb 获取变量的方式一样嘛 都是</span>
+            <span class="tok-c1"># 使用当前执行栈帧的全局和局部变量交给 eval 函数处理 并且将它的返回值输出</span>
+            <span class="tok-k">return</span> <span class="tok-nb">eval</span><span class="tok-p">(</span><span class="tok-n">arg</span><span class="tok-p">,</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">curframe</span><span class="tok-o">.</span><span class="tok-n">f_globals</span><span class="tok-p">,</span> <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">curframe_locals</span><span class="tok-p">)</span>
+        <span class="tok-k">except</span><span class="tok-p">:</span>
+            <span class="tok-bp">self</span><span class="tok-o">.</span><span class="tok-n">_error_exc</span><span class="tok-p">()</span>
+            <span class="tok-k">raise</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中我们主要分析 python 当中实现调试器的原理，并且通过一个几十行的代码实现了一个非常简单的调试器，这可以深入帮助我们理解调试器实现的细节，这让我们对于程序设计语言的认识又加深了一点。最后简单的介绍了一下 python 自己的调试器 pdb，但是有一点遗憾的目前 pdb 还不能够支持直接调试 python 字节码，但是在 python 虚拟机当中已经有调试字节码的事件了，相信在未来应该可以直接调试字节码了。</p>
+<p>还记得我们在讨论 frameobject 的时候有一个字段 f_trace 嘛，这个字段就是指向我们传递给 sys.settrace 的函数，当发生事件的时候虚拟机就会调用这个函数。</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-pvm-02codeobject/"><span>较新</span>深入理解 python 虚拟机：字节码灵魂——Code object</a><a class="next" href="/posts/cpython-objects-01list/"><span>较旧</span>深入理解 Python 虚拟机：列表（list）的实现原理及源码剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#让程序停下来">让程序停下来</a></li>
+      <li class="toc-l2"><a href="#cpython-王炸机制-tracing">cpython 王炸机制 —— tracing</a></li>
+      <li class="toc-l2"><a href="#自己动手实现一个简单的调试器">自己动手实现一个简单的调试器</a></li>
+      <li class="toc-l2"><a href="#python-官方调试器源码分析">python 官方调试器源码分析</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

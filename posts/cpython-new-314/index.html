@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python 3.14 新特性 · Chang-LeHung</title>
+<meta name="description" content="10 月 7 日 Python 3.14 正式发布，该版本又是一个有着巨大提升的版本，可以说是继 Python 3.12 和 Python 3.13 之后的又一个史诗级版本，话不多说，此次更新最主要内容如下： Python 开始彻底多线程特性，移除了 GIL 的限制，在一个 Python 进程中可以">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>Python 3.14 新特性</h1>
+      <p class="post-meta">
+        <time datetime="2025-11-10">2025-11-10</time>
+        <span class="sep">·</span>4 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>10 月 7 日 Python 3.14 正式发布，该版本又是一个有着巨大提升的版本，可以说是继 Python 3.12 和 Python 3.13 之后的又一个史诗级版本，话不多说，此次更新最主要内容如下：</p>
+<ul>
+<li>Python 开始彻底多线程特性，移除了 GIL 的限制，在一个 Python 进程中可以启动多个 Interpreter，Interpreter 之间的线程没有 GIL，真正实现了多线程并发执行。Python 标准库中提供了明确的支持。</li>
+<li>增加了一个新的 interpreter ，主要使用 clang-19 提供 tail-call 的能力，能够提升整个解释器的执行效率。</li>
+<li>新增一个外部调试接口，可以直接通过进程号对 Python 程序进行调试。</li>
+<li>延迟解析类型注解。</li>
+<li>Asyncio 支持通过进程号的方式了解 asyncio 的运行情况，展示 asyncio 中的任务依赖树，提供了类似 pstree 的功能。</li>
+</ul>
+<h2 id="free-threaded-python">Free-threaded Python</h2>
+<p>在 Python 3.14 版本中，彻底移除了 GIL（全局解释器锁）的限制，Python 解释器现在支持多线程并发执行。在这个版本中 Free-threaded Python 的性能已经有了很大的提升。<a href="https://peps.python.org/pep-0703/">PEP 703</a> 中提到的实现目前已经实现完成，实验测试 No-GIL Python 在但线程场景下只比 With-GIL 的 Python 慢 5%-10% 具体取决与使用 Python 的操作系统和编译器。</p>
+<h2 id="单进程多解释器">单进程多解释器</h2>
+<h2 id="tail-call-优化解释器">Tail-Call 优化解释器</h2>
+<p>该解释器主要是使用 clang-19 提供的一种编译调用规约（Calling Convention）来进行解释器本身的优化，在 pyperformance benchmark 上能够有 3%-5% 的性能提升。所谓调用规约就是在汇编语言层面确定调用者和被调用者之间的参数是如何的传递的一种约定。</p>
+<p>以 System V AMD64 ABI 调用规约（主要使用在 Linux 、FreeBSD 等操作系统）为例子，下表表示各个通用寄存器的保存和恢复约定。</p>
+<table>
+<thead>
+<tr>
+<th>寄存器类型</th>
+<th>寄存器名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Caller Saved</strong></td>
+<td>%rax</td>
+<td>返回值寄存器，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%rcx</td>
+<td>第 4 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%rdx</td>
+<td>第 3 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%rsi</td>
+<td>第 2 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%rdi</td>
+<td>第 1 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%r8</td>
+<td>第 5 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%r9</td>
+<td>第 6 个整数参数，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%r10</td>
+<td>临时寄存器，调用者负责保存</td>
+</tr>
+<tr>
+<td></td>
+<td>%r11</td>
+<td>临时寄存器，调用者负责保存</td>
+</tr>
+<tr>
+<td><strong>Callee Saved</strong></td>
+<td>%rbx</td>
+<td>被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td></td>
+<td>%rbp</td>
+<td>栈帧指针，被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td></td>
+<td>%r12</td>
+<td>被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td></td>
+<td>%r13</td>
+<td>被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td></td>
+<td>%r14</td>
+<td>被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td></td>
+<td>%r15</td>
+<td>被调用者必须保存和恢复</td>
+</tr>
+<tr>
+<td><strong>特殊</strong></td>
+<td>%rsp</td>
+<td>栈指针，由被调用者维护</td>
+</tr>
+</tbody>
+</table>
+<p>在函数调用过程中，Caller Saved 寄存器的值可能被被调用函数修改，因此调用者在调用前需要保存这些寄存器的值。而 Callee Saved 寄存器必须由被调用函数负责保存和恢复，保证调用前后值不变，比如一个被调用的函数在编译的时候如果需要使用寄存器 %r12，那么他就需要在函数返回之间将这个寄存器恢复成函数刚调用时的值。</p>
+<h3 id="callee-saved-寄存器示例">Callee Saved 寄存器示例</h3>
+<p>以下是一个简单的 C 语言例子 <code>demo.c</code>，展示被调用函数必须保存和恢复 Callee Saved 寄存器：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">callee_function</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-k">register</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w">  </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-k">register</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-nf">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">42</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">callee_function</span><span class="tok-p">(</span><span class="tok-mi">10</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">20</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"x = %d, result = %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><div class="code-block" data-lang="bash"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code>gcc<span class="tok-w"> </span>-c<span class="tok-w"> </span>demo.c
+</code></pre></div><p>上面的例子编译之后得到的汇编结果如下</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000000000</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">callee_function</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">   </span><span class="tok-err">0:</span><span class="tok-w">   </span><span class="tok-nf">f3</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-no">f</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">e</span><span class="tok-w"> </span><span class="tok-no">fa</span><span class="tok-w">             </span><span class="tok-no">endbr64</span>
+<span class="tok-w">   </span><span class="tok-err">4:</span><span class="tok-w">   </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">   </span><span class="tok-err">5:</span><span class="tok-w">   </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">   </span><span class="tok-err">8:</span><span class="tok-w">   </span><span class="tok-err">53</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbx</span>
+<span class="tok-w">   </span><span class="tok-err">9:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edi</span><span class="tok-p">,-</span><span class="tok-mi">0xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">   </span><span class="tok-nl">c:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">75</span><span class="tok-w"> </span><span class="tok-nf">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%esi</span><span class="tok-p">,-</span><span class="tok-mi">0x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">   </span><span class="tok-nl">f:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">55</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">12:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">15:</span><span class="tok-w">   </span><span class="tok-err">01</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">17:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">58</span><span class="tok-w"> </span><span class="tok-mi">64</span><span class="tok-w">                </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-mi">0x64</span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">),</span><span class="tok-nv">%ebx</span>
+<span class="tok-w">  </span><span class="tok-err">1</span><span class="tok-nl">a:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f0</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x10</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">1</span><span class="tok-nl">d:</span><span class="tok-w">   </span><span class="tok-err">01</span><span class="tok-w"> </span><span class="tok-nf">c0</span><span class="tok-w">                   </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">1</span><span class="tok-nl">f:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">14</span><span class="tok-w"> </span><span class="tok-mi">03</span><span class="tok-w">                </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rbx</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">),</span><span class="tok-nv">%edx</span>
+<span class="tok-w">  </span><span class="tok-err">22:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">25:</span><span class="tok-w">   </span><span class="tok-nf">c1</span><span class="tok-w"> </span><span class="tok-no">e0</span><span class="tok-w"> </span><span class="tok-mi">02</span><span class="tok-w">                </span><span class="tok-no">shl</span><span class="tok-w">    </span><span class="tok-no">$0x2</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">28:</span><span class="tok-w">   </span><span class="tok-err">01</span><span class="tok-w"> </span><span class="tok-nf">d0</span><span class="tok-w">                   </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-nv">%edx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">2</span><span class="tok-nl">a:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-no">c</span><span class="tok-w"> </span><span class="tok-mi">00</span><span class="tok-w">                </span><span class="tok-no">lea</span><span class="tok-w">    </span><span class="tok-p">(</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-nv">%rax</span><span class="tok-p">,</span><span class="tok-mi">1</span><span class="tok-p">),</span><span class="tok-nv">%ebx</span>
+<span class="tok-w">  </span><span class="tok-err">2</span><span class="tok-nl">d:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">d8</span><span class="tok-w">                   </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%ebx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">2</span><span class="tok-nl">f:</span><span class="tok-w">   </span><span class="tok-err">5</span><span class="tok-nf">b</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbx</span>
+<span class="tok-w">  </span><span class="tok-err">30:</span><span class="tok-w">   </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">31:</span><span class="tok-w">   </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span>
+</code></pre></div><p>在上面的汇编程序中使用到了 <code>rbx</code> 和 <code>ebx</code> 这两个寄存器，而这个寄存器是一个 Callee Saved 寄存器（被调用者保存的寄存器），因此在函数开始时会将 <code>rbx</code> 的值保存到栈中（<code>push %rbx</code>），在函数返回之前再将其恢复（<code>pop %rbx</code>），这就是调用规约的基本的工作原理。</p>
+<p>如果在函数 <code>callee_function</code> 中没有保存和恢复 <code>rbx</code> 寄存器，而在调用它的函数中使用到了该寄存器，那么程序的行为将是未定义的，可能会导致程序崩溃或者结果错误，因为编译器在按照调用规约编译的时候默认 <code>rbx</code> 寄存器的值是不会被 Callee 修改的。</p>
+<h3 id="clang-19-preserve_none">Clang-19 preserve_none</h3>
+<p>在 clang-19 中提供了一种新的调用规约 <code>preserve_none</code>，该调用规约规定了所有的寄存器都是 Caller Saved 寄存器，这样被调用函数就不需要保存和恢复任何寄存器，这个调用规约在尾调用或者尾递归的时候非常好用，因为在尾调用的时候，调用者函数的栈帧已经不需要了，Caller 已经不在需要任何寄存器的值了，只需要等待函数返回时将 <code>rax</code> 寄存器（在 AMD64 Linux 中返回值都是保存在 <code>rax</code> 寄存器）的值返回即可。</p>
+<p>我们现在修改一下前面的例子，然后增加一些属性来使用 <code>preserve_none</code> 调用规约和 <code>musttail</code> 属性来强制尾调用优化：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#include</span><span class="tok-w"> </span><span class="tok-cpf">&lt;stdio.h&gt;</span>
+
+<span class="tok-n">__attribute__</span><span class="tok-p">((</span><span class="tok-n">preserve_none</span><span class="tok-p">))</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">callee_function</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-k">register</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">100</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-k">register</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">c</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">b</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">a</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-mi">8</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-n">__attribute__</span><span class="tok-p">((</span><span class="tok-n">preserve_none</span><span class="tok-p">))</span>
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">caller_function</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">__attribute__</span><span class="tok-p">((</span><span class="tok-n">musttail</span><span class="tok-p">))</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">callee_function</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-p">}</span>
+
+<span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">main</span><span class="tok-p">()</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">caller_function</span><span class="tok-p">(</span><span class="tok-mi">5</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Result: %d</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">result</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><p>编译之后得到的 <code>caller_function</code> 的汇编代码如下：</p>
+<div class="code-block" data-lang="asm"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-err">0000000000000000</span><span class="tok-w"> </span><span class="tok-err">&lt;</span><span class="tok-nf">callee_function</span><span class="tok-err">&gt;</span><span class="tok-p">:</span>
+<span class="tok-w">   </span><span class="tok-err">0:</span><span class="tok-w">   </span><span class="tok-err">55</span><span class="tok-w">                      </span><span class="tok-nf">push</span><span class="tok-w">   </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">   </span><span class="tok-err">1:</span><span class="tok-w">   </span><span class="tok-err">48</span><span class="tok-w"> </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-nf">e5</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%rsp</span><span class="tok-p">,</span><span class="tok-nv">%rbp</span>
+<span class="tok-w">   </span><span class="tok-err">4:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">7</span><span class="tok-nf">d</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%edi</span><span class="tok-p">,-</span><span class="tok-mi">0x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">   </span><span class="tok-err">7:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">   </span><span class="tok-nl">a:</span><span class="tok-w">   </span><span class="tok-err">83</span><span class="tok-w"> </span><span class="tok-nf">c0</span><span class="tok-w"> </span><span class="tok-mi">64</span><span class="tok-w">                </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-no">$0x64</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">   </span><span class="tok-nl">d:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f8</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">10:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f8</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x8</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">13:</span><span class="tok-w">   </span><span class="tok-nf">d1</span><span class="tok-w"> </span><span class="tok-no">e0</span><span class="tok-w">                   </span><span class="tok-no">shl</span><span class="tok-w">    </span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">15:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">4</span><span class="tok-no">d</span><span class="tok-w"> </span><span class="tok-no">fc</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">x4</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%ecx</span>
+<span class="tok-w">  </span><span class="tok-err">18:</span><span class="tok-w">   </span><span class="tok-nf">c1</span><span class="tok-w"> </span><span class="tok-no">e1</span><span class="tok-w"> </span><span class="tok-mi">03</span><span class="tok-w">                </span><span class="tok-no">shl</span><span class="tok-w">    </span><span class="tok-no">$0x3</span><span class="tok-p">,</span><span class="tok-nv">%ecx</span>
+<span class="tok-w">  </span><span class="tok-err">1</span><span class="tok-nl">b:</span><span class="tok-w">   </span><span class="tok-err">01</span><span class="tok-w"> </span><span class="tok-nf">c8</span><span class="tok-w">                   </span><span class="tok-no">add</span><span class="tok-w">    </span><span class="tok-nv">%ecx</span><span class="tok-p">,</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">1</span><span class="tok-nl">d:</span><span class="tok-w">   </span><span class="tok-err">89</span><span class="tok-w"> </span><span class="tok-err">45</span><span class="tok-w"> </span><span class="tok-nf">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-nv">%eax</span><span class="tok-p">,-</span><span class="tok-mi">0xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">)</span>
+<span class="tok-w">  </span><span class="tok-err">20:</span><span class="tok-w">   </span><span class="tok-err">8</span><span class="tok-nf">b</span><span class="tok-w"> </span><span class="tok-mi">45</span><span class="tok-w"> </span><span class="tok-no">f4</span><span class="tok-w">                </span><span class="tok-no">mov</span><span class="tok-w">    </span><span class="tok-mi">-0</span><span class="tok-no">xc</span><span class="tok-p">(</span><span class="tok-nv">%rbp</span><span class="tok-p">),</span><span class="tok-nv">%eax</span>
+<span class="tok-w">  </span><span class="tok-err">23:</span><span class="tok-w">   </span><span class="tok-err">5</span><span class="tok-nf">d</span><span class="tok-w">                      </span><span class="tok-no">pop</span><span class="tok-w">    </span><span class="tok-nv">%rbp</span>
+<span class="tok-w">  </span><span class="tok-err">24:</span><span class="tok-w">   </span><span class="tok-nf">c3</span><span class="tok-w">                      </span><span class="tok-no">retq</span>
+</code></pre></div><p>此时我们可以看到 <code>callee_function</code> 函数中没有任何寄存器的保存和恢复代码，包括寄存器 <code>rbx</code> ，因为所有的寄存器都是 Caller Saved 寄存器，因此被调用函数不需要保存任何寄存器的值。</p>
+<h2 id="虚拟机解释器类型">虚拟机解释器类型</h2>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kt">void</span><span class="tok-w"> </span><span class="tok-nf">small_switch</span><span class="tok-p">(</span><span class="tok-kt">int</span><span class="tok-w"> </span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">switch</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"One</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Two</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">case</span><span class="tok-w"> </span><span class="tok-mi">3</span><span class="tok-p">:</span><span class="tok-w"> </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Three</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">default</span><span class="tok-o">:</span><span class="tok-w"> </span><span class="tok-n">printf</span><span class="tok-p">(</span><span class="tok-s">"Other</span><span class="tok-se">\n</span><span class="tok-s">"</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-k">break</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="外部调试接口">外部调试接口</h2>
+<p>在 Python 3.14 版本中，新增了一个外部调试接口，可以通过进程号直接对正在运行的 Python 程序进行调试。这个接口允许开发者在不修改代码的情况下，动态地检查和修改程序的状态，极大地方便了调试过程。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="next" href="/posts/cpython-objects-08bytes/"><span>较旧</span>深入理解 Python 虚拟机：字节（bytes）的实现原理及源码剖析</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#free-threaded-python">Free-threaded Python</a></li>
+      <li class="toc-l2"><a href="#单进程多解释器">单进程多解释器</a></li>
+      <li class="toc-l2"><a href="#tail-call-优化解释器">Tail-Call 优化解释器</a></li>
+      <li class="toc-l3"><a href="#callee-saved-寄存器示例">Callee Saved 寄存器示例</a></li>
+      <li class="toc-l3"><a href="#clang-19-preserve_none">Clang-19 preserve_none</a></li>
+      <li class="toc-l2"><a href="#虚拟机解释器类型">虚拟机解释器类型</a></li>
+      <li class="toc-l2"><a href="#外部调试接口">外部调试接口</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>深入理解 Python 虚拟机：字典（dict）的实现原理及源码剖析 · Chang-LeHung</title>
+<meta name="description" content="在本篇文章当中主要给大家深入介绍一下在 cpython 当中字典的实现原理，在本篇文章当中主要介绍在早期 python3 当中的版本字典的实现，现在的字典做了部分优化，我们在后面的文章当中再介绍。 字典数据结构分析 复制 /* The ma_values pointer is NULL for a ">
+<meta name="color-scheme" content="light">
+<link rel="preload" href="/assets/fonts/SeafordRg.woff2?v=6d273c6a" as="font" crossorigin>
+<link rel="preload" href="/assets/fonts/SeafordMed.woff2?v=de248fb6" as="font" crossorigin>
+<script>
+// One lifecycle owner, before paint; never hide content while loading.
+(function () {
+  var timer;
+  function finish() {
+    clearTimeout(timer);
+    document.documentElement.classList.remove('page-loading');
+  }
+  function start() {
+    clearTimeout(timer);
+    document.documentElement.classList.add('page-loading');
+    timer = setTimeout(finish, 8000);
+  }
+  window.bellpressLoading = { start: start, finish: finish };
+  window.addEventListener('load', finish, { once: true });
+  window.addEventListener('pageshow', finish);
+  window.addEventListener('pagehide', finish);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') finish();
+  });
+  start();
+})();
+</script>
+<link rel="alternate" hreflang="en" href="https://chang-lehung.github.io/en/">
+<link rel="stylesheet" href="/assets/style.css?v=e7489023">
+<link rel="alternate" type="application/rss+xml" title="Chang-LeHung" href="/feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Chang-LeHung</a>
+    <nav class="nav" aria-label="首页">
+      <a href="/archive/">归档</a>
+      <a href="/search/">搜索</a>
+      <a href="/tags/">标签</a>
+<a href="/slides/">幻灯片</a><a href="/about/">关于</a>      <a href="/feed.xml">RSS</a>
+    </nav>
+    <nav class="langs" aria-label="语言">
+<span aria-current="true">中文</span><a href="/en/" hreflang="en" lang="en">English</a>    </nav>
+  </div>
+</header>
+
+<main id="main">
+<article class="post">
+  <div class="post-main">
+    <header class="post-head">
+      <h1>深入理解 Python 虚拟机：字典（dict）的实现原理及源码剖析</h1>
+      <p class="post-meta">
+        <time datetime="2023-09-21">2023-09-21</time>
+        <span class="sep">·</span>2 分钟        <span class="sep">·</span><a class="taglink" href="/tags/python/">Python</a>        <span class="sep">·</span><a class="taglink" href="/tags/对象模型/">对象模型</a>      </p>
+    </header>
+
+    <div class="prose">
+      <p>在本篇文章当中主要给大家深入介绍一下在 cpython 当中字典的实现原理，在本篇文章当中主要介绍在早期 python3 当中的版本字典的实现，现在的字典做了部分优化，我们在后面的文章当中再介绍。</p>
+<h2 id="字典数据结构分析">字典数据结构分析</h2>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cm">/* The ma_values pointer is NULL for a combined table</span>
+<span class="tok-cm"> * or points to an array of PyObject* for a split table</span>
+<span class="tok-cm"> */</span>
+<span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject_HEAD</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">ma_used</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeysObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ma_keys</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">**</span><span class="tok-n">ma_values</span><span class="tok-p">;</span>
+<span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyDictObject</span><span class="tok-p">;</span>
+
+<span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-nc">_dictkeysobject</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">dk_refcnt</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">dk_size</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">dict_lookup_func</span><span class="tok-w"> </span><span class="tok-n">dk_lookup</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">dk_usable</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-mi">1</span><span class="tok-p">];</span>
+<span class="tok-p">};</span>
+
+<span class="tok-k">typedef</span><span class="tok-w"> </span><span class="tok-k">struct</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Cached hash code of me_key. */</span>
+<span class="tok-w">    </span><span class="tok-n">Py_hash_t</span><span class="tok-w"> </span><span class="tok-n">me_hash</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">me_key</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">me_value</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* This field is only meaningful for combined tables */</span>
+<span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-p">;</span>
+</code></pre></div><p><img src="/content/zh/images/cpython/26-dict.webp" alt="26-dict" loading="lazy" /></p>
+<p>上面的各个字段的含义为：</p>
+<ul>
+<li>ob_refcnt，对象的引用计数。</li>
+<li>ob_type，对象的数据类型。</li>
+<li>ma_used，当前哈希表当中的数据个数。</li>
+<li>ma_keys，指向保存键值对的数组。</li>
+<li>ma_values，这个指向值的数组，但是在 cpython 的具体实现当中不一定使用这个值，因为 _dictkeysobject 当中的 PyDictKeyEntry 数组当中的对象也是可以存储 value 的，这个值只有在键全部是字符串的时候才可能会使用，在本篇文章当中主要使用 PyDictKeyEntry 当中的 value 来讨论字典的实现，因此大家可以忽略这个变量。</li>
+<li>dk_refcnt，这个也是用于表示引用计数，这个跟字典的视图有关系，原理和引用计数类似，这里暂时不管。</li>
+<li>dk_size，这个表示哈希表的大小，必须是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow></math>，这样的话可以将模运算变成位与运算。</li>
+<li>dk_lookup，这个表示哈希表的查找函数，他是一个函数指针。</li>
+<li>dk_usable，表示当前数组当中还有多少个可以使用的键值对。</li>
+<li>dk_entries，哈希表，真正存储键值对的地方。</li>
+</ul>
+<p>整个哈希表的布局大致如下图所示：</p>
+<p><img src="/content/zh/images/cpython/27-dict.webp" alt="26-dict" loading="lazy" /></p>
+<h2 id="创建新字典对象">创建新字典对象</h2>
+<p>这个函数还是比较简单，首先申请内存空间，然后进行一些初始化操作，申请哈希表用于保存键值对。</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span>
+<span class="tok-nf">dict_new</span><span class="tok-p">(</span><span class="tok-n">PyTypeObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">type</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">args</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">kwds</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">self</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">d</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">type</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">type</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_alloc</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 申请内存空间</span>
+<span class="tok-w">    </span><span class="tok-n">self</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">type</span><span class="tok-o">-&gt;</span><span class="tok-n">tp_alloc</span><span class="tok-p">(</span><span class="tok-n">type</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">self</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">d</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">PyDictObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-p">)</span><span class="tok-n">self</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-cm">/* The object has been implicitly tracked by tp_alloc */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">type</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">PyDict_Type</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">_PyObject_GC_UNTRACK</span><span class="tok-p">(</span><span class="tok-n">d</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 因为还没有增加数据 因此哈希表当中 ma_used = 0</span>
+<span class="tok-w">    </span><span class="tok-n">d</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_used</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 申请保存键值对的数组  PyDict_MINSIZE_COMBINED 是一个宏定义 值为 8 表示哈希表数组的最小长度</span>
+<span class="tok-w">    </span><span class="tok-n">d</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">new_keys_object</span><span class="tok-p">(</span><span class="tok-n">PyDict_MINSIZE_COMBINED</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-c1">// 如果申请失败返回 NULL</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">d</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">self</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">self</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+
+<span class="tok-c1">// new_keys_object 函数如下所示</span>
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-n">PyDictKeysObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-nf">new_keys_object</span><span class="tok-p">(</span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeysObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">dk</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ep0</span><span class="tok-p">;</span>
+
+<span class="tok-w">    </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-w"> </span><span class="tok-o">&gt;=</span><span class="tok-w"> </span><span class="tok-n">PyDict_MINSIZE_SPLIT</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">IS_POWER_OF_2</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里是申请内存的位置真正申请内存空间的大小为 PyDictKeysObject 的大小加上 size-1 个PyDictKeyEntry的大小</span>
+<span class="tok-w">    </span><span class="tok-c1">// 这里你可能会有一位为啥不是 size 个 PyDictKeyEntry 的大小 因为在结构体 PyDictKeysObject 当中已经申请了一个 PyDictKeyEntry 对象了</span>
+<span class="tok-w">    </span><span class="tok-n">dk</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyMem_MALLOC</span><span class="tok-p">(</span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">PyDictKeysObject</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">+</span>
+<span class="tok-w">                      </span><span class="tok-k">sizeof</span><span class="tok-p">(</span><span class="tok-n">PyDictKeyEntry</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-mi">-1</span><span class="tok-p">));</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">dk</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_NoMemory</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 下面主要是一些初始化的操作 dk_refcnt 设置成 1 因为目前只有一个字典对象使用 这个 PyDictKeysObject 对象</span>
+<span class="tok-w">    </span><span class="tok-n">DK_DEBUG_INCREF</span><span class="tok-w"> </span><span class="tok-n">dk</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_refcnt</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">dk</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_size</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-c1">// 哈希表的大小</span>
+<span class="tok-w">    </span><span class="tok-c1">// 下面这行代码主要是表示哈希表当中目前还能存储多少个键值对 在 cpython 的实现当中允许有 2/3 的数组空间去存储数据 超过这个数则需要进行扩容</span>
+<span class="tok-w">    </span><span class="tok-n">dk</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_usable</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">USABLE_FRACTION</span><span class="tok-p">(</span><span class="tok-n">size</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// #define USABLE_FRACTION(n) ((((n) &lt;&lt; 1)+1)/3)</span>
+<span class="tok-w">    </span><span class="tok-n">ep0</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">dk</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Hash value of slot 0 is used by popitem, so it must be initialized */</span>
+<span class="tok-w">    </span><span class="tok-n">ep0</span><span class="tok-o">-&gt;</span><span class="tok-n">me_hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将所有的键值对初始化成 NULL</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">size</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">ep0</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_key</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">ep0</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">dk</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_lookup</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lookdict_unicode_nodummy</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dk</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="哈希表扩容机制">哈希表扩容机制</h2>
+<p>首先我们先了解一下字典实现当中哈希表的扩容机制，当我们不断的往字典当中加入新的数据的时候，很快字典当中的数据就会达到数组长度的 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>2</mn></mrow><mrow><mn>3</mn></mrow></mfrac></mrow></math> ，这个时候就需要扩容，扩容之后的数组大小计算方式如下：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-cp">#define GROWTH_RATE(d) (((d)-&gt;ma_used*2)+((d)-&gt;ma_keys-&gt;dk_size&gt;&gt;1))</span>
+</code></pre></div><p>新的数组的大小等于原来键值对的个数乘以 2 加上原来数组长度的一半。</p>
+<p>总的来说扩容主要有三个步骤：</p>
+<ul>
+<li>
+<p>计算新的数组的大小。</p>
+</li>
+<li>
+<p>创建新的数组。</p>
+</li>
+<li>
+<p>将原来的哈希表当中的数据加入到新的数组当中（也就是再哈希的过程）。</p>
+</li>
+</ul>
+<p>具体的实现代码如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span>
+<span class="tok-nf">insertion_resize</span><span class="tok-p">(</span><span class="tok-n">PyDictObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">mp</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-n">dictresize</span><span class="tok-p">(</span><span class="tok-n">mp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">GROWTH_RATE</span><span class="tok-p">(</span><span class="tok-n">mp</span><span class="tok-p">));</span>
+<span class="tok-p">}</span>
+
+<span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">int</span>
+<span class="tok-nf">dictresize</span><span class="tok-p">(</span><span class="tok-n">PyDictObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">mp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">minused</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">newsize</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeysObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">oldkeys</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">**</span><span class="tok-n">oldvalues</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">Py_ssize_t</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">oldsize</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 下面的代码的主要作用就是计算得到能够大于等于 minused 最小的 2 的整数次幂</span>
+<span class="tok-cm">/* Find the smallest table size &gt; minused. */</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newsize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">PyDict_MINSIZE_COMBINED</span><span class="tok-p">;</span>
+<span class="tok-w">         </span><span class="tok-n">newsize</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-n">minused</span><span class="tok-w"> </span><span class="tok-o">&amp;&amp;</span><span class="tok-w"> </span><span class="tok-n">newsize</span><span class="tok-w"> </span><span class="tok-o">&gt;</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">         </span><span class="tok-n">newsize</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;=</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">newsize</span><span class="tok-w"> </span><span class="tok-o">&lt;=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyErr_NoMemory</span><span class="tok-p">();</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">oldkeys</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">oldvalues</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_values</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Allocate a new table. */</span>
+<span class="tok-w">   </span><span class="tok-c1">// 创建新的数组</span>
+<span class="tok-w">    </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">new_keys_object</span><span class="tok-p">(</span><span class="tok-n">newsize</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldkeys</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">-1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_lookup</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">lookdict</span><span class="tok-p">)</span>
+<span class="tok-w">        </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_lookup</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">lookdict</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">oldsize</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">DK_SIZE</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_values</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-cm">/* If empty then nothing to copy so just return */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldsize</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">Py_EMPTY_KEYS</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">DK_DECREF</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Main loop below assumes we can transfer refcount to new keys</span>
+<span class="tok-cm">     * and that value is stored in me_value.</span>
+<span class="tok-cm">     * Increment ref-counts and copy values here to compensate</span>
+<span class="tok-cm">     * This (resizing a split table) should be relatively rare */</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldvalues</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldsize</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldvalues</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">]</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_key</span><span class="tok-p">);</span>
+<span class="tok-w">                </span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">oldvalues</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-cm">/* Main loop */</span>
+<span class="tok-w">    </span><span class="tok-c1">// 将原来数组当中的元素加入到新的数组当中</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldsize</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ep</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_key</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">dummy</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-n">insertdict_clean</span><span class="tok-p">(</span><span class="tok-n">mp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_hash</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_value</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-c1">// 更新一下当前哈希表当中能够插入多少数据</span>
+<span class="tok-w">    </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_usable</span><span class="tok-w"> </span><span class="tok-o">-=</span><span class="tok-w"> </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_used</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldvalues</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-cm">/* NULL out me_value slot in oldkeys, in case it was shared */</span>
+<span class="tok-w">        </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldsize</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span>
+<span class="tok-w">            </span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">oldvalues</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">empty_values</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">free_values</span><span class="tok-p">(</span><span class="tok-n">oldvalues</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">DK_DECREF</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">else</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_lookup</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">lookdict_split</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_lookup</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-n">lookdict_unicode_nodummy</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">            </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ep0</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+<span class="tok-w">            </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;</span><span class="tok-w"> </span><span class="tok-n">oldsize</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-o">++</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">                </span><span class="tok-k">if</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">ep0</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">].</span><span class="tok-n">me_key</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-n">dummy</span><span class="tok-p">)</span>
+<span class="tok-w">                    </span><span class="tok-n">Py_DECREF</span><span class="tok-p">(</span><span class="tok-n">dummy</span><span class="tok-p">);</span>
+<span class="tok-w">            </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-p">}</span>
+<span class="tok-w">        </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_refcnt</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">);</span>
+<span class="tok-w">        </span><span class="tok-n">DK_DEBUG_DECREF</span><span class="tok-w"> </span><span class="tok-n">PyMem_FREE</span><span class="tok-p">(</span><span class="tok-n">oldkeys</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-k">return</span><span class="tok-w"> </span><span class="tok-mi">0</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="字典插入数据">字典插入数据</h2>
+<p>我们在不断的往字典当中插入数据的时候很可能会遇到哈希冲突，字典处理哈希冲突的方法基本和集合遇到哈希冲突的处理方法是差不多的，都是使用开发地址法，但是这个开放地址法实现的相对比较复杂，具体程序如下所示：</p>
+<div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">static</span><span class="tok-w"> </span><span class="tok-kt">void</span>
+<span class="tok-nf">insertdict_clean</span><span class="tok-p">(</span><span class="tok-n">PyDictObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">mp</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">key</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">Py_hash_t</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">,</span>
+<span class="tok-w">                 </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">value</span><span class="tok-p">)</span>
+<span class="tok-p">{</span>
+<span class="tok-w">    </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">perturb</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeysObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">k</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">mp</span><span class="tok-o">-&gt;</span><span class="tok-n">ma_keys</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-c1">// 首先得到 mask 的值</span>
+<span class="tok-w">    </span><span class="tok-kt">size_t</span><span class="tok-w"> </span><span class="tok-n">mask</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-kt">size_t</span><span class="tok-p">)</span><span class="tok-n">DK_SIZE</span><span class="tok-p">(</span><span class="tok-n">k</span><span class="tok-p">)</span><span class="tok-mi">-1</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ep0</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">k</span><span class="tok-o">-&gt;</span><span class="tok-n">dk_entries</span><span class="tok-p">[</span><span class="tok-mi">0</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">ep</span><span class="tok-p">;</span>
+<span class="tok-w">  </span>
+<span class="tok-w">    </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">mask</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">ep</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">ep0</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-k">for</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">perturb</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_key</span><span class="tok-w"> </span><span class="tok-o">!=</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-n">perturb</span><span class="tok-w"> </span><span class="tok-o">&gt;&gt;=</span><span class="tok-w"> </span><span class="tok-n">PERTURB_SHIFT</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
+<span class="tok-w">        </span><span class="tok-c1">// 下面便是遇到哈希冲突时的处理办法</span>
+<span class="tok-w">        </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-p">(</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&lt;&lt;</span><span class="tok-w"> </span><span class="tok-mi">2</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-n">perturb</span><span class="tok-w"> </span><span class="tok-o">+</span><span class="tok-w"> </span><span class="tok-mi">1</span><span class="tok-p">;</span>
+<span class="tok-w">        </span><span class="tok-n">ep</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-n">ep0</span><span class="tok-p">[</span><span class="tok-n">i</span><span class="tok-w"> </span><span class="tok-o">&amp;</span><span class="tok-w"> </span><span class="tok-n">mask</span><span class="tok-p">];</span>
+<span class="tok-w">    </span><span class="tok-p">}</span>
+<span class="tok-w">    </span><span class="tok-n">assert</span><span class="tok-p">(</span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">==</span><span class="tok-w"> </span><span class="tok-nb">NULL</span><span class="tok-p">);</span>
+<span class="tok-w">    </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_key</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">key</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_hash</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">hash</span><span class="tok-p">;</span>
+<span class="tok-w">    </span><span class="tok-n">ep</span><span class="tok-o">-&gt;</span><span class="tok-n">me_value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">value</span><span class="tok-p">;</span>
+<span class="tok-p">}</span>
+</code></pre></div><h2 id="总结">总结</h2>
+<p>在本篇文章当中主要给大家简单介绍了一下在 cpython 内部字典的实现机制，总的来说整个字典的实现机制还是相当复杂的，本篇文章只是谈到了整个字典实现的一小部分，主要设计字典的内存布局以及相关的数据结构，最重要的字典的创建扩容和插入，这对我们理解哈希表的结构还是非常有帮助的！！！</p>
+<hr />
+<p>本篇文章是深入理解 python 虚拟机系列文章之一，文章地址：https://github.com/Chang-LeHung/dive-into-cpython</p>
+<p>更多精彩内容合集可访问项目：<a href="https://github.com/Chang-LeHung/CSCore">https://github.com/Chang-LeHung/CSCore</a></p>
+<p>关注公众号：一无是处的研究僧，了解更多计算机（Java、Python、计算机系统基础、算法与数据结构）知识。</p>
+
+    </div>
+
+    <nav class="post-nav">
+<a class="prev" href="/posts/cpython-objects-06set/"><span>较新</span>深入理解 Python 虚拟机：集合（set）的实现原理及源码剖析</a><a class="next" href="/posts/cpython-objects-09dict/"><span>较旧</span>深入理解 Python 虚拟机：字典（dict）的优化</a>    </nav>
+  </div>
+
+  <aside class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <ol>
+      <li class="toc-l2"><a href="#字典数据结构分析">字典数据结构分析</a></li>
+      <li class="toc-l2"><a href="#创建新字典对象">创建新字典对象</a></li>
+      <li class="toc-l2"><a href="#哈希表扩容机制">哈希表扩容机制</a></li>
+      <li class="toc-l2"><a href="#字典插入数据">字典插入数据</a></li>
+      <li class="toc-l2"><a href="#总结">总结</a></li>
+    </ol>
+  </aside>
+</article>
+</main>
+
+<div class="foot-space"></div>
+
+<script src="/assets/main.js?v=60be9168" defer></script>
+</body>
+</html>
