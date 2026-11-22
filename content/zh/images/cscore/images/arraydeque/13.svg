@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 926 591" role="img" aria-label="两行数组对比出队前后：第一行 3 号格子标黄，tail=4 与 head=8 指向 4 号与 8 号格子，中间空心箭头向下，第二行 3 到 7 号格子变空、tail=3 与 head=8 指向 3 号与 8 号格子，左侧黄框里是被出队的 3"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-13" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="200" y="14" width="40" height="30" fill="#ffff88" stroke="#444" stroke-width="1.5"/>
+  <text x="260" y="38" font-size="22" fill="#000">即将出队的数据</text>
+  <rect x="200" y="67" width="41" height="30" fill="#fff" stroke="#444" stroke-width="1.5"/>
+  <text x="260" y="91" font-size="22" fill="#000">不存在数据</text>
+  <rect x="200" y="119" width="40" height="30" fill="#cdeb8b" stroke="#444" stroke-width="1.5"/>
+  <text x="260" y="143" font-size="22" fill="#000">存在数据</text>
+
+  <!-- 第一行数组 -->
+  <path d="M136 190.5 H889 M136 248 H889" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="193" y="204" width="120" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="313" y="204" width="40" height="30" fill="#ffff88" stroke="none"/>
+  <rect x="513" y="204" width="320" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="193" y="204" width="640" height="30" fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M233 204 V234 M273 204 V234 M313 204 V234 M353 204 V234 M393 204 V234
+           M433 204 V234 M473 204 V234 M513 204 V234 M553 204 V234 M593 204 V234
+           M633 204 V234 M673 204 V234 M713 204 V234 M753 204 V234 M793 204 V234"
+        fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="213" y="229">0</text>
+    <text x="253" y="229">1</text>
+    <text x="293" y="229">2</text>
+    <text x="333" y="229">3</text>
+    <text x="373" y="229">4</text>
+    <text x="413" y="229">5</text>
+    <text x="453" y="229">6</text>
+    <text x="493" y="229">7</text>
+    <text x="533" y="229">8</text>
+    <text x="573" y="229">9</text>
+    <text x="613" y="229">10</text>
+    <text x="653" y="229">11</text>
+    <text x="693" y="229">12</text>
+    <text x="733" y="229">13</text>
+    <text x="773" y="229">14</text>
+    <text x="813" y="229">15</text>
+  </g>
+
+  <!-- 左端虚线空心箭头 -->
+  <path d="M164 212 H78 V203 L38 221 L78 239 V229 H164 Z" fill="none" stroke="#444"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- 第一行 tail / head -->
+  <path d="M304 320.5 H373 V234" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-13)"/>
+  <rect x="227" y="301" width="77" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="265.5" y="327" font-size="20" fill="#000" text-anchor="middle">tail=4</text>
+
+  <path d="M594 320.5 H533 V234" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-13)"/>
+  <rect x="594" y="301" width="84" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="636" y="327" font-size="20" fill="#000" text-anchor="middle">head=8</text>
+
+  <!-- 中间空心向下箭头 -->
+  <path d="M432.5 272 H448.5 V328 H461 L439.5 380 L416 328 H432.5 Z" fill="#fff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第二行数组 -->
+  <path d="M133 390.5 H886 M133 448 H886" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="189" y="404" width="120" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="509" y="404" width="320" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="189" y="404" width="640" height="30" fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M229 404 V434 M269 404 V434 M309 404 V434 M349 404 V434 M389 404 V434
+           M429 404 V434 M469 404 V434 M509 404 V434 M549 404 V434 M589 404 V434
+           M629 404 V434 M669 404 V434 M709 404 V434 M749 404 V434 M789 404 V434"
+        fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="209" y="429">0</text>
+    <text x="249" y="429">1</text>
+    <text x="289" y="429">2</text>
+    <text x="329" y="429">3</text>
+    <text x="369" y="429">4</text>
+    <text x="409" y="429">5</text>
+    <text x="449" y="429">6</text>
+    <text x="489" y="429">7</text>
+    <text x="529" y="429">8</text>
+    <text x="569" y="429">9</text>
+    <text x="609" y="429">10</text>
+    <text x="649" y="429">11</text>
+    <text x="689" y="429">12</text>
+    <text x="729" y="429">13</text>
+    <text x="769" y="429">14</text>
+    <text x="809" y="429">15</text>
+  </g>
+
+  <!-- 第二行 tail / head -->
+  <path d="M300 520.5 H329 V434" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-13)"/>
+  <rect x="223" y="501" width="77" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="261.5" y="527" font-size="20" fill="#000" text-anchor="middle">tail=3</text>
+
+  <path d="M590 520.5 H529 V434" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-13)"/>
+  <rect x="590" y="501" width="85" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="632.5" y="527" font-size="20" fill="#000" text-anchor="middle">head=8</text>
+
+  <!-- 出队的元素 -->
+  <rect x="48" y="400" width="42" height="32" fill="#ffff88" stroke="#36393d" stroke-width="1.5"/>
+  <text x="69" y="425" font-size="22" fill="#000" text-anchor="middle">3</text>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 905 530" role="img" aria-label="主线程分出一个子线程并等待它执行完毕后继续向下执行" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-c08" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <!-- 主线程的生命线 -->
+    <path d="M181 53 V520" marker-end="url(#arrow-c08)"/>
+    <!-- 子线程的执行区间 -->
+    <path d="M181 115 H597 V373 H184" marker-end="url(#arrow-c08)"/>
+  </g>
+
+  <g fill="#111">
+    <text x="152" y="38" font-size="22">主线程</text>
+    <text x="200" y="95" font-size="20">分出一个子线程，new Thread(...)</text>
+    <text x="348" y="215" font-size="19">System.out.println(Thread.currentThread().getName());</text>
+    <text x="128" y="385" font-size="21">join</text>
+    <text x="80" y="444" font-size="19">System.out.println(Thread.currentThread().getName());</text>
+  </g>
+</svg>

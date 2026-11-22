@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1003 608" role="img" aria-label="两行数组对比入队前后：第一行 4 到 7 号格子为空、tail=4 与 head=8，左侧蓝色格子经虚线箭头指向数组；中间空心箭头向下，第二行 4 号格子变为蓝色、tail=5 与 head=8"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-14" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 图例 -->
+  <rect x="238" y="18" width="41" height="30" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <text x="301" y="42" font-size="22" fill="#000">待加入队列的数据</text>
+  <rect x="238" y="65" width="41" height="30" fill="#fff" stroke="#444" stroke-width="1.5"/>
+  <text x="301" y="89" font-size="22" fill="#000">不存在数据</text>
+  <rect x="238" y="118" width="41" height="30" fill="#cdeb8b" stroke="#444" stroke-width="1.5"/>
+  <text x="301" y="142" font-size="22" fill="#000">存在数据</text>
+
+  <!-- 待加入的格子 -->
+  <rect x="30.5" y="203.5" width="36" height="28" fill="#b1ddf0" stroke="#10739e" stroke-width="1.5"/>
+  <path d="M86 209 H170 V200 L216 216.5 L170 233 V224 H86 Z" fill="none" stroke="#444"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- 第一行数组 -->
+  <path d="M175 189 H928 M175 246.5 H928" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="231" y="203" width="160" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="551" y="203" width="320" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="231" y="203" width="640" height="30" fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M271 203 V233 M311 203 V233 M351 203 V233 M391 203 V233 M431 203 V233
+           M471 203 V233 M511 203 V233 M551 203 V233 M591 203 V233 M631 203 V233
+           M671 203 V233 M711 203 V233 M751 203 V233 M791 203 V233 M831 203 V233"
+        fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="251" y="228">0</text>
+    <text x="291" y="228">1</text>
+    <text x="331" y="228">2</text>
+    <text x="371" y="228">3</text>
+    <text x="411" y="228">4</text>
+    <text x="451" y="228">5</text>
+    <text x="491" y="228">6</text>
+    <text x="531" y="228">7</text>
+    <text x="571" y="228">8</text>
+    <text x="611" y="228">9</text>
+    <text x="651" y="228">10</text>
+    <text x="691" y="228">11</text>
+    <text x="731" y="228">12</text>
+    <text x="771" y="228">13</text>
+    <text x="811" y="228">14</text>
+    <text x="851" y="228">15</text>
+  </g>
+
+  <!-- 第一行 tail / head -->
+  <path d="M342 319 H411 V233" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-14)"/>
+  <rect x="265" y="299" width="77" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="303.5" y="325" font-size="20" fill="#000" text-anchor="middle">tail=4</text>
+
+  <path d="M629 319 H571 V233" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-14)"/>
+  <rect x="629" y="299" width="89" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="673.5" y="325" font-size="20" fill="#000" text-anchor="middle">head=8</text>
+
+  <!-- 中间空心向下箭头 -->
+  <path d="M483 307 H499 V364 H511 L490 416 L468 364 H483 Z" fill="#fff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第二行数组 -->
+  <path d="M175 426.5 H928 M175 484 H928" fill="none" stroke="#444" stroke-width="1.5"/>
+  <rect x="231" y="440" width="160" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="391" y="440" width="40" height="30" fill="#b1ddf0" stroke="none"/>
+  <rect x="551" y="440" width="320" height="30" fill="#cdeb8b" stroke="none"/>
+  <rect x="231" y="440" width="640" height="30" fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <path d="M271 440 V470 M311 440 V470 M351 440 V470 M391 440 V470 M431 440 V470
+           M471 440 V470 M511 440 V470 M551 440 V470 M591 440 V470 M631 440 V470
+           M671 440 V470 M711 440 V470 M751 440 V470 M791 440 V470 M831 440 V470"
+        fill="none" stroke="#36393d" stroke-width="1.5"/>
+  <g font-size="22" fill="#000" text-anchor="middle">
+    <text x="251" y="465">0</text>
+    <text x="291" y="465">1</text>
+    <text x="331" y="465">2</text>
+    <text x="371" y="465">3</text>
+    <text x="411" y="465">4</text>
+    <text x="451" y="465">5</text>
+    <text x="491" y="465">6</text>
+    <text x="531" y="465">7</text>
+    <text x="571" y="465">8</text>
+    <text x="611" y="465">9</text>
+    <text x="651" y="465">10</text>
+    <text x="691" y="465">11</text>
+    <text x="731" y="465">12</text>
+    <text x="771" y="465">13</text>
+    <text x="811" y="465">14</text>
+    <text x="851" y="465">15</text>
+  </g>
+
+  <!-- 第二行 tail / head -->
+  <path d="M342 556.5 H451 V470" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-14)"/>
+  <rect x="265" y="536" width="77" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="303.5" y="562" font-size="20" fill="#000" text-anchor="middle">tail=5</text>
+
+  <path d="M629 556.5 H571 V470" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-14)"/>
+  <rect x="629" y="536" width="89" height="40" rx="6" fill="#ffcccc" stroke="#444" stroke-width="1.5"/>
+  <text x="673.5" y="562" font-size="20" fill="#000" text-anchor="middle">head=8</text>
+</svg>

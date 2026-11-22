@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 661" role="img" aria-label="启动八个线程分别计算不同区间的结果，最后把结果加起来" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-c10" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 分发到八个线程 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M196 336 L410 53" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 126" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 198" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 268" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 383" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 452" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 523" marker-end="url(#arrow-c10)"/>
+    <path d="M196 336 L410 594" marker-end="url(#arrow-c10)"/>
+  </g>
+  <!-- 结果汇总 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M503 53 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 126 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 198 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 268 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 383 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 452 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 523 L845 334" marker-end="url(#arrow-c10)"/>
+    <path d="M503 594 L845 334" marker-end="url(#arrow-c10)"/>
+  </g>
+
+  <!-- 八个线程框 -->
+  <g fill="#d5e8d4" stroke="#82b366" stroke-width="1.5">
+    <rect x="414" y="30" width="89" height="46" rx="6"/>
+    <rect x="414" y="103" width="89" height="46" rx="6"/>
+    <rect x="414" y="175" width="89" height="46" rx="6"/>
+    <rect x="414" y="245" width="89" height="46" rx="6"/>
+    <rect x="414" y="360" width="89" height="46" rx="6"/>
+    <rect x="414" y="429" width="89" height="46" rx="6"/>
+    <rect x="414" y="500" width="89" height="46" rx="6"/>
+    <rect x="414" y="571" width="89" height="46" rx="6"/>
+  </g>
+  <g font-size="22" fill="#111">
+    <text x="421" y="61">Thread-1</text>
+    <text x="421" y="134">Thread-2</text>
+    <text x="421" y="206">Thread-3</text>
+    <text x="421" y="276">Thread-4</text>
+    <text x="421" y="391">Thread-5</text>
+    <text x="421" y="460">Thread-6</text>
+    <text x="421" y="531">Thread-7</text>
+    <text x="421" y="602">Thread-8</text>
+  </g>
+
+  <!-- 计算区间说明 -->
+  <g font-size="20" fill="#111">
+    <text x="518" y="64">计算区间为[0, 1250]</text>
+    <text x="518" y="137">计算区间为[1250, 2500]</text>
+    <text x="518" y="209">计算区间为[2500, 3750]</text>
+    <text x="518" y="279">计算区间为[3750, 5000]</text>
+    <text x="518" y="394">计算区间为[5000, 6250]</text>
+    <text x="518" y="463">计算区间为[6250, 7500]</text>
+    <text x="518" y="534">计算区间为[7500, 8750]</text>
+    <text x="518" y="605">计算区间为[8750, 10000]</text>
+  </g>
+
+  <!-- 起止两端的框 -->
+  <rect x="47" y="297" width="151" height="75" rx="10" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="122" y="343" font-size="23" fill="#111" text-anchor="middle">启动八个线程</text>
+
+  <rect x="849" y="297" width="151" height="75" rx="10" fill="#fad7ac" stroke="#b56707" stroke-width="1.5"/>
+  <g font-size="22" fill="#111" text-anchor="middle">
+    <text x="924" y="326">将计算的结果</text>
+    <text x="924" y="353">加起来</text>
+  </g>
+</svg>

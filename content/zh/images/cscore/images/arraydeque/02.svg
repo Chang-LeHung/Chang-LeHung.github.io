@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 693 156" role="img" aria-label="方框里的数字 1 经箭头指向右侧由上下两条横线界定的长条区域"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-02" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <rect x="50.5" y="50.5" width="41" height="34" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="71" y="76" font-size="26" fill="#000" text-anchor="middle">1</text>
+
+  <path d="M166 39.5 H610 M166 100.5 H610" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M121 66.5 H178" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02)"/>
+</svg>

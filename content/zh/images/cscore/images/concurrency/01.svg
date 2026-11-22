@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 914 542" role="img" aria-label="四个线程汇合后由操作系统分配到四个 CPU 上执行" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-c01" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 线程圆圈 -->
+  <g fill="#b1ddf0" stroke="#10739e" stroke-width="1.5">
+    <circle cx="129" cy="77" r="43"/>
+    <circle cx="356" cy="77" r="43"/>
+    <circle cx="595" cy="77" r="43"/>
+    <circle cx="802" cy="77" r="43"/>
+  </g>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="129" y="84">线程1</text>
+    <text x="356" y="84">线程2</text>
+    <text x="595" y="84">线程3</text>
+    <text x="802" y="84">线程4</text>
+  </g>
+
+  <!-- 汇合线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M129 120 V154 H802 V120"/>
+    <path d="M356 120 V154"/>
+    <path d="M595 120 V154"/>
+    <path d="M470 154 V186" marker-end="url(#arrow-c01)"/>
+  </g>
+
+  <!-- 操作系统处理框 -->
+  <rect x="261" y="190" width="424" height="116" rx="10" fill="#d0cee2" stroke="#56517e" stroke-width="1.5"/>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="473" y="241">操作系统将不同的线程或者进程放在不同</text>
+    <text x="473" y="269">的CPU上进行执行</text>
+  </g>
+
+  <!-- 分配到 CPU -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M348 306 C348 372 145 356 145 410" marker-end="url(#arrow-c01)"/>
+    <path d="M452 306 C452 374 370 358 370 410" marker-end="url(#arrow-c01)"/>
+    <path d="M515 306 C515 374 578 358 578 410" marker-end="url(#arrow-c01)"/>
+    <path d="M600 306 C600 372 787 356 787 410" marker-end="url(#arrow-c01)"/>
+  </g>
+
+  <!-- CPU 框 -->
+  <g fill="#fad7ac" stroke="#b56707" stroke-width="1.5">
+    <rect x="78" y="418" width="134" height="58" rx="6"/>
+    <rect x="303" y="418" width="134" height="58" rx="6"/>
+    <rect x="512" y="418" width="133" height="58" rx="6"/>
+    <rect x="721" y="418" width="133" height="58" rx="6"/>
+  </g>
+  <g font-size="19" fill="#111" text-anchor="middle">
+    <text x="145" y="455">CPU 0</text>
+    <text x="370" y="455">CPU 1</text>
+    <text x="578" y="455">CPU 2</text>
+    <text x="787" y="455">CPU 3</text>
+  </g>
+</svg>

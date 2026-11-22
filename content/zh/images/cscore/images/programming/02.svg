@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2448 218" role="img" aria-label="atexit 手册页的 DESCRIPTION 段：atexit() 函数登记在程序正常终止时被调用的函数，通过 exit(3) 或从 main() 返回；登记的函数按逆序调用，且不传参数。图中用红框圈出 reverse order 两个词" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <rect width="2448" height="218" fill="#f5f5f5"/>
+
+  <!-- 小节标题 -->
+  <text x="19" y="52" font-size="32" font-weight="bold" fill="#333" letter-spacing="0.6">DESCRIPTION</text>
+
+  <!-- 正文三行（前两行两端对齐） -->
+  <text x="159" y="91" font-size="33" fill="#333" font-family="monospace">The <tspan text-decoration="underline">atexit()</tspan> function registers the given function to be called at normal process termination, either via</text>
+  <text x="159" y="133" font-size="33" fill="#333" font-family="monospace"><tspan text-decoration="underline">exit(3)</tspan> or via return from the program's main().  Functions so registered are called in the reverse  order of</text>
+  <text x="159" y="175" font-size="33" fill="#333" font-family="monospace">their registration; no arguments are passed.</text>
+
+  <!-- 红框 -->
+  <rect x="1975" y="95" width="262" height="56" rx="8" fill="none" stroke="#ea4025" stroke-width="3.5"/>
+</svg>

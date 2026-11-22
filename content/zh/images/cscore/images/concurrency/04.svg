@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 588" role="img" aria-label="函数 y 等于 x 平方在 0 到 10 之间的曲线与曲线下方的面积，标注为积分 0 到 10 的 x 平方 dx" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 绘图区 -->
+  <rect x="59" y="52" width="696" height="452" fill="#eaeaf2"/>
+
+  <!-- 曲线下方的面积 -->
+  <path d="M90 503 L105.9 502.7 L121.7 501.9 L137.6 500.6 L153.5 498.7 L169.3 496.3 L185.2 493.3 L201.1 489.9 L217 485.8 L232.8 481.3 L248.7 476.2 L264.6 470.5 L280.4 464.4 L296.3 457.7 L312.2 450.4 L328 442.7 L343.9 434.3 L359.8 425.5 L375.7 416.1 L391.5 406.2 L407.4 395.7 L423.3 384.7 L439.1 373.2 L455 361.1 L470.9 348.5 L486.8 335.4 L502.6 321.7 L518.5 307.5 L534.4 292.7 L550.2 277.4 L566.1 261.6 L582 245.3 L597.8 228.4 L613.7 210.9 L619 205 L619 503 Z"
+        fill="#e6e6e6"/>
+
+  <!-- x=0 与 x=10 两条竖线 -->
+  <path d="M90 52 V503" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <path d="M618.5 52 V503" stroke="#9a9a9a" stroke-width="1.5" fill="none"/>
+
+  <!-- y = x^2 曲线 -->
+  <path d="M90 503 L105.9 502.7 L121.7 501.9 L137.6 500.6 L153.5 498.7 L169.3 496.3 L185.2 493.3 L201.1 489.9 L217 485.8 L232.8 481.3 L248.7 476.2 L264.6 470.5 L280.4 464.4 L296.3 457.7 L312.2 450.4 L328 442.7 L343.9 434.3 L359.8 425.5 L375.7 416.1 L391.5 406.2 L407.4 395.7 L423.3 384.7 L439.1 373.2 L455 361.1 L470.9 348.5 L486.8 335.4 L502.6 321.7 L518.5 307.5 L534.4 292.7 L550.2 277.4 L566.1 261.6 L582 245.3 L597.8 228.4 L613.7 210.9 L629.6 193 L645.4 174.5 L661.3 155.4 L677.2 135.8 L693.1 115.7 L708.9 95.1 L724.8 73.9"
+        fill="none" stroke="#c44e52" stroke-width="3"/>
+
+  <!-- 坐标标签 -->
+  <g fill="#262626">
+    <text x="34" y="44" font-size="24" font-style="italic">y</text>
+    <text x="750" y="542" font-size="22" font-style="italic" text-anchor="middle">x</text>
+    <text x="90" y="532" font-size="21" text-anchor="middle">0</text>
+    <text x="619" y="530" font-size="21" text-anchor="middle">10</text>
+  </g>
+
+  <!-- y = x^2 -->
+  <g fill="#262626">
+    <text x="572" y="150" font-size="26" font-style="italic">y</text>
+    <text x="590" y="150" font-size="26">=</text>
+    <text x="612" y="150" font-size="26" font-style="italic">x</text>
+    <text x="628" y="131" font-size="17" font-style="italic">2</text>
+  </g>
+
+  <!-- 积分式 -->
+  <g fill="#262626">
+    <text x="398" y="492" font-size="46">∫</text>
+    <text x="424" y="453" font-size="15">10</text>
+    <text x="428" y="492" font-size="15">0</text>
+    <text x="442" y="482" font-size="26" font-style="italic">x</text>
+    <text x="458" y="466" font-size="17" font-style="italic">2</text>
+    <text x="472" y="482" font-size="26" font-style="italic">dx</text>
+  </g>
+</svg>
