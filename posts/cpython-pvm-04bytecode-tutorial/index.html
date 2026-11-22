@@ -275,11 +275,28 @@ Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<sp
 </code></pre></div><ul>
 <li>执行第一条指令 LOAD_CONST，这条指令主要是加载一个 code object 对象，这个对象里面主要是包含函数 decorator 的字节码，主要是上面字节码的第二块内容。在执行完这条字节码之后栈空间如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cpython/47-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 422 670" role="img"
+     aria-label="调用栈示意：栈底压着 code 对象的引用，栈顶方向朝上"
+     class="inline-svg">
+  <defs>
+    <marker id="arrow-47-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="65" y="57" font-size="24">栈顶</text>
+  <text x="65" y="612" font-size="24">栈底</text>
+  <path d="M88 573 V80" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-47-bytecode)"/>
+
+  <rect x="162" y="43" width="179" height="576" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="162" y1="528" x2="341" y2="528" stroke="#444" stroke-width="1.5"/>
+  <text x="251" y="582" font-size="20" text-anchor="middle">code obeject</text>
+</svg></figure><ul>
 <li>执行完第二条指令 LOAD_CONST 之后，会将字符串 decorator 加载进入栈空间当中。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 668" role="img" aria-label="调用栈示意：栈顶在上、栈底在下，栈中依次压入 decorator 与 code 对象" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 668" role="img" aria-label="调用栈示意：栈顶在上、栈底在下，栈中依次压入 decorator 与 code 对象" class="inline-svg">
   <defs>
     <marker id="arrow-48bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="18" markerHeight="16" markerUnits="userSpaceOnUse"
@@ -304,19 +321,139 @@ Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<sp
 </svg></figure><ul>
 <li>执行第三条指令 MAKE_FUNCTION，这条字节码的作用是在虚拟机内部创建一个函数，函数的名称为 decorator，函数对应的字节码则是在先前压入栈空间当中的 code object 对象，这条指令还会将创建好的函数对象压入栈中。</li>
 </ul>
-<p><img src="/content/zh/images/cpython/49-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1756 686" role="img" aria-label="装饰器执行过程中执行栈的变化：先压入 decorator 与代码对象，弹出 decorator 后调用它，再把函数名压栈" class="inline-svg">
+  <defs>
+    <marker id="arrow-49bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一幅：decorator 与代码对象 -->
+  <text x="96" y="68" font-size="24" text-anchor="middle">栈顶</text>
+  <path d="M96 550 V 85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-49bytecode)"/>
+  <text x="96" y="620" font-size="24" text-anchor="middle">栈底</text>
+  <rect x="169" y="54" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
+  <line x1="169" y1="453" x2="347" y2="453" stroke="#444" stroke-width="1.5"/>
+  <line x1="169" y1="541" x2="347" y2="541" stroke="#444" stroke-width="1.5"/>
+  <text x="258" y="505" font-size="26" text-anchor="middle">&quot;decorator&quot;</text>
+  <text x="258" y="594" font-size="26" text-anchor="middle">code obejct</text>
+  <path d="M242 393 V 225 H 221 L 254 178 L 287 225 H 267 V 393 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 大箭头：进入下一步 -->
+  <path d="M429 375 H 567 V 337 L 612 388 L 567 429 V 400 H 429 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第二幅：弹掉 decorator，只剩代码对象 -->
+  <text x="714" y="68" font-size="24" text-anchor="middle">栈顶</text>
+  <path d="M714 550 V 90" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-49bytecode)"/>
+  <text x="714" y="620" font-size="24" text-anchor="middle">栈底</text>
+  <rect x="787" y="60" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
+  <line x1="787" y1="547" x2="965" y2="547" stroke="#444" stroke-width="1.5"/>
+  <text x="876" y="600" font-size="26" text-anchor="middle">code obejct</text>
+  <path d="M838 400 V 232 H 817 L 850 185 L 883 232 H 863 V 400 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <path d="M1036 377 H 1170 V 340 L 1214 390 L 1170 432 V 407 H 1036 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 第三幅：压入 decorator 函数 -->
+  <rect x="1270" y="71" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
+  <line x1="1270" y1="558" x2="1448" y2="558" stroke="#444" stroke-width="1.5"/>
+  <text x="1359" y="611" font-size="26" text-anchor="middle">decorator 函数</text>
+  <path d="M1336 186 V 368 H 1318 L 1345 427 L 1377 368 H 1364 V 186 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 右侧图例 -->
+  <path d="M1544 168 V 112 H 1525 L 1559 68 L 1593 112 H 1574 V 168 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <text x="1642" y="126" font-size="24">入栈</text>
+  <path d="M1544 227 V 280 H 1525 L 1559 318 L 1593 280 H 1574 V 227 Z"
+        fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <text x="1642" y="268" font-size="24">出栈</text>
+</svg></figure><ul>
 <li>STORE_NAME，条字节码会将栈顶的元素弹出，并且将 co_names[oparg]  指向这个对象，在上面的字节码当中 co_names[oparg]  就是 decorator 。</li>
 </ul>
-<p><img src="/content/zh/images/cpython/50-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1054 672" role="img" aria-label="函数调用栈的示意图：左边是带有 decorator 函数的栈，右边是入栈与出栈的方向，栈自栈底向栈顶生长" class="inline-svg">
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <!-- 左栈 -->
+    <rect x="121" y="57" width="180" height="577"/>
+    <path d="M121 544 H301"/>
+    <!-- 栈内向上生长的空心箭头 -->
+    <path d="M205 180 L176 221 H194 V400 H216 V221 H234 Z" fill="#fff"/>
+    <!-- 栈顶到底的细箭头 -->
+    <path d="M48 588 V108"/>
+    <path d="M48 88 L40 106 H56 Z" fill="#fff"/>
+  </g>
+
+  <g font-size="24">
+    <text x="24" y="68">栈顶</text>
+    <text x="24" y="623">栈底</text>
+    <text x="129" y="596" font-size="25">decorator 函数</text>
+  </g>
+
+  <!-- 指向右边的空心箭头 -->
+  <path d="M349 379 H487 V355 L520 390 L487 421 V400 H349 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <rect x="618" y="46" width="180" height="577"/>
+    <path d="M544 577 V98"/>
+    <path d="M544 80 L537 98 H552 Z" fill="#fff"/>
+  </g>
+  <g font-size="24">
+    <text x="522" y="58">栈顶</text>
+    <text x="522" y="612">栈底</text>
+  </g>
+
+  <!-- 入栈、出栈 -->
+  <path d="M868 48 L841 82 H857 V142 H879 V82 H895 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <path d="M868 286 L837 245 H857 V198 H879 V245 H898 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <g font-size="24">
+    <text x="955" y="97">入栈</text>
+    <text x="963" y="231">出栈</text>
+  </g>
+</svg></figure><ul>
 <li>LOAD_NAME，这条字节码就是将 co_names[oparg] 对应的名字指向的对象重新加载进入栈空间当中，也就是上面的 decorator 函数加入进行栈空间当中。</li>
 </ul>
-<p><img src="/content/zh/images/cpython/51-bytecode.webp" alt="47-bytecode" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1036 754" role="img" aria-label="装饰器与栈的关系：decorator 函数自栈顶向下进入栈，需要时再入栈、出栈" class="inline-svg">
+  <defs>
+    <marker id="arrow-51-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈外的 decorator 函数 -->
+  <rect x="167" y="12" width="179" height="88" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="175" y="67" font-size="27">decorator 函数</text>
+
+  <!-- 栈顶 / 栈底方向 -->
+  <text x="68" y="148" font-size="27">栈顶</text>
+  <text x="68" y="702" font-size="27">栈底</text>
+  <path d="M93 665 V172" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-51-bytecode)"/>
+
+  <!-- 左侧栈：函数自栈顶向栈底进入 -->
+  <rect x="166" y="133" width="179" height="577" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M244 308 H265 V477 H295 L257 529 L220 477 H244 Z" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 指向右侧的栈 -->
+  <path d="M396 479 H536 V455 L575 490 L536 525 V502 H396 Z" fill="none" stroke="#444" stroke-width="1.5"/>
+
+  <!-- 右侧栈：函数已经在栈里 -->
+  <rect x="596" y="133" width="180" height="577" fill="none" stroke="#444" stroke-width="1.5"/>
+  <line x1="596" y1="621" x2="776" y2="621" stroke="#444" stroke-width="1.5"/>
+  <text x="604" y="676" font-size="27">decorator 函数</text>
+
+  <!-- 入栈 / 出栈 -->
+  <path d="M839 142 L873 183 H849 V240 H827 V183 H805 Z" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="927" y="196" font-size="27">入栈</text>
+  <path d="M827 297 H849 V340 H873 L839 378 L803 340 H827 Z" fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="937" y="331" font-size="27">出栈</text>
+</svg></figure><ul>
 <li>接下来的三条字节码 LOAD_CONST，LOAD_CONST 和 MAKE_FUNCTION，在执行这三条字节码之后，栈空间如下所示：</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 302 642" role="img" aria-label="调用栈示意：栈里自下而上依次是 decorator 函数与 fib 函数，上方还留有空位" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 302 642" role="img" aria-label="调用栈示意：栈里自下而上依次是 decorator 函数与 fib 函数，上方还留有空位" class="inline-svg">
   <rect x="51" y="28" width="179" height="577" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
   <path d="M51 427 H230 M51 515 H230" fill="none" stroke="#444" stroke-width="1.5"/>
 
@@ -327,7 +464,7 @@ Disassembly<span class="tok-w"> </span>of<span class="tok-w"> </span>&lt;code<sp
 </svg></figure><ul>
 <li>接下来的一条指令非常重要，这条指令便是装饰器的核心原理，CALL_FUNCTION 这条指令有一个参数 i，在上面的字节码当中为 1，也就是说从栈顶开始的前 i 个元素都是函数参数，调用的函数在栈空间的位置为 i + 1 （从栈顶往下数），那么在上面的情况下就是说调用 decorator 函数，并且将 fib 函数作为 decorator 函数的参数，decorator 函数的返回值再压入栈顶。在上面的代码当中 decorator 函数返回值也是一个函数，也就是 decorator 函数的参数，即 fib 函数。</li>
 </ul>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 402 656" role="img" aria-label="调用栈示意：栈顶在上、栈底在下，栈底压着 fib 函数，上方仍有空位" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 402 656" role="img" aria-label="调用栈示意：栈顶在上、栈底在下，栈底压着 fib 函数，上方仍有空位" class="inline-svg">
   <defs>
     <marker id="arrow-54bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="18" markerHeight="16" markerUnits="userSpaceOnUse"

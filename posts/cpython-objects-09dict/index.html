@@ -89,15 +89,416 @@
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">me_value</span><span class="tok-p">;</span><span class="tok-w"> </span><span class="tok-cm">/* This field is only meaningful for combined tables */</span>
 <span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyDictKeyEntry</span><span class="tok-p">;</span>
 </code></pre></div><p>用图示的方式表示如下图所示：</p>
-<p><img src="/content/zh/images/cpython/31-bytes.webp" alt="31-bytes" loading="lazy" /></p>
-<p>所有的键值对都存储在 dk_entries 数组当中，比如对于 &quot;Hello&quot; &quot;World&quot; 这个键值对存储过程如下所示，如果 &quot;Hello&quot; 的哈希值等于 8 ，那么计算出来对象在 dk_entries 数组当中的下标位 0 。</p>
-<p><img src="/content/zh/images/cpython/32-dict.webp" alt="32-dict" loading="lazy" /></p>
-<p>在前面的文章当中我们谈到了，在 cpython 当中 dk_entries 数组当中的一个对象占用 24 字节的内存空间，在 cpython 当中的负载因子是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>2</mn></mrow><mrow><mn>3</mn></mrow></mfrac></mrow></math> 。而一个 entry 的大小是 24 个字节，如果 dk_entries 的长度是 1024 的话，那么大概有 1024  / 3 * 24 = 8K 的内存空间是浪费的。为了解决这个问题，在新版的 cpython 当中采取了一个策略用于减少内存的使用。具体的设计如下图所示：</p>
-<p><img src="/content/zh/images/cpython/33-dict.webp" alt="33-dict" loading="lazy" /></p>
-<p>在新的字典当中 cpython 对于 dk_entries 来说如果正常的哈希表的长度为 8 的话，因为负载因子是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>2</mn></mrow><mrow><mn>3</mn></mrow></mfrac></mrow></math> 真正给 dk_entries 分配的长度是 5 = 8 / 3，那么现在有一个问题就是如何根据不同的哈希值进行对象的存储。dk_indices 就是这个作用的，他的长度和真正的哈希表的长度是一样的，dk_indices 是一个整型数组这个数组保存的是要保存对象在 dk_entries 当中的下标，比如在上面的例子当中 dk_indices[7] = 0，就表示哈希值求余数之后的值等于 7，0 表示对象在 dk_entries 当中的下标。</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1046 908" role="img" aria-label="PyDictObject 与 PyDictKeyEntry 的内存布局：ma_keys 指向右侧的键表，键表由 dk_refcnt、dk_size、dk_usable 和 dk_entries 数组组成" class="inline-svg">
+  <defs>
+    <marker id="arrow-31-bytes" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="186" y="154" font-size="28" text-anchor="middle">PyDictObject</text>
+  <text x="835" y="62" font-size="28" text-anchor="middle">PyDictKeyEntry</text>
+
+  <!-- 左侧：PyDictObject -->
+  <g stroke-width="1.5">
+    <rect x="50" y="180" width="271" height="70" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="50" y="250" width="271" height="70" fill="#dde8fa" stroke="#6c8ebf"/>
+    <rect x="50" y="320" width="271" height="70" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="50" y="390" width="271" height="117" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="50" y="507" width="271" height="93" fill="#d9e7d6" stroke="#82b366"/>
+  </g>
+
+  <g font-size="29" text-anchor="middle">
+    <text x="186" y="226">Py_ssize_t ob_refcnt</text>
+    <text x="186" y="296">_typeobject *ob_type</text>
+    <text x="186" y="366">Py_ssize_t ma_used</text>
+    <text x="186" y="444">PyDictKeysObject</text>
+    <text x="186" y="476">*ma_keys</text>
+    <text x="186" y="571">PyObject **ma_values</text>
+  </g>
+
+  <!-- 花括号 + PyObject -->
+  <path d="M350 179 q14 0 14 14 v40 q0 10 9 12 q-9 2 -9 12 v39 q0 14 -14 14"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="425" y="257" font-size="27">PyObject</text>
+
+  <!-- 右侧：PyDictKeyEntry -->
+  <g stroke-width="1.5">
+    <rect x="697" y="85" width="271" height="70" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="697" y="155" width="271" height="70" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="697" y="225" width="271" height="70" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="697" y="295" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="365" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="435" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="505" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="575" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="645" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="715" width="271" height="70" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="697" y="785" width="271" height="69" fill="#f1d0cd" stroke="#b85450"/>
+  </g>
+
+  <g font-size="29" text-anchor="middle">
+    <text x="832" y="131">Py_ssize_t dk_refcnt</text>
+    <text x="832" y="201">Py_ssize_t dk_size</text>
+    <text x="832" y="271">Py_ssize_t dk_usable</text>
+    <text x="832" y="341">dk_entries[0]</text>
+    <text x="832" y="411">dk_entries[1]</text>
+    <text x="832" y="481">dk_entries[2]</text>
+    <text x="832" y="551">dk_entries[3]</text>
+    <text x="832" y="621">dk_entries[4]</text>
+    <text x="832" y="691">dk_entries[5]</text>
+    <text x="832" y="761">dk_entries[6]</text>
+    <text x="832" y="831">dk_entries[7]</text>
+  </g>
+
+  <!-- ma_keys 指向键表 -->
+  <path d="M321 448 H573 V89 H689" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-31-bytes)"/>
+</svg></figure><p>所有的键值对都存储在 dk_entries 数组当中，比如对于 &quot;Hello&quot; &quot;World&quot; 这个键值对存储过程如下所示，如果 &quot;Hello&quot; 的哈希值等于 8 ，那么计算出来对象在 dk_entries 数组当中的下标位 0 。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1512 898" role="img"
+     aria-label="PyDictObject 的 ma_keys 指向 PyDictKeyEntry 数组，按 Hello 的哈希值 8 取模定位到 dk_entries[0]，该条目记录 me_hash、me_key 与 me_value"
+     class="inline-svg">
+  <defs>
+    <marker id="arrow-32-dict" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="112" y="153" font-size="25">PyDictObject</text>
+
+  <!-- PyDictObject -->
+  <g stroke-width="1.5">
+    <rect x="47" y="180" width="270" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="47" y="250" width="270" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="47" y="320" width="270" height="70" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="47" y="390" width="270" height="118" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="47" y="508" width="270" height="94" fill="#d5e8d4" stroke="#82b366"/>
+  </g>
+  <g font-size="25">
+    <text x="64" y="224">Py_ssize_t ob_refcnt</text>
+    <text x="64" y="294">_typeobject *ob_type</text>
+    <text x="64" y="364">Py_ssize_t ma_used</text>
+    <text x="64" y="437">PyDictKeysObject</text>
+    <text x="64" y="464">*ma_keys</text>
+    <text x="64" y="564">PyObject **ma_values</text>
+  </g>
+
+  <!-- PyObject 花括号 -->
+  <path d="M374 180 q-25 0 -25 26 v33 q0 21 -18 23 q18 2 18 23 v33 q0 26 25 26"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="427" y="258" font-size="25">PyObject</text>
+
+  <!-- PyDictKeyEntry 数组 -->
+  <text x="829" y="58" font-size="25" text-anchor="middle">PyDictKeyEntry</text>
+  <g stroke-width="1.5">
+    <rect x="694" y="86" width="270" height="71" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="157" width="270" height="70" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="227" width="270" height="70" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="694" y="297" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="367" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="437" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="507" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="577" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="647" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="717" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="694" y="787" width="270" height="70" fill="#f8cecc" stroke="#b85450"/>
+  </g>
+  <g font-size="25">
+    <text x="708" y="130">Py_ssize_t dk_refcnt</text>
+    <text x="708" y="200">Py_ssize_t dk_size</text>
+    <text x="708" y="270">Py_ssize_t dk_usable</text>
+  </g>
+  <g font-size="25" text-anchor="middle">
+    <text x="829" y="410">dk_entries[1]</text>
+    <text x="829" y="480">dk_entries[2]</text>
+    <text x="829" y="550">dk_entries[3]</text>
+    <text x="829" y="620">dk_entries[4]</text>
+    <text x="829" y="690">dk_entries[5]</text>
+    <text x="829" y="760">dk_entries[6]</text>
+    <text x="829" y="830">dk_entries[7]</text>
+  </g>
+
+  <!-- dk_entries[0] 里的条目 -->
+  <circle cx="830" cy="331" r="4.5" fill="#000000"/>
+  <text x="1252" y="117" font-size="23" text-anchor="middle">(hash("Hello")) = 8</text>
+  <text x="1252" y="147" font-size="23" text-anchor="middle">(hash("Hello")) % 8 = 0</text>
+  <g stroke-width="1.5">
+    <rect x="1195" y="240" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="1195" y="310" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+    <rect x="1195" y="380" width="267" height="70" fill="#dae8fc" stroke="#6c8ebf"/>
+  </g>
+  <g font-size="25" text-anchor="middle">
+    <text x="1329" y="284">me_hash : 8</text>
+    <text x="1329" y="354">me_key : Hello</text>
+    <text x="1329" y="424">me_value : World</text>
+  </g>
+
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M317 450 H570 V85 H690" marker-end="url(#arrow-32-dict)"/>
+    <path d="M834 331 H1018 V240 H1191" marker-end="url(#arrow-32-dict)"/>
+  </g>
+</svg></figure><p>在前面的文章当中我们谈到了，在 cpython 当中 dk_entries 数组当中的一个对象占用 24 字节的内存空间，在 cpython 当中的负载因子是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>2</mn></mrow><mrow><mn>3</mn></mrow></mfrac></mrow></math> 。而一个 entry 的大小是 24 个字节，如果 dk_entries 的长度是 1024 的话，那么大概有 1024  / 3 * 24 = 8K 的内存空间是浪费的。为了解决这个问题，在新版的 cpython 当中采取了一个策略用于减少内存的使用。具体的设计如下图所示：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1864 1054" role="img" aria-label="字典的内存结构：PyDictObject 的 ma_keys 指向 PyDictKeyEntry，它的 dk_indices 与 dk_entries 分别指向下标数组与键值对数组" class="inline-svg">
+  <defs>
+    <marker id="arrow-33dict" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左：PyDictObject -->
+  <text x="168" y="158" font-size="26" text-anchor="middle">PyDictObject</text>
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dde8fa">
+    <rect x="29" y="179" width="270" height="70"/>
+    <rect x="29" y="249" width="270" height="71"/>
+  </g>
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="29" y="320" width="270" height="70"/>
+    <rect x="29" y="390" width="270" height="117"/>
+    <rect x="29" y="507" width="270" height="94"/>
+  </g>
+  <g font-size="27">
+    <text x="46" y="221">Py_ssize_t ob_refcnt</text>
+    <text x="46" y="291">_typeobject *ob_type</text>
+    <text x="46" y="362">Py_ssize_t ma_used</text>
+    <text x="164" y="440" text-anchor="middle">PyDictKeysObject</text>
+    <text x="164" y="470" text-anchor="middle">*ma_keys</text>
+    <text x="42" y="562">PyObject **ma_values</text>
+  </g>
+
+  <!-- 前两个字段是 PyObject -->
+  <path d="M332 179 Q 346 179 346 200 V 239 Q 346 250 360 250 Q 346 250 346 261 V 300 Q 346 320 332 320"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <text x="405" y="258" font-size="26">PyObject</text>
+
+  <!-- 中：PyDictKeyEntry -->
+  <text x="811" y="62" font-size="26" text-anchor="middle">PyDictKeyEntry</text>
+  <g stroke="#9673a6" stroke-width="1.5" fill="#e1d5e7">
+    <rect x="676" y="84" width="270" height="71"/>
+    <rect x="676" y="155" width="270" height="70"/>
+    <rect x="676" y="225" width="270" height="70"/>
+  </g>
+  <g stroke="#82b366" stroke-width="1.5" fill="#d5e8d4">
+    <rect x="676" y="295" width="270" height="115"/>
+    <rect x="676" y="410" width="270" height="117"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="811" y="126">Py_ssize_t dk_refcnt</text>
+    <text x="811" y="197">Py_ssize_t dk_size</text>
+    <text x="811" y="267">Py_ssize_t dk_usable</text>
+    <text x="811" y="360">dk_indices</text>
+    <text x="811" y="476">dk_entries</text>
+  </g>
+
+  <!-- ma_keys 指向 PyDictKeyEntry -->
+  <path d="M300 445 H 552 V 84 H 670" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <!-- 右上：dk_indices 数组 -->
+  <g stroke="#d79b00" stroke-width="1.5" fill="#ffe6cc">
+    <rect x="1225" y="133" width="269" height="70"/>
+    <rect x="1225" y="203" width="269" height="70"/>
+    <rect x="1225" y="273" width="269" height="70"/>
+    <rect x="1225" y="343" width="269" height="70"/>
+    <rect x="1225" y="413" width="269" height="70"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="1359" y="176">dk_indices[0]</text>
+    <text x="1359" y="246">dk_indices[1]</text>
+    <text x="1359" y="316">......</text>
+    <text x="1359" y="386">dk_indices[6]</text>
+    <text x="1359" y="456">dk_indices[7]</text>
+  </g>
+
+  <!-- 右下：dk_entries 数组 -->
+  <g stroke="#d6b656" stroke-width="1.5" fill="#fff2cc">
+    <rect x="1115" y="604" width="270" height="70"/>
+    <rect x="1115" y="674" width="270" height="70"/>
+    <rect x="1115" y="744" width="270" height="70"/>
+    <rect x="1115" y="814" width="270" height="70"/>
+    <rect x="1115" y="884" width="270" height="70"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="1250" y="647">dk_entries[0]</text>
+    <text x="1250" y="717">dk_entries[1]</text>
+    <text x="1250" y="787">dk_entries[2]</text>
+    <text x="1250" y="857">dk_entries[3]</text>
+    <text x="1250" y="927">dk_entries[4]</text>
+  </g>
+
+  <!-- 最右：一个键值对 -->
+  <g stroke="#6c8ebf" stroke-width="1.5" fill="#dde8fa">
+    <rect x="1461" y="766" width="269" height="70"/>
+    <rect x="1461" y="836" width="269" height="70"/>
+    <rect x="1461" y="906" width="269" height="70"/>
+  </g>
+  <g font-size="27" text-anchor="middle">
+    <text x="1595" y="809">me_hash : 15</text>
+    <text x="1595" y="879">me_key : Hello</text>
+    <text x="1595" y="949">me_value : World</text>
+  </g>
+
+  <!-- dk_indices / dk_entries 指向各自的数组 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)">
+    <path d="M946 305 L 1219 145"/>
+    <path d="M946 400 L 1219 462"/>
+    <path d="M946 450 L 1109 610"/>
+    <path d="M946 520 L 1109 930"/>
+  </g>
+
+  <!-- dk_indices[7] 的值指向 dk_entries[0] -->
+  <circle cx="1498" cy="448" r="4" fill="#1a1a1a"/>
+  <path d="M1498 448 H 1558 V 609 H 1391" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <!-- dk_entries[0] 对应的键值对 -->
+  <circle cx="1358" cy="640" r="4" fill="#1a1a1a"/>
+  <path d="M1358 640 H 1462 V 760" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
+
+  <g font-size="26">
+    <text x="1570" y="688">(hash(&quot;Hello&quot;)) = 15</text>
+    <text x="1570" y="741">(hash(&quot;Hello&quot;)) % 8 = 7</text>
+  </g>
+</svg></figure><p>在新的字典当中 cpython 对于 dk_entries 来说如果正常的哈希表的长度为 8 的话，因为负载因子是 <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mfrac><mrow><mn>2</mn></mrow><mrow><mn>3</mn></mrow></mfrac></mrow></math> 真正给 dk_entries 分配的长度是 5 = 8 / 3，那么现在有一个问题就是如何根据不同的哈希值进行对象的存储。dk_indices 就是这个作用的，他的长度和真正的哈希表的长度是一样的，dk_indices 是一个整型数组这个数组保存的是要保存对象在 dk_entries 当中的下标，比如在上面的例子当中 dk_indices[7] = 0，就表示哈希值求余数之后的值等于 7，0 表示对象在 dk_entries 当中的下标。</p>
 <p>现在我们再插入一个数据 &quot;World&quot; &quot;Hello&quot; 键值对，假设 &quot;World&quot; 的哈希值等于 8，那么对哈希值求余数之后等于 0 ，那么 dk_indices[0] 就是保存对象在 dk_entries 数组当中的下标的，图中对应的下标为 1 （因为 dk_entries 数组当中的每个数据都要使用，因此直接递增即可，下一个对象来的话就保存在 dk_entries 数组的第 3 个（下标为 2）位置）。</p>
-<p><img src="/content/zh/images/cpython/34-dict.webp" alt="33-dict" loading="lazy" /></p>
-<h2 id="内存分析">内存分析</h2>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1852 1242" role="img" aria-label="PyDictObject、PyDictKeysObject、dk_indices 数组、dk_entries 数组与两个 PyDictKeyEntry 之间的指向关系，并标注 hash 值与取模索引" class="inline-svg">
+  <defs>
+    <marker id="arrow-dict34" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- PyDictObject -->
+  <g stroke-width="1.5">
+    <rect x="61" y="136" width="268" height="68" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="61" y="206" width="268" height="68" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="61" y="276" width="268" height="68" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="61" y="347" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="61" y="464" width="268" height="91" fill="#d9e7d6" stroke="#8cb26e"/>
+  </g>
+
+  <!-- PyDictKeysObject -->
+  <g stroke-width="1.5">
+    <rect x="683" y="77" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="147" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="217" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="287" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="683" y="403" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+  </g>
+
+  <!-- dk_indices 数组 -->
+  <g fill="#fbe7cf" stroke="#ce9d35" stroke-width="1.5">
+    <rect x="1231" y="126" width="268" height="68"/>
+    <rect x="1231" y="196" width="268" height="68"/>
+    <rect x="1231" y="266" width="268" height="68"/>
+    <rect x="1231" y="336" width="268" height="68"/>
+    <rect x="1231" y="406" width="268" height="68"/>
+  </g>
+
+  <!-- dk_entries 数组 -->
+  <g fill="#fdf2d0" stroke="#d1b765" stroke-width="1.5">
+    <rect x="1121" y="597" width="268" height="67"/>
+    <rect x="1121" y="667" width="268" height="67"/>
+    <rect x="1121" y="737" width="268" height="67"/>
+    <rect x="1121" y="807" width="268" height="67"/>
+    <rect x="1121" y="877" width="268" height="67"/>
+  </g>
+
+  <!-- 两个 PyDictKeyEntry -->
+  <g fill="#dde8fa" stroke="#738dbb" stroke-width="1.5">
+    <rect x="1467" y="759" width="268" height="68"/>
+    <rect x="1467" y="829" width="268" height="68"/>
+    <rect x="1467" y="899" width="268" height="68"/>
+    <rect x="1467" y="1005" width="268" height="68"/>
+    <rect x="1467" y="1075" width="268" height="68"/>
+    <rect x="1467" y="1145" width="268" height="68"/>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M329 441 H557 V75 H680" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 287 L1225 128" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 402 L1224 470" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 402 L1115 588" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 517 L1118 938" marker-end="url(#arrow-dict34)"/>
+    <path d="M1464 159 H1535 V665 H1396" marker-end="url(#arrow-dict34)"/>
+    <path d="M1466 440 H1563 V595 H1396" marker-end="url(#arrow-dict34)"/>
+    <path d="M1359 630 H1465 V750" marker-end="url(#arrow-dict34)"/>
+    <path d="M1360 700 H1427 V1000" marker-end="url(#arrow-dict34)"/>
+  </g>
+  <g fill="#000">
+    <circle cx="1462" cy="159" r="4.5"/>
+    <circle cx="1464" cy="440" r="4.5"/>
+    <circle cx="1357" cy="630" r="4.5"/>
+    <circle cx="1358" cy="700" r="4.5"/>
+  </g>
+
+  <!-- 标题 -->
+  <g font-size="26" text-anchor="middle">
+    <text x="195" y="108">PyDictObject</text>
+    <text x="817" y="49">PyDictKeyEntry</text>
+  </g>
+
+  <!-- PyDictObject 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="195" y="179">Py_ssize_t ob_refcnt</text>
+    <text x="195" y="249">_typeobject *ob_type</text>
+    <text x="195" y="319">Py_ssize_t ma_used</text>
+    <text x="193" y="400">PyDictKeysObject</text>
+    <text x="193" y="431">*ma_keys</text>
+    <text x="193" y="519">PyObject **ma_values</text>
+  </g>
+
+  <!-- PyDictKeysObject 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="817" y="120">Py_ssize_t dk_refcnt</text>
+    <text x="817" y="190">Py_ssize_t dk_size</text>
+    <text x="817" y="260">Py_ssize_t dk_usable</text>
+    <text x="817" y="355">dk_indices</text>
+    <text x="817" y="470">dk_entries</text>
+  </g>
+
+  <!-- dk_indices 数组的内容 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1365" y="170">dk_indices[0]</text>
+    <text x="1365" y="240">dk_indices[1]</text>
+    <text x="1365" y="311">......</text>
+    <text x="1365" y="380">dk_indices[6]</text>
+    <text x="1365" y="450">dk_indices[7]</text>
+  </g>
+
+  <!-- dk_entries 数组的内容 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1255" y="641">dk_entries[0]</text>
+    <text x="1255" y="711">dk_entries[1]</text>
+    <text x="1255" y="781">dk_entries[2]</text>
+    <text x="1255" y="851">dk_entries[3]</text>
+    <text x="1255" y="921">dk_entries[4]</text>
+  </g>
+
+  <!-- 两个 entry 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1601" y="803">me_hash : 15</text>
+    <text x="1601" y="873">me_key : Hello</text>
+    <text x="1601" y="943">me_value : World</text>
+    <text x="1601" y="1049">me_hash : 8</text>
+    <text x="1601" y="1119">me_key : World</text>
+    <text x="1601" y="1189">me_value : Hello</text>
+  </g>
+
+  <!-- hash 计算的注解 -->
+  <g font-size="30" text-anchor="middle">
+    <text x="1680" y="677">(hash("Hello")) = 15</text>
+    <text x="1680" y="707">(hash("Hello")) % 8 = 7</text>
+    <text x="1271" y="1040">(hash("World")) = 8</text>
+    <text x="1271" y="1070">(hash("World")) % 8 = 0</text>
+  </g>
+
+  <!-- 花括号：包住前两个字段 -->
+  <path d="M361 134 H368 Q371 134 371 140 V197 Q371 204 381 204 Q371 204 371 211 V269 Q371 275 368 275 H361"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="439" y="212" font-size="28">PyObject</text>
+</svg></figure><h2 id="内存分析">内存分析</h2>
 <p>首先我们先来分析一下数组 dk_indices 的数据类型，在 cpython 的内部实现当中并没有一刀切的直接将这个数组当中的数据类型设置成 int 类型。</p>
 <p>dk_indices 数组主要有以下几个类型：</p>
 <ul>

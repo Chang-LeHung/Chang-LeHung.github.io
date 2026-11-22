@@ -117,9 +117,51 @@ __pycache__<span class="tok-w"> </span>demo.py<span class="tok-w">     </span>he
 demo.cpython-310.pyc<span class="tok-w">  </span>hello.cpython-310.pyc
 </code></pre></div><p><code>python -m compileall .</code> 命令将递归扫描当前目录下面的 py 文件，并且生成对应文件的 pyc 文件。</p>
 <h2 id="pyc-文件布局">pyc 文件布局</h2>
-<p><img src="/content/zh/images/cpython/38-pyc.webp" alt="36-pyc" loading="lazy" /></p>
-<p>第一部分魔数由两部分组成：</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 324 180" role="img" aria-label="pyc 文件里的两个字节目：Number 存放在前两字节，回车换行存放在后两字节" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 652 342" role="img" aria-label="pyc 文件的布局：魔数、Bit Field、最后一次修改日期、文件大小四部分共组成 Header，其后是 CodeObject" class="inline-svg">
+  <!-- 五个区段 -->
+  <g stroke-width="1.5">
+    <rect x="145" y="23" width="195" height="58" fill="#d5e5fa" stroke="#6c8ebf"/>
+    <rect x="145" y="81" width="195" height="57" fill="#fee2c7" stroke="none"/>
+    <rect x="145" y="139" width="195" height="56" fill="#dbd0e2" stroke="#9673a6"/>
+    <rect x="145" y="196" width="195" height="57" fill="#f4c9c6" stroke="#b85450"/>
+    <rect x="145" y="254" width="195" height="56" fill="#d1e3cf" stroke="#82b366"/>
+  </g>
+  <!-- Bit Field 一段用橙色虚线边框 -->
+  <g stroke="#d79b00" stroke-width="1.5" stroke-dasharray="6 4">
+    <line x1="145" y1="81" x2="145" y2="138"/>
+    <line x1="340" y1="81" x2="340" y2="138"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle">
+    <text x="242" y="63">魔数(Magic Number)</text>
+    <text x="242" y="116">Bit Field</text>
+    <text x="242" y="176">最后一次修改日期</text>
+    <text x="242" y="233">文件大小</text>
+    <text x="242" y="291">CodeObject</text>
+  </g>
+
+  <!-- 右侧两个小括号 -->
+  <path d="M355 23 q7 0 7 8 v14 q0 6 6 8 q-6 2 -6 8 v14 q0 8 -7 8"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="378" y="61" font-size="19">4 字节</text>
+  <path d="M355 139 q7 0 7 8 v13 q0 6 6 8 q-6 2 -6 8 v13 q0 8 -7 8"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="378" y="176" font-size="19">4 字节</text>
+
+  <!-- 左侧两个小括号 -->
+  <path d="M140 81 q-7 0 -7 8 v14 q0 6 -6 8 q6 2 6 8 v14 q0 8 7 8"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="64" y="118" font-size="19">4 字节</text>
+  <path d="M140 196 q-7 0 -7 8 v13 q0 6 -6 8 q6 2 6 8 v13 q0 8 7 8"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="64" y="233" font-size="19">4 字节</text>
+
+  <!-- 大括号：Header -->
+  <path d="M467 23 q11 0 11 12 v90 q0 8 12 13 q-12 5 -12 13 v90 q0 12 -11 12"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="537" y="150" font-size="21">Header</text>
+</svg></figure><p>第一部分魔数由两部分组成：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 324 180" role="img" aria-label="pyc 文件里的两个字节目：Number 存放在前两字节，回车换行存放在后两字节" class="inline-svg">
   <!-- 两列各占 2 字节，上面是列宽标注的刻度线 -->
   <g fill="none" stroke="#444" stroke-width="1.5">
     <path d="M55 54 V143"/>

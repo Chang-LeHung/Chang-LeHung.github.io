@@ -100,8 +100,40 @@
 
 <span class="tok-cp">#define dummy (&amp;_dummy_struct)</span>
 </code></pre></div><p>上面的数据结果用图示如下图所示：</p>
-<p><img src="/content/zh/images/cpython/25-set.webp" alt="25-set" loading="lazy" /></p>
-<p>上面各个字段的含义如下所示：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 446 599" role="img" aria-label="PySetObject 的内存布局：前两个字段构成 PyObject，其后是 fill、used、mask、table、hash、finger、smalltable、weakreflist" class="inline-svg">
+  <text x="171" y="42" font-size="20" text-anchor="middle">PySetObject</text>
+
+  <g stroke-width="1.5">
+    <rect x="75" y="58" width="191" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="75" y="108" width="191" height="49" fill="#d5e5fa" stroke="#6284b4"/>
+    <rect x="75" y="158" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="209" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="259" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="310" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="360" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="411" width="191" height="47" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="459" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+    <rect x="75" y="509" width="191" height="49" fill="#d1e3cf" stroke="#7da762"/>
+  </g>
+
+  <g font-size="20" text-anchor="middle">
+    <text x="171" y="88">Py_ssize_t ob_refcnt</text>
+    <text x="171" y="138">_typeobject *ob_type</text>
+    <text x="171" y="188">Py_ssize_t fill</text>
+    <text x="171" y="239">Py_ssize_t used</text>
+    <text x="171" y="289">Py_ssize_t mask</text>
+    <text x="171" y="340">setentry *table</text>
+    <text x="171" y="390">Py_hash_t hash</text>
+    <text x="171" y="440">Py_ssize_t finger</text>
+    <text x="171" y="489">setentry smalltable</text>
+    <text x="171" y="539">PyObject *weakreflist</text>
+  </g>
+
+  <!-- 花括号：包住前两个字段 -->
+  <path d="M289 57 H296 Q299 57 299 63 V100 Q299 107 307 107 Q299 107 299 114 V151 Q299 157 296 157 H289"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="313" y="117" font-size="20">PyObject</text>
+</svg></figure><p>上面各个字段的含义如下所示：</p>
 <ul>
 <li>dummy entries ：如果在哈希表当中的数组原来有一个数据，如果我们删除这个 entry 的时候，对应的位置就会被赋值成 dummy，与 dummy 有关的定义在上面的代码当中已经给出，dummy 对象的哈希值等于 -1。</li>
 <li>明白 dummy 的含义之后，fill 和 used 这两个字段的含义就比较容易理解了，used 就是数组当中真实有效的对象的个数，fill 还需要加上 dummy 对象的个数。</li>

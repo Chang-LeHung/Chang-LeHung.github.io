@@ -140,9 +140,26 @@
   <path d="M39 212 V51" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-56bytecode)"/>
   <text x="39" y="228" font-size="13" text-anchor="middle">栈底</text>
 </svg></figure><p>现在执行第一条字节码 LOAD_CONST，执行完之后 counter = 2，因为这条字节码占一个字节，参数栈一个字节，因此下次执行的字节码的位置在 bytecode 的低三个位置，对应的下标为 2，因此 counter = 2 。</p>
-<p><img src="/content/zh/images/cpython/57-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
-<p>现在执行第二条字节码 STORE_FAST，让 a 指向 1 ，同样的 STORE_FAST 操作码和操作数各占一个字节，因此执行完这条字节码之后栈空间没有数据，counter = 4 。</p>
-<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 261" role="img" aria-label="counter = 4 时的栈空间：栈为空，左侧竖直箭头标注栈底" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 185 264" role="img"
+     aria-label="counter = 2 执行后，栈底压入了整数 1"
+     class="inline-svg">
+  <defs>
+    <marker id="arrow-57-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="93" y="30" font-size="19" text-anchor="middle">counter = 2</text>
+  <text x="19" y="233" font-size="14">栈底</text>
+  <path d="M30 215 V60" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-57-bytecode)"/>
+
+  <rect x="65" y="57" width="85" height="180" fill="#ffffff" stroke="#444" stroke-width="1.5"/>
+  <line x1="65" y1="206" x2="150" y2="206" stroke="#444" stroke-width="1.5"/>
+  <text x="107" y="228" font-size="16" text-anchor="middle">1</text>
+</svg></figure><p>现在执行第二条字节码 STORE_FAST，让 a 指向 1 ，同样的 STORE_FAST 操作码和操作数各占一个字节，因此执行完这条字节码之后栈空间没有数据，counter = 4 。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 261" role="img" aria-label="counter = 4 时的栈空间：栈为空，左侧竖直箭头标注栈底" class="inline-svg">
   <defs>
     <marker id="arrow-58" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -158,7 +175,7 @@
         marker-end="url(#arrow-58)"/>
   <text x="37" y="236" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
 </svg></figure><p>接下来 LOAD_FAST 将 a 指向的对象也就是 1 加载进入栈中，此时的 counter = 6，LOAD_CONST 将常量 1 加载进行入栈空间当中，此时 counter = 8，在执行完这两条指令之后，栈空间的变化如下图所示：</p>
-<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193 270" role="img" aria-label="counter = 8 时的栈空间：栈底之上依次压入 1 与 a = 1 两格" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193 270" role="img" aria-label="counter = 8 时的栈空间：栈底之上依次压入 1 与 a = 1 两格" class="inline-svg">
   <defs>
     <marker id="arrow-59" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -179,7 +196,7 @@
         marker-end="url(#arrow-59)"/>
   <text x="34" y="238" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
 </svg></figure><p>接下来的一条指令是 COMPARE_OP ，这个指令有一个参数表示比较的符号，这里是比较 a &gt; 1，并且会将比较的结果压入栈中，比较的结果是 false ，因为 COMPARE_OP 首先会将栈空间的两个输入弹出，因此在执行完这条指令之后栈空间和 counter 的值如下：</p>
-<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 197 254" role="img" aria-label="counter = 22 时的栈空间：比较结果 False 已压入栈顶" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 197 254" role="img" aria-label="counter = 22 时的栈空间：比较结果 False 已压入栈顶" class="inline-svg">
   <defs>
     <marker id="arrow-60" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -198,7 +215,7 @@
         marker-end="url(#arrow-60)"/>
   <text x="35" y="230" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
 </svg></figure><p>下面一条指令为 POP_JUMP_IF_FALSE，根据前面的字节码含义，这个字节码会将栈顶的 false 弹出，并且会进行跳转，并且将 counter 的值直接编程参数的值，这里他的参数是 22 ，因此 counter = 22，在执行完这条指令之后，结果如下：</p>
-<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 263" role="img" aria-label="counter = 10 时的栈空间：False 被弹出，栈为空，左侧箭头标注栈底" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 189 263" role="img" aria-label="counter = 10 时的栈空间：False 被弹出，栈为空，左侧箭头标注栈底" class="inline-svg">
   <defs>
     <marker id="arrow-61" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -214,11 +231,41 @@
         marker-end="url(#arrow-61)"/>
   <text x="36" y="235" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
 </svg></figure><p>因为现在已经跳转到了 22 ，因此接下来执行的指令为 LOAD_FAST，将变量 a 加载进入栈空间，LOAD_CONST 将常量 1 加载进入栈空间，在执行完这两条执行之后，变化情况如下：</p>
-<p><img src="/content/zh/images/cpython/62-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
-<p>在次执行 POP_JUMP_IF_FALSE，这回的结果也是 false ，因此继续执行 POP_JUMP_IF_FALSE，这次的参数是 40，直接将 counter 的值设置成 40 。</p>
-<p><img src="/content/zh/images/cpython/63-bytecode.webp" alt="56-bytecode" loading="lazy" /></p>
-<p>接下来 LOAD_GLOBAL 加载一个全局变量 print 函数 counter 变成 42 ，LOAD_CONST 加载字符串 &quot;a == 1&quot; 进入栈空间，counter = 44，此时状态如下：</p>
-<figure class="diagram svg-figure" id="figure-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 265" role="img" aria-label="counter = 44 时的栈空间：栈中依次为字符串 &quot;a== 1&quot; 与函数 print" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 181 256" role="img" aria-label="执行栈里压着全局变量 counter 的值 26，下方是局部变量 a" class="inline-svg">
+  <defs>
+    <marker id="arrow-62bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="88" y="28" font-size="19" text-anchor="middle">counter = 26</text>
+
+  <!-- 栈的增长方向 -->
+  <path d="M27 220 V 50" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-62bytecode)"/>
+  <text x="13" y="228" font-size="15">栈底</text>
+
+  <!-- 栈：顶部空闲，往下依次是 1 与 a = 1 -->
+  <rect x="62" y="52" width="86" height="181" fill="none" stroke="#444" stroke-width="1.5"/>
+  <line x1="62" y1="170" x2="148" y2="170" stroke="#444" stroke-width="1.5"/>
+  <line x1="62" y1="202" x2="148" y2="202" stroke="#444" stroke-width="1.5"/>
+  <text x="105" y="192" font-size="16" text-anchor="middle">1</text>
+  <text x="105" y="223" font-size="16" text-anchor="middle">a = 1</text>
+</svg></figure><p>在次执行 POP_JUMP_IF_FALSE，这回的结果也是 false ，因此继续执行 POP_JUMP_IF_FALSE，这次的参数是 40，直接将 counter 的值设置成 40 。</p>
+<figure class="diagram svg-figure" id="figure-8"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 275" role="img" aria-label="一个空栈的示意：counter = 40 的函数调用栈，标注栈底与栈的生长方向" class="inline-svg">
+  <text x="100" y="41" font-size="20" text-anchor="middle">counter = 40</text>
+
+  <rect x="76" y="67" width="85" height="195" fill="none" stroke="#000" stroke-width="1.2"/>
+
+  <!-- 向上的箭头：空心箭头 + 竖线 -->
+  <g fill="none" stroke="#000" stroke-width="1.2">
+    <path d="M40.5 214 V76"/>
+    <path d="M40.5 65 L35.5 75 H45.5 Z" fill="#fff"/>
+  </g>
+
+  <text x="29" y="243" font-size="15">栈底</text>
+</svg></figure><p>接下来 LOAD_GLOBAL 加载一个全局变量 print 函数 counter 变成 42 ，LOAD_CONST 加载字符串 &quot;a == 1&quot; 进入栈空间，counter = 44，此时状态如下：</p>
+<figure class="diagram svg-figure" id="figure-9"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 265" role="img" aria-label="counter = 44 时的栈空间：栈中依次为字符串 &quot;a== 1&quot; 与函数 print" class="inline-svg">
   <defs>
     <marker id="arrow-64" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">
@@ -239,7 +286,7 @@
         marker-end="url(#arrow-64)"/>
   <text x="35" y="238" font-size="14" text-anchor="middle" fill="#1a1a1a">栈底</text>
 </svg></figure><p>CALL_FUNCTION 这个字节码有一个参数，表示调用函数的参数的个数，这里是 1，因为 print 函数只有一个参数，然后输出字符串 &quot;a== 1&quot;，但是这里需要注意的是 print 函数会返回一个 None，因此执行完 CALL_FUNCTION 之后状态如下：</p>
-<figure class="diagram svg-figure" id="figure-7"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 171 257" role="img" aria-label="counter = 46 时的栈空间：print 返回的 None 被压入栈顶" class="inline-svg">
+<figure class="diagram svg-figure" id="figure-10"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 171 257" role="img" aria-label="counter = 46 时的栈空间：print 返回的 None 被压入栈顶" class="inline-svg">
   <defs>
     <marker id="arrow-65" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="6" markerHeight="6"
             orient="auto-start-reverse">

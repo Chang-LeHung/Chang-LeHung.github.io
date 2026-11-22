@@ -108,8 +108,45 @@
 <span class="tok-p">}</span><span class="tok-w"> </span><span class="tok-n">PyFrameObject</span><span class="tok-p">;</span>
 </code></pre></div><h2 id="内存申请和栈帧的内存布局">内存申请和栈帧的内存布局</h2>
 <p>在 cpython 当中，当我们需要申请一个 frame object 对象的时候，首先需要申请内存空间，但是在申请内存空间的时候并不是单单申请一个 frameobject 大小的内存，而是会申请额外的内存空间，大致布局如下所示。</p>
-<p><img src="/content/zh/images/cpython/71-frame.webp" alt="71-frame" loading="lazy" /></p>
-<ul>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 601 611" role="img"
+     aria-label="PyFrameObject 与 f_localsplus 数组的布局：数组里依次是各作用域的局部变量、cell 变量、free 变量和求值栈"
+     class="inline-svg">
+  <!-- 结构体：PyFrameObject 头 + f_localsplus 数组 -->
+  <g stroke-width="1.5">
+    <rect x="198" y="29" width="190" height="66" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="198" y="95" width="190" height="32" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="198" y="177" width="190" height="32" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="198" y="209" width="190" height="32" fill="#ffe6cc" stroke="#d79b00"/>
+    <rect x="198" y="291" width="190" height="32" fill="#ffe6cc" stroke="#d79b00"/>
+    <rect x="198" y="323" width="190" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="198" y="405" width="190" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="198" y="437" width="190" height="32" fill="#f5f5f5" stroke="#666666"/>
+    <rect x="198" y="519" width="190" height="32" fill="#f5f5f5" stroke="#666666"/>
+  </g>
+  <text x="293" y="69" font-size="17" text-anchor="middle">PyFrameObject</text>
+
+  <!-- 省略号：数组被截断的地方 -->
+  <g stroke="#444" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="0.1 8">
+    <line x1="293" y1="138" x2="293" y2="166"/>
+    <line x1="293" y1="252" x2="293" y2="280"/>
+    <line x1="293" y1="366" x2="293" y2="394"/>
+    <line x1="293" y1="480" x2="293" y2="508"/>
+  </g>
+
+  <!-- 四段花括号 -->
+  <g fill="none" stroke="#1a1a1a" stroke-width="2">
+    <path d="M186 106 q-16 0 -16 24 v16.5 q0 8 -13 8 q13 0 13 8 v16.5 q0 24 16 24"/>
+    <path d="M186 221 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+    <path d="M186 334 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+    <path d="M186 448 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+  </g>
+  <g font-size="15" text-anchor="end">
+    <text x="150" y="162">f_localsplus</text>
+    <text x="150" y="273">ncells</text>
+    <text x="150" y="387">nfrees</text>
+    <text x="150" y="501">stack</text>
+  </g>
+</svg></figure><ul>
 <li>f_localsplus，这是一个数组用户保存函数执行的 local 变量，这样可以直接通过下标得到对应的变量的值。</li>
 <li>ncells 和 nfrees，这个变量和我们前面在分析 code object 的函数闭包相关，ncells 和 ncells 分别表示 cellvars 和 freevars 中变量的个数。</li>
 <li>stack，这个变量就是函数执行的时候函数的栈帧，这个大小在编译期间就可以确定因此可以直接确定栈空间的大小。</li>
@@ -194,8 +231,151 @@
 <li>f_localsplus：局部变量和值栈的组合，是一个动态大小的数组。</li>
 </ul>
 <p>如果我们在一个函数当中调用另外一个函数，这个函数再调用其他函数就会形成函数的调用链，就会形成下图所示的链式结构。</p>
-<p><img src="/content/zh/images/cpython/72-frame.webp" alt="71-frame" loading="lazy" /></p>
-<h2 id="例子分析">例子分析</h2>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1691 476" role="img" aria-label="四个 FrameObject 用 f_back 串成调用链：每个栈帧里 f_stacktop、f_valuestack 都指向自己的 stack 区域" class="inline-svg">
+  <defs>
+    <marker id="arrow-72frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 第一列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="103" y="70" width="191" height="45"/>
+    <rect x="103" y="115" width="191" height="45"/>
+    <rect x="103" y="160" width="191" height="45"/>
+  </g>
+  <rect x="103" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="103" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="103" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="103" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle">
+    <text x="199" y="98">f_back</text>
+    <text x="199" y="143">f_stacktop</text>
+    <text x="199" y="188">f_valuestack</text>
+    <text x="199" y="233">f_localsplus</text>
+    <text x="199" y="278">cells</text>
+    <text x="199" y="323">frees</text>
+    <text x="199" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="133" cy="92" r="4"/>
+    <circle cx="129" cy="137" r="4"/>
+    <circle cx="267" cy="182" r="4"/>
+  </g>
+  <path d="M101 70 Q 87 70 87 92 V 116 Q 87 137 65 137 Q 87 137 87 158 V 188 Q 87 205 101 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M65 140 C 42 175, 46 320, 60 344 C 68 358, 82 362, 99 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M267 182 C 331 190, 373 240, 361 302 C 351 340, 309 360, 298 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第二列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="546" y="70" width="191" height="45"/>
+    <rect x="546" y="115" width="191" height="45"/>
+    <rect x="546" y="160" width="191" height="45"/>
+  </g>
+  <rect x="546" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="546" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="546" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="546" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle">
+    <text x="642" y="98">f_back</text>
+    <text x="642" y="143">f_stacktop</text>
+    <text x="642" y="188">f_valuestack</text>
+    <text x="642" y="233">f_localsplus</text>
+    <text x="642" y="278">cells</text>
+    <text x="642" y="323">frees</text>
+    <text x="642" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="576" cy="92" r="4"/>
+    <circle cx="572" cy="137" r="4"/>
+    <circle cx="710" cy="182" r="4"/>
+  </g>
+  <path d="M544 70 Q 530 70 530 92 V 116 Q 530 137 508 137 Q 530 137 530 158 V 188 Q 530 205 544 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M508 140 C 485 175, 489 320, 503 344 C 511 358, 525 362, 542 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M710 182 C 774 190, 816 240, 804 302 C 794 340, 752 360, 741 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第三列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="971" y="70" width="191" height="45"/>
+    <rect x="971" y="115" width="191" height="45"/>
+    <rect x="971" y="160" width="191" height="45"/>
+  </g>
+  <rect x="971" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="971" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="971" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="971" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle">
+    <text x="1067" y="98">f_back</text>
+    <text x="1067" y="143">f_stacktop</text>
+    <text x="1067" y="188">f_valuestack</text>
+    <text x="1067" y="233">f_localsplus</text>
+    <text x="1067" y="278">cells</text>
+    <text x="1067" y="323">frees</text>
+    <text x="1067" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="1001" cy="92" r="4"/>
+    <circle cx="997" cy="137" r="4"/>
+    <circle cx="1135" cy="182" r="4"/>
+  </g>
+  <path d="M969 70 Q 955 70 955 92 V 116 Q 955 137 933 137 Q 955 137 955 158 V 188 Q 955 205 969 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M933 140 C 910 175, 914 320, 928 344 C 936 358, 950 362, 967 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M1135 182 C 1199 190, 1241 240, 1229 302 C 1219 340, 1177 360, 1166 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- 第四列 -->
+  <g stroke="#b85450" stroke-width="1.5" fill="#f8cecc">
+    <rect x="1396" y="70" width="191" height="45"/>
+    <rect x="1396" y="115" width="191" height="45"/>
+    <rect x="1396" y="160" width="191" height="45"/>
+  </g>
+  <rect x="1396" y="205" width="191" height="45" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="1396" y="250" width="191" height="45" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
+  <rect x="1396" y="295" width="191" height="45" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+  <rect x="1396" y="340" width="191" height="45" fill="#f5f5f5" stroke="#999999" stroke-width="1.5"/>
+  <g font-size="20" text-anchor="middle">
+    <text x="1492" y="98">f_back</text>
+    <text x="1492" y="143">f_stacktop</text>
+    <text x="1492" y="188">f_valuestack</text>
+    <text x="1492" y="233">f_localsplus</text>
+    <text x="1492" y="278">cells</text>
+    <text x="1492" y="323">frees</text>
+    <text x="1492" y="368">stack</text>
+  </g>
+  <g fill="#1a1a1a">
+    <circle cx="1426" cy="92" r="4"/>
+    <circle cx="1422" cy="137" r="4"/>
+    <circle cx="1560" cy="182" r="4"/>
+  </g>
+  <path d="M1394 70 Q 1380 70 1380 92 V 116 Q 1380 137 1358 137 Q 1380 137 1380 158 V 188 Q 1380 205 1394 205"
+        fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M1358 140 C 1335 175, 1339 320, 1353 344 C 1361 358, 1375 362, 1392 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+  <path d="M1560 182 C 1624 190, 1666 240, 1654 302 C 1644 340, 1602 360, 1591 362"
+        fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)"/>
+
+  <!-- f_back 指向上一个栈帧 -->
+  <g fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-72frame)">
+    <path d="M576 92 V 47 H 292 V 66"/>
+    <path d="M1001 92 V 47 H 735 V 66"/>
+    <path d="M1426 92 V 47 H 1160 V 66"/>
+  </g>
+
+  <g font-size="18" text-anchor="middle">
+    <text x="423" y="143">FrameObject(partial)</text>
+    <text x="848" y="143">FrameObject(partial)</text>
+    <text x="1273" y="143">FrameObject(partial)</text>
+  </g>
+</svg></figure><h2 id="例子分析">例子分析</h2>
 <p>我们现在来模拟一下下面的函数的执行过程。</p>
 <div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-kn">import</span><span class="tok-w"> </span><span class="tok-nn">dis</span>
 
@@ -223,10 +403,217 @@
 <span class="tok-w">             </span><span class="tok-m">14</span><span class="tok-w"> </span>RETURN_VALUE
 </code></pre></div><p>函数 foo 的 stacksize 等于 2 。</p>
 <p>初始时 frameobject 的布局如下所示：</p>
-<p><img src="/content/zh/images/cpython/73-frame.webp" alt="71-frame" loading="lazy" /></p>
-<p>现在执行第一条指令 LOAD_CONST 此时的 f_lasti 等于 -1，执行完这条字节码之后栈帧情况如下：</p>
-<p><img src="/content/zh/images/cpython/74-frame.webp" alt="71-frame" loading="lazy" /></p>
-<p>在执行完这条字节码之后 f_lasti 的值变成 0。字节码 LOAD_CONST 对应的 c 源代码如下所示：</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1408 684" role="img" aria-label="foo() 的 FrameObject 与 f_globals、f_builtins、f_locals、f_valuestack、f_code 的指向关系，右侧是 foo 的字节码" class="inline-svg">
+  <defs>
+    <marker id="arrow-frame73" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 被指向的三个字典 / 栈 -->
+  <g stroke-width="1.5">
+    <g fill="#abdde2" stroke="#22737c">
+      <rect x="263" y="47" width="151" height="36"/>
+      <rect x="263" y="83" width="151" height="36"/>
+      <rect x="263" y="119" width="151" height="36"/>
+    </g>
+    <g fill="#c9c8dc" stroke="#4b4970">
+      <rect x="735" y="192" width="151" height="36"/>
+      <rect x="735" y="228" width="151" height="36"/>
+      <rect x="735" y="264" width="151" height="36"/>
+    </g>
+    <g fill="#f7d5d0" stroke="#cb8a7f">
+      <rect x="21" y="271" width="152" height="35"/>
+      <rect x="21" y="306" width="152" height="36"/>
+      <rect x="21" y="342" width="152" height="36"/>
+    </g>
+  </g>
+
+  <!-- 中间：FrameObject 与它的值栈 -->
+  <rect x="411" y="305" width="152" height="104" fill="#d1e3cf" stroke="#8cb26e" stroke-width="1.5"/>
+  <g fill="#abd7ec" stroke="#1d6891" stroke-width="1.5">
+    <rect x="411" y="409" width="152" height="36"/>
+    <rect x="411" y="445" width="152" height="36"/>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M525 302 V27 H414 V45" marker-end="url(#arrow-frame73)"/>
+    <path d="M564 330 H649 V172 H735 V190" marker-end="url(#arrow-frame73)"/>
+    <path d="M411 320 H292 V222 H173 V269" marker-end="url(#arrow-frame73)"/>
+    <path d="M411 356 H305 V409 H408" marker-end="url(#arrow-frame73)"/>
+    <path d="M564 359 H811" marker-end="url(#arrow-frame73)"/>
+  </g>
+
+  <!-- 标签底下的白底，挡住穿过文字的连线 -->
+  <g fill="#fff">
+    <rect x="487" y="100" width="82" height="24"/>
+    <rect x="611" y="217" width="79" height="24"/>
+    <rect x="260" y="250" width="69" height="23"/>
+    <rect x="253" y="369" width="107" height="22"/>
+    <rect x="606" y="351" width="101" height="22"/>
+  </g>
+
+  <g font-size="21">
+    <text x="491" y="120">f_globals</text>
+    <text x="615" y="234">f_builtins</text>
+    <text x="264" y="267">f_locals</text>
+    <text x="257" y="385">f_valuestack</text>
+    <text x="611" y="368">f_code</text>
+  </g>
+
+  <g text-anchor="middle" font-size="21">
+    <text x="487" y="353">foo()</text>
+    <text x="488" y="374">FrameObject</text>
+  </g>
+
+  <!-- 值栈的花括号 -->
+  <path d="M584 409 H590 Q594 409 594 415 V438 Q594 446 602 446 Q594 446 594 454 V476 Q594 482 590 482 H584"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="622" y="451" font-size="21">stack</text>
+
+  <!-- 右侧：字节码 -->
+  <g font-family="monospace" font-size="17.5" text-anchor="end">
+    <text x="829" y="376">6</text>
+    <text x="829" y="444">7</text>
+    <text x="829" y="513">8</text>
+
+    <text x="953" y="377">0</text>
+    <text x="953" y="399">2</text>
+    <text x="953" y="445">4</text>
+    <text x="953" y="468">6</text>
+    <text x="953" y="513">8</text>
+    <text x="953" y="536">10</text>
+    <text x="953" y="559">12</text>
+    <text x="953" y="582">14</text>
+  </g>
+  <g font-family="monospace" font-size="17.5">
+    <text x="966" y="377">LOAD_CONST</text>
+    <text x="966" y="399">STORE_FAST</text>
+    <text x="966" y="445">LOAD_CONST</text>
+    <text x="966" y="468">STORE_FAST</text>
+    <text x="966" y="513">LOAD_FAST</text>
+    <text x="966" y="536">LOAD_FAST</text>
+    <text x="966" y="559">BINARY_ADD</text>
+    <text x="966" y="582">RETURN_VALUE</text>
+
+    <text x="1227" y="377">1 （1）</text>
+    <text x="1227" y="399">0 （a）</text>
+    <text x="1227" y="445">2 （2）</text>
+    <text x="1227" y="468">1 （b）</text>
+    <text x="1227" y="513">0 （a）</text>
+    <text x="1227" y="536">1 （b）</text>
+  </g>
+</svg></figure><p>现在执行第一条指令 LOAD_CONST 此时的 f_lasti 等于 -1，执行完这条字节码之后栈帧情况如下：</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1296 690" role="img" aria-label="FrameObject 的结构：f_locals、f_globals、f_builtins 分别指向三个字典，f_code 指向 foo 的字节码，f_valuestack 指向求值栈" class="inline-svg">
+  <defs>
+    <marker id="arrow-74-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- f_locals 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="12" y="268" width="152" height="109" fill="#f7d5d0" stroke="#b76c5f"/>
+    <line x1="12" y1="304" x2="164" y2="304" stroke="#b76c5f"/>
+    <line x1="12" y1="340" x2="164" y2="340" stroke="#b76c5f"/>
+  </g>
+
+  <!-- f_globals 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="252" y="44" width="154" height="109" fill="#abdde2" stroke="#22737c"/>
+    <line x1="252" y1="81" x2="406" y2="81" stroke="#22737c"/>
+    <line x1="252" y1="117" x2="406" y2="117" stroke="#22737c"/>
+  </g>
+
+  <!-- f_builtins 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="725" y="190" width="152" height="108" fill="#c9c8dc" stroke="#4b4970"/>
+    <line x1="725" y1="226" x2="877" y2="226" stroke="#4b4970"/>
+    <line x1="725" y1="262" x2="877" y2="262" stroke="#4b4970"/>
+  </g>
+
+  <!-- FrameObject -->
+  <rect x="402" y="302" width="153" height="105" fill="#d1e3cf" stroke="#82b366" stroke-width="1.5"/>
+  <text x="478" y="353" font-size="21" text-anchor="middle">foo()</text>
+  <text x="478" y="377" font-size="21" text-anchor="middle">FrameObject</text>
+
+  <!-- 求值栈 -->
+  <g stroke-width="1.5">
+    <rect x="402" y="407" width="153" height="73" fill="#abd7ec" stroke="#6c8ebf"/>
+    <line x1="402" y1="442" x2="555" y2="442" stroke="#6c8ebf"/>
+  </g>
+  <text x="478" y="433" font-size="24" text-anchor="middle">1</text>
+  <path d="M572 405 q11 0 11 11 v18 q0 8 8 9 q-8 1 -8 9 v18 q0 11 -11 11"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="613" y="449" font-size="20">stack</text>
+
+  <!-- f_globals：自 FrameObject 顶部绕到字典上方 -->
+  <path d="M516 302 V124" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M516 94 V25 H405 V38" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="482" y="119" font-size="20">f_globals</text>
+
+  <!-- f_locals：自 FrameObject 左侧绕到字典上方 -->
+  <path d="M402 318 H283 V272" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M283 248 V221 H163 V264" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="255" y="267" font-size="20">f_locals</text>
+
+  <!-- f_builtins：自 FrameObject 右侧绕到字典上方 -->
+  <path d="M555 330 H640 V238" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M640 212 V169 H726 V186" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="605" y="234" font-size="20">f_builtins</text>
+
+  <!-- f_code：指向右边的反汇编 -->
+  <path d="M555 357 H584" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M658 357 H798" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="590" y="367" font-size="20">f_code</text>
+
+  <!-- f_valuestack：指向蓝格左上角 -->
+  <path d="M402 354 H293 V407 H394" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="248" y="388" font-size="20">f_valuestack</text>
+
+  <!-- foo 的字节码清单 -->
+  <g font-family="monospace" font-size="17">
+    <text x="813" y="374">6</text>
+    <text x="945" y="377" text-anchor="end">0</text>
+    <text x="958" y="377">LOAD_CONST</text>
+    <text x="1218" y="377">1 (1)</text>
+
+    <text x="945" y="400" text-anchor="end">2</text>
+    <text x="958" y="400">STORE_FAST</text>
+    <text x="1218" y="400">0 (a)</text>
+
+    <text x="813" y="443">7</text>
+    <text x="945" y="446" text-anchor="end">4</text>
+    <text x="958" y="446">LOAD_CONST</text>
+    <text x="1218" y="446">2 (2)</text>
+
+    <text x="945" y="469" text-anchor="end">6</text>
+    <text x="958" y="469">STORE_FAST</text>
+    <text x="1218" y="469">1 (b)</text>
+
+    <text x="813" y="511">8</text>
+    <text x="945" y="515" text-anchor="end">8</text>
+    <text x="958" y="515">LOAD_FAST</text>
+    <text x="1218" y="515">0 (a)</text>
+
+    <text x="945" y="538" text-anchor="end">10</text>
+    <text x="958" y="538">LOAD_FAST</text>
+    <text x="1218" y="538">1 (b)</text>
+
+    <text x="945" y="561" text-anchor="end">12</text>
+    <text x="958" y="561">BINARY_ADD</text>
+
+    <text x="945" y="584" text-anchor="end">14</text>
+    <text x="958" y="584">RETURN_VALUE</text>
+  </g>
+</svg></figure><p>在执行完这条字节码之后 f_lasti 的值变成 0。字节码 LOAD_CONST 对应的 c 源代码如下所示：</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">TARGET</span><span class="tok-p">(</span><span class="tok-n">LOAD_CONST</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">value</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">GETITEM</span><span class="tok-p">(</span><span class="tok-n">consts</span><span class="tok-p">,</span><span class="tok-w"> </span><span class="tok-n">oparg</span><span class="tok-p">);</span><span class="tok-w"> </span><span class="tok-c1">// 从常量表当中取出下标为 oparg 的对象</span>
 <span class="tok-w">    </span><span class="tok-n">Py_INCREF</span><span class="tok-p">(</span><span class="tok-n">value</span><span class="tok-p">);</span>
@@ -243,8 +630,115 @@
 </code></pre></div><p>执行完这条指令之后 f_lasti 的值变成 2 。</p>
 <p>接下来的两条指令和上面的一样，就不做分析了，在执行完两条指令，f_lasti 变成 6 。</p>
 <p>接下来两条指令分别将 a b 加载进入栈空间单中现在栈空间布局如下所示：</p>
-<p><img src="/content/zh/images/cpython/75-frame.webp" alt="71-frame" loading="lazy" /></p>
-<p>然后执行 BINARY_ADD 指令 弹出栈空间的两个元素并且把他们进行相加操作，最后将得到的结果再压回栈空间当中。</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1298 676" role="img"
+     aria-label="frame 对象与它引用的命名空间及代码对象：f_locals、f_globals、f_builtins 分别指向局部、全局、内建命名空间，f_valuestack 指向求值栈，f_code 指向存放字节码的 code 对象"
+     class="inline-svg">
+  <defs>
+    <marker id="arrow-75-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- f_globals：全局命名空间 -->
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="249" y="40" width="151" height="36"/>
+    <rect x="249" y="76" width="151" height="36"/>
+    <rect x="249" y="112" width="151" height="36"/>
+  </g>
+  <text x="510" y="110" font-size="17" text-anchor="middle">f_globals</text>
+
+  <!-- f_builtins：内建命名空间 -->
+  <g fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5">
+    <rect x="721" y="185" width="151" height="36"/>
+    <rect x="721" y="221" width="151" height="36"/>
+    <rect x="721" y="257" width="151" height="36"/>
+  </g>
+  <text x="636" y="220" font-size="17" text-anchor="middle">f_builtins</text>
+
+  <!-- f_locals：局部命名空间 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="8" y="264" width="150" height="36"/>
+    <rect x="8" y="300" width="150" height="36"/>
+    <rect x="8" y="336" width="150" height="35"/>
+  </g>
+  <text x="279" y="255" font-size="17" text-anchor="middle">f_locals</text>
+
+  <!-- frame 对象本身 -->
+  <rect x="399" y="298" width="149" height="103" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="473" y="346" font-size="19" text-anchor="middle">foo()</text>
+  <text x="473" y="376" font-size="19" text-anchor="middle">FrameObject</text>
+
+  <!-- f_valuestack：求值栈 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="399" y="402" width="149" height="36"/>
+    <rect x="399" y="438" width="149" height="36"/>
+  </g>
+  <text x="473" y="425" font-size="19" text-anchor="middle">1</text>
+  <text x="473" y="461" font-size="19" text-anchor="middle">2</text>
+  <path d="M570 400 q10 0 10 24 v3 q0 8 10 8 q-10 0 -10 8 v3 q0 24 -10 24"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="606" y="441" font-size="17">stack</text>
+
+  <!-- 连接线：跨过文字的地方断开，和原图一致 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M511 298 V122"/>
+    <path d="M511 88 V25 H395 V38" marker-end="url(#arrow-75-frame)"/>
+    <path d="M399 313 H278 V267"/>
+    <path d="M278 240 V215 H160 V262" marker-end="url(#arrow-75-frame)"/>
+    <path d="M548 323 H636 V230"/>
+    <path d="M636 205 V165 H724 V183" marker-end="url(#arrow-75-frame)"/>
+    <path d="M548 352 H596"/>
+    <path d="M652 352 H793" marker-end="url(#arrow-75-frame)"/>
+    <path d="M399 349 H292 V362"/>
+    <path d="M292 390 V401 H396" marker-end="url(#arrow-75-frame)"/>
+  </g>
+  <text x="625" y="358" font-size="17" text-anchor="middle">f_code</text>
+  <text x="295" y="377" font-size="17" text-anchor="middle">f_valuestack</text>
+
+  <!-- f_code 指向的字节码 -->
+  <line x1="800" y1="345" x2="800" y2="600" stroke="#999" stroke-width="1"/>
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="17">
+    <text x="805" y="370">6</text>
+    <text x="933" y="370">0</text>
+    <text x="963" y="370">LOAD_CONST</text>
+    <text x="1220" y="370" text-anchor="end">1</text>
+    <text x="1243" y="370">(1)</text>
+
+    <text x="933" y="393">2</text>
+    <text x="963" y="393">STORE_FAST</text>
+    <text x="1220" y="393" text-anchor="end">0</text>
+    <text x="1243" y="393">(a)</text>
+
+    <text x="805" y="439">7</text>
+    <text x="933" y="439">4</text>
+    <text x="963" y="439">LOAD_CONST</text>
+    <text x="1220" y="439" text-anchor="end">2</text>
+    <text x="1243" y="439">(2)</text>
+
+    <text x="933" y="462">6</text>
+    <text x="963" y="462">STORE_FAST</text>
+    <text x="1220" y="462" text-anchor="end">1</text>
+    <text x="1243" y="462">(b)</text>
+
+    <text x="805" y="508">8</text>
+    <text x="933" y="508">8</text>
+    <text x="963" y="508">LOAD_FAST</text>
+    <text x="1220" y="508" text-anchor="end">0</text>
+    <text x="1243" y="508">(a)</text>
+
+    <text x="933" y="531">10</text>
+    <text x="963" y="531">LOAD_FAST</text>
+    <text x="1220" y="531" text-anchor="end">1</text>
+    <text x="1243" y="531">(b)</text>
+
+    <text x="933" y="554">12</text>
+    <text x="963" y="554">BINARY_ADD</text>
+
+    <text x="933" y="577">14</text>
+    <text x="963" y="577">RETURN_VALUE</text>
+  </g>
+</svg></figure><p>然后执行 BINARY_ADD 指令 弹出栈空间的两个元素并且把他们进行相加操作，最后将得到的结果再压回栈空间当中。</p>
 <div class="code-block" data-lang="c"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-n">TARGET</span><span class="tok-p">(</span><span class="tok-n">BINARY_ADD</span><span class="tok-p">)</span><span class="tok-w"> </span><span class="tok-p">{</span>
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">right</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">POP</span><span class="tok-p">();</span>
 <span class="tok-w">    </span><span class="tok-n">PyObject</span><span class="tok-w"> </span><span class="tok-o">*</span><span class="tok-n">left</span><span class="tok-w"> </span><span class="tok-o">=</span><span class="tok-w"> </span><span class="tok-n">TOP</span><span class="tok-p">();</span>

@@ -88,21 +88,107 @@
 <span class="tok-w">             </span><span class="tok-m">24</span><span class="tok-w"> </span>RETURN_VALUE
 </code></pre></div><p>首先是 range 他对应一个 builtin 的类型，在执行上面的字节码的过程当中，首先先将 range 将在进入栈空间当中，然后将常量 10 加载进入栈空间当中，最后会调用指令 CALL_FUNCTION，这个时候会将栈顶的两个元素弹出，调用 range 类型的创建函数，这个函数会返回一个 range 的实例对象。</p>
 <p>这个时候栈的结果如下所示：</p>
-<p><img src="/content/zh/images/cpython/66-bytecode.webp" alt="66-bytecode" loading="lazy" /></p>
-<p>接下来的一条字节码为 GET_ITER，这条字节码的含义为，弹出栈顶的对象，并且将弹出的对象变成一个迭代器，并且将得到的迭代器对象再压入栈空间当中。</p>
-<p><img src="/content/zh/images/cpython/67-bytecode.webp" alt="66-bytecode" loading="lazy" /></p>
-<p>接下来的一条指令是 FOR_ITER，这条指令的含义为：已知栈顶对象是一个迭代器，调用这个迭代器的 __next__ 函数 ：</p>
+<figure class="diagram svg-figure" id="figure-1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 352" role="img" aria-label="栈里放着一个 rangeobject：蓝色区域是空余的栈空间，箭头表示自栈底向上的方向" class="inline-svg">
+  <defs>
+    <marker id="arrow-66-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈：上蓝下粉 -->
+  <rect x="162" y="46" width="196" height="176" fill="#dde8fa" stroke="#738dbb" stroke-width="1.5"/>
+  <rect x="162" y="222" width="196" height="73" fill="#f1d0cd" stroke="#ac5a54" stroke-width="1.5"/>
+  <text x="260" y="272" font-size="36" text-anchor="middle">rangeobject</text>
+
+  <!-- 栈底与向上的箭头 -->
+  <text x="76" y="285" font-size="29">栈底</text>
+  <path d="M102 244 V44" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-66-bytecode)"/>
+</svg></figure><p>接下来的一条字节码为 GET_ITER，这条字节码的含义为，弹出栈顶的对象，并且将弹出的对象变成一个迭代器，并且将得到的迭代器对象再压入栈空间当中。</p>
+<figure class="diagram svg-figure" id="figure-2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 382" role="img"
+     aria-label="栈底压入了 range 迭代器对象，上方仍为空"
+     class="inline-svg">
+  <defs>
+    <marker id="arrow-67-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="13" markerHeight="13" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <text x="104" y="298" font-size="26">栈底</text>
+  <path d="M130 255 V60" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-67-bytecode)"/>
+
+  <rect x="190" y="58" width="200" height="176" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="190" y="234" width="200" height="74" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+  <text x="290" y="285" font-size="30" text-anchor="middle">range 迭代器</text>
+</svg></figure><p>接下来的一条指令是 FOR_ITER，这条指令的含义为：已知栈顶对象是一个迭代器，调用这个迭代器的 __next__ 函数 ：</p>
 <ul>
 <li>如果迭代器已经迭代完成了，则将栈顶的迭代器弹出，并且将 bytecode 的 counter 加上对应的参数值，在上面的函数字节码当中这个参数值等于 12 ，也就是说下一条指令为字节码序列的 22 这个位置。</li>
 <li>如果没有迭代完成则将函数的返回值压入栈顶，并且不需要弹出迭代器，比如当我们第一次调用 __next__ 函数的时候，range 的返回值为0，那么此时栈空间的内容如下所示：</li>
 </ul>
-<p><img src="/content/zh/images/cpython/68-bytecode.webp" alt="66-bytecode" loading="lazy" /></p>
-<p>接下来执行的字节码为 STORE_FAST，这条字节码的含义就是弹出栈顶的元素，并且将这个元素保存到 co_varnames[var_num] 当中，var_num 就是这条字节码的参数，在上面的函数当中就是 0，对应的变量为 i ，因此这条字节码的含义就是弹出栈顶的元素并且保存到变量 i 当中。</p>
+<figure class="diagram svg-figure" id="figure-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 444 354" role="img" aria-label="执行栈上压着 range 迭代器与循环变量 0，栈底在下方" class="inline-svg">
+  <defs>
+    <marker id="arrow-68bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈的增长方向 -->
+  <path d="M92 240 V 42" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-68bytecode)"/>
+  <text x="89" y="272" font-size="22" text-anchor="middle">栈底</text>
+
+  <!-- 栈：顶部空闲格 + 迭代器 + 循环变量 -->
+  <rect x="153" y="43" width="200" height="104" fill="#dbe7fb" stroke="#6c8ebf" stroke-width="1.5"/>
+  <rect x="153" y="149" width="200" height="72" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <rect x="153" y="222" width="200" height="70" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
+
+  <text x="253" y="200" font-size="32" text-anchor="middle">0</text>
+  <text x="253" y="273" font-size="32" text-anchor="middle">range 迭代器</text>
+</svg></figure><p>接下来执行的字节码为 STORE_FAST，这条字节码的含义就是弹出栈顶的元素，并且将这个元素保存到 co_varnames[var_num] 当中，var_num 就是这条字节码的参数，在上面的函数当中就是 0，对应的变量为 i ，因此这条字节码的含义就是弹出栈顶的元素并且保存到变量 i 当中。</p>
 <p>LOAD_GLOBAL，将内嵌函数 print 加载进入栈中，LOAD_FAST 将变量 i 加载进入栈空间当中，此时栈空间的内容如下所示：</p>
-<p><img src="/content/zh/images/cpython/69-bytecode.webp" alt="66-bytecode" loading="lazy" /></p>
-<p>CALL_FUNCTION 会调用 print 函数打印数字 0，并且将函数的返回值压入栈空间当中，print 函数的返回值为 None，此时栈空间的内容如下所示：</p>
-<p><img src="/content/zh/images/cpython/70-bytecode.webp" alt="66-bytecode" loading="lazy" /></p>
-<p>POP_TOP 将栈顶的元素弹出，JUMP_ABSOLUTE 字节码有一个参数，在上面的函数当中这个参数为 8 ，当执行这条字节码的时候直接将 bytecode 的 counter 直接设置成这个参数值，因此执行完这条字节码之后下一条被执行的字节码又是 FOR_ITER，这便实现了循环的效果。</p>
+<figure class="diagram svg-figure" id="figure-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 380" role="img" aria-label="执行 print(*range(3)) 时的栈内容：自栈底向上依次是 range 迭代器、print、0，顶部一格空着" class="inline-svg">
+  <g stroke-width="1.5">
+    <rect x="144" y="56" width="196" height="46" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="144" y="104" width="196" height="68" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="144" y="175" width="196" height="68" fill="#fbe7cf" stroke="#ce9d35"/>
+    <rect x="144" y="247" width="196" height="68" fill="#f1d0cd" stroke="#b0605a"/>
+  </g>
+
+  <!-- 向上的箭头：空心箭头 + 竖线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M81.5 266 V82"/>
+    <path d="M81.5 63 L72 82 H91 Z" fill="#fff"/>
+  </g>
+
+  <text x="55" y="307" font-size="25">栈底</text>
+
+  <g font-size="34" text-anchor="middle">
+    <text x="242" y="150">0</text>
+    <text x="240" y="220">print</text>
+    <text x="241" y="291">range 迭代器</text>
+  </g>
+</svg></figure><p>CALL_FUNCTION 会调用 print 函数打印数字 0，并且将函数的返回值压入栈空间当中，print 函数的返回值为 None，此时栈空间的内容如下所示：</p>
+<figure class="diagram svg-figure" id="figure-5"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 504 380" role="img" aria-label="栈里依次放着 range 迭代器和 None：粉色是 range 迭代器，紫色是 None，蓝色是空余的栈空间" class="inline-svg">
+  <defs>
+    <marker id="arrow-70-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈：上蓝、中紫、下粉 -->
+  <rect x="179" y="53" width="201" height="120" fill="#dde8fa" stroke="#738dbb" stroke-width="1.5"/>
+  <rect x="179" y="173" width="201" height="72" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+  <rect x="179" y="245" width="201" height="71" fill="#f1d0cd" stroke="#ac5a54" stroke-width="1.5"/>
+  <text x="279" y="221" font-size="34" text-anchor="middle">None</text>
+  <text x="279" y="292" font-size="34" text-anchor="middle">range 迭代器</text>
+
+  <!-- 栈底与向上的箭头 -->
+  <text x="93" y="306" font-size="29">栈底</text>
+  <path d="M120 265 V45" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-70-bytecode)"/>
+</svg></figure><p>POP_TOP 将栈顶的元素弹出，JUMP_ABSOLUTE 字节码有一个参数，在上面的函数当中这个参数为 8 ，当执行这条字节码的时候直接将 bytecode 的 counter 直接设置成这个参数值，因此执行完这条字节码之后下一条被执行的字节码又是 FOR_ITER，这便实现了循环的效果。</p>
 <p>综合分析上面的分析过程，实现循环的效果主要是有两个字节码实现的，一个是 FOR_ITER，当迭代器迭代完成之后，会直接跳出循环，实现这个的原理是在字节码的 counter 上加上一个值，另外一个就是 JUMP_ABSOLUTE，他可以直接跳到某一处的字节码位置进行执行。</p>
 <h3 id="continue-关键字实现原理">continue 关键字实现原理</h3>
 <div class="code-block" data-lang="python"><div class="code-head"><button class="code-copy" type="button" aria-live="polite" data-copy-waiting="复制中" data-copy-done="已复制" data-copy-failed="复制失败">复制</button></div><pre class="code-body"><code><span class="tok-k">def</span><span class="tok-w"> </span><span class="tok-nf">test_continue</span><span class="tok-p">():</span>
