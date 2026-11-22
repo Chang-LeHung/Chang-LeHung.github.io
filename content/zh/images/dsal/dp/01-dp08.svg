@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 524 145" role="img" aria-label="斐波那契矩阵递推公式的展开：fib[n+2] 与 fib[n+1] 组成的向量，等于矩阵 1 1 与 1 0 乘以 fib[n+1] 与 fib[n] 组成的向量" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" fill="#34495e" font-size="22" width="524" height="145">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 524 145" role="img" aria-label="斐波那契矩阵递推公式的展开：fib[n+2] 与 fib[n+1] 组成的向量，等于矩阵 1 1 与 1 0 乘以 fib[n+1] 与 fib[n] 组成的向量" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" fill="#34495e" font-size="22" width="524" height="145">
   <g text-anchor="middle">
     <text x="89.5" y="60" font-style="italic">fib</text>
     <text x="108.5" y="60">[</text>

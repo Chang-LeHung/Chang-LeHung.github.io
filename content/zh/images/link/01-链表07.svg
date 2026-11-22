@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1026 318" role="img" aria-label="链表中第 3 个结点的 next 用红色箭头指向第 4 个结点，同时两条被红色叉号划掉的曲线从该结点绕到下方游离结点再绕回第 4 个结点" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1026" height="318">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1026 318" role="img" aria-label="链表中第 3 个结点的 next 用红色箭头指向第 4 个结点，同时两条被红色叉号划掉的曲线从该结点绕到下方游离结点再绕回第 4 个结点" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1026" height="318">
   <defs>
     <marker id="arrow-01-07" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">

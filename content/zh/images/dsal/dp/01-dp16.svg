@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="569" height="440">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 569 440" role="img" aria-label="斐波拉契数列优化过程的演进流程图：递归法、数组法、优化数组法、快速矩阵幂优化依次排列" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="569" height="440">
   <defs>
     <marker id="arrow-dp16" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

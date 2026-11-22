@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="788" height="372">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 788 372" role="img" aria-label="Java 虚拟机栈中的 S2、S1 两个引用分别指向堆区里的两个对象" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="788" height="372">
   <defs>
     <marker id="arrow-linkedlist11" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

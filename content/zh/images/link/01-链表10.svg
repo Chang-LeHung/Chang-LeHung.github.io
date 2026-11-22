@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="916" height="255">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 916 255" role="img" aria-label="四个双向链表结点，prev 指针依次向左、next 指针依次向右，首尾通过上下两条绕行线连成循环" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="916" height="255">
   <defs>
     <marker id="arrow-01-10" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="9" markerHeight="9" orient="auto-start-reverse">

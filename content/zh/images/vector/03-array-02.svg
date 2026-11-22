@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1109 514" role="img" aria-label="Java 堆区中的对象与数组下标的对应关系：前四个下标有数据，用曲线分别指向堆中的对象" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1109" height="514">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1109 514" role="img" aria-label="Java 堆区中的对象与数组下标的对应关系：前四个下标有数据，用曲线分别指向堆中的对象" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1109" height="514">
   <defs>
     <marker id="arrow-array02" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="7" markerHeight="7" orient="auto-start-reverse">

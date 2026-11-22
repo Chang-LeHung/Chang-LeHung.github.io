@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" font-family="-apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif" width="1259" height="509">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1259 509" role="img" aria-label="背包问题状态转移方程推导：选择与不选择第i个物品分别得到两种价值，取较大值填入 dp[i][j]" font-family="Seaford, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif" width="1259" height="509">
   <defs>
     <marker id="arrow-dp18" viewBox="0 0 10 10" refX="9.5" refY="5"
             markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
