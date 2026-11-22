@@ -8,7 +8,7 @@
 
   <!-- 图例 -->
   <rect x="54" y="26" width="57" height="57" fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5"/>
-  <text x="127" y="62" font-size="19">真实的数据</text>
+  <text x="127" y="57" font-size="19">真实的数据</text>
 
   <!-- 八个真实数据 -->
   <g fill="#ffe6cc" stroke="#d79b00" stroke-width="1.5">
@@ -33,7 +33,7 @@
     <rect x="922" y="227" width="93" height="39"/>
     <rect x="1016" y="227" width="93" height="39"/>
   </g>
-  <g font-size="17" text-anchor="middle">
+  <g font-size="19" text-anchor="middle">
     <text x="404" y="252">PyObject*</text>
     <text x="498" y="252">PyObject*</text>
     <text x="592" y="252">PyObject*</text>
@@ -58,7 +58,7 @@
 
   <!-- ob_item 指向数组首元素 -->
   <rect x="70" y="372" width="192" height="31" fill="#b1e0e6" stroke="#207078" stroke-width="1.5"/>
-  <text x="78" y="394" font-size="17">PyObject **ob_item;</text>
+  <text x="78" y="396" font-size="19">PyObject **ob_item;</text>
   <path d="M266 387 C 320 382, 352 330, 357 274"
         fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-02list)"/>
 </svg>

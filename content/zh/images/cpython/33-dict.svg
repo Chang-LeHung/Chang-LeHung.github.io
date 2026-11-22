@@ -7,7 +7,7 @@
   </defs>
 
   <!-- 左：PyDictObject -->
-  <text x="168" y="158" font-size="22" text-anchor="middle">PyDictObject</text>
+  <text x="168" y="158" font-size="26" text-anchor="middle">PyDictObject</text>
   <g stroke="#6c8ebf" stroke-width="1.5" fill="#dde8fa">
     <rect x="29" y="179" width="270" height="70"/>
     <rect x="29" y="249" width="270" height="71"/>
@@ -17,7 +17,7 @@
     <rect x="29" y="390" width="270" height="117"/>
     <rect x="29" y="507" width="270" height="94"/>
   </g>
-  <g font-size="21">
+  <g font-size="27">
     <text x="46" y="221">Py_ssize_t ob_refcnt</text>
     <text x="46" y="291">_typeobject *ob_type</text>
     <text x="46" y="362">Py_ssize_t ma_used</text>
@@ -29,10 +29,10 @@
   <!-- 前两个字段是 PyObject -->
   <path d="M332 179 Q 346 179 346 200 V 239 Q 346 250 360 250 Q 346 250 346 261 V 300 Q 346 320 332 320"
         fill="none" stroke="#444" stroke-width="1.5"/>
-  <text x="405" y="258" font-size="20">PyObject</text>
+  <text x="405" y="258" font-size="26">PyObject</text>
 
   <!-- 中：PyDictKeyEntry -->
-  <text x="811" y="62" font-size="22" text-anchor="middle">PyDictKeyEntry</text>
+  <text x="811" y="62" font-size="26" text-anchor="middle">PyDictKeyEntry</text>
   <g stroke="#9673a6" stroke-width="1.5" fill="#e1d5e7">
     <rect x="676" y="84" width="270" height="71"/>
     <rect x="676" y="155" width="270" height="70"/>
@@ -42,7 +42,7 @@
     <rect x="676" y="295" width="270" height="115"/>
     <rect x="676" y="410" width="270" height="117"/>
   </g>
-  <g font-size="21" text-anchor="middle">
+  <g font-size="27" text-anchor="middle">
     <text x="811" y="126">Py_ssize_t dk_refcnt</text>
     <text x="811" y="197">Py_ssize_t dk_size</text>
     <text x="811" y="267">Py_ssize_t dk_usable</text>
@@ -61,7 +61,7 @@
     <rect x="1225" y="343" width="269" height="70"/>
     <rect x="1225" y="413" width="269" height="70"/>
   </g>
-  <g font-size="21" text-anchor="middle">
+  <g font-size="27" text-anchor="middle">
     <text x="1359" y="176">dk_indices[0]</text>
     <text x="1359" y="246">dk_indices[1]</text>
     <text x="1359" y="316">......</text>
@@ -77,7 +77,7 @@
     <rect x="1115" y="814" width="270" height="70"/>
     <rect x="1115" y="884" width="270" height="70"/>
   </g>
-  <g font-size="21" text-anchor="middle">
+  <g font-size="27" text-anchor="middle">
     <text x="1250" y="647">dk_entries[0]</text>
     <text x="1250" y="717">dk_entries[1]</text>
     <text x="1250" y="787">dk_entries[2]</text>
@@ -91,7 +91,7 @@
     <rect x="1461" y="836" width="269" height="70"/>
     <rect x="1461" y="906" width="269" height="70"/>
   </g>
-  <g font-size="21" text-anchor="middle">
+  <g font-size="27" text-anchor="middle">
     <text x="1595" y="809">me_hash : 15</text>
     <text x="1595" y="879">me_key : Hello</text>
     <text x="1595" y="949">me_value : World</text>
@@ -113,8 +113,8 @@
   <circle cx="1358" cy="640" r="4" fill="#1a1a1a"/>
   <path d="M1358 640 H 1462 V 760" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-33dict)"/>
 
-  <g font-size="21">
-    <text x="1570" y="676">(hash(&quot;Hello&quot;)) = 15</text>
-    <text x="1570" y="729">(hash(&quot;Hello&quot;)) % 8 = 7</text>
+  <g font-size="26">
+    <text x="1570" y="688">(hash(&quot;Hello&quot;)) = 15</text>
+    <text x="1570" y="741">(hash(&quot;Hello&quot;)) % 8 = 7</text>
   </g>
 </svg>

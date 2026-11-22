@@ -6,7 +6,7 @@
     </marker>
   </defs>
 
-  <text x="316" y="45" font-size="19" text-anchor="middle">PyBytesObject</text>
+  <text x="316" y="45" font-size="20" text-anchor="middle">PyBytesObject</text>
 
   <!-- 九个字段 -->
   <g stroke="#6c8ebf" stroke-width="1.5" fill="#dbe7fb">
@@ -25,7 +25,7 @@
     <rect x="220" y="462" width="192" height="48"/>
   </g>
 
-  <g font-size="19" text-anchor="middle">
+  <g font-size="20" text-anchor="middle">
     <text x="316" y="92">Py_ssize_t ob_refcnt</text>
     <text x="316" y="142">_typeobject *ob_type</text>
     <text x="316" y="192">Py_ssize_t ob_size</text>

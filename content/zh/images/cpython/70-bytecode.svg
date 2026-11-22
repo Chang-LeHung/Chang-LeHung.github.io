@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 504 380" role="img" aria-label="栈里依次放着 range 迭代器和 None：粉色是 range 迭代器，紫色是 None，蓝色是空余的栈空间" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="504" height="380">
+  <defs>
+    <marker id="arrow-70-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 栈：上蓝、中紫、下粉 -->
+  <rect x="179" y="53" width="201" height="120" fill="#dde8fa" stroke="#738dbb" stroke-width="1.5"/>
+  <rect x="179" y="173" width="201" height="72" fill="#dfd5e6" stroke="#9174a3" stroke-width="1.5"/>
+  <rect x="179" y="245" width="201" height="71" fill="#f1d0cd" stroke="#ac5a54" stroke-width="1.5"/>
+  <text x="279" y="221" font-size="34" text-anchor="middle">None</text>
+  <text x="279" y="292" font-size="34" text-anchor="middle">range 迭代器</text>
+
+  <!-- 栈底与向上的箭头 -->
+  <text x="93" y="306" font-size="29">栈底</text>
+  <path d="M120 265 V45" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-70-bytecode)"/>
+</svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1296 690" role="img" aria-label="FrameObject 的结构：f_locals、f_globals、f_builtins 分别指向三个字典，f_code 指向 foo 的字节码，f_valuestack 指向求值栈" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1296" height="690">
+  <defs>
+    <marker id="arrow-74-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- f_locals 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="12" y="268" width="152" height="109" fill="#f7d5d0" stroke="#b76c5f"/>
+    <line x1="12" y1="304" x2="164" y2="304" stroke="#b76c5f"/>
+    <line x1="12" y1="340" x2="164" y2="340" stroke="#b76c5f"/>
+  </g>
+
+  <!-- f_globals 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="252" y="44" width="154" height="109" fill="#abdde2" stroke="#22737c"/>
+    <line x1="252" y1="81" x2="406" y2="81" stroke="#22737c"/>
+    <line x1="252" y1="117" x2="406" y2="117" stroke="#22737c"/>
+  </g>
+
+  <!-- f_builtins 指向的字典 -->
+  <g stroke-width="1.5">
+    <rect x="725" y="190" width="152" height="108" fill="#c9c8dc" stroke="#4b4970"/>
+    <line x1="725" y1="226" x2="877" y2="226" stroke="#4b4970"/>
+    <line x1="725" y1="262" x2="877" y2="262" stroke="#4b4970"/>
+  </g>
+
+  <!-- FrameObject -->
+  <rect x="402" y="302" width="153" height="105" fill="#d1e3cf" stroke="#82b366" stroke-width="1.5"/>
+  <text x="478" y="353" font-size="21" text-anchor="middle">foo()</text>
+  <text x="478" y="377" font-size="21" text-anchor="middle">FrameObject</text>
+
+  <!-- 求值栈 -->
+  <g stroke-width="1.5">
+    <rect x="402" y="407" width="153" height="73" fill="#abd7ec" stroke="#6c8ebf"/>
+    <line x1="402" y1="442" x2="555" y2="442" stroke="#6c8ebf"/>
+  </g>
+  <text x="478" y="433" font-size="24" text-anchor="middle">1</text>
+  <path d="M572 405 q11 0 11 11 v18 q0 8 8 9 q-8 1 -8 9 v18 q0 11 -11 11"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="613" y="449" font-size="20">stack</text>
+
+  <!-- f_globals：自 FrameObject 顶部绕到字典上方 -->
+  <path d="M516 302 V124" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M516 94 V25 H405 V38" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="482" y="119" font-size="20">f_globals</text>
+
+  <!-- f_locals：自 FrameObject 左侧绕到字典上方 -->
+  <path d="M402 318 H283 V272" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M283 248 V221 H163 V264" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="255" y="267" font-size="20">f_locals</text>
+
+  <!-- f_builtins：自 FrameObject 右侧绕到字典上方 -->
+  <path d="M555 330 H640 V238" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M640 212 V169 H726 V186" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="605" y="234" font-size="20">f_builtins</text>
+
+  <!-- f_code：指向右边的反汇编 -->
+  <path d="M555 357 H584" fill="none" stroke="#444" stroke-width="1.5"/>
+  <path d="M658 357 H798" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="590" y="367" font-size="20">f_code</text>
+
+  <!-- f_valuestack：指向蓝格左上角 -->
+  <path d="M402 354 H293 V407 H394" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-74-frame)"/>
+  <text x="248" y="388" font-size="20">f_valuestack</text>
+
+  <!-- foo 的字节码清单 -->
+  <g font-family="monospace" font-size="17">
+    <text x="813" y="374">6</text>
+    <text x="945" y="377" text-anchor="end">0</text>
+    <text x="958" y="377">LOAD_CONST</text>
+    <text x="1218" y="377">1 (1)</text>
+
+    <text x="945" y="400" text-anchor="end">2</text>
+    <text x="958" y="400">STORE_FAST</text>
+    <text x="1218" y="400">0 (a)</text>
+
+    <text x="813" y="443">7</text>
+    <text x="945" y="446" text-anchor="end">4</text>
+    <text x="958" y="446">LOAD_CONST</text>
+    <text x="1218" y="446">2 (2)</text>
+
+    <text x="945" y="469" text-anchor="end">6</text>
+    <text x="958" y="469">STORE_FAST</text>
+    <text x="1218" y="469">1 (b)</text>
+
+    <text x="813" y="511">8</text>
+    <text x="945" y="515" text-anchor="end">8</text>
+    <text x="958" y="515">LOAD_FAST</text>
+    <text x="1218" y="515">0 (a)</text>
+
+    <text x="945" y="538" text-anchor="end">10</text>
+    <text x="958" y="538">LOAD_FAST</text>
+    <text x="1218" y="538">1 (b)</text>
+
+    <text x="945" y="561" text-anchor="end">12</text>
+    <text x="958" y="561">BINARY_ADD</text>
+
+    <text x="945" y="584" text-anchor="end">14</text>
+    <text x="958" y="584">RETURN_VALUE</text>
+  </g>
+</svg>

@@ -16,5 +16,5 @@
   <rect x="359" y="91" width="238" height="147" rx="22" fill="none" stroke="#444" stroke-width="1.5"/>
   <rect x="393" y="113" width="60" height="31" fill="#dbe7fb" stroke="#6c8ebf" stroke-width="1.5"/>
   <text x="423" y="135" font-size="17" text-anchor="middle">1</text>
-  <text x="527" y="148" font-size="17">内存</text>
+  <text x="527" y="133" font-size="17">内存</text>
 </svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1124 350" role="img" aria-label="字节码的字节序列：成对的字节分别对应 LOAD_FAST、BINARY_ADD、RETURN_VALUE 两条指令及各自的操作数" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1124" height="350">
+  <defs>
+    <marker id="arrow-46-bytecode" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 字节格子 -->
+  <g stroke-width="1.5">
+    <rect x="120" y="27" width="101" height="69" fill="#fbe7cf" stroke="#d6b656"/>
+    <rect x="221" y="27" width="101" height="69" fill="#fbe7cf" stroke="#d6b656"/>
+    <rect x="322" y="27" width="102" height="69" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="424" y="27" width="101" height="69" fill="#dfd5e6" stroke="#9673a6"/>
+    <rect x="525" y="27" width="101" height="69" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="626" y="27" width="101" height="69" fill="#f1d0cd" stroke="#b85450"/>
+    <rect x="727" y="27" width="101" height="69" fill="#d9e7d6" stroke="#82b366"/>
+    <rect x="828" y="27" width="100" height="69" fill="#d9e7d6" stroke="#82b366"/>
+  </g>
+
+  <g font-size="38" text-anchor="middle">
+    <text x="170" y="72">124</text>
+    <text x="271" y="72">0</text>
+    <text x="373" y="72">124</text>
+    <text x="474" y="72">1</text>
+    <text x="575" y="72">23</text>
+    <text x="676" y="72">0</text>
+    <text x="777" y="72">83</text>
+    <text x="878" y="72">0</text>
+  </g>
+
+  <!-- 折线：从格子指向指令名 -->
+  <path d="M169 96 V177 H119 V258" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-46-bytecode)"/>
+  <path d="M373 96 V297 H246" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-46-bytecode)"/>
+  <path d="M575 96 V258" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-46-bytecode)"/>
+  <path d="M777 96 V177 H958 V258" fill="none" stroke="#444" stroke-width="1.5"
+        marker-end="url(#arrow-46-bytecode)"/>
+
+  <g font-size="35">
+    <text x="27" y="297">LOAD_FAST</text>
+    <text x="486" y="296">BINARY_ADD</text>
+    <text x="834" y="296">RETURN_VALUE</text>
+  </g>
+</svg>

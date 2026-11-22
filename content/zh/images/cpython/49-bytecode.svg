@@ -7,14 +7,14 @@
   </defs>
 
   <!-- 第一幅：decorator 与代码对象 -->
-  <text x="72" y="66" font-size="20" text-anchor="middle">栈顶</text>
+  <text x="96" y="68" font-size="24" text-anchor="middle">栈顶</text>
   <path d="M96 550 V 85" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-49bytecode)"/>
-  <text x="90" y="616" font-size="20" text-anchor="middle">栈底</text>
+  <text x="96" y="620" font-size="24" text-anchor="middle">栈底</text>
   <rect x="169" y="54" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
   <line x1="169" y1="453" x2="347" y2="453" stroke="#444" stroke-width="1.5"/>
   <line x1="169" y1="541" x2="347" y2="541" stroke="#444" stroke-width="1.5"/>
-  <text x="258" y="505" font-size="21" text-anchor="middle">&quot;decorator&quot;</text>
-  <text x="258" y="594" font-size="21" text-anchor="middle">code obejct</text>
+  <text x="258" y="505" font-size="26" text-anchor="middle">&quot;decorator&quot;</text>
+  <text x="258" y="594" font-size="26" text-anchor="middle">code obejct</text>
   <path d="M242 393 V 225 H 221 L 254 178 L 287 225 H 267 V 393 Z"
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
 
@@ -23,12 +23,12 @@
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
 
   <!-- 第二幅：弹掉 decorator，只剩代码对象 -->
-  <text x="690" y="66" font-size="20" text-anchor="middle">栈顶</text>
+  <text x="714" y="68" font-size="24" text-anchor="middle">栈顶</text>
   <path d="M714 550 V 90" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-49bytecode)"/>
-  <text x="708" y="616" font-size="20" text-anchor="middle">栈底</text>
+  <text x="714" y="620" font-size="24" text-anchor="middle">栈底</text>
   <rect x="787" y="60" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
   <line x1="787" y1="547" x2="965" y2="547" stroke="#444" stroke-width="1.5"/>
-  <text x="876" y="600" font-size="21" text-anchor="middle">code obejct</text>
+  <text x="876" y="600" font-size="26" text-anchor="middle">code obejct</text>
   <path d="M838 400 V 232 H 817 L 850 185 L 883 232 H 863 V 400 Z"
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
 
@@ -38,15 +38,15 @@
   <!-- 第三幅：压入 decorator 函数 -->
   <rect x="1270" y="71" width="178" height="576" fill="none" stroke="#444" stroke-width="1.5"/>
   <line x1="1270" y1="558" x2="1448" y2="558" stroke="#444" stroke-width="1.5"/>
-  <text x="1359" y="611" font-size="20" text-anchor="middle">decorator 函数</text>
+  <text x="1359" y="611" font-size="26" text-anchor="middle">decorator 函数</text>
   <path d="M1336 186 V 368 H 1318 L 1345 427 L 1377 368 H 1364 V 186 Z"
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
 
   <!-- 右侧图例 -->
   <path d="M1544 168 V 112 H 1525 L 1559 68 L 1593 112 H 1574 V 168 Z"
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
-  <text x="1642" y="124" font-size="21">入栈</text>
+  <text x="1642" y="126" font-size="24">入栈</text>
   <path d="M1544 227 V 280 H 1525 L 1559 318 L 1593 280 H 1574 V 227 Z"
         fill="#ffffff" stroke="#444" stroke-width="1.5"/>
-  <text x="1642" y="265" font-size="21">出栈</text>
+  <text x="1642" y="268" font-size="24">出栈</text>
 </svg>

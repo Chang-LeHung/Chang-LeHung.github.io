@@ -15,6 +15,6 @@
   <rect x="153" y="149" width="200" height="72" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
   <rect x="153" y="222" width="200" height="70" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
 
-  <text x="253" y="197" font-size="24" text-anchor="middle">0</text>
-  <text x="253" y="271" font-size="24" text-anchor="middle">range 迭代器</text>
+  <text x="253" y="200" font-size="32" text-anchor="middle">0</text>
+  <text x="253" y="273" font-size="32" text-anchor="middle">range 迭代器</text>
 </svg>

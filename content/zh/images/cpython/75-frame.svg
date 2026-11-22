@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1298 676" role="img"
+     aria-label="frame 对象与它引用的命名空间及代码对象：f_locals、f_globals、f_builtins 分别指向局部、全局、内建命名空间，f_valuestack 指向求值栈，f_code 指向存放字节码的 code 对象"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-75-frame" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- f_globals：全局命名空间 -->
+  <g fill="#b0e3e6" stroke="#0e8088" stroke-width="1.5">
+    <rect x="249" y="40" width="151" height="36"/>
+    <rect x="249" y="76" width="151" height="36"/>
+    <rect x="249" y="112" width="151" height="36"/>
+  </g>
+  <text x="510" y="110" font-size="17" text-anchor="middle">f_globals</text>
+
+  <!-- f_builtins：内建命名空间 -->
+  <g fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5">
+    <rect x="721" y="185" width="151" height="36"/>
+    <rect x="721" y="221" width="151" height="36"/>
+    <rect x="721" y="257" width="151" height="36"/>
+  </g>
+  <text x="636" y="220" font-size="17" text-anchor="middle">f_builtins</text>
+
+  <!-- f_locals：局部命名空间 -->
+  <g fill="#f8cecc" stroke="#b85450" stroke-width="1.5">
+    <rect x="8" y="264" width="150" height="36"/>
+    <rect x="8" y="300" width="150" height="36"/>
+    <rect x="8" y="336" width="150" height="35"/>
+  </g>
+  <text x="279" y="255" font-size="17" text-anchor="middle">f_locals</text>
+
+  <!-- frame 对象本身 -->
+  <rect x="399" y="298" width="149" height="103" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
+  <text x="473" y="346" font-size="19" text-anchor="middle">foo()</text>
+  <text x="473" y="376" font-size="19" text-anchor="middle">FrameObject</text>
+
+  <!-- f_valuestack：求值栈 -->
+  <g fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5">
+    <rect x="399" y="402" width="149" height="36"/>
+    <rect x="399" y="438" width="149" height="36"/>
+  </g>
+  <text x="473" y="425" font-size="19" text-anchor="middle">1</text>
+  <text x="473" y="461" font-size="19" text-anchor="middle">2</text>
+  <path d="M570 400 q10 0 10 24 v3 q0 8 10 8 q-10 0 -10 8 v3 q0 24 -10 24"
+        fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="606" y="441" font-size="17">stack</text>
+
+  <!-- 连接线：跨过文字的地方断开，和原图一致 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M511 298 V122"/>
+    <path d="M511 88 V25 H395 V38" marker-end="url(#arrow-75-frame)"/>
+    <path d="M399 313 H278 V267"/>
+    <path d="M278 240 V215 H160 V262" marker-end="url(#arrow-75-frame)"/>
+    <path d="M548 323 H636 V230"/>
+    <path d="M636 205 V165 H724 V183" marker-end="url(#arrow-75-frame)"/>
+    <path d="M548 352 H596"/>
+    <path d="M652 352 H793" marker-end="url(#arrow-75-frame)"/>
+    <path d="M399 349 H292 V362"/>
+    <path d="M292 390 V401 H396" marker-end="url(#arrow-75-frame)"/>
+  </g>
+  <text x="625" y="358" font-size="17" text-anchor="middle">f_code</text>
+  <text x="295" y="377" font-size="17" text-anchor="middle">f_valuestack</text>
+
+  <!-- f_code 指向的字节码 -->
+  <line x1="800" y1="345" x2="800" y2="600" stroke="#999" stroke-width="1"/>
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="17">
+    <text x="805" y="370">6</text>
+    <text x="933" y="370">0</text>
+    <text x="963" y="370">LOAD_CONST</text>
+    <text x="1220" y="370" text-anchor="end">1</text>
+    <text x="1243" y="370">(1)</text>
+
+    <text x="933" y="393">2</text>
+    <text x="963" y="393">STORE_FAST</text>
+    <text x="1220" y="393" text-anchor="end">0</text>
+    <text x="1243" y="393">(a)</text>
+
+    <text x="805" y="439">7</text>
+    <text x="933" y="439">4</text>
+    <text x="963" y="439">LOAD_CONST</text>
+    <text x="1220" y="439" text-anchor="end">2</text>
+    <text x="1243" y="439">(2)</text>
+
+    <text x="933" y="462">6</text>
+    <text x="963" y="462">STORE_FAST</text>
+    <text x="1220" y="462" text-anchor="end">1</text>
+    <text x="1243" y="462">(b)</text>
+
+    <text x="805" y="508">8</text>
+    <text x="933" y="508">8</text>
+    <text x="963" y="508">LOAD_FAST</text>
+    <text x="1220" y="508" text-anchor="end">0</text>
+    <text x="1243" y="508">(a)</text>
+
+    <text x="933" y="531">10</text>
+    <text x="963" y="531">LOAD_FAST</text>
+    <text x="1220" y="531" text-anchor="end">1</text>
+    <text x="1243" y="531">(b)</text>
+
+    <text x="933" y="554">12</text>
+    <text x="963" y="554">BINARY_ADD</text>
+
+    <text x="933" y="577">14</text>
+    <text x="963" y="577">RETURN_VALUE</text>
+  </g>
+</svg>

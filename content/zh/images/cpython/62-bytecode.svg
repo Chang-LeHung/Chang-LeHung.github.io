@@ -10,12 +10,12 @@
 
   <!-- 栈的增长方向 -->
   <path d="M27 220 V 50" fill="none" stroke="#444" stroke-width="1.5" marker-end="url(#arrow-62bytecode)"/>
-  <text x="13" y="228" font-size="17">栈底</text>
+  <text x="13" y="228" font-size="15">栈底</text>
 
   <!-- 栈：顶部空闲，往下依次是 1 与 a = 1 -->
   <rect x="62" y="52" width="86" height="181" fill="none" stroke="#444" stroke-width="1.5"/>
   <line x1="62" y1="170" x2="148" y2="170" stroke="#444" stroke-width="1.5"/>
   <line x1="62" y1="202" x2="148" y2="202" stroke="#444" stroke-width="1.5"/>
-  <text x="105" y="192" font-size="18" text-anchor="middle">1</text>
-  <text x="105" y="223" font-size="18" text-anchor="middle">a = 1</text>
+  <text x="105" y="192" font-size="16" text-anchor="middle">1</text>
+  <text x="105" y="223" font-size="16" text-anchor="middle">a = 1</text>
 </svg>

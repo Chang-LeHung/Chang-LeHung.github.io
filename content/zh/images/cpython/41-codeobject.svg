@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 624 277" role="img" aria-label="栈里的一格指向内存中的两个对象：栈底往下依次存放 1 和 2，栈自栈底向栈顶生长" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-codeobject41" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- 栈 -->
+  <rect x="91" y="30" width="78" height="173" fill="none" stroke="#000" stroke-width="1.5"/>
+  <rect x="92" y="203" width="76" height="35" fill="#fee2c7" stroke="#ce9d35" stroke-width="1.5"/>
+
+  <!-- 栈顶方向的细箭头 -->
+  <path d="M48 219 V49" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-codeobject41)"/>
+  <text x="34" y="29" font-size="16">栈顶</text>
+  <text x="34" y="242" font-size="16">栈底</text>
+
+  <!-- 从栈中的指针指向内存 -->
+  <circle cx="128" cy="220" r="5" fill="#000"/>
+  <path d="M128 220 H253 V170 H388" fill="none" stroke="#000" stroke-width="1.5" marker-end="url(#arrow-codeobject41)"/>
+
+  <!-- 内存 -->
+  <rect x="357" y="89" width="241" height="149" rx="18" fill="none" stroke="#000" stroke-width="1.5"/>
+  <text x="546" y="126" font-size="16">内存</text>
+
+  <g fill="#d5e5fa" stroke="#6284b4" stroke-width="1.5">
+    <rect x="393" y="111" width="60" height="31"/>
+    <rect x="393" y="172" width="60" height="31"/>
+  </g>
+  <g font-size="16" text-anchor="middle">
+    <text x="423" y="130">1</text>
+    <text x="423" y="191">2</text>
+  </g>
+</svg>

@@ -17,7 +17,7 @@
   <!-- 右侧：两块数字位 -->
   <rect x="407" y="103" width="678" height="65" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
   <rect x="407" y="168" width="678" height="64" fill="#f8cecc" stroke="#b85450" stroke-width="1.5"/>
-  <g font-size="30" text-anchor="middle">
+  <g font-size="36" text-anchor="middle">
     <text x="746" y="145">0011 1111 1111 1111 1111 1111 1111 1111</text>
     <text x="746" y="209">0000 0000 0000 0000 0000 0000 0000 0100</text>
   </g>

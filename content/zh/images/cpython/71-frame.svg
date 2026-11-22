@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 601 611" role="img"
+     aria-label="PyFrameObject 与 f_localsplus 数组的布局：数组里依次是各作用域的局部变量、cell 变量、free 变量和求值栈"
+     font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <!-- 结构体：PyFrameObject 头 + f_localsplus 数组 -->
+  <g stroke-width="1.5">
+    <rect x="198" y="29" width="190" height="66" fill="#f8cecc" stroke="#b85450"/>
+    <rect x="198" y="95" width="190" height="32" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="198" y="177" width="190" height="32" fill="#d5e8d4" stroke="#82b366"/>
+    <rect x="198" y="209" width="190" height="32" fill="#ffe6cc" stroke="#d79b00"/>
+    <rect x="198" y="291" width="190" height="32" fill="#ffe6cc" stroke="#d79b00"/>
+    <rect x="198" y="323" width="190" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="198" y="405" width="190" height="32" fill="#e1d5e7" stroke="#9673a6"/>
+    <rect x="198" y="437" width="190" height="32" fill="#f5f5f5" stroke="#666666"/>
+    <rect x="198" y="519" width="190" height="32" fill="#f5f5f5" stroke="#666666"/>
+  </g>
+  <text x="293" y="69" font-size="17" text-anchor="middle">PyFrameObject</text>
+
+  <!-- 省略号：数组被截断的地方 -->
+  <g stroke="#444" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="0.1 8">
+    <line x1="293" y1="138" x2="293" y2="166"/>
+    <line x1="293" y1="252" x2="293" y2="280"/>
+    <line x1="293" y1="366" x2="293" y2="394"/>
+    <line x1="293" y1="480" x2="293" y2="508"/>
+  </g>
+
+  <!-- 四段花括号 -->
+  <g fill="none" stroke="#1a1a1a" stroke-width="2">
+    <path d="M186 106 q-16 0 -16 24 v16.5 q0 8 -13 8 q13 0 13 8 v16.5 q0 24 16 24"/>
+    <path d="M186 221 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+    <path d="M186 334 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+    <path d="M186 448 q-16 0 -16 24 v16 q0 8 -13 8 q13 0 13 8 v16 q0 24 16 24"/>
+  </g>
+  <g font-size="15" text-anchor="end">
+    <text x="150" y="162">f_localsplus</text>
+    <text x="150" y="273">ncells</text>
+    <text x="150" y="387">nfrees</text>
+    <text x="150" y="501">stack</text>
+  </g>
+</svg>

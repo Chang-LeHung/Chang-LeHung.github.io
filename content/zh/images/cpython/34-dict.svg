@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1852 1242" role="img" aria-label="PyDictObject、PyDictKeysObject、dk_indices 数组、dk_entries 数组与两个 PyDictKeyEntry 之间的指向关系，并标注 hash 值与取模索引" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif">
+  <defs>
+    <marker id="arrow-dict34" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- PyDictObject -->
+  <g stroke-width="1.5">
+    <rect x="61" y="136" width="268" height="68" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="61" y="206" width="268" height="68" fill="#dde8fa" stroke="#738dbb"/>
+    <rect x="61" y="276" width="268" height="68" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="61" y="347" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="61" y="464" width="268" height="91" fill="#d9e7d6" stroke="#8cb26e"/>
+  </g>
+
+  <!-- PyDictKeysObject -->
+  <g stroke-width="1.5">
+    <rect x="683" y="77" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="147" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="217" width="268" height="68" fill="#dfd5e6" stroke="#9579a6"/>
+    <rect x="683" y="287" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+    <rect x="683" y="403" width="268" height="114" fill="#d9e7d6" stroke="#8cb26e"/>
+  </g>
+
+  <!-- dk_indices 数组 -->
+  <g fill="#fbe7cf" stroke="#ce9d35" stroke-width="1.5">
+    <rect x="1231" y="126" width="268" height="68"/>
+    <rect x="1231" y="196" width="268" height="68"/>
+    <rect x="1231" y="266" width="268" height="68"/>
+    <rect x="1231" y="336" width="268" height="68"/>
+    <rect x="1231" y="406" width="268" height="68"/>
+  </g>
+
+  <!-- dk_entries 数组 -->
+  <g fill="#fdf2d0" stroke="#d1b765" stroke-width="1.5">
+    <rect x="1121" y="597" width="268" height="67"/>
+    <rect x="1121" y="667" width="268" height="67"/>
+    <rect x="1121" y="737" width="268" height="67"/>
+    <rect x="1121" y="807" width="268" height="67"/>
+    <rect x="1121" y="877" width="268" height="67"/>
+  </g>
+
+  <!-- 两个 PyDictKeyEntry -->
+  <g fill="#dde8fa" stroke="#738dbb" stroke-width="1.5">
+    <rect x="1467" y="759" width="268" height="68"/>
+    <rect x="1467" y="829" width="268" height="68"/>
+    <rect x="1467" y="899" width="268" height="68"/>
+    <rect x="1467" y="1005" width="268" height="68"/>
+    <rect x="1467" y="1075" width="268" height="68"/>
+    <rect x="1467" y="1145" width="268" height="68"/>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#000" stroke-width="1.5">
+    <path d="M329 441 H557 V75 H680" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 287 L1225 128" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 402 L1224 470" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 402 L1115 588" marker-end="url(#arrow-dict34)"/>
+    <path d="M951 517 L1118 938" marker-end="url(#arrow-dict34)"/>
+    <path d="M1464 159 H1535 V665 H1396" marker-end="url(#arrow-dict34)"/>
+    <path d="M1466 440 H1563 V595 H1396" marker-end="url(#arrow-dict34)"/>
+    <path d="M1359 630 H1465 V750" marker-end="url(#arrow-dict34)"/>
+    <path d="M1360 700 H1427 V1000" marker-end="url(#arrow-dict34)"/>
+  </g>
+  <g fill="#000">
+    <circle cx="1462" cy="159" r="4.5"/>
+    <circle cx="1464" cy="440" r="4.5"/>
+    <circle cx="1357" cy="630" r="4.5"/>
+    <circle cx="1358" cy="700" r="4.5"/>
+  </g>
+
+  <!-- 标题 -->
+  <g font-size="26" text-anchor="middle">
+    <text x="195" y="108">PyDictObject</text>
+    <text x="817" y="49">PyDictKeyEntry</text>
+  </g>
+
+  <!-- PyDictObject 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="195" y="179">Py_ssize_t ob_refcnt</text>
+    <text x="195" y="249">_typeobject *ob_type</text>
+    <text x="195" y="319">Py_ssize_t ma_used</text>
+    <text x="193" y="400">PyDictKeysObject</text>
+    <text x="193" y="431">*ma_keys</text>
+    <text x="193" y="519">PyObject **ma_values</text>
+  </g>
+
+  <!-- PyDictKeysObject 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="817" y="120">Py_ssize_t dk_refcnt</text>
+    <text x="817" y="190">Py_ssize_t dk_size</text>
+    <text x="817" y="260">Py_ssize_t dk_usable</text>
+    <text x="817" y="355">dk_indices</text>
+    <text x="817" y="470">dk_entries</text>
+  </g>
+
+  <!-- dk_indices 数组的内容 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1365" y="170">dk_indices[0]</text>
+    <text x="1365" y="240">dk_indices[1]</text>
+    <text x="1365" y="311">......</text>
+    <text x="1365" y="380">dk_indices[6]</text>
+    <text x="1365" y="450">dk_indices[7]</text>
+  </g>
+
+  <!-- dk_entries 数组的内容 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1255" y="641">dk_entries[0]</text>
+    <text x="1255" y="711">dk_entries[1]</text>
+    <text x="1255" y="781">dk_entries[2]</text>
+    <text x="1255" y="851">dk_entries[3]</text>
+    <text x="1255" y="921">dk_entries[4]</text>
+  </g>
+
+  <!-- 两个 entry 的字段 -->
+  <g font-size="28" text-anchor="middle">
+    <text x="1601" y="803">me_hash : 15</text>
+    <text x="1601" y="873">me_key : Hello</text>
+    <text x="1601" y="943">me_value : World</text>
+    <text x="1601" y="1049">me_hash : 8</text>
+    <text x="1601" y="1119">me_key : World</text>
+    <text x="1601" y="1189">me_value : Hello</text>
+  </g>
+
+  <!-- hash 计算的注解 -->
+  <g font-size="30" text-anchor="middle">
+    <text x="1680" y="677">(hash("Hello")) = 15</text>
+    <text x="1680" y="707">(hash("Hello")) % 8 = 7</text>
+    <text x="1271" y="1040">(hash("World")) = 8</text>
+    <text x="1271" y="1070">(hash("World")) % 8 = 0</text>
+  </g>
+
+  <!-- 花括号：包住前两个字段 -->
+  <path d="M361 134 H368 Q371 134 371 140 V197 Q371 204 381 204 Q371 204 371 211 V269 Q371 275 368 275 H361"
+        fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+  <text x="439" y="212" font-size="28">PyObject</text>
+</svg>

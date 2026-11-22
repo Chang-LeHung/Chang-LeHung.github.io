@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1144 344" role="img" aria-label="PyListObject 的 ob_item 指向 PyObject* 数组，数组的四个元素分别指向数字 1、2、列表 [1, 2] 和元组 (1, 2)" font-family="Seaford, 'Songti SC', STSong, SimSun, 'Noto Serif CJK SC', Palatino, 'Source Serif Pro', serif" width="1144" height="344">
+  <defs>
+    <marker id="arrow-07-list" viewBox="0 0 10 10" refX="9.5" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+
+  <!-- 左侧：PyListObject -->
+  <g stroke-width="1.5">
+    <rect x="41" y="87" width="193" height="161" fill="#abdde2" stroke="#22737c"/>
+    <line x1="41" y1="119.2" x2="234" y2="119.2" stroke="#22737c"/>
+    <line x1="41" y1="151.4" x2="234" y2="151.4" stroke="#22737c"/>
+    <line x1="41" y1="183.6" x2="234" y2="183.6" stroke="#22737c"/>
+    <line x1="41" y1="215.8" x2="234" y2="215.8" stroke="#22737c"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="137" y="113">Py_ssize_t ob_refcnt</text>
+    <text x="137" y="145">_typeobject *ob_type</text>
+    <text x="137" y="177">Py_ssize_t ob_size</text>
+    <text x="137" y="209">PyObject **ob_item;</text>
+    <text x="137" y="241">Py_ssize_t allocated</text>
+  </g>
+
+  <!-- 中间：ob_item 指向的 PyObject* 数组 -->
+  <g stroke-width="1.5">
+    <rect x="366" y="77" width="94" height="160" fill="#d1e3cf" stroke="#7da762"/>
+    <line x1="366" y1="117" x2="460" y2="117" stroke="#7da762"/>
+    <line x1="366" y1="157" x2="460" y2="157" stroke="#7da762"/>
+    <line x1="366" y1="197" x2="460" y2="197" stroke="#7da762"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="413" y="107">PyObject*</text>
+    <text x="413" y="147">PyObject*</text>
+    <text x="413" y="187">PyObject*</text>
+    <text x="413" y="227">PyObject*</text>
+  </g>
+
+  <!-- 右侧：另一个 PyObject* 数组 -->
+  <g stroke-width="1.5">
+    <rect x="729" y="100" width="94" height="160" fill="#d1e3cf" stroke="#7da762"/>
+    <line x1="729" y1="140" x2="823" y2="140" stroke="#7da762"/>
+    <line x1="729" y1="180" x2="823" y2="180" stroke="#7da762"/>
+    <line x1="729" y1="220" x2="823" y2="220" stroke="#7da762"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="776" y="130">PyObject*</text>
+    <text x="776" y="170">PyObject*</text>
+    <text x="776" y="210">PyObject*</text>
+    <text x="776" y="250">PyObject*</text>
+  </g>
+
+  <!-- 最右：PyListObject -->
+  <g stroke-width="1.5">
+    <rect x="897" y="97" width="193" height="160" fill="#abdde2" stroke="#22737c"/>
+    <line x1="897" y1="129" x2="1090" y2="129" stroke="#22737c"/>
+    <line x1="897" y1="161" x2="1090" y2="161" stroke="#22737c"/>
+    <line x1="897" y1="193" x2="1090" y2="193" stroke="#22737c"/>
+    <line x1="897" y1="225" x2="1090" y2="225" stroke="#22737c"/>
+  </g>
+  <g font-size="20" text-anchor="middle">
+    <text x="993" y="123">Py_ssize_t ob_refcnt</text>
+    <text x="993" y="155">_typeobject *ob_type</text>
+    <text x="993" y="187">Py_ssize_t ob_size</text>
+    <text x="993" y="219">PyObject **ob_item;</text>
+    <text x="993" y="251">Py_ssize_t allocated</text>
+  </g>
+
+  <!-- 四个被指向的对象 -->
+  <g stroke-width="1.5" fill="#ffffff" stroke="#444">
+    <rect x="545" y="49" width="71" height="39"/>
+    <rect x="545" y="114" width="71" height="39"/>
+    <rect x="545" y="193" width="71" height="39"/>
+    <rect x="545" y="266" width="71" height="39"/>
+  </g>
+  <g font-size="21" text-anchor="middle">
+    <text x="580" y="75">1</text>
+    <text x="580" y="140">2</text>
+    <text x="580" y="219">[1, 2]</text>
+    <text x="580" y="292">(1, 2)</text>
+  </g>
+
+  <!-- 连线 -->
+  <g fill="none" stroke="#444" stroke-width="1.5">
+    <path d="M234 197 H274 V77 H361" marker-end="url(#arrow-07-list)"/>
+    <path d="M460 97 H502 V68 H541" marker-end="url(#arrow-07-list)"/>
+    <path d="M460 133 H541" marker-end="url(#arrow-07-list)"/>
+    <path d="M460 177 H485 V212 H541" marker-end="url(#arrow-07-list)"/>
+    <path d="M427 237 V285 H541" marker-end="url(#arrow-07-list)"/>
+    <path d="M729 120 H672 V68 H620" marker-end="url(#arrow-07-list)"/>
+    <path d="M729 160 H673 V133 H620" marker-end="url(#arrow-07-list)"/>
+    <path d="M729 200 H673 V212 H620" marker-end="url(#arrow-07-list)"/>
+    <path d="M729 240 H672 V285 H620" marker-end="url(#arrow-07-list)"/>
+    <path d="M897 209 H860 V80 H818 V96" marker-end="url(#arrow-07-list)"/>
+  </g>
+</svg>

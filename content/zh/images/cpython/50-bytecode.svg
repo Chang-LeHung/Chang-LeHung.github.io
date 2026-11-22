@@ -11,9 +11,9 @@
   </g>
 
   <g font-size="24">
-    <text x="24" y="71">栈顶</text>
-    <text x="24" y="626">栈底</text>
-    <text x="129" y="599">decorator 函数</text>
+    <text x="24" y="68">栈顶</text>
+    <text x="24" y="623">栈底</text>
+    <text x="129" y="596" font-size="25">decorator 函数</text>
   </g>
 
   <!-- 指向右边的空心箭头 -->
@@ -25,15 +25,15 @@
     <path d="M544 80 L537 98 H552 Z" fill="#fff"/>
   </g>
   <g font-size="24">
-    <text x="522" y="61">栈顶</text>
-    <text x="522" y="615">栈底</text>
+    <text x="522" y="58">栈顶</text>
+    <text x="522" y="612">栈底</text>
   </g>
 
   <!-- 入栈、出栈 -->
   <path d="M868 48 L841 82 H857 V142 H879 V82 H895 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
   <path d="M868 286 L837 245 H857 V198 H879 V245 H898 Z" fill="#fff" stroke="#000" stroke-width="1.6"/>
   <g font-size="24">
-    <text x="958" y="101">入栈</text>
-    <text x="966" y="235">出栈</text>
+    <text x="955" y="97">入栈</text>
+    <text x="963" y="231">出栈</text>
   </g>
 </svg>

@@ -9,7 +9,7 @@
   <rect x="27" y="151" width="192" height="50" fill="#d5e8d4" stroke="#82b366" stroke-width="1.5"/>
   <rect x="27" y="201" width="192" height="50" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
 
-  <g font-size="19" text-anchor="middle">
+  <g font-size="20" text-anchor="middle">
     <text x="123" y="82">Py_ssize_t ob_refcnt</text>
     <text x="123" y="132">_typeobject *ob_type</text>
     <text x="123" y="182">double real</text>
